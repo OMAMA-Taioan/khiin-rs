@@ -12,7 +12,7 @@ use windows::Win32::UI::TextServices::ITfThreadMgr;
 #[implement(ITfTextInputProcessorEx, ITfTextInputProcessor)]
 #[allow(dead_code)]
 pub struct TextService {
-    dll_ref_count: Arc<AtomicUsize>,
+    pub dll_ref_count: Arc<AtomicUsize>,
 }
 
 impl ITfTextInputProcessor_Impl for TextService {
@@ -32,16 +32,19 @@ impl ITfTextInputProcessorEx_Impl for TextService {
         _tid: u32,
         _dwflags: u32,
     ) -> Result<()> {
-        if ptim.is_none() {
-            return Ok(());
+        match ptim {
+            Some(thread_mgr) => self.activate(thread_mgr),
+            None => Ok(())
         }
-
-        Ok(())
     }
 }
 
 impl TextService {
-    pub fn new(dll_ref_count: Arc<AtomicUsize>) -> Self {
-        TextService { dll_ref_count }
+    fn activate(&self, thread_mgr: &ITfThreadMgr) -> Result<()> {
+        Ok(())
+    }
+
+    fn deactivate(&self) -> Result<()> {
+        Ok(())
     }
 }

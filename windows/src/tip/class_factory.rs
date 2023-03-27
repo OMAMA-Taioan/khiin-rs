@@ -60,14 +60,7 @@ impl IClassFactory_Impl for KhiinClassFactory {
             return Err(Error::from(CLASS_E_NOAGGREGATION));
         }
 
-        let text_service: Option<TextService> = match *riid {
-            IID_ITfTextInputProcessor => {
-                Some(TextService::new(self.dll_ref_count.clone()))
-            }
-            _ => None,
-        };
-
-        if text_service.is_none() {
+        if *riid != IID_ITfTextInputProcessor {
             warn!(
                 "KhiinClassFactory: Unexpected IID Requested: {}",
                 riid.to_string().unwrap_or_default()
@@ -76,7 +69,10 @@ impl IClassFactory_Impl for KhiinClassFactory {
             return Err(Error::from(E_NOINTERFACE));
         }
 
-        let text_service: ITfTextInputProcessor = text_service.unwrap().into();
+        let text_service: ITfTextInputProcessor = TextService {
+            dll_ref_count: self.dll_ref_count.clone(),
+        }
+        .into();
 
         *ppvobject = unsafe { core::mem::transmute(text_service) };
 
