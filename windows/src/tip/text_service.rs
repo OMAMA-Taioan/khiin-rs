@@ -9,6 +9,8 @@ use windows::Win32::UI::TextServices::ITfTextInputProcessorEx_Impl;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor_Impl;
 use windows::Win32::UI::TextServices::ITfThreadMgr;
 
+use super::display_attribute_info_enum::DisplayAttributeInfoEnum;
+
 #[implement(ITfTextInputProcessorEx, ITfTextInputProcessor)]
 #[allow(dead_code)]
 pub struct TextService {
@@ -21,7 +23,7 @@ impl ITfTextInputProcessor_Impl for TextService {
     }
 
     fn Deactivate(&self) -> Result<()> {
-        Ok(())
+        self.deactivate()
     }
 }
 
@@ -41,6 +43,8 @@ impl ITfTextInputProcessorEx_Impl for TextService {
 
 impl TextService {
     fn activate(&self, thread_mgr: &ITfThreadMgr) -> Result<()> {
+        let display_attributes = DisplayAttributeInfoEnum::new();
+
         Ok(())
     }
 

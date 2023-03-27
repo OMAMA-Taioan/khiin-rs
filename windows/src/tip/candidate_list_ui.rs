@@ -1,13 +1,13 @@
-use windows::Win32::Foundation::BOOL;
-use windows::Win32::UI::TextServices::ITfDocumentMgr;
-use windows::core::BSTR;
-use windows::core::GUID;
 use windows::core::implement;
 use windows::core::Result;
+use windows::core::BSTR;
+use windows::core::GUID;
+use windows::Win32::Foundation::BOOL;
 use windows::Win32::UI::TextServices::ITfCandidateListUIElement;
 use windows::Win32::UI::TextServices::ITfCandidateListUIElementBehavior;
 use windows::Win32::UI::TextServices::ITfCandidateListUIElementBehavior_Impl;
 use windows::Win32::UI::TextServices::ITfCandidateListUIElement_Impl;
+use windows::Win32::UI::TextServices::ITfDocumentMgr;
 use windows::Win32::UI::TextServices::ITfUIElement;
 use windows::Win32::UI::TextServices::ITfUIElement_Impl;
 
@@ -27,10 +27,7 @@ impl ITfUIElement_Impl for CandidateListUI {
         todo!()
     }
 
-    fn Show(
-        &self,
-        bshow: BOOL,
-    ) -> Result<()> {
+    fn Show(&self, bshow: BOOL) -> Result<()> {
         todo!()
     }
 
@@ -44,9 +41,7 @@ impl ITfCandidateListUIElement_Impl for CandidateListUI {
         todo!()
     }
 
-    fn GetDocumentMgr(
-        &self,
-    ) -> Result<ITfDocumentMgr> {
+    fn GetDocumentMgr(&self) -> Result<ITfDocumentMgr> {
         todo!()
     }
 

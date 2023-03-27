@@ -3,6 +3,7 @@ pub mod class_factory;
 mod candidate_list_ui;
 mod compartment_event_sink;
 mod composition_sink;
+mod display_attribute_info;
 mod display_attribute_info_enum;
 mod display_attribute_provider;
 mod edit_session;
