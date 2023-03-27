@@ -76,9 +76,28 @@ pub const DISPLAY_ATTRIBUTE_FOCUSED: TF_DISPLAYATTRIBUTE =
 #[implement(ITfDisplayAttributeInfo)]
 #[derive(Clone)]
 pub struct DisplayAttributeInfo {
-    pub description: String,
-    pub guid: GUID,
-    pub attribute: Cell<TF_DISPLAYATTRIBUTE>,
+    description: String,
+    guid: GUID,
+    attribute: Cell<TF_DISPLAYATTRIBUTE>,
+    attribute_backup: TF_DISPLAYATTRIBUTE,
+}
+
+impl DisplayAttributeInfo {
+    pub fn new(
+        description: String,
+        guid: GUID,
+        attribute: TF_DISPLAYATTRIBUTE,
+    ) -> Result<ITfDisplayAttributeInfo> {
+        unsafe {
+            DisplayAttributeInfo {
+                description,
+                guid,
+                attribute: Cell::new(attribute),
+                attribute_backup: attribute,
+            }
+            .cast()
+        }
+    }
 }
 
 impl ITfDisplayAttributeInfo_Impl for DisplayAttributeInfo {
@@ -107,6 +126,7 @@ impl ITfDisplayAttributeInfo_Impl for DisplayAttributeInfo {
     }
 
     fn Reset(&self) -> Result<()> {
+        self.attribute.set(self.attribute_backup);
         Ok(())
     }
 }

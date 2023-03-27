@@ -8,38 +8,53 @@ use windows::Win32::UI::TextServices::IEnumTfDisplayAttributeInfo;
 use windows::Win32::UI::TextServices::IEnumTfDisplayAttributeInfo_Impl;
 use windows::Win32::UI::TextServices::ITfDisplayAttributeInfo;
 
-use crate::tip::display_attribute_info::*;
 use crate::reg::guids::IID_DISPLAY_ATTRIBUTE_CONVERTED;
 use crate::reg::guids::IID_DISPLAY_ATTRIBUTE_FOCUSED;
 use crate::reg::guids::IID_DISPLAY_ATTRIBUTE_INPUT;
+use crate::tip::display_attribute_info::*;
 
 #[implement(IEnumTfDisplayAttributeInfo)]
 pub struct DisplayAttributeInfoEnum {
-    attributes: Vec<DisplayAttributeInfo>,
+    attributes: Vec<ITfDisplayAttributeInfo>,
     current_index: Cell<usize>,
 }
 
 impl DisplayAttributeInfoEnum {
     pub fn new() -> Self {
-        let mut attributes: Vec<DisplayAttributeInfo> = Vec::new();
+        let mut attributes: Vec<ITfDisplayAttributeInfo> = Vec::new();
 
-        attributes.push(DisplayAttributeInfo {
-            description: String::from("Input"),
-            guid: IID_DISPLAY_ATTRIBUTE_INPUT,
-            attribute: Cell::from(DISPLAY_ATTRIBUTE_INPUT),
-        });
+        let attr = DisplayAttributeInfo::new(
+            String::from("Input"),
+            IID_DISPLAY_ATTRIBUTE_INPUT,
+            DISPLAY_ATTRIBUTE_INPUT,
+        );
 
-        attributes.push(DisplayAttributeInfo {
-            description: String::from("Converted"),
-            guid: IID_DISPLAY_ATTRIBUTE_CONVERTED,
-            attribute: Cell::from(DISPLAY_ATTRIBUTE_CONVERTED),
-        });
+        match attr {
+            Ok(x) => attributes.push(x),
+            _ => (),
+        }
 
-        attributes.push(DisplayAttributeInfo {
-            description: String::from("Focused"),
-            guid: IID_DISPLAY_ATTRIBUTE_FOCUSED,
-            attribute: Cell::from(DISPLAY_ATTRIBUTE_FOCUSED),
-        });
+        let attr = DisplayAttributeInfo::new(
+            String::from("Input"),
+            IID_DISPLAY_ATTRIBUTE_CONVERTED,
+            DISPLAY_ATTRIBUTE_CONVERTED,
+        );
+
+        match attr {
+            Ok(x) => attributes.push(x),
+            _ => (),
+        }
+
+        let attr = DisplayAttributeInfo::new(
+            String::from("Input"),
+            IID_DISPLAY_ATTRIBUTE_FOCUSED,
+            DISPLAY_ATTRIBUTE_FOCUSED,
+        );
+
+        match attr {
+            Ok(x) => attributes.push(x),
+            _ => (),
+        }
 
         Self {
             attributes,
@@ -75,11 +90,9 @@ impl IEnumTfDisplayAttributeInfo_Impl for DisplayAttributeInfoEnum {
                 break;
             }
 
-            let out: ITfDisplayAttributeInfo =
-                self.attributes[curr_index].clone().into();
-
             unsafe {
-                *rginfo.add(out_count as usize) = Some(out);
+                *rginfo.add(out_count as usize) =
+                    self.attributes.get(curr_index).cloned();
             }
 
             curr_index += 1;
