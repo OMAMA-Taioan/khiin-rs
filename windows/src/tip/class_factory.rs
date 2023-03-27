@@ -4,6 +4,7 @@ use core::ffi::c_void;
 use core::option::Option;
 use log::debug;
 use log::warn;
+use windows::Win32::Foundation::E_UNEXPECTED;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
@@ -20,6 +21,7 @@ use windows::Win32::System::Com::IClassFactory_Impl;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 
 use crate::reg::guids::*;
+use crate::tip::text_service;
 use crate::tip::text_service::TextService;
 use crate::utils::WinGuid;
 use crate::DllModule;
@@ -69,10 +71,18 @@ impl IClassFactory_Impl for KhiinClassFactory {
             return Err(Error::from(E_NOINTERFACE));
         }
 
-        let text_service: ITfTextInputProcessor = TextService {
-            dll_ref_count: self.dll_ref_count.clone(),
+        let text_service = TextService::new(self.dll_ref_count.clone());
+
+        if text_service.is_err() {
+            warn!(
+                "KhiinClassFactory: Unable to create TextService: {}",
+                riid.to_string().unwrap_or_default()
+            );
+
+            return Err(Error::from(E_UNEXPECTED));
         }
-        .into();
+
+        let text_service = text_service.unwrap();
 
         *ppvobject = unsafe { core::mem::transmute(text_service) };
 

@@ -1,6 +1,6 @@
 use core::option::Option;
-use std::sync::Arc;
 use std::sync::atomic::AtomicUsize;
+use std::sync::Arc;
 use windows::core::implement;
 use windows::core::Result;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
@@ -36,12 +36,18 @@ impl ITfTextInputProcessorEx_Impl for TextService {
     ) -> Result<()> {
         match ptim {
             Some(thread_mgr) => self.activate(thread_mgr),
-            None => Ok(())
+            None => Ok(()),
         }
     }
 }
 
 impl TextService {
+    pub fn new(
+        dll_ref_count: Arc<AtomicUsize>,
+    ) -> Result<ITfTextInputProcessor> {
+        unsafe { Self { dll_ref_count }.cast() }
+    }
+
     fn activate(&self, thread_mgr: &ITfThreadMgr) -> Result<()> {
         let display_attributes = DisplayAttributeInfoEnum::new();
 
