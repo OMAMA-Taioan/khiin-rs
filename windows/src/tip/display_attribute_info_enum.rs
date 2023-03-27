@@ -23,38 +23,23 @@ impl DisplayAttributeInfoEnum {
     pub fn new() -> Self {
         let mut attributes: Vec<ITfDisplayAttributeInfo> = Vec::new();
 
-        let attr = DisplayAttributeInfo::new(
+        attributes.push(DisplayAttributeInfo::new(
             String::from("Input"),
             IID_DISPLAY_ATTRIBUTE_INPUT,
             DISPLAY_ATTRIBUTE_INPUT,
-        );
+        ));
 
-        match attr {
-            Ok(x) => attributes.push(x),
-            _ => (),
-        }
-
-        let attr = DisplayAttributeInfo::new(
+        attributes.push(DisplayAttributeInfo::new(
             String::from("Input"),
             IID_DISPLAY_ATTRIBUTE_CONVERTED,
             DISPLAY_ATTRIBUTE_CONVERTED,
-        );
+        ));
 
-        match attr {
-            Ok(x) => attributes.push(x),
-            _ => (),
-        }
-
-        let attr = DisplayAttributeInfo::new(
+        attributes.push(DisplayAttributeInfo::new(
             String::from("Input"),
             IID_DISPLAY_ATTRIBUTE_FOCUSED,
             DISPLAY_ATTRIBUTE_FOCUSED,
-        );
-
-        match attr {
-            Ok(x) => attributes.push(x),
-            _ => (),
-        }
+        ));
 
         Self {
             attributes,
@@ -65,13 +50,11 @@ impl DisplayAttributeInfoEnum {
 
 impl IEnumTfDisplayAttributeInfo_Impl for DisplayAttributeInfoEnum {
     fn Clone(&self) -> Result<IEnumTfDisplayAttributeInfo> {
-        unsafe {
-            DisplayAttributeInfoEnum {
-                attributes: self.attributes.clone(),
-                current_index: self.current_index.clone(),
-            }
-            .cast()
+        Ok(DisplayAttributeInfoEnum {
+            attributes: self.attributes.clone(),
+            current_index: self.current_index.clone(),
         }
+        .into())
     }
 
     fn Next(

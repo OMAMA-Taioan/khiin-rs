@@ -9,7 +9,7 @@ use windows::Win32::UI::TextServices::ITfTextInputProcessorEx_Impl;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor_Impl;
 use windows::Win32::UI::TextServices::ITfThreadMgr;
 
-use super::display_attribute_info_enum::DisplayAttributeInfoEnum;
+use crate::tip::display_attribute_info_enum::DisplayAttributeInfoEnum;
 
 #[implement(ITfTextInputProcessorEx, ITfTextInputProcessor)]
 #[allow(dead_code)]
@@ -42,12 +42,6 @@ impl ITfTextInputProcessorEx_Impl for TextService {
 }
 
 impl TextService {
-    pub fn new(
-        dll_ref_count: Arc<AtomicUsize>,
-    ) -> Result<ITfTextInputProcessor> {
-        unsafe { Self { dll_ref_count }.cast() }
-    }
-
     fn activate(&self, thread_mgr: &ITfThreadMgr) -> Result<()> {
         let display_attributes = DisplayAttributeInfoEnum::new();
 

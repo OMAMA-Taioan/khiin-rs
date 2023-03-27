@@ -87,16 +87,14 @@ impl DisplayAttributeInfo {
         description: String,
         guid: GUID,
         attribute: TF_DISPLAYATTRIBUTE,
-    ) -> Result<ITfDisplayAttributeInfo> {
-        unsafe {
-            DisplayAttributeInfo {
-                description,
-                guid,
-                attribute: Cell::new(attribute),
-                attribute_backup: attribute,
-            }
-            .cast()
+    ) -> ITfDisplayAttributeInfo {
+        DisplayAttributeInfo {
+            description,
+            guid,
+            attribute: Cell::new(attribute),
+            attribute_backup: attribute,
         }
+        .into()
     }
 }
 

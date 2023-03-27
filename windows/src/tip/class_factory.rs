@@ -4,7 +4,6 @@ use core::ffi::c_void;
 use core::option::Option;
 use log::debug;
 use log::warn;
-use windows::Win32::Foundation::E_UNEXPECTED;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
@@ -16,6 +15,7 @@ use windows::core::GUID;
 use windows::Win32::Foundation::BOOL;
 use windows::Win32::Foundation::CLASS_E_NOAGGREGATION;
 use windows::Win32::Foundation::E_NOINTERFACE;
+use windows::Win32::Foundation::E_UNEXPECTED;
 use windows::Win32::System::Com::IClassFactory;
 use windows::Win32::System::Com::IClassFactory_Impl;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
@@ -71,18 +71,23 @@ impl IClassFactory_Impl for KhiinClassFactory {
             return Err(Error::from(E_NOINTERFACE));
         }
 
-        let text_service = TextService::new(self.dll_ref_count.clone());
-
-        if text_service.is_err() {
-            warn!(
-                "KhiinClassFactory: Unable to create TextService: {}",
-                riid.to_string().unwrap_or_default()
-            );
-
-            return Err(Error::from(E_UNEXPECTED));
+        let text_service: ITfTextInputProcessor = TextService {
+            dll_ref_count: self.dll_ref_count.clone(),
         }
+        .into();
 
-        let text_service = text_service.unwrap();
+        // let text_service = TextService::new(self.dll_ref_count.clone());
+
+        // if text_service.is_err() {
+        //     warn!(
+        //         "KhiinClassFactory: Unable to create TextService: {}",
+        //         riid.to_string().unwrap_or_default()
+        //     );
+
+        //     return Err(Error::from(E_UNEXPECTED));
+        // }
+
+        // let text_service = text_service.unwrap();
 
         *ppvobject = unsafe { core::mem::transmute(text_service) };
 
