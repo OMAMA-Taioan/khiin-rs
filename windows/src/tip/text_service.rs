@@ -1,13 +1,8 @@
 use std::cell::Cell;
-use std::cell::UnsafeCell;
-use std::ffi::c_void;
-use std::marker::PhantomData;
 use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
 
 use windows::core::implement;
-use windows::core::ComInterface;
-use windows::core::Interface;
 use windows::core::Result;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 use windows::Win32::UI::TextServices::ITfTextInputProcessorEx;
@@ -27,17 +22,6 @@ pub struct TextService {
     disp_attrs: DisplayAttributes,
     clientid: Cell<u32>,
     dwflags: Cell<u32>,
-
-    // The ITfThreadMgr comes from TSF in the Activate method
-    // We need this throughout the lifetime of the TextService,
-    // including in methods where we don't receive it again from Windows
-    // (e.g., we are expected to keep a handle to it for our own use)
-    // Windows guarantees to not delete it while we are using it
-    // However, we don't have a lifetime parameter to refer to,
-    // so there is no way to store the reference directly. Instead,
-    // we must use an UnsafeCell and the raw pointer. The pointer is
-    // set on activation and borrowed as a reference for use in
-    // all other functions.
     threadmgr: ComPtrCell<ITfThreadMgr>,
 }
 
