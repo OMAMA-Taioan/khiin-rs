@@ -9,14 +9,35 @@ use windows::Win32::UI::TextServices::ITfTextInputProcessorEx_Impl;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor_Impl;
 use windows::Win32::UI::TextServices::ITfThreadMgr;
 
-use crate::tip::display_attribute_info_enum::DisplayAttributeInfoEnum;
+use crate::tip::display_attributes::DisplayAttributes;
 
 #[implement(ITfTextInputProcessorEx, ITfTextInputProcessor)]
-#[allow(dead_code)]
 pub struct TextService {
     pub dll_ref_count: Arc<AtomicUsize>,
-    disp_attr_info_enum: DisplayAttributeInfoEnum,
+    disp_attrs: DisplayAttributes,
 }
+
+impl TextService {
+    pub fn new(dll_ref_count: Arc<AtomicUsize>) -> Self {
+        TextService {
+            dll_ref_count,
+            disp_attrs: DisplayAttributes::new(),
+        }
+    }
+
+    pub fn disp_attrs(&self) -> &DisplayAttributes {
+        &self.disp_attrs
+    }
+
+    fn activate(&self, thread_mgr: &ITfThreadMgr) -> Result<()> {
+        Ok(())
+    }
+
+    fn deactivate(&self) -> Result<()> {
+        Ok(())
+    }
+}
+
 
 impl ITfTextInputProcessor_Impl for TextService {
     fn Activate(&self, ptim: Option<&ITfThreadMgr>, tid: u32) -> Result<()> {
@@ -39,22 +60,5 @@ impl ITfTextInputProcessorEx_Impl for TextService {
             Some(thread_mgr) => self.activate(thread_mgr),
             None => Ok(()),
         }
-    }
-}
-
-impl TextService {
-    pub fn new(dll_ref_count: Arc<AtomicUsize>) -> Self {
-        TextService {
-            dll_ref_count,
-            disp_attr_info_enum: DisplayAttributeInfoEnum::new(),
-        }
-    }
-
-    fn activate(&self, thread_mgr: &ITfThreadMgr) -> Result<()> {
-        Ok(())
-    }
-
-    fn deactivate(&self) -> Result<()> {
-        Ok(())
     }
 }

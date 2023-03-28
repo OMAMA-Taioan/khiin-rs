@@ -19,12 +19,12 @@ use crate::tip::display_attribute_info::*;
 
 #[implement(IEnumTfDisplayAttributeInfo, ITfDisplayAttributeProvider)]
 #[derive(Clone)]
-pub struct DisplayAttributeInfoEnum {
+pub struct DisplayAttributes {
     attributes: Vec<DisplayAttributeInfo>,
     current_index: Cell<usize>,
 }
 
-impl DisplayAttributeInfoEnum {
+impl DisplayAttributes {
     pub fn new() -> Self {
         let mut attributes: Vec<DisplayAttributeInfo> = Vec::new();
 
@@ -62,9 +62,9 @@ impl DisplayAttributeInfoEnum {
     }
 }
 
-impl IEnumTfDisplayAttributeInfo_Impl for DisplayAttributeInfoEnum {
+impl IEnumTfDisplayAttributeInfo_Impl for DisplayAttributes {
     fn Clone(&self) -> Result<IEnumTfDisplayAttributeInfo> {
-        Ok(DisplayAttributeInfoEnum {
+        Ok(DisplayAttributes {
             attributes: self.attributes.clone(),
             current_index: self.current_index.clone(),
         }
@@ -128,7 +128,7 @@ impl IEnumTfDisplayAttributeInfo_Impl for DisplayAttributeInfoEnum {
     }
 }
 
-impl ITfDisplayAttributeProvider_Impl for DisplayAttributeInfoEnum {
+impl ITfDisplayAttributeProvider_Impl for DisplayAttributes {
     fn EnumDisplayAttributeInfo(&self) -> Result<IEnumTfDisplayAttributeInfo> {
         Ok(self.clone().into())
     }
