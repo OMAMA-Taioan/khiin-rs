@@ -3,25 +3,30 @@ use std::cell::Cell;
 use windows::core::implement;
 use windows::core::Error;
 use windows::core::Result;
+use windows::core::GUID;
+use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::S_FALSE;
 use windows::Win32::UI::TextServices::IEnumTfDisplayAttributeInfo;
 use windows::Win32::UI::TextServices::IEnumTfDisplayAttributeInfo_Impl;
 use windows::Win32::UI::TextServices::ITfDisplayAttributeInfo;
+use windows::Win32::UI::TextServices::ITfDisplayAttributeProvider;
+use windows::Win32::UI::TextServices::ITfDisplayAttributeProvider_Impl;
 
 use crate::reg::guids::IID_DISPLAY_ATTRIBUTE_CONVERTED;
 use crate::reg::guids::IID_DISPLAY_ATTRIBUTE_FOCUSED;
 use crate::reg::guids::IID_DISPLAY_ATTRIBUTE_INPUT;
 use crate::tip::display_attribute_info::*;
 
-#[implement(IEnumTfDisplayAttributeInfo)]
+#[implement(IEnumTfDisplayAttributeInfo, ITfDisplayAttributeProvider)]
+#[derive(Clone)]
 pub struct DisplayAttributeInfoEnum {
-    attributes: Vec<ITfDisplayAttributeInfo>,
+    attributes: Vec<DisplayAttributeInfo>,
     current_index: Cell<usize>,
 }
 
 impl DisplayAttributeInfoEnum {
     pub fn new() -> Self {
-        let mut attributes: Vec<ITfDisplayAttributeInfo> = Vec::new();
+        let mut attributes: Vec<DisplayAttributeInfo> = Vec::new();
 
         attributes.push(DisplayAttributeInfo::new(
             String::from("Input"),
@@ -46,6 +51,15 @@ impl DisplayAttributeInfoEnum {
             current_index: Cell::from(0),
         }
     }
+
+    pub fn by_guid(&self, guid: GUID) -> Option<DisplayAttributeInfo> {
+        for attr in &self.attributes {
+            if attr.guid() == guid {
+                return Some(attr.clone());
+            }
+        }
+        None
+    }
 }
 
 impl IEnumTfDisplayAttributeInfo_Impl for DisplayAttributeInfoEnum {
@@ -68,18 +82,16 @@ impl IEnumTfDisplayAttributeInfo_Impl for DisplayAttributeInfoEnum {
         let mut curr_index = self.current_index.get();
         let mut out_count = 0u32;
 
-        while out_count < ulcount {
-            if curr_index >= num_attrs {
-                break;
-            }
+        while out_count < ulcount && curr_index < num_attrs {
+            if let Some(out_attr) = self.attributes.get(curr_index).cloned() {
+                unsafe {
+                    *rginfo.add(out_count as usize) = Some(out_attr.into());
+                }
 
-            unsafe {
-                *rginfo.add(out_count as usize) =
-                    self.attributes.get(curr_index).cloned();
+                out_count += 1;
             }
 
             curr_index += 1;
-            out_count += 1;
         }
 
         self.current_index.set(curr_index);
@@ -112,6 +124,24 @@ impl IEnumTfDisplayAttributeInfo_Impl for DisplayAttributeInfoEnum {
         } else {
             self.current_index.set(curr_index + count);
             Ok(())
+        }
+    }
+}
+
+impl ITfDisplayAttributeProvider_Impl for DisplayAttributeInfoEnum {
+    fn EnumDisplayAttributeInfo(&self) -> Result<IEnumTfDisplayAttributeInfo> {
+        Ok(self.clone().into())
+    }
+
+    fn GetDisplayAttributeInfo(
+        &self,
+        guid: *const windows::core::GUID,
+    ) -> Result<ITfDisplayAttributeInfo> {
+        let guid = unsafe { *guid };
+
+        match self.by_guid(guid) {
+            Some(attr) => Ok(attr.into()),
+            None => Err(Error::from(E_FAIL)),
         }
     }
 }

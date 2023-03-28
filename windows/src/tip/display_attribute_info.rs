@@ -87,14 +87,17 @@ impl DisplayAttributeInfo {
         description: String,
         guid: GUID,
         attribute: TF_DISPLAYATTRIBUTE,
-    ) -> ITfDisplayAttributeInfo {
+    ) -> Self {
         DisplayAttributeInfo {
             description,
             guid,
             attribute: Cell::new(attribute),
             attribute_backup: attribute,
         }
-        .into()
+    }
+
+    pub fn guid(&self) -> GUID {
+        self.guid
     }
 }
 
@@ -116,9 +119,8 @@ impl ITfDisplayAttributeInfo_Impl for DisplayAttributeInfo {
     }
 
     fn SetAttributeInfo(&self, pda: *const TF_DISPLAYATTRIBUTE) -> Result<()> {
-        unsafe {
-            self.attribute.set(*pda);
-        }
+        let pda = unsafe { *pda };
+        self.attribute.set(pda);
 
         Ok(())
     }

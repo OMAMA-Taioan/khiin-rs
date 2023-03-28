@@ -15,6 +15,7 @@ use crate::tip::display_attribute_info_enum::DisplayAttributeInfoEnum;
 #[allow(dead_code)]
 pub struct TextService {
     pub dll_ref_count: Arc<AtomicUsize>,
+    disp_attr_info_enum: DisplayAttributeInfoEnum,
 }
 
 impl ITfTextInputProcessor_Impl for TextService {
@@ -42,9 +43,14 @@ impl ITfTextInputProcessorEx_Impl for TextService {
 }
 
 impl TextService {
-    fn activate(&self, thread_mgr: &ITfThreadMgr) -> Result<()> {
-        let display_attributes = DisplayAttributeInfoEnum::new();
+    pub fn new(dll_ref_count: Arc<AtomicUsize>) -> Self {
+        TextService {
+            dll_ref_count,
+            disp_attr_info_enum: DisplayAttributeInfoEnum::new(),
+        }
+    }
 
+    fn activate(&self, thread_mgr: &ITfThreadMgr) -> Result<()> {
         Ok(())
     }
 
