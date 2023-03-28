@@ -15,7 +15,7 @@ use windows::Win32::System::Registry::REG_SZ;
 
 use crate::check_win32error;
 use crate::pcwstr;
-use crate::utils::WinString;
+use crate::utils::win::WinString;
 
 pub trait Hkey {
     fn create_subkey(&self, subkey: &str) -> Result<HKEY>;

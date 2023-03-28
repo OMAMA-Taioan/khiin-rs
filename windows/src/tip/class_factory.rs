@@ -21,7 +21,7 @@ use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 
 use crate::reg::guids::*;
 use crate::tip::text_service::TextService;
-use crate::utils::WinGuid;
+use crate::utils::win::WinGuid;
 use crate::DllModule;
 
 #[implement(IClassFactory)]

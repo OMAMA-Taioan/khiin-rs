@@ -4,8 +4,8 @@ use windows::Win32::UI::Input::KeyboardAndMouse::GetKeyboardState;
 use windows::Win32::UI::Input::KeyboardAndMouse::ToAscii;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_CONTROL;
 
-use crate::utils::hi_word;
-use crate::utils::lo_byte;
+use crate::utils::win::hi_word;
+use crate::utils::win::lo_byte;
 
 pub struct KeyEvent {
     message: u32,

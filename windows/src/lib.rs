@@ -14,7 +14,6 @@ use reg::reg_dll::unregister_profiles;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
-use utils::GetPath;
 
 use windows::core::Result;
 use windows::core::GUID;
@@ -36,7 +35,8 @@ use crate::reg::guids::*;
 use crate::reg::reg_dll::register_clsid;
 use crate::reg::reg_dll::unregister_clsid;
 use crate::tip::class_factory::KhiinClassFactory;
-use crate::utils::WinGuid;
+use crate::utils::win::GetPath;
+use crate::utils::win::WinGuid;
 
 static DLL_INSTANCE: OnceCell<DllModule> = OnceCell::new();
 const IDS_TEXT_SERVICE_DISPLAY_NAME: u32 = 101;

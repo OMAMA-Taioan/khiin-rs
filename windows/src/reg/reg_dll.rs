@@ -14,7 +14,7 @@ use windows::Win32::UI::TextServices::{
 
 use crate::reg::guids::*;
 use crate::reg::hkey::Hkey;
-use crate::utils::WinGuid;
+use crate::utils::win::WinGuid;
 
 const SUPPORTED_CATEGORIES: &'static [GUID] = &[
     GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER,

@@ -104,6 +104,7 @@ impl ITfKeyEventSink_Impl for KeyEventSink<'_> {
 
         let context = pic.unwrap();
         let key_event = KeyEvent::new(WM_KEYDOWN, wparam, lparam);
+        
 
         let handle =
             |ec| -> Result<()> { do_composition(ec, self.service, context) };

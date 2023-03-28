@@ -1,11 +1,13 @@
 use std::cell::Cell;
 use std::cell::UnsafeCell;
 use std::ffi::c_void;
+use std::marker::PhantomData;
 use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
 
-use windows::core::Interface;
 use windows::core::implement;
+use windows::core::ComInterface;
+use windows::core::Interface;
 use windows::core::Result;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 use windows::Win32::UI::TextServices::ITfTextInputProcessorEx;
@@ -15,6 +17,7 @@ use windows::Win32::UI::TextServices::ITfThreadMgr;
 
 use crate::tip::display_attributes::DisplayAttributes;
 use crate::tip::key_event_sink::KeyEventSink;
+use crate::utils::com_ptr_cell::ComPtrCell;
 
 const TF_CLIENTID_NULL: u32 = 0;
 
@@ -35,7 +38,7 @@ pub struct TextService {
     // we must use an UnsafeCell and the raw pointer. The pointer is
     // set on activation and borrowed as a reference for use in
     // all other functions.
-    threadmgr: UnsafeCell<*mut c_void>,
+    threadmgr: ComPtrCell<ITfThreadMgr>,
 }
 
 impl TextService {
@@ -45,7 +48,7 @@ impl TextService {
             disp_attrs: DisplayAttributes::new(),
             clientid: Cell::new(TF_CLIENTID_NULL),
             dwflags: Cell::new(0),
-            threadmgr: UnsafeCell::new(std::ptr::null_mut()),
+            threadmgr: ComPtrCell::new(),
         }
     }
 
@@ -71,14 +74,7 @@ impl TextService {
     }
 
     fn threadmgr(&self) -> Option<&ITfThreadMgr> {
-        unsafe {
-            ITfThreadMgr::from_raw_borrowed(&*self.threadmgr.get())
-        }
-    }
-
-    fn set_threadmgr(&self, threadmgr: &ITfThreadMgr) {
-        let unsafe_cell = self.threadmgr.get();
-        unsafe { *unsafe_cell = threadmgr.clone().into_raw(); }
+        self.threadmgr.get()
     }
 }
 
@@ -105,9 +101,9 @@ impl ITfTextInputProcessorEx_Impl for TextService {
 
         match ptim {
             Some(threadmgr) => {
-                self.set_threadmgr(threadmgr);
+                self.threadmgr.set(threadmgr);
                 self.activate(threadmgr)
-            },
+            }
             None => Ok(()),
         }
     }
