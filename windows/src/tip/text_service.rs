@@ -44,13 +44,12 @@ impl TextService {
     }
 
     fn activate(&self, threadmgr: &ITfThreadMgr) -> Result<()> {
-        self.threadmgr.set(&*threadmgr);
         KeyEventSink::advise(self, threadmgr)?;
         Ok(())
     }
 
-    fn deactivate(&self) -> Result<()> {
-        KeyEventSink::unadvise(self, self.threadmgr())?;
+    fn deactivate(&self, threadmgr: &ITfThreadMgr) -> Result<()> {
+        KeyEventSink::unadvise(self, threadmgr)?;
         Ok(())
     }
 
@@ -65,7 +64,9 @@ impl ITfTextInputProcessor_Impl for TextService {
     }
 
     fn Deactivate(&self) -> Result<()> {
-        self.deactivate()
+        self.deactivate(self.threadmgr())?;
+        self.threadmgr.set(std::ptr::null());
+        Ok(())
     }
 }
 
@@ -80,7 +81,10 @@ impl ITfTextInputProcessorEx_Impl for TextService {
         self.dwflags.set(dwflags);
 
         match ptim {
-            Some(thread_mgr) => self.activate(thread_mgr),
+            Some(threadmgr) => {
+                self.threadmgr.set(&*threadmgr);
+                self.activate(threadmgr)
+            },
             None => Ok(()),
         }
     }
