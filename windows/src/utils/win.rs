@@ -1,5 +1,3 @@
-use std::ffi::c_ushort;
-
 use windows::core::Error;
 use windows::core::Result;
 use windows::core::GUID;
@@ -63,7 +61,7 @@ impl WinString for &str {
     }
 }
 
-pub fn lo_word(value: u32) -> u16 {
+pub fn _lo_word(value: u32) -> u16 {
     (value & 0xffff) as u16
 }
 
@@ -75,6 +73,6 @@ pub fn lo_byte(value: u16) -> u8 {
     (value & 0xff) as u8
 }
 
-pub fn hi_byte(value: u16) -> u8 {
+pub fn _hi_byte(value: u16) -> u8 {
     ((value >> 8) & 0xff) as u8
 }

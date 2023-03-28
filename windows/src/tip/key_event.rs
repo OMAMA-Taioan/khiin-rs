@@ -8,19 +8,19 @@ use crate::utils::win::hi_word;
 use crate::utils::win::lo_byte;
 
 pub struct KeyEvent {
-    message: u32,
+    pub message: u32,
+    pub ascii: u8,
+    pub keycode: u32,
     keystate: [u8; 256],
-    ascii: u8,
-    keycode: u32,
 }
 
 impl KeyEvent {
     pub fn new(message: u32, wparam: WPARAM, lparam: LPARAM) -> Self {
         let mut event = KeyEvent {
             message,
-            keystate: [0u8; 256],
             ascii: 0,
-            keycode: 0,
+            keycode: wparam.0 as u32,
+            keystate: [0u8; 256],
         };
 
         unsafe {
@@ -36,7 +36,7 @@ impl KeyEvent {
 
         let result = unsafe {
             ToAscii(
-                wparam.0 as u32,
+                event.keycode,
                 scancode as u32,
                 Some(&event.keystate),
                 char.as_mut_ptr(),

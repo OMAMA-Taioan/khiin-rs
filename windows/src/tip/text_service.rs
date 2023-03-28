@@ -23,6 +23,7 @@ pub struct TextService {
     clientid: Cell<u32>,
     dwflags: Cell<u32>,
     threadmgr: ComPtrCell<ITfThreadMgr>,
+    enabled: Cell<bool>,
 }
 
 impl TextService {
@@ -33,6 +34,7 @@ impl TextService {
             clientid: Cell::new(TF_CLIENTID_NULL),
             dwflags: Cell::new(0),
             threadmgr: ComPtrCell::new(),
+            enabled: Cell::new(false),
         }
     }
 
@@ -42,6 +44,10 @@ impl TextService {
 
     pub fn clientid(&self) -> u32 {
         self.clientid.get()
+    }
+
+    pub fn enabled(&self) -> bool {
+        self.enabled.get()
     }
 
     fn activate(&self, threadmgr: &ITfThreadMgr) -> Result<()> {
