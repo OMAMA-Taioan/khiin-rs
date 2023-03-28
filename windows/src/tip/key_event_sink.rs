@@ -1,5 +1,3 @@
-use std::borrow::Borrow;
-
 use windows::core::implement;
 use windows::core::ComInterface;
 use windows::core::Result;
@@ -10,12 +8,20 @@ use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::TRUE;
 use windows::Win32::Foundation::WPARAM;
 use windows::Win32::UI::TextServices::ITfContext;
+use windows::Win32::UI::TextServices::ITfEditSession;
 use windows::Win32::UI::TextServices::ITfKeyEventSink;
 use windows::Win32::UI::TextServices::ITfKeyEventSink_Impl;
 use windows::Win32::UI::TextServices::ITfKeystrokeMgr;
 use windows::Win32::UI::TextServices::ITfThreadMgr;
+use windows::Win32::UI::TextServices::TF_ES_READWRITE;
+use windows::Win32::UI::TextServices::TF_ES_SYNC;
+use windows::Win32::UI::WindowsAndMessaging::WM_KEYDOWN;
+use windows::Win32::UI::WindowsAndMessaging::WM_KEYUP;
 
-use super::text_service::TextService;
+use crate::tip::edit_session::do_composition;
+use crate::tip::edit_session::CallbackEditSession;
+use crate::tip::key_event::KeyEvent;
+use crate::tip::text_service::TextService;
 
 #[implement(ITfKeyEventSink)]
 pub struct KeyEventSink<'a> {
@@ -74,7 +80,7 @@ impl ITfKeyEventSink_Impl for KeyEventSink<'_> {
         wparam: WPARAM,
         lparam: LPARAM,
     ) -> Result<BOOL> {
-        Ok(FALSE)
+        Ok(TRUE)
     }
 
     fn OnTestKeyUp(
@@ -92,7 +98,30 @@ impl ITfKeyEventSink_Impl for KeyEventSink<'_> {
         wparam: WPARAM,
         lparam: LPARAM,
     ) -> Result<BOOL> {
-        Ok(FALSE)
+        if pic.is_none() {
+            return Ok(FALSE);
+        }
+
+        let context = pic.unwrap();
+        let key_event = KeyEvent::new(WM_KEYDOWN, wparam, lparam);
+
+        let handle =
+            |ec| -> Result<()> { do_composition(ec, self.service, context) };
+
+        let ses: ITfEditSession = CallbackEditSession::new(handle).into();
+
+        let res = unsafe {
+            context.RequestEditSession(
+                self.service.clientid(),
+                &ses,
+                TF_ES_SYNC | TF_ES_READWRITE,
+            )
+        };
+
+        match res {
+            Ok(_) => Ok(TRUE),
+            Err(e) => Err(e),
+        }
     }
 
     fn OnKeyUp(

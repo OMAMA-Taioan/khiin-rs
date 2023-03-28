@@ -1,9 +1,6 @@
-use core::option::Option;
 use std::cell::Cell;
-use std::cell::RefCell;
 use std::cell::UnsafeCell;
 use std::ffi::c_void;
-use std::os::windows::thread;
 use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
 
@@ -36,7 +33,7 @@ pub struct TextService {
     // However, we don't have a lifetime parameter to refer to,
     // so there is no way to store the reference directly. Instead,
     // we must use an UnsafeCell and the raw pointer. The pointer is
-    // set on activation and retrieved as a reference for use in
+    // set on activation and borrowed as a reference for use in
     // all other functions.
     threadmgr: UnsafeCell<*mut c_void>,
 }
@@ -61,7 +58,6 @@ impl TextService {
     }
 
     fn activate(&self, threadmgr: &ITfThreadMgr) -> Result<()> {
-        self.set_threadmgr(threadmgr);
         KeyEventSink::advise(self, threadmgr)?;
         Ok(())
     }
@@ -108,7 +104,10 @@ impl ITfTextInputProcessorEx_Impl for TextService {
         self.dwflags.set(dwflags);
 
         match ptim {
-            Some(threadmgr) => self.activate(threadmgr),
+            Some(threadmgr) => {
+                self.set_threadmgr(threadmgr);
+                self.activate(threadmgr)
+            },
             None => Ok(()),
         }
     }

@@ -6,6 +6,7 @@ mod composition_sink;
 mod display_attribute_info;
 mod display_attributes;
 mod edit_session;
+mod key_event;
 mod key_event_sink;
 mod lang_bar_indicator;
 mod text_edit_sink;

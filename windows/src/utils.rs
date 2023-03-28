@@ -1,3 +1,5 @@
+use std::ffi::c_ushort;
+
 use windows::core::Error;
 use windows::core::Result;
 use windows::core::GUID;
@@ -59,6 +61,22 @@ impl WinString for &str {
             .flat_map(|c| c.to_le_bytes())
             .collect::<Vec<u8>>()
     }
+}
+
+pub fn lo_word(value: u32) -> u16 {
+    (value & 0xffff) as u16
+}
+
+pub fn hi_word(value: u32) -> u16 {
+    ((value >> 16) & 0xffff) as u16
+}
+
+pub fn lo_byte(value: u16) -> u8 {
+    (value & 0xff) as u8
+}
+
+pub fn hi_byte(value: u16) -> u8 {
+    ((value >> 8) & 0xff) as u8
 }
 
 #[macro_export]
