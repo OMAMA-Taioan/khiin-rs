@@ -19,7 +19,7 @@ fn handle_commit(
     Ok(())
 }
 
-fn prepare_commit(
+fn open_session_for_commit(
     service: &TextService,
     context: &ITfContext,
     command: Command,
@@ -50,5 +50,5 @@ pub fn handle_key(
     key_event: KeyEvent,
 ) -> Result<()> {
     let command = service.engine().on_key(key_event);
-    prepare_commit(service, context, command)
+    open_session_for_commit(service, context, command)
 }

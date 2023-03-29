@@ -18,7 +18,7 @@ use windows::Win32::UI::TextServices::TF_LANGBARITEMINFO;
 use windows::Win32::UI::WindowsAndMessaging::HICON;
 
 #[implement(ITfSource, ITfLangBarItem, ITfLangBarItemButton)]
-struct LangBarIndicator;
+pub struct LangBarIndicator;
 
 impl ITfSource_Impl for LangBarIndicator {
     fn AdviseSink(

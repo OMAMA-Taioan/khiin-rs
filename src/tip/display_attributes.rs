@@ -18,7 +18,6 @@ use crate::reg::guids::IID_DISPLAY_ATTRIBUTE_INPUT;
 use crate::tip::display_attribute_info::*;
 
 #[implement(IEnumTfDisplayAttributeInfo, ITfDisplayAttributeProvider)]
-#[derive(Clone)]
 pub struct DisplayAttributes {
     attributes: Vec<DisplayAttributeInfo>,
     current_index: Cell<usize>,
@@ -64,11 +63,9 @@ impl DisplayAttributes {
 
 impl IEnumTfDisplayAttributeInfo_Impl for DisplayAttributes {
     fn Clone(&self) -> Result<IEnumTfDisplayAttributeInfo> {
-        Ok(DisplayAttributes {
-            attributes: self.attributes.clone(),
-            current_index: self.current_index.clone(),
-        }
-        .into())
+        let clone = DisplayAttributes::new();
+        clone.current_index.set(self.current_index.get());
+        Ok(clone.into())
     }
 
     fn Next(
@@ -130,7 +127,7 @@ impl IEnumTfDisplayAttributeInfo_Impl for DisplayAttributes {
 
 impl ITfDisplayAttributeProvider_Impl for DisplayAttributes {
     fn EnumDisplayAttributeInfo(&self) -> Result<IEnumTfDisplayAttributeInfo> {
-        Ok(self.clone().into())
+        self.Clone()
     }
 
     fn GetDisplayAttributeInfo(

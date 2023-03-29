@@ -30,14 +30,14 @@ impl<T: ComInterface> ComPtrCell<T> {
         }
     }
 
-    pub fn set(&self, obj: &T) {
+    pub fn set(&self, obj: T) {
         let unsafe_cell = self.cell.get();
         unsafe {
-            *unsafe_cell = obj.clone().into_raw();
+            *unsafe_cell = obj.into_raw();
         }
     }
 
-    pub fn get(&self) -> Option<&T> {
-        unsafe { T::from_raw_borrowed(&*self.cell.get()) }
+    pub fn get(&self) -> T {
+        unsafe { T::from_raw(*self.cell.get()) }
     }
 }

@@ -40,7 +40,7 @@ impl<'a> KeyEventSink<'a> {
 
     pub fn advise(
         service: &TextService,
-        threadmgr: &ITfThreadMgr,
+        threadmgr: ITfThreadMgr,
     ) -> Result<()> {
         let sink: ITfKeyEventSink = KeyEventSink::new(service).into();
         let keystroke_mgr: ITfKeystrokeMgr = threadmgr.cast()?;
@@ -58,7 +58,7 @@ impl<'a> KeyEventSink<'a> {
 
     pub fn unadvise(
         service: &TextService,
-        threadmgr: &ITfThreadMgr,
+        threadmgr: ITfThreadMgr,
     ) -> Result<()> {
         let keystroke_mgr: ITfKeystrokeMgr = threadmgr.cast()?;
 
@@ -85,7 +85,7 @@ impl<'a> KeyEventSink<'a> {
 
         // TODO: check for candidate UI priority keys
 
-        match engine_mgr::test_key() {
+        match self.service.engine().on_test_key(&key_event) {
             true => Ok(TRUE),
             false => Ok(FALSE),
         }
