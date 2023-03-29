@@ -4,7 +4,8 @@ use windows::Win32::UI::TextServices::ITfEditSession;
 use windows::Win32::UI::TextServices::TF_ES_READWRITE;
 use windows::Win32::UI::TextServices::TF_ES_SYNC;
 
-use crate::protos::command::Command;
+use khiin_protos::command::Command;
+
 use crate::tip::edit_session::CallbackEditSession;
 use crate::tip::key_event::KeyEvent;
 use crate::tip::text_service::TextService;

@@ -1,8 +1,9 @@
 use protobuf::MessageField;
 
-use crate::protos::command::Command;
-use crate::protos::command::KeyEvent;
-use crate::protos::command::Request;
+use khiin_protos::command::Command;
+use khiin_protos::command::KeyEvent;
+use khiin_protos::command::Request;
+
 use crate::tip::key_event::KeyEvent as WinKeyEvent;
 
 // just a stub

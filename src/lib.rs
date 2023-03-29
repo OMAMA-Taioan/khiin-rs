@@ -1,7 +1,6 @@
 #![cfg(windows)]
 #![allow(non_snake_case)]
 
-mod protos;
 mod reg;
 mod tip;
 mod utils;
