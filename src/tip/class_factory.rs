@@ -4,6 +4,7 @@ use core::ffi::c_void;
 use core::option::Option;
 use log::debug;
 use log::warn;
+use windows::core::ComInterface;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
@@ -19,7 +20,6 @@ use windows::Win32::System::Com::IClassFactory;
 use windows::Win32::System::Com::IClassFactory_Impl;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 
-use crate::reg::guids::*;
 use crate::tip::text_service::TextService;
 use crate::utils::win::WinGuid;
 use crate::DllModule;
@@ -60,7 +60,7 @@ impl IClassFactory_Impl for KhiinClassFactory {
             return Err(Error::from(CLASS_E_NOAGGREGATION));
         }
 
-        if *riid != IID_ITfTextInputProcessor {
+        if *riid != ITfTextInputProcessor::IID {
             warn!(
                 "KhiinClassFactory: Unexpected IID Requested: {}",
                 riid.to_string().unwrap_or_default()

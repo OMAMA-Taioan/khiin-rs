@@ -1,4 +1,13 @@
 #[macro_export]
+macro_rules! winerr {
+    ($s:ident) => {
+        {
+            Err(Error::from($s))
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! pcwstr {
     ($s:expr) => {{
         let s: &str = $s;

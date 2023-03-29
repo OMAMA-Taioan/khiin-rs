@@ -21,7 +21,7 @@ use windows::Win32::UI::WindowsAndMessaging::WM_KEYUP;
 use crate::tip::key_event::KeyEvent;
 use crate::tip::text_service::TextService;
 
-use super::engine_mgr;
+// use super::engine_mgr;
 use super::key_handlers::handle_key;
 
 #[implement(ITfKeyEventSink)]

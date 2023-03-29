@@ -1,3 +1,5 @@
+use std::cell::Cell;
+use std::cell::RefCell;
 use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
 
@@ -12,7 +14,8 @@ use windows::Win32::UI::TextServices::ITfThreadMgr;
 use crate::tip::display_attributes::DisplayAttributes;
 use crate::tip::engine_mgr::EngineMgr;
 use crate::tip::key_event_sink::KeyEventSink;
-use crate::utils::rwlock::RwLock;
+
+use super::lang_bar_indicator::LangBarIndicator;
 
 const TF_CLIENTID_NULL: u32 = 0;
 
@@ -20,10 +23,10 @@ const TF_CLIENTID_NULL: u32 = 0;
 pub struct TextService {
     dll_ref_count: Arc<AtomicUsize>,
     disp_attrs: DisplayAttributes,
-    clientid: RwLock<u32>,
-    dwflags: RwLock<u32>,
-    threadmgr: RwLock<Option<ITfThreadMgr>>,
-    enabled: RwLock<bool>,
+    clientid: Cell<u32>,
+    dwflags: Cell<u32>,
+    threadmgr: RefCell<Option<ITfThreadMgr>>,
+    enabled: Cell<bool>,
     engine: EngineMgr,
 }
 
@@ -32,10 +35,10 @@ impl TextService {
         TextService {
             dll_ref_count,
             disp_attrs: DisplayAttributes::new(),
-            clientid: RwLock::new(TF_CLIENTID_NULL),
-            dwflags: RwLock::new(0),
-            threadmgr: RwLock::new(None),
-            enabled: RwLock::new(false),
+            clientid: Cell::new(TF_CLIENTID_NULL),
+            dwflags: Cell::new(0),
+            threadmgr: RefCell::new(None),
+            enabled: Cell::new(false),
             engine: EngineMgr::new(),
         }
     }
@@ -45,11 +48,11 @@ impl TextService {
     }
 
     pub fn clientid(&self) -> u32 {
-        self.clientid.get().unwrap()
+        self.clientid.get()
     }
 
     pub fn enabled(&self) -> bool {
-        self.enabled.get().unwrap()
+        self.enabled.get()
     }
 
     pub fn engine(&self) -> &EngineMgr {
@@ -57,7 +60,7 @@ impl TextService {
     }
 
     fn threadmgr(&self) -> ITfThreadMgr {
-        self.threadmgr.get().unwrap().unwrap()
+        self.threadmgr.borrow_mut().clone().unwrap()
     }
 
     fn activate(&self) -> Result<()> {
@@ -67,10 +70,8 @@ impl TextService {
     }
 
     fn deactivate(&self) -> Result<()> {
-        let threadmgr = self.threadmgr.get()?;
-        if let Some(threadmgr) = threadmgr {
-            KeyEventSink::unadvise(self, threadmgr)?;
-        }
+        let threadmgr = self.threadmgr();
+        KeyEventSink::unadvise(self, threadmgr)?;
         Ok(())
     }
 }
@@ -93,15 +94,13 @@ impl ITfTextInputProcessorEx_Impl for TextService {
         tid: u32,
         dwflags: u32,
     ) -> Result<()> {
-        self.clientid.set(tid)?;
-        self.dwflags.set(dwflags)?;
-
-
+        self.clientid.set(tid);
+        self.dwflags.set(dwflags);
 
         match ptim {
             Some(threadmgr) => {
                 let threadmgr = threadmgr.clone();
-                self.threadmgr.set(Some(threadmgr))?;
+                self.threadmgr.replace(Some(threadmgr));
                 self.activate()
             }
             None => Ok(()),

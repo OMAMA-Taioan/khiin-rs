@@ -11,6 +11,7 @@ use reg::reg_dll::register_categories;
 use reg::reg_dll::register_profiles;
 use reg::reg_dll::unregister_categories;
 use reg::reg_dll::unregister_profiles;
+use windows::core::ComInterface;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
@@ -112,7 +113,7 @@ pub extern "system" fn DllGetClassObject(
         return CLASS_E_CLASSNOTAVAILABLE;
     }
 
-    if *riid != IID_IClassFactory {
+    if *riid != IClassFactory::IID {
         warn!(
             "DllGetClassObject: Unexpected IID requested: {}",
             riid.to_string().unwrap_or_default()
