@@ -106,14 +106,16 @@ impl<'a> KeyEventSink<'a> {
             return Ok(FALSE);
         }
 
-        if test.is_ok() {
-            if test.unwrap() == TRUE {
-                handle_key(self.service, context, key_event);
-                return Ok(TRUE);
-            }
+        match test {
+            Ok(TRUE) => {
+                self.shift_pressed.set(false);
+                match handle_key(self.service, context, key_event) {
+                    Ok(_) => Ok(TRUE),
+                    Err(_) => Ok(FALSE)
+                }
+            },
+            _ => Ok(FALSE)
         }
-
-        Ok(FALSE)
     }
 
     fn test_key_up(

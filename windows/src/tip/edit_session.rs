@@ -6,6 +6,8 @@ use windows::Win32::UI::TextServices::ITfEditSession_Impl;
 
 use super::text_service::TextService;
 
+// type EditSessionCb = Fn(u32) -> Result<()>;
+
 pub fn do_composition(
     ec: u32,
     service: &TextService,
@@ -16,19 +18,26 @@ pub fn do_composition(
 }
 
 #[implement(ITfEditSession)]
-pub struct CallbackEditSession<'a> {
-    callback: Box<dyn Fn(u32) -> Result<()> + 'a>,
+pub struct CallbackEditSession<CB>
+where
+    CB: Fn(u32) -> Result<()>,
+{
+    callback: CB,
 }
 
-impl<'a> CallbackEditSession<'a> {
-    pub fn new(callback: impl Fn(u32) -> Result<()> + 'a) -> Self {
-        CallbackEditSession {
-            callback: Box::new(callback),
-        }
+impl<CB> CallbackEditSession<CB>
+where
+    CB: Fn(u32) -> Result<()>,
+{
+    pub fn new(callback: CB) -> Self {
+        CallbackEditSession { callback }
     }
 }
 
-impl<'a> ITfEditSession_Impl for CallbackEditSession<'a> {
+impl<CB> ITfEditSession_Impl for CallbackEditSession<CB>
+where
+    CB: Fn(u32) -> Result<()>,
+{
     fn DoEditSession(&self, ec: u32) -> Result<()> {
         (self.callback)(ec)
     }

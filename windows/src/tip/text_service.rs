@@ -11,6 +11,7 @@ use windows::Win32::UI::TextServices::ITfTextInputProcessor_Impl;
 use windows::Win32::UI::TextServices::ITfThreadMgr;
 
 use crate::tip::display_attributes::DisplayAttributes;
+use crate::tip::engine_mgr::EngineMgr;
 use crate::tip::key_event_sink::KeyEventSink;
 use crate::utils::com_ptr_cell::ComPtrCell;
 
@@ -24,6 +25,7 @@ pub struct TextService {
     dwflags: Cell<u32>,
     threadmgr: ComPtrCell<ITfThreadMgr>,
     enabled: Cell<bool>,
+    engine: EngineMgr,
 }
 
 impl TextService {
@@ -35,6 +37,7 @@ impl TextService {
             dwflags: Cell::new(0),
             threadmgr: ComPtrCell::new(),
             enabled: Cell::new(false),
+            engine: EngineMgr::new(),
         }
     }
 
@@ -48,6 +51,10 @@ impl TextService {
 
     pub fn enabled(&self) -> bool {
         self.enabled.get()
+    }
+
+    pub fn engine(&self) -> &EngineMgr {
+        &self.engine
     }
 
     fn activate(&self, threadmgr: &ITfThreadMgr) -> Result<()> {
