@@ -1,23 +1,17 @@
-use std::borrow::Borrow;
-use std::cell::Cell;
 use std::cell::RefCell;
-use std::ffi::c_void;
 use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
 
 use windows::core::implement;
 use windows::core::AsImpl;
 use windows::core::ComInterface;
-use windows::core::Error;
 use windows::core::IUnknown;
 use windows::core::Result;
 use windows::core::GUID;
-use windows::Win32::Foundation::E_FAIL;
-use windows::Win32::Foundation::TRUE;
-use windows::Win32::UI::TextServices::ITfCompartment;
 use windows::Win32::UI::TextServices::ITfCompartmentEventSink;
 use windows::Win32::UI::TextServices::ITfCompartmentEventSink_Impl;
 use windows::Win32::UI::TextServices::ITfKeyEventSink;
+use windows::Win32::UI::TextServices::ITfLangBarItemButton;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 use windows::Win32::UI::TextServices::ITfTextInputProcessorEx;
 use windows::Win32::UI::TextServices::ITfTextInputProcessorEx_Impl;
@@ -28,6 +22,7 @@ use windows::Win32::UI::TextServices::GUID_COMPARTMENT_KEYBOARD_OPENCLOSE;
 use crate::tip::display_attributes::DisplayAttributes;
 use crate::tip::engine_mgr::EngineMgr;
 use crate::tip::key_event_sink::KeyEventSink;
+use crate::utils::arc_lock::ArcLock;
 
 use super::compartment::Compartment;
 use super::lang_bar_indicator::LangBarIndicator;
@@ -50,13 +45,14 @@ pub struct TextService {
     // to `None`.
     this: RefCell<Option<ITfTextInputProcessor>>,
     disp_attrs: DisplayAttributes,
-    clientid: Cell<u32>,
-    dwflags: Cell<u32>,
+    clientid: ArcLock<u32>,
+    dwflags: ArcLock<u32>,
     threadmgr: RefCell<Option<ITfThreadMgr>>,
-    enabled: Cell<bool>,
+    enabled: ArcLock<bool>,
     engine: EngineMgr,
     open_close_compartment: RefCell<Option<Compartment>>,
     key_event_sink: RefCell<Option<ITfKeyEventSink>>,
+    lang_bar_indicator: RefCell<Option<ITfLangBarItemButton>>,
 }
 
 impl TextService {
@@ -65,13 +61,14 @@ impl TextService {
             dll_ref_count,
             this: RefCell::new(None),
             disp_attrs: DisplayAttributes::new(),
-            clientid: Cell::new(TF_CLIENTID_NULL),
-            dwflags: Cell::new(0),
+            clientid: ArcLock::new(TF_CLIENTID_NULL),
+            dwflags: ArcLock::new(0),
             threadmgr: RefCell::new(None),
-            enabled: Cell::new(false),
+            enabled: ArcLock::new(false),
             engine: EngineMgr::new(),
             open_close_compartment: RefCell::new(None),
             key_event_sink: RefCell::new(None),
+            lang_bar_indicator: RefCell::new(None),
         }
     }
 
@@ -79,11 +76,11 @@ impl TextService {
         &self.disp_attrs
     }
 
-    pub fn clientid(&self) -> u32 {
+    pub fn clientid(&self) -> Result<u32> {
         self.clientid.get()
     }
 
-    pub fn enabled(&self) -> bool {
+    pub fn enabled(&self) -> Result<bool> {
         self.enabled.get()
     }
 
@@ -106,6 +103,7 @@ impl TextService {
     fn activate(&self) -> Result<()> {
         self.init_open_close_compartment()?;
         self.init_key_event_sink()?;
+        self.init_lang_bar_indicator()?;
 
         self.set_open_close_compartment(true)?;
         self.key_event_sink().as_impl().advise()?;
@@ -113,6 +111,9 @@ impl TextService {
     }
 
     fn deactivate(&self) -> Result<()> {
+        let button = self.lang_bar_indicator().clone();
+        LangBarIndicator::remove_item(self.threadmgr(), button)?;
+
         self.key_event_sink().as_impl().unadvise()?;
         self.this.replace(None);
         Ok(())
@@ -122,7 +123,7 @@ impl TextService {
         let unknown: IUnknown = self.threadmgr().cast()?;
         let compartment = Compartment::new(
             unknown,
-            self.clientid.get(),
+            self.clientid.get()?,
             GUID_COMPARTMENT_KEYBOARD_OPENCLOSE,
             false,
         )?;
@@ -135,6 +136,16 @@ impl TextService {
         let sink: ITfKeyEventSink = sink.into();
         self.key_event_sink.replace(Some(sink));
         Ok(())
+    }
+
+    fn init_lang_bar_indicator(&self) -> Result<()> {
+        let indicator = LangBarIndicator::new(self.this(), self.threadmgr())?;
+        self.lang_bar_indicator.replace(Some(indicator));
+        Ok(())
+    }
+
+    fn lang_bar_indicator(&self) -> ITfLangBarItemButton {
+        self.lang_bar_indicator.borrow().clone().unwrap()
     }
 
     fn key_event_sink(&self) -> ITfKeyEventSink {
@@ -179,8 +190,8 @@ impl ITfTextInputProcessorEx_Impl for TextService {
         tid: u32,
         dwflags: u32,
     ) -> Result<()> {
-        self.clientid.set(tid);
-        self.dwflags.set(dwflags);
+        self.clientid.set(tid)?;
+        self.dwflags.set(dwflags)?;
 
         match ptim {
             Some(threadmgr) => {

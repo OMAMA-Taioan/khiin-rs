@@ -54,7 +54,7 @@ impl KeyEventSink {
 
         unsafe {
             keystroke_mgr.AdviseKeyEventSink(
-                service.clientid(),
+                service.clientid()?,
                 &sink,
                 TRUE,
             )?;
@@ -68,8 +68,7 @@ impl KeyEventSink {
         let service: &TextService = self.service.as_impl();
 
         unsafe {
-            keystroke_mgr
-                .UnadviseKeyEventSink(service.clientid())?;
+            keystroke_mgr.UnadviseKeyEventSink(service.clientid()?)?;
         }
 
         Ok(())
@@ -82,7 +81,7 @@ impl KeyEventSink {
     ) -> Result<BOOL> {
         let service = self.service.as_impl();
 
-        if !service.enabled() {
+        if !service.enabled()? {
             return Ok(FALSE);
         }
 
@@ -108,7 +107,7 @@ impl KeyEventSink {
     ) -> Result<BOOL> {
         let service = self.service.as_impl();
 
-        if !service.enabled() {
+        if !service.enabled()? {
             return Ok(FALSE);
         }
 

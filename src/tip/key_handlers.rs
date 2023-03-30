@@ -32,7 +32,7 @@ fn open_session_for_commit(
 
     let result = unsafe {
         context.RequestEditSession(
-            service.clientid(),
+            service.clientid()?,
             &session,
             TF_ES_SYNC | TF_ES_READWRITE,
         )

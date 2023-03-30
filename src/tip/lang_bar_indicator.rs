@@ -1,15 +1,11 @@
 use std::cell::Cell;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::sync::Arc;
+use std::sync::Mutex;
 
-use windows::Win32::Foundation::E_NOTIMPL;
-use windows::Win32::System::Ole::CONNECT_E_NOCONNECTION;
-use windows::Win32::UI::TextServices::GUID_LBI_INPUTMODE;
-use windows::Win32::UI::TextServices::ITfLangBarItemMgr;
-use windows::Win32::UI::TextServices::ITfThreadMgr;
-use windows::Win32::UI::TextServices::TF_LBI_STYLE_BTN_BUTTON;
-use windows::core::AsImpl;
 use windows::core::implement;
+use windows::core::AsImpl;
 use windows::core::ComInterface;
 use windows::core::Error;
 use windows::core::IUnknown;
@@ -18,19 +14,26 @@ use windows::core::BSTR;
 use windows::core::GUID;
 use windows::Win32::Foundation::BOOL;
 use windows::Win32::Foundation::E_INVALIDARG;
+use windows::Win32::Foundation::E_NOTIMPL;
 use windows::Win32::Foundation::POINT;
 use windows::Win32::Foundation::RECT;
 use windows::Win32::System::Ole::CONNECT_E_CANNOTCONNECT;
+use windows::Win32::System::Ole::CONNECT_E_NOCONNECTION;
 use windows::Win32::UI::TextServices::ITfLangBarItem;
 use windows::Win32::UI::TextServices::ITfLangBarItemButton;
 use windows::Win32::UI::TextServices::ITfLangBarItemButton_Impl;
+use windows::Win32::UI::TextServices::ITfLangBarItemMgr;
 use windows::Win32::UI::TextServices::ITfLangBarItemSink;
 use windows::Win32::UI::TextServices::ITfLangBarItem_Impl;
 use windows::Win32::UI::TextServices::ITfMenu;
 use windows::Win32::UI::TextServices::ITfSource;
 use windows::Win32::UI::TextServices::ITfSource_Impl;
+use windows::Win32::UI::TextServices::ITfTextInputProcessor;
+use windows::Win32::UI::TextServices::ITfThreadMgr;
 use windows::Win32::UI::TextServices::TfLBIClick;
+use windows::Win32::UI::TextServices::GUID_LBI_INPUTMODE;
 use windows::Win32::UI::TextServices::TF_LANGBARITEMINFO;
+use windows::Win32::UI::TextServices::TF_LBI_STYLE_BTN_BUTTON;
 use windows::Win32::UI::WindowsAndMessaging::HICON;
 
 use crate::reg::guids::IID_KhiinTextService;
@@ -46,19 +49,41 @@ static INFO: TF_LANGBARITEMINFO = TF_LANGBARITEMINFO {
 
 #[implement(ITfSource, ITfLangBarItem, ITfLangBarItemButton)]
 pub struct LangBarIndicator {
-    sink_map: RefCell<HashMap<u32,ITfLangBarItemSink>>,
+    service: ITfTextInputProcessor,
+    threadmgr: ITfThreadMgr,
+    sink_map: Arc<Mutex<HashMap<u32, ITfLangBarItemSink>>>,
     status: u32,
     added: Cell<bool>,
 }
 
 impl LangBarIndicator {
-    fn add_item(
-        button: ITfLangBarItemButton,
+    pub fn new(
+        service: ITfTextInputProcessor,
         threadmgr: ITfThreadMgr,
+    ) -> Result<ITfLangBarItemButton> {
+        let this = LangBarIndicator {
+            service,
+            threadmgr: threadmgr.clone(),
+            sink_map: Arc::new(Mutex::new(HashMap::new())),
+            status: 0, // always 0
+            added: Cell::new(false),
+        };
+        let button: ITfLangBarItemButton = this.into();
+        LangBarIndicator::add_item(threadmgr, button.clone())?;
+        Ok(button)
+    }
+
+    fn lang_bar_item_mgr(&self) -> Result<ITfLangBarItemMgr> {
+        Ok(self.threadmgr.cast()?)
+    }
+
+    pub fn add_item(
+        threadmgr: ITfThreadMgr,
+        button: ITfLangBarItemButton,
     ) -> Result<()> {
         let indicator: &LangBarIndicator = button.as_impl();
         if indicator.added.get() {
-            return Ok(())
+            return Ok(());
         }
 
         let langbarmgr: ITfLangBarItemMgr = threadmgr.cast()?;
@@ -67,14 +92,14 @@ impl LangBarIndicator {
         Ok(())
     }
 
-    fn remove_item(
-        button: ITfLangBarItemButton,
+    pub fn remove_item(
         threadmgr: ITfThreadMgr,
+        button: ITfLangBarItemButton,
     ) -> Result<()> {
         let indicator: &LangBarIndicator = button.as_impl();
-        
+
         if !indicator.added.get() {
-            return Ok(())
+            return Ok(());
         }
 
         let langbarmgr: ITfLangBarItemMgr = threadmgr.cast()?;
@@ -99,19 +124,19 @@ impl ITfSource_Impl for LangBarIndicator {
         }
 
         let sink: ITfLangBarItemSink = punk.unwrap().clone().cast()?;
-        let mut sink_map = self.sink_map.borrow_mut();
-        let cookie = sink_map.keys().max().unwrap_or(&0) + 1;
-        match sink_map.insert(cookie, sink) {
+        let mut map = self.sink_map.lock().unwrap();
+        let cookie = map.keys().max().unwrap_or(&0) + 1;
+        match map.insert(cookie, sink) {
             Some(_) => winerr!(CONNECT_E_CANNOTCONNECT),
-            None => Ok(cookie)
+            None => Ok(cookie),
         }
     }
 
     fn UnadviseSink(&self, dwcookie: u32) -> Result<()> {
-        let mut sink_map = self.sink_map.borrow_mut();
-        match sink_map.remove(&dwcookie) {
+        let mut map = self.sink_map.lock().unwrap();
+        match map.remove(&dwcookie) {
             Some(_) => Ok(()),
-            None => winerr!(CONNECT_E_NOCONNECTION)
+            None => winerr!(CONNECT_E_NOCONNECTION),
         }
     }
 }
