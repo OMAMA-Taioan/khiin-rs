@@ -2,7 +2,6 @@ pub mod class_factory;
 
 mod candidate_list_ui;
 mod compartment;
-mod compartment_event_sink;
 mod composition_sink;
 mod display_attribute_info;
 mod display_attributes;

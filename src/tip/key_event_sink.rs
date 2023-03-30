@@ -34,7 +34,10 @@ pub struct KeyEventSink {
 }
 
 impl KeyEventSink {
-    fn new(service: ITfTextInputProcessor, threadmgr: ITfThreadMgr) -> Self {
+    pub fn new(
+        service: ITfTextInputProcessor,
+        threadmgr: ITfThreadMgr,
+    ) -> Self {
         KeyEventSink {
             service,
             threadmgr,
@@ -42,14 +45,12 @@ impl KeyEventSink {
         }
     }
 
-    pub fn advise(
-        service: ITfTextInputProcessor,
-        threadmgr: ITfThreadMgr,
-    ) -> Result<()> {
+    pub fn advise(&self) -> Result<()> {
         let sink: ITfKeyEventSink =
-            KeyEventSink::new(service.clone(), threadmgr.clone()).into();
-        let keystroke_mgr: ITfKeystrokeMgr = threadmgr.cast()?;
-        let service: &TextService = service.as_impl();
+            KeyEventSink::new(self.service.clone(), self.threadmgr.clone())
+                .into();
+        let keystroke_mgr: ITfKeystrokeMgr = self.threadmgr.cast()?;
+        let service: &TextService = self.service.as_impl();
 
         unsafe {
             keystroke_mgr.AdviseKeyEventSink(
@@ -62,14 +63,13 @@ impl KeyEventSink {
         Ok(())
     }
 
-    pub fn unadvise(
-        service: &TextService,
-        threadmgr: ITfThreadMgr,
-    ) -> Result<()> {
-        let keystroke_mgr: ITfKeystrokeMgr = threadmgr.cast()?;
+    pub fn unadvise(&self) -> Result<()> {
+        let keystroke_mgr: ITfKeystrokeMgr = self.threadmgr.cast()?;
+        let service: &TextService = self.service.as_impl();
 
         unsafe {
-            keystroke_mgr.UnadviseKeyEventSink(service.clientid())?;
+            keystroke_mgr
+                .UnadviseKeyEventSink(service.clientid())?;
         }
 
         Ok(())

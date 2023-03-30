@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::cell::Cell;
 use std::cell::RefCell;
 use std::ffi::c_void;
@@ -16,6 +17,7 @@ use windows::Win32::Foundation::TRUE;
 use windows::Win32::UI::TextServices::ITfCompartment;
 use windows::Win32::UI::TextServices::ITfCompartmentEventSink;
 use windows::Win32::UI::TextServices::ITfCompartmentEventSink_Impl;
+use windows::Win32::UI::TextServices::ITfKeyEventSink;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 use windows::Win32::UI::TextServices::ITfTextInputProcessorEx;
 use windows::Win32::UI::TextServices::ITfTextInputProcessorEx_Impl;
@@ -37,15 +39,8 @@ const TF_CLIENTID_NULL: u32 = 0;
     ITfTextInputProcessor,
     ITfCompartmentEventSink
 )]
-pub struct TextService {    
+pub struct TextService {
     dll_ref_count: Arc<AtomicUsize>,
-    disp_attrs: DisplayAttributes,
-    clientid: Cell<u32>,
-    dwflags: Cell<u32>,
-    threadmgr: RefCell<Option<ITfThreadMgr>>,
-    enabled: Cell<bool>,
-    engine: EngineMgr,
-    open_close_compartment: RefCell<Option<Compartment>>,
 
     // After the TextService is pinned in COM (by going `.into()`
     // the ITfTextInputProcessor), set `this` as a COM smart pointer
@@ -53,12 +48,22 @@ pub struct TextService {
     // a clone of `this`, and cast it to &TextService using `.as_impl()`
     // We must destroy this clone in `Deactivate` by setting `this` back
     // to `None`.
-    this: RefCell<Option<ITfTextInputProcessor>>,}
+    this: RefCell<Option<ITfTextInputProcessor>>,
+    disp_attrs: DisplayAttributes,
+    clientid: Cell<u32>,
+    dwflags: Cell<u32>,
+    threadmgr: RefCell<Option<ITfThreadMgr>>,
+    enabled: Cell<bool>,
+    engine: EngineMgr,
+    open_close_compartment: RefCell<Option<Compartment>>,
+    key_event_sink: RefCell<Option<ITfKeyEventSink>>,
+}
 
 impl TextService {
     pub fn new(dll_ref_count: Arc<AtomicUsize>) -> Self {
         TextService {
             dll_ref_count,
+            this: RefCell::new(None),
             disp_attrs: DisplayAttributes::new(),
             clientid: Cell::new(TF_CLIENTID_NULL),
             dwflags: Cell::new(0),
@@ -66,7 +71,7 @@ impl TextService {
             enabled: Cell::new(false),
             engine: EngineMgr::new(),
             open_close_compartment: RefCell::new(None),
-            this: RefCell::new(None),
+            key_event_sink: RefCell::new(None),
         }
     }
 
@@ -100,14 +105,15 @@ impl TextService {
 
     fn activate(&self) -> Result<()> {
         self.init_open_close_compartment()?;
-        self.set_open_close_compartment(true as u32)?;
-        KeyEventSink::advise(self.this(), self.threadmgr())?;
+        self.init_key_event_sink()?;
+
+        self.set_open_close_compartment(true)?;
+        self.key_event_sink().as_impl().advise()?;
         Ok(())
     }
 
     fn deactivate(&self) -> Result<()> {
-        let threadmgr = self.threadmgr();
-        KeyEventSink::unadvise(self, threadmgr)?;
+        self.key_event_sink().as_impl().unadvise()?;
         self.this.replace(None);
         Ok(())
     }
@@ -124,16 +130,27 @@ impl TextService {
         Ok(())
     }
 
-    fn set_open_close_compartment(&self, value: u32) -> Result<()> {
-        let x = self.open_close_compartment.borrow_mut();
-        let x = x.as_ref().unwrap();
-        x.set_value(value)
+    fn init_key_event_sink(&self) -> Result<()> {
+        let sink = KeyEventSink::new(self.this(), self.threadmgr());
+        let sink: ITfKeyEventSink = sink.into();
+        self.key_event_sink.replace(Some(sink));
+        Ok(())
     }
 
-    fn get_open_close_compartment(&self) -> Result<u32> {
+    fn key_event_sink(&self) -> ITfKeyEventSink {
+        self.key_event_sink.borrow().clone().unwrap()
+    }
+
+    fn set_open_close_compartment(&self, value: bool) -> Result<()> {
         let x = self.open_close_compartment.borrow_mut();
         let x = x.as_ref().unwrap();
-        x.get_value()
+        x.set_bool(value)
+    }
+
+    fn get_open_close_compartment(&self) -> Result<bool> {
+        let x = self.open_close_compartment.borrow_mut();
+        let x = x.as_ref().unwrap();
+        x.get_bool()
     }
 }
 

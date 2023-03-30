@@ -53,6 +53,14 @@ impl Compartment {
         unsafe { Box::from_raw(ptr as *mut Compartment) }
     }
 
+    pub fn set_bool(&self, value: bool) -> Result<()> {
+        self.set_value(value as u32)
+    }
+
+    pub fn get_bool(&self) -> Result<bool> {
+        Ok(self.get_value()? != 0)
+    }
+
     pub fn set_value(&self, value: u32) -> Result<()> {
         let mut variant = VARIANT::default();
         unsafe {
