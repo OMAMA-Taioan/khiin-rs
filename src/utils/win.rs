@@ -48,16 +48,24 @@ impl GetPath for HINSTANCE {
 pub trait WinString {
     // Use str.to_wide_bytes().as_slice()
     // for COM methods that take `const BYTE *` of a UTF-16 string
-    fn to_wide_bytes(self) -> Vec<u8>;
+    fn to_wide_bytes(&self) -> Vec<u8>;
+
+    fn to_utf16(&self) -> Vec<u16>;
 }
 
 impl WinString for &str {
-    fn to_wide_bytes(self) -> Vec<u8> {
-        let mut s = String::from(self);
+    fn to_wide_bytes(&self) -> Vec<u8> {
+        let mut s = String::from(*self);
         s.push_str("\0");
         s.encode_utf16()
             .flat_map(|c| c.to_le_bytes())
             .collect::<Vec<u8>>()
+    }
+
+    fn to_utf16(&self) -> Vec<u16> {
+        let mut v: Vec<u16> = self.encode_utf16().collect();
+        v.push(0);
+        v
     }
 }
 

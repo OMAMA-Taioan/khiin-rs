@@ -4,6 +4,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use windows::Win32::UI::TextServices::TF_LBI_CLK_LEFT;
+use windows::Win32::UI::TextServices::TF_LBI_CLK_RIGHT;
 use windows::core::implement;
 use windows::core::AsImpl;
 use windows::core::ComInterface;
@@ -37,6 +39,8 @@ use windows::Win32::UI::TextServices::TF_LBI_STYLE_BTN_BUTTON;
 use windows::Win32::UI::WindowsAndMessaging::HICON;
 
 use crate::reg::guids::IID_KhiinTextService;
+use crate::ui::popup_menu::PopupMenu;
+use crate::ui::window::BaseWindow;
 use crate::winerr;
 
 static INFO: TF_LANGBARITEMINFO = TF_LANGBARITEMINFO {
@@ -54,6 +58,7 @@ pub struct LangBarIndicator {
     sink_map: Arc<Mutex<HashMap<u32, ITfLangBarItemSink>>>,
     status: u32,
     added: Cell<bool>,
+    popup: PopupMenu,
 }
 
 impl LangBarIndicator {
@@ -62,11 +67,12 @@ impl LangBarIndicator {
         threadmgr: ITfThreadMgr,
     ) -> Result<ITfLangBarItemButton> {
         let this = LangBarIndicator {
-            service,
+            service: service.clone(),
             threadmgr: threadmgr.clone(),
             sink_map: Arc::new(Mutex::new(HashMap::new())),
             status: 0, // always 0
             added: Cell::new(false),
+            popup: PopupMenu::new(service.clone())?,
         };
         let button: ITfLangBarItemButton = this.into();
         LangBarIndicator::add_item(threadmgr, button.clone())?;
@@ -167,7 +173,11 @@ impl ITfLangBarItemButton_Impl for LangBarIndicator {
         pt: &POINT,
         prcarea: *const RECT,
     ) -> Result<()> {
-        todo!()
+        match click {
+            TF_LBI_CLK_LEFT => self.service.as_impl().toggle_enabled(),
+            TF_LBI_CLK_RIGHT => Ok(()), // TODO
+            _ => Ok(())
+        }
     }
 
     fn InitMenu(&self, pmenu: Option<&ITfMenu>) -> Result<()> {

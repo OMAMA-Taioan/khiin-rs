@@ -2,7 +2,7 @@
 macro_rules! winerr {
     ($s:ident) => {
         {
-            Err(Error::from($s))
+            Err(windows::core::Error::from($s))
         }
     };
 }

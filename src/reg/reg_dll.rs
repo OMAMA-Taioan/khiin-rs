@@ -1,16 +1,21 @@
 use windows::core::{ComInterface, Result, GUID};
 use windows::w;
 use windows::Win32::Globalization::LocaleNameToLCID;
-use windows::Win32::System::Com::{CoCreateInstance, CLSCTX_INPROC_SERVER};
+use windows::Win32::System::Com::CoCreateInstance;
+use windows::Win32::System::Com::CLSCTX_INPROC_SERVER;
 use windows::Win32::System::Registry::HKEY_CLASSES_ROOT;
-use windows::Win32::UI::TextServices::{
-    CLSID_TF_CategoryMgr, CLSID_TF_InputProcessorProfiles, ITfCategoryMgr,
-    ITfInputProcessorProfiles, ITfInputProcessorProfilesEx,
-    GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER, GUID_TFCAT_TIPCAP_COMLESS,
-    GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT, GUID_TFCAT_TIPCAP_INPUTMODECOMPARTMENT,
-    GUID_TFCAT_TIPCAP_SYSTRAYSUPPORT, GUID_TFCAT_TIPCAP_UIELEMENTENABLED,
-    GUID_TFCAT_TIP_KEYBOARD,
-};
+use windows::Win32::UI::TextServices::CLSID_TF_CategoryMgr;
+use windows::Win32::UI::TextServices::CLSID_TF_InputProcessorProfiles;
+use windows::Win32::UI::TextServices::ITfCategoryMgr;
+use windows::Win32::UI::TextServices::ITfInputProcessorProfiles;
+use windows::Win32::UI::TextServices::ITfInputProcessorProfilesEx;
+use windows::Win32::UI::TextServices::GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER;
+use windows::Win32::UI::TextServices::GUID_TFCAT_TIPCAP_COMLESS;
+use windows::Win32::UI::TextServices::GUID_TFCAT_TIPCAP_IMMERSIVESUPPORT;
+use windows::Win32::UI::TextServices::GUID_TFCAT_TIPCAP_INPUTMODECOMPARTMENT;
+use windows::Win32::UI::TextServices::GUID_TFCAT_TIPCAP_SYSTRAYSUPPORT;
+use windows::Win32::UI::TextServices::GUID_TFCAT_TIPCAP_UIELEMENTENABLED;
+use windows::Win32::UI::TextServices::GUID_TFCAT_TIP_KEYBOARD;
 
 use crate::reg::guids::*;
 use crate::reg::hkey::Hkey;

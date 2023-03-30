@@ -44,12 +44,12 @@ pub struct TextService {
     // We must destroy this clone in `Deactivate` by setting `this` back
     // to `None`.
     this: RefCell<Option<ITfTextInputProcessor>>,
-    disp_attrs: DisplayAttributes,
     clientid: ArcLock<u32>,
     dwflags: ArcLock<u32>,
-    threadmgr: RefCell<Option<ITfThreadMgr>>,
     enabled: ArcLock<bool>,
+    disp_attrs: DisplayAttributes,
     engine: EngineMgr,
+    threadmgr: RefCell<Option<ITfThreadMgr>>,
     open_close_compartment: RefCell<Option<Compartment>>,
     key_event_sink: RefCell<Option<ITfKeyEventSink>>,
     lang_bar_indicator: RefCell<Option<ITfLangBarItemButton>>,
@@ -63,9 +63,9 @@ impl TextService {
             disp_attrs: DisplayAttributes::new(),
             clientid: ArcLock::new(TF_CLIENTID_NULL),
             dwflags: ArcLock::new(0),
-            threadmgr: RefCell::new(None),
             enabled: ArcLock::new(false),
             engine: EngineMgr::new(),
+            threadmgr: RefCell::new(None),
             open_close_compartment: RefCell::new(None),
             key_event_sink: RefCell::new(None),
             lang_bar_indicator: RefCell::new(None),
@@ -82,6 +82,10 @@ impl TextService {
 
     pub fn enabled(&self) -> Result<bool> {
         self.enabled.get()
+    }
+
+    pub fn toggle_enabled(&self) -> Result<()> {
+        Ok(())
     }
 
     pub fn engine(&self) -> &EngineMgr {

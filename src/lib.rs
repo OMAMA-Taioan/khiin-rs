@@ -1,8 +1,10 @@
 #![cfg(windows)]
 #![allow(non_snake_case)]
 
+mod geometry;
 mod reg;
 mod tip;
+mod ui;
 mod utils;
 
 use log::warn;
