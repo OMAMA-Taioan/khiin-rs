@@ -4,6 +4,7 @@ use core::ffi::c_void;
 use core::option::Option;
 use log::debug;
 use log::warn;
+use windows::core::AsImpl;
 use windows::core::ComInterface;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
@@ -71,6 +72,9 @@ impl IClassFactory_Impl for KhiinClassFactory {
 
         let text_service: ITfTextInputProcessor =
             TextService::new(self.dll_ref_count.clone()).into();
+
+        let it: &TextService = text_service.as_impl();
+        it.set_this(text_service.clone());
 
         *ppvobject = unsafe { core::mem::transmute(text_service) };
 

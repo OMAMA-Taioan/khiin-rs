@@ -1,7 +1,7 @@
 use std::cell::Cell;
 
-use windows::Win32::UI::Input::KeyboardAndMouse::VK_SHIFT;
 use windows::core::implement;
+use windows::core::AsImpl;
 use windows::core::ComInterface;
 use windows::core::Result;
 use windows::core::GUID;
@@ -10,10 +10,12 @@ use windows::Win32::Foundation::FALSE;
 use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::TRUE;
 use windows::Win32::Foundation::WPARAM;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_SHIFT;
 use windows::Win32::UI::TextServices::ITfContext;
 use windows::Win32::UI::TextServices::ITfKeyEventSink;
 use windows::Win32::UI::TextServices::ITfKeyEventSink_Impl;
 use windows::Win32::UI::TextServices::ITfKeystrokeMgr;
+use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 use windows::Win32::UI::TextServices::ITfThreadMgr;
 use windows::Win32::UI::WindowsAndMessaging::WM_KEYDOWN;
 use windows::Win32::UI::WindowsAndMessaging::WM_KEYUP;
@@ -25,25 +27,29 @@ use crate::tip::text_service::TextService;
 use super::key_handlers::handle_key;
 
 #[implement(ITfKeyEventSink)]
-pub struct KeyEventSink<'a> {
-    service: &'a TextService,
+pub struct KeyEventSink {
+    service: ITfTextInputProcessor,
+    threadmgr: ITfThreadMgr,
     shift_pressed: Cell<bool>,
 }
 
-impl<'a> KeyEventSink<'a> {
-    fn new(service: &'a TextService) -> Self {
+impl KeyEventSink {
+    fn new(service: ITfTextInputProcessor, threadmgr: ITfThreadMgr) -> Self {
         KeyEventSink {
-            shift_pressed: Cell::new(false),
             service,
+            threadmgr,
+            shift_pressed: Cell::new(false),
         }
     }
 
     pub fn advise(
-        service: &TextService,
+        service: ITfTextInputProcessor,
         threadmgr: ITfThreadMgr,
     ) -> Result<()> {
-        let sink: ITfKeyEventSink = KeyEventSink::new(service).into();
+        let sink: ITfKeyEventSink =
+            KeyEventSink::new(service.clone(), threadmgr.clone()).into();
         let keystroke_mgr: ITfKeystrokeMgr = threadmgr.cast()?;
+        let service: &TextService = service.as_impl();
 
         unsafe {
             keystroke_mgr.AdviseKeyEventSink(
@@ -74,18 +80,22 @@ impl<'a> KeyEventSink<'a> {
         _context: &ITfContext,
         key_event: &KeyEvent,
     ) -> Result<BOOL> {
-        if !self.service.enabled() {
+        let service = self.service.as_impl();
+
+        if !service.enabled() {
             return Ok(FALSE);
         }
 
-        if key_event.keycode == VK_SHIFT.0 as u32 /* TODO: check config */ {
+        if key_event.keycode == VK_SHIFT.0 as u32
+        /* TODO: check config */
+        {
             self.shift_pressed.set(true);
             return Ok(TRUE);
         }
 
         // TODO: check for candidate UI priority keys
 
-        match self.service.engine().on_test_key(&key_event) {
+        match service.engine().on_test_key(&key_event) {
             true => Ok(TRUE),
             false => Ok(FALSE),
         }
@@ -96,11 +106,13 @@ impl<'a> KeyEventSink<'a> {
         context: &ITfContext,
         key_event: KeyEvent,
     ) -> Result<BOOL> {
-        if !self.service.enabled() {
+        let service = self.service.as_impl();
+
+        if !service.enabled() {
             return Ok(FALSE);
         }
 
-        let test =  self.test_key_down(context, &key_event);
+        let test = self.test_key_down(context, &key_event);
 
         if self.shift_pressed.get() {
             return Ok(FALSE);
@@ -109,12 +121,12 @@ impl<'a> KeyEventSink<'a> {
         match test {
             Ok(TRUE) => {
                 self.shift_pressed.set(false);
-                match handle_key(self.service, context, key_event) {
+                match handle_key(service, context, key_event) {
                     Ok(_) => Ok(TRUE),
-                    Err(_) => Ok(FALSE)
+                    Err(_) => Ok(FALSE),
                 }
-            },
-            _ => Ok(FALSE)
+            }
+            _ => Ok(FALSE),
         }
     }
 
@@ -123,10 +135,12 @@ impl<'a> KeyEventSink<'a> {
         _context: &ITfContext,
         key_event: KeyEvent,
     ) -> Result<BOOL> {
-        if self.shift_pressed.get() && key_event.keycode == VK_SHIFT.0 as u32 /* TODO: check config */ {
+        if self.shift_pressed.get() && key_event.keycode == VK_SHIFT.0 as u32
+        /* TODO: check config */
+        {
             self.shift_pressed.set(false);
             Ok(TRUE)
-        } else{
+        } else {
             Ok(FALSE)
         }
     }
@@ -136,16 +150,18 @@ impl<'a> KeyEventSink<'a> {
         _context: &ITfContext,
         key_event: KeyEvent,
     ) -> Result<BOOL> {
-        if self.shift_pressed.get() && key_event.keycode == VK_SHIFT.0 as u32 /* TODO: check config */ {
+        if self.shift_pressed.get() && key_event.keycode == VK_SHIFT.0 as u32
+        /* TODO: check config */
+        {
             self.shift_pressed.set(false);
             Ok(TRUE)
-        } else{
+        } else {
             Ok(FALSE)
         }
     }
 }
 
-impl ITfKeyEventSink_Impl for KeyEventSink<'_> {
+impl ITfKeyEventSink_Impl for KeyEventSink {
     fn OnSetFocus(&self, _fforeground: BOOL) -> Result<()> {
         Ok(())
     }
