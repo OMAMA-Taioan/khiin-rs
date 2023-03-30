@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use windows::core::Result;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Graphics::Direct2D::Common::D2D1_COLOR_F;
@@ -16,13 +18,14 @@ use windows::Win32::UI::WindowsAndMessaging::WS_EX_TOOLWINDOW;
 use windows::Win32::UI::WindowsAndMessaging::WS_EX_TOPMOST;
 use windows::Win32::UI::WindowsAndMessaging::WS_POPUP;
 
+use khiin_windows_macro::GuiWindow;
+
 use crate::geometry::point::Point;
 use crate::utils::arc_lock::ArcLock;
 
 use super::dpi::dpi_aware;
 use super::dpi::Density;
 use super::render_factory::RenderFactory;
-use super::window::BaseWindow;
 use super::window::GuiWindow;
 
 static WINDOW_CLASS_NAME: &str = "LanguageIndicatorPopupMenu";
@@ -44,7 +47,7 @@ pub fn color_f(r: u32, g: u32, b: u32) -> D2D1_COLOR_F {
 // These were previously in GuiWindow class
 // in c++ version
 pub struct TheGuiWindow {
-    hwnd: ArcLock<HWND>,
+    hwnd: RefCell<HWND>,
     showing: bool,
     tracking_mouse: bool,
     max_width: u32,
@@ -57,6 +60,7 @@ pub struct TheGuiWindow {
 }
 
 // these were in PopupMenu class extending GuiWindow
+// #[derive(GuiWindow)]
 pub struct PopupMenu {
     service: ITfTextInputProcessor,
     brush: ID2D1SolidColorBrush,
@@ -72,7 +76,7 @@ impl PopupMenu {
         let target = factory.create_dc_render_target()?;
 
         let gui = TheGuiWindow {
-            hwnd: ArcLock::new(HWND::default()),
+            hwnd: RefCell::new(HWND::default()),
             showing: false,
             tracking_mouse: false,
             max_width: 100,
@@ -96,31 +100,29 @@ impl PopupMenu {
             class_name: WINDOW_CLASS_NAME,
         };
 
-        BaseWindow::<PopupMenu>::create(
+        GuiWindow::create::<PopupMenu>(
             &mut this,
             "",
             DW_STYLE.0,
             window_ex_style().0,
-        );
+        )?;
 
         Ok(this)
     }
 }
 
-impl BaseWindow<PopupMenu> for PopupMenu {
+impl GuiWindow for PopupMenu {
     fn class_name(&self) -> &str {
         self.class_name
     }
-}
 
-impl GuiWindow for PopupMenu {
     fn set_hwnd(&self, hwnd: HWND) -> Result<()> {
-        self.gui.hwnd.set(hwnd)?;
+        self.gui.hwnd.replace(hwnd);
         Ok(())
     }
 
     fn hwnd(&self) -> HWND {
-        self.gui.hwnd.get().unwrap()
+        self.gui.hwnd.borrow().clone()
     }
 
     fn showing(&self) -> bool {
@@ -165,10 +167,12 @@ impl GuiWindow for PopupMenu {
 
     fn on_display_change(&self) {
         // TODO
+        return;
     }
 
     fn on_dpi_changed(&self) {
         // TODO
+        return;
     }
 
     // fn on_mouse_activate(&self) {
@@ -177,10 +181,12 @@ impl GuiWindow for PopupMenu {
 
     fn on_mouse_move(&self) {
         // TODO
+        return;
     }
 
     fn on_mouse_leave(&self) {
         // TODO
+        return;
     }
 
     fn on_click(&self) -> bool {
@@ -189,13 +195,16 @@ impl GuiWindow for PopupMenu {
 
     fn render(&self) {
         // TODO
+        return;
     }
 
     fn on_resize(&self) {
         // TODO
+        return;
     }
 
     fn on_window_pos_changing(&self) {
         // TODO
+        return;
     }
 }

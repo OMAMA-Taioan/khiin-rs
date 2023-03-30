@@ -2,14 +2,11 @@ use std::ffi::c_void;
 use std::mem::size_of;
 use std::mem::transmute;
 
-use windows::Win32::UI::WindowsAndMessaging::CW_USEDEFAULT;
-use windows::Win32::UI::WindowsAndMessaging::HMENU;
-use windows::Win32::UI::WindowsAndMessaging::HWND_DESKTOP;
-use windows::Win32::UI::WindowsAndMessaging::WINDOW_EX_STYLE;
-use windows::Win32::UI::WindowsAndMessaging::WINDOW_STYLE;
+use windows::Win32::UI::WindowsAndMessaging::DestroyWindow;
 use windows::core::Result;
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::BOOL;
+use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::LRESULT;
@@ -35,9 +32,14 @@ use windows::Win32::UI::WindowsAndMessaging::CREATESTRUCTW;
 use windows::Win32::UI::WindowsAndMessaging::CS_HREDRAW;
 use windows::Win32::UI::WindowsAndMessaging::CS_IME;
 use windows::Win32::UI::WindowsAndMessaging::CS_VREDRAW;
+use windows::Win32::UI::WindowsAndMessaging::CW_USEDEFAULT;
 use windows::Win32::UI::WindowsAndMessaging::GWLP_USERDATA;
 use windows::Win32::UI::WindowsAndMessaging::HCURSOR;
 use windows::Win32::UI::WindowsAndMessaging::HICON;
+use windows::Win32::UI::WindowsAndMessaging::HMENU;
+use windows::Win32::UI::WindowsAndMessaging::HWND_DESKTOP;
+use windows::Win32::UI::WindowsAndMessaging::WINDOW_EX_STYLE;
+use windows::Win32::UI::WindowsAndMessaging::WINDOW_STYLE;
 use windows::Win32::UI::WindowsAndMessaging::WM_CREATE;
 use windows::Win32::UI::WindowsAndMessaging::WM_DISPLAYCHANGE;
 use windows::Win32::UI::WindowsAndMessaging::WM_DPICHANGED;
@@ -52,6 +54,7 @@ use windows::Win32::UI::WindowsAndMessaging::WNDCLASSEXW;
 
 use crate::geometry::point::Point;
 use crate::pcwstr;
+use crate::winerr;
 use crate::DllModule;
 
 unsafe fn set_rounded_corners(hwnd: HWND, pref: DWM_WINDOW_CORNER_PREFERENCE) {
@@ -65,6 +68,89 @@ unsafe fn set_rounded_corners(hwnd: HWND, pref: DWM_WINDOW_CORNER_PREFERENCE) {
 }
 
 pub trait GuiWindow {
+    fn create<T: GuiWindow>(
+        &mut self,
+        window_name: &str,
+        dwstyle: u32,
+        dwexstyle: u32,
+    ) -> Result<()> {
+       
+        unsafe {
+            let class_name = pcwstr!(self.class_name());
+            if !self.try_register::<T>(class_name) {
+                return winerr!(E_FAIL);
+            }
+
+            let window_name = if window_name.is_empty() {
+                PCWSTR::null()
+            } else {
+                pcwstr!(window_name)
+            };
+
+            let previous_dpi_awareness = SetThreadDpiAwarenessContext(
+                DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2,
+            );
+
+            let self_ptr: *mut c_void = self as *mut _ as *mut c_void;
+
+            CreateWindowExW(
+                WINDOW_EX_STYLE(dwexstyle),
+                class_name,
+                window_name,
+                WINDOW_STYLE(dwstyle),
+                CW_USEDEFAULT,
+                CW_USEDEFAULT,
+                CW_USEDEFAULT,
+                CW_USEDEFAULT,
+                HWND_DESKTOP,
+                HMENU::default(),
+                DllModule::global().hinstance,
+                Some(self_ptr),
+            );
+
+            SetThreadDpiAwarenessContext(previous_dpi_awareness);
+
+            if self.hwnd() == HWND::default() {
+                winerr!(E_FAIL)
+            } else {
+                Ok(())
+            }
+        }
+    }
+
+    fn try_register<T: GuiWindow>(&self, class_name: PCWSTR) -> bool {
+        unsafe {
+            let histance = DllModule::global().hinstance;
+            let mut wc = WNDCLASSEXW::default();
+
+            if GetClassInfoExW(histance, class_name, &mut wc)
+                == BOOL::from(true)
+            {
+                // already registered
+                return true;
+            }
+
+            let wc = WNDCLASSEXW {
+                cbSize: size_of::<WNDCLASSEXW>() as u32,
+                style: CS_HREDRAW | CS_VREDRAW | CS_IME,
+                lpfnWndProc: Some(_static_wndproc::<T>),
+                cbClsExtra: 0,
+                hInstance: DllModule::global().hinstance,
+                lpszClassName: class_name,
+                hIcon: HICON::default(),
+                hIconSm: HICON::default(),
+                hCursor: HCURSOR::default(),
+                lpszMenuName: PCWSTR::null(),
+                hbrBackground: transmute::<HGDIOBJ, HBRUSH>(GetStockObject(
+                    NULL_BRUSH,
+                )),
+                cbWndExtra: 0,
+            };
+
+            RegisterClassExW(&wc) != 0
+        }
+    }
+
     fn wndproc(&self, umsg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
         unsafe {
             match umsg {
@@ -115,8 +201,15 @@ pub trait GuiWindow {
         }
     }
 
+    fn class_name(&self) -> &str;
     fn set_hwnd(&self, hwnd: HWND) -> Result<()>;
     fn hwnd(&self) -> HWND;
+    fn destroy(&self) {
+        let hwnd = self.hwnd();
+        if hwnd != HWND::default() {
+            unsafe { DestroyWindow(hwnd); }
+        }
+    }
     fn showing(&self) -> bool;
     fn show(&mut self, pt: Point<i32>);
     fn hide(&mut self);
@@ -132,89 +225,7 @@ pub trait GuiWindow {
     fn on_window_pos_changing(&self);
 }
 
-pub trait BaseWindow<T: GuiWindow> {
-    fn class_name(&self) -> &str;
-
-    fn static_wndproc(
-        hwnd: HWND,
-        umsg: u32,
-        wparam: WPARAM,
-        lparam: LPARAM,
-    ) -> LRESULT {
-        _wndproc::<T>(hwnd, umsg, wparam, lparam)
-    }
-
-    fn create(&mut self, window_name: &str, dwstyle: u32, dwexstyle: u32) {
-        unsafe {
-            let class_name = pcwstr!(self.class_name());
-            if !self.try_register(class_name) {
-                return; // failed
-            }
-
-            let window_name = if window_name.is_empty() {
-                PCWSTR::null()
-            } else {
-                pcwstr!(window_name)
-            };
-
-            let previous_dpi_awareness = SetThreadDpiAwarenessContext(
-                DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2,
-            );
-            
-            let self_ptr: *mut c_void = self as *mut _ as *mut c_void;
-
-            CreateWindowExW(
-                WINDOW_EX_STYLE(dwexstyle),
-                class_name,
-                window_name,
-                WINDOW_STYLE(dwstyle),
-                CW_USEDEFAULT,
-                CW_USEDEFAULT,
-                CW_USEDEFAULT,
-                CW_USEDEFAULT,
-                HWND_DESKTOP,
-                HMENU::default(),
-                DllModule::global().hinstance,
-                Some(self_ptr),
-            );
-        }
-    }
-
-    fn try_register(&self, class_name: PCWSTR) -> bool {
-        unsafe {
-            let histance = DllModule::global().hinstance;
-            let mut wc = WNDCLASSEXW::default();
-
-            if GetClassInfoExW(histance, class_name, &mut wc)
-                == BOOL::from(true)
-            {
-                // already registered
-                return true;
-            }
-
-            let wc = WNDCLASSEXW {
-                cbSize: size_of::<WNDCLASSEXW>() as u32,
-                style: CS_HREDRAW | CS_VREDRAW | CS_IME,
-                lpfnWndProc: Some(_wndproc::<T>),
-                cbClsExtra: 0,
-                hInstance: DllModule::global().hinstance,
-                lpszClassName: class_name,
-                hIcon: HICON::default(),
-                hIconSm: HICON::default(),
-                hCursor: HCURSOR::default(),
-                lpszMenuName: PCWSTR::null(),
-                hbrBackground: transmute::<HGDIOBJ, HBRUSH>(GetStockObject(
-                    NULL_BRUSH,
-                )),
-                cbWndExtra: 0,
-            };
-
-            RegisterClassExW(&wc) != 0
-        }
-    }
-}
-
-extern "system" fn _wndproc<T: GuiWindow>(
+extern "system" fn _static_wndproc<T: GuiWindow>(
     hwnd: HWND,
     umsg: u32,
     wparam: WPARAM,
@@ -226,7 +237,9 @@ extern "system" fn _wndproc<T: GuiWindow>(
             let ptr =
                 transmute::<*mut c_void, *mut c_void>((*lpcs).lpCreateParams)
                     as *mut T;
-            (*ptr).set_hwnd(hwnd);
+            if (*ptr).set_hwnd(hwnd).is_err() {
+                return DefWindowProcW(hwnd, umsg, wparam, lparam);
+            }
             let long_ptr: isize = transmute(ptr);
             SetWindowLongPtrW(hwnd, GWLP_USERDATA, long_ptr);
             ptr

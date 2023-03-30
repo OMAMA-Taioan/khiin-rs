@@ -4,8 +4,9 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use windows::Win32::UI::TextServices::TF_LBI_CLK_LEFT;
-use windows::Win32::UI::TextServices::TF_LBI_CLK_RIGHT;
+use windows::Win32::UI::WindowsAndMessaging::IMAGE_ICON;
+use windows::Win32::UI::WindowsAndMessaging::LR_DEFAULTCOLOR;
+use windows::core::PCWSTR;
 use windows::core::implement;
 use windows::core::AsImpl;
 use windows::core::ComInterface;
@@ -14,6 +15,7 @@ use windows::core::IUnknown;
 use windows::core::Result;
 use windows::core::BSTR;
 use windows::core::GUID;
+use windows::core::PSTR;
 use windows::Win32::Foundation::BOOL;
 use windows::Win32::Foundation::E_INVALIDARG;
 use windows::Win32::Foundation::E_NOTIMPL;
@@ -35,13 +37,18 @@ use windows::Win32::UI::TextServices::ITfThreadMgr;
 use windows::Win32::UI::TextServices::TfLBIClick;
 use windows::Win32::UI::TextServices::GUID_LBI_INPUTMODE;
 use windows::Win32::UI::TextServices::TF_LANGBARITEMINFO;
+use windows::Win32::UI::TextServices::TF_LBI_CLK_LEFT;
+use windows::Win32::UI::TextServices::TF_LBI_CLK_RIGHT;
 use windows::Win32::UI::TextServices::TF_LBI_STYLE_BTN_BUTTON;
+use windows::Win32::UI::WindowsAndMessaging::DestroyWindow;
+use windows::Win32::UI::WindowsAndMessaging::LoadImageW;
 use windows::Win32::UI::WindowsAndMessaging::HICON;
 
 use crate::reg::guids::IID_KhiinTextService;
 use crate::ui::popup_menu::PopupMenu;
-use crate::ui::window::BaseWindow;
+use crate::ui::window::GuiWindow;
 use crate::winerr;
+use crate::DllModule;
 
 static INFO: TF_LANGBARITEMINFO = TF_LANGBARITEMINFO {
     clsidService: IID_KhiinTextService,
@@ -79,8 +86,10 @@ impl LangBarIndicator {
         Ok(button)
     }
 
-    fn lang_bar_item_mgr(&self) -> Result<ITfLangBarItemMgr> {
-        Ok(self.threadmgr.cast()?)
+    pub fn shutdown(&self, button: ITfLangBarItemButton) -> Result<()> {
+        self.popup.destroy();
+        self.remove_item(button)?;
+        Ok(())
     }
 
     pub fn add_item(
@@ -98,17 +107,14 @@ impl LangBarIndicator {
         Ok(())
     }
 
-    pub fn remove_item(
-        threadmgr: ITfThreadMgr,
-        button: ITfLangBarItemButton,
-    ) -> Result<()> {
+    pub fn remove_item(&self, button: ITfLangBarItemButton) -> Result<()> {
         let indicator: &LangBarIndicator = button.as_impl();
 
         if !indicator.added.get() {
             return Ok(());
         }
 
-        let langbarmgr: ITfLangBarItemMgr = threadmgr.cast()?;
+        let langbarmgr: ITfLangBarItemMgr = self.threadmgr.cast()?;
         unsafe { langbarmgr.RemoveItem(&button)? };
         indicator.added.set(false);
         Ok(())
@@ -176,23 +182,38 @@ impl ITfLangBarItemButton_Impl for LangBarIndicator {
         match click {
             TF_LBI_CLK_LEFT => self.service.as_impl().toggle_enabled(),
             TF_LBI_CLK_RIGHT => Ok(()), // TODO
-            _ => Ok(())
+            _ => Ok(()),
         }
     }
 
     fn InitMenu(&self, pmenu: Option<&ITfMenu>) -> Result<()> {
-        todo!()
+        winerr!(E_NOTIMPL)
     }
 
     fn OnMenuSelect(&self, wid: u32) -> Result<()> {
-        todo!()
+        winerr!(E_NOTIMPL)
     }
 
     fn GetIcon(&self) -> Result<HICON> {
-        todo!()
+        unsafe {
+            // Testing
+            let IDI_MODE_CONTINUOUS = 105;
+            let str = IDI_MODE_CONTINUOUS as *mut u16;
+
+            let handle = LoadImageW(
+                DllModule::global().hinstance,
+                PCWSTR(str),
+                IMAGE_ICON,
+                0,
+                0,
+                LR_DEFAULTCOLOR,
+            )?;
+
+            Ok(HICON(handle.0))
+        }
     }
 
     fn GetText(&self) -> Result<BSTR> {
-        todo!()
+        winerr!(E_NOTIMPL)
     }
 }

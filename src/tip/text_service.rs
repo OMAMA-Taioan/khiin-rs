@@ -108,18 +108,13 @@ impl TextService {
         self.init_open_close_compartment()?;
         self.init_key_event_sink()?;
         self.init_lang_bar_indicator()?;
-
-        self.set_open_close_compartment(true)?;
-        self.key_event_sink().as_impl().advise()?;
         Ok(())
     }
 
     fn deactivate(&self) -> Result<()> {
-        let button = self.lang_bar_indicator().clone();
-        LangBarIndicator::remove_item(self.threadmgr(), button)?;
-
-        self.key_event_sink().as_impl().unadvise()?;
-        self.this.replace(None);
+        self.deinit_lang_bar_indicator()?;
+        self.deinit_key_event_sink()?;
+        self.deinit_open_close_compartment()?;
         Ok(())
     }
 
@@ -132,6 +127,13 @@ impl TextService {
             false,
         )?;
         self.open_close_compartment.replace(Some(compartment));
+        self.set_open_close_compartment(true)?;
+        Ok(())
+    }
+
+    fn deinit_open_close_compartment(&self) -> Result<()> {
+        self.set_open_close_compartment(false)?;
+        self.open_close_compartment.replace(None);
         Ok(())
     }
 
@@ -139,12 +141,27 @@ impl TextService {
         let sink = KeyEventSink::new(self.this(), self.threadmgr());
         let sink: ITfKeyEventSink = sink.into();
         self.key_event_sink.replace(Some(sink));
+        self.key_event_sink().as_impl().advise()
+    }
+
+    fn deinit_key_event_sink(&self) -> Result<()> {
+        self.key_event_sink().as_impl().unadvise()?;
+        self.key_event_sink.replace(None);
         Ok(())
     }
 
     fn init_lang_bar_indicator(&self) -> Result<()> {
         let indicator = LangBarIndicator::new(self.this(), self.threadmgr())?;
         self.lang_bar_indicator.replace(Some(indicator));
+        Ok(())
+    }
+
+    fn deinit_lang_bar_indicator(&self) -> Result<()> {
+        let button = self.lang_bar_indicator().clone();
+        let indicator = button.clone();
+        let indicator = indicator.as_impl();
+        indicator.shutdown(button)?;
+        self.lang_bar_indicator.replace(None);
         Ok(())
     }
 
