@@ -1,5 +1,4 @@
 use std::cell::Cell;
-use std::cell::RefCell;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -10,12 +9,10 @@ use windows::core::PCWSTR;
 use windows::core::implement;
 use windows::core::AsImpl;
 use windows::core::ComInterface;
-use windows::core::Error;
 use windows::core::IUnknown;
 use windows::core::Result;
 use windows::core::BSTR;
 use windows::core::GUID;
-use windows::core::PSTR;
 use windows::Win32::Foundation::BOOL;
 use windows::Win32::Foundation::E_INVALIDARG;
 use windows::Win32::Foundation::E_NOTIMPL;
@@ -40,13 +37,12 @@ use windows::Win32::UI::TextServices::TF_LANGBARITEMINFO;
 use windows::Win32::UI::TextServices::TF_LBI_CLK_LEFT;
 use windows::Win32::UI::TextServices::TF_LBI_CLK_RIGHT;
 use windows::Win32::UI::TextServices::TF_LBI_STYLE_BTN_BUTTON;
-use windows::Win32::UI::WindowsAndMessaging::DestroyWindow;
 use windows::Win32::UI::WindowsAndMessaging::LoadImageW;
 use windows::Win32::UI::WindowsAndMessaging::HICON;
 
 use crate::reg::guids::IID_KhiinTextService;
 use crate::ui::popup_menu::PopupMenu;
-use crate::ui::window::GuiWindow;
+use crate::ui::window::Window;
 use crate::winerr;
 use crate::DllModule;
 

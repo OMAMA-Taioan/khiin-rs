@@ -1,5 +1,14 @@
-use std::cell::RefCell;
+use std::mem::transmute;
 
+use windows::Win32::Foundation::LPARAM;
+use windows::Win32::Foundation::LRESULT;
+use windows::Win32::Foundation::WPARAM;
+use windows::Win32::UI::WindowsAndMessaging::CREATESTRUCTW;
+use windows::Win32::UI::WindowsAndMessaging::DefWindowProcW;
+use windows::Win32::UI::WindowsAndMessaging::GWLP_USERDATA;
+use windows::Win32::UI::WindowsAndMessaging::GetWindowLongPtrW;
+use windows::Win32::UI::WindowsAndMessaging::SetWindowLongPtrW;
+use windows::Win32::UI::WindowsAndMessaging::WM_NCCREATE;
 use windows::core::Result;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Graphics::Direct2D::Common::D2D1_COLOR_F;
@@ -18,15 +27,14 @@ use windows::Win32::UI::WindowsAndMessaging::WS_EX_TOOLWINDOW;
 use windows::Win32::UI::WindowsAndMessaging::WS_EX_TOPMOST;
 use windows::Win32::UI::WindowsAndMessaging::WS_POPUP;
 
-use khiin_windows_macro::GuiWindow;
+// use khiin_windows_macro::GuiWindow;
 
 use crate::geometry::point::Point;
-use crate::utils::arc_lock::ArcLock;
 
 use super::dpi::dpi_aware;
 use super::dpi::Density;
 use super::render_factory::RenderFactory;
-use super::window::GuiWindow;
+use super::window::Window;
 
 static WINDOW_CLASS_NAME: &str = "LanguageIndicatorPopupMenu";
 static FONT_NAME: &str = "Microsoft JhengHei UI Regular";
@@ -46,8 +54,8 @@ pub fn color_f(r: u32, g: u32, b: u32) -> D2D1_COLOR_F {
 
 // These were previously in GuiWindow class
 // in c++ version
-pub struct TheGuiWindow {
-    hwnd: RefCell<HWND>,
+pub struct WindowData {
+    hwnd: HWND,
     showing: bool,
     tracking_mouse: bool,
     max_width: u32,
@@ -66,7 +74,7 @@ pub struct PopupMenu {
     brush: ID2D1SolidColorBrush,
     textformat: IDWriteTextFormat,
     origin: Point<i32>,
-    gui: TheGuiWindow,
+    window: WindowData,
     class_name: &'static str,
 }
 
@@ -75,8 +83,8 @@ impl PopupMenu {
         let factory = RenderFactory::new()?;
         let target = factory.create_dc_render_target()?;
 
-        let gui = TheGuiWindow {
-            hwnd: RefCell::new(HWND::default()),
+        let window = WindowData {
+            hwnd: HWND(0),
             showing: false,
             tracking_mouse: false,
             max_width: 100,
@@ -94,13 +102,13 @@ impl PopupMenu {
         let mut this = Self {
             service,
             brush,
-            textformat: gui.factory.create_text_format(FONT_NAME, 16.0)?,
+            textformat: window.factory.create_text_format(FONT_NAME, 16.0)?,
             origin: Point::default(),
-            gui,
+            window,
             class_name: WINDOW_CLASS_NAME,
         };
 
-        GuiWindow::create::<PopupMenu>(
+        Window::create(
             &mut this,
             "",
             DW_STYLE.0,
@@ -111,22 +119,21 @@ impl PopupMenu {
     }
 }
 
-impl GuiWindow for PopupMenu {
+impl Window for PopupMenu {
     fn class_name(&self) -> &str {
         self.class_name
     }
 
-    fn set_hwnd(&self, hwnd: HWND) -> Result<()> {
-        self.gui.hwnd.replace(hwnd);
-        Ok(())
+    fn set_hwnd(&mut self, hwnd: HWND) {
+        self.window.hwnd = hwnd;
     }
 
     fn hwnd(&self) -> HWND {
-        self.gui.hwnd.borrow().clone()
+        self.window.hwnd
     }
 
     fn showing(&self) -> bool {
-        self.gui.showing
+        self.window.showing
     }
 
     fn show(&mut self, pt: Point<i32>) {
@@ -134,30 +141,30 @@ impl GuiWindow for PopupMenu {
             pt
         } else {
             Point {
-                x: pt.x.to_dp(self.gui.dpi),
-                y: pt.y.to_dp(self.gui.dpi),
+                x: pt.x.to_dp(self.window.dpi),
+                y: pt.y.to_dp(self.window.dpi),
             }
         };
 
-        self.gui.showing = true;
+        self.window.showing = true;
         unsafe {
             ShowWindow(self.hwnd(), SW_SHOWNA);
         }
-        self.gui.tracking_mouse = true;
+        self.window.tracking_mouse = true;
     }
 
     fn hide(&mut self) {
-        if !self.gui.showing {
+        if !self.window.showing {
             return;
         }
         unsafe {
             ShowWindow(self.hwnd(), SW_HIDE);
         }
-        if self.gui.tracking_mouse {
+        if self.window.tracking_mouse {
             unsafe {
                 ReleaseCapture();
             }
-            self.gui.tracking_mouse = false;
+            self.window.tracking_mouse = false;
         }
     }
 
@@ -206,5 +213,28 @@ impl GuiWindow for PopupMenu {
     fn on_window_pos_changing(&self) {
         // TODO
         return;
+    }
+
+    extern "system" fn wndproc(
+        hwnd: HWND,
+        umsg: u32,
+        wparam: WPARAM,
+        lparam: LPARAM,
+    ) -> LRESULT {
+        unsafe {
+            if umsg == WM_NCCREATE {
+                let lpcs: *mut CREATESTRUCTW = transmute(lparam);
+                let this = (*lpcs).lpCreateParams as *mut Self;
+                (*this).set_hwnd(hwnd);
+                SetWindowLongPtrW(hwnd, GWLP_USERDATA, transmute(this));
+            } else {
+                let this = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut Self;
+                if !this.is_null() {
+                    return (*this).on_message(umsg, wparam, lparam)
+                }
+            };
+
+            DefWindowProcW(hwnd, umsg, wparam, lparam)
+        }
     }
 }

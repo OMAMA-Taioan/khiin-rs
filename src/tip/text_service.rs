@@ -132,7 +132,7 @@ impl TextService {
     }
 
     fn deinit_open_close_compartment(&self) -> Result<()> {
-        self.set_open_close_compartment(false)?;
+        let _ = self.set_open_close_compartment(false);
         self.open_close_compartment.replace(None);
         Ok(())
     }
@@ -145,7 +145,7 @@ impl TextService {
     }
 
     fn deinit_key_event_sink(&self) -> Result<()> {
-        self.key_event_sink().as_impl().unadvise()?;
+        let _ = self.key_event_sink().as_impl().unadvise();
         self.key_event_sink.replace(None);
         Ok(())
     }
@@ -160,7 +160,8 @@ impl TextService {
         let button = self.lang_bar_indicator().clone();
         let indicator = button.clone();
         let indicator = indicator.as_impl();
-        indicator.shutdown(button)?;
+        let _ = indicator.shutdown(button);
+        // logging?
         self.lang_bar_indicator.replace(None);
         Ok(())
     }
@@ -195,7 +196,11 @@ impl ITfCompartmentEventSink_Impl for TextService {
 
 impl ITfTextInputProcessor_Impl for TextService {
     fn Activate(&self, ptim: Option<&ITfThreadMgr>, tid: u32) -> Result<()> {
-        self.ActivateEx(ptim, tid, 0)
+        if self.ActivateEx(ptim, tid, 0).is_err() {
+            self.deactivate()
+        } else {
+            Ok(())
+        }
     }
 
     fn Deactivate(&self) -> Result<()> {

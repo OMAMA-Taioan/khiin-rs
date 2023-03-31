@@ -2,7 +2,6 @@ use std::ffi::c_void;
 use std::mem::size_of;
 use std::mem::transmute;
 
-use windows::Win32::UI::WindowsAndMessaging::DestroyWindow;
 use windows::core::Result;
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::BOOL;
@@ -24,16 +23,13 @@ use windows::Win32::UI::HiDpi::SetThreadDpiAwarenessContext;
 use windows::Win32::UI::HiDpi::DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2;
 use windows::Win32::UI::WindowsAndMessaging::CreateWindowExW;
 use windows::Win32::UI::WindowsAndMessaging::DefWindowProcW;
+use windows::Win32::UI::WindowsAndMessaging::DestroyWindow;
 use windows::Win32::UI::WindowsAndMessaging::GetClassInfoExW;
-use windows::Win32::UI::WindowsAndMessaging::GetWindowLongPtrW;
 use windows::Win32::UI::WindowsAndMessaging::RegisterClassExW;
-use windows::Win32::UI::WindowsAndMessaging::SetWindowLongPtrW;
-use windows::Win32::UI::WindowsAndMessaging::CREATESTRUCTW;
 use windows::Win32::UI::WindowsAndMessaging::CS_HREDRAW;
 use windows::Win32::UI::WindowsAndMessaging::CS_IME;
 use windows::Win32::UI::WindowsAndMessaging::CS_VREDRAW;
 use windows::Win32::UI::WindowsAndMessaging::CW_USEDEFAULT;
-use windows::Win32::UI::WindowsAndMessaging::GWLP_USERDATA;
 use windows::Win32::UI::WindowsAndMessaging::HCURSOR;
 use windows::Win32::UI::WindowsAndMessaging::HICON;
 use windows::Win32::UI::WindowsAndMessaging::HMENU;
@@ -67,17 +63,16 @@ unsafe fn set_rounded_corners(hwnd: HWND, pref: DWM_WINDOW_CORNER_PREFERENCE) {
     );
 }
 
-pub trait GuiWindow {
-    fn create<T: GuiWindow>(
+pub trait Window {
+    fn create(
         &mut self,
         window_name: &str,
         dwstyle: u32,
         dwexstyle: u32,
     ) -> Result<()> {
-       
         unsafe {
             let class_name = pcwstr!(self.class_name());
-            if !self.try_register::<T>(class_name) {
+            if !self.register_class(class_name) {
                 return winerr!(E_FAIL);
             }
 
@@ -91,8 +86,6 @@ pub trait GuiWindow {
                 DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2,
             );
 
-            let self_ptr: *mut c_void = self as *mut _ as *mut c_void;
-
             CreateWindowExW(
                 WINDOW_EX_STYLE(dwexstyle),
                 class_name,
@@ -105,7 +98,7 @@ pub trait GuiWindow {
                 HWND_DESKTOP,
                 HMENU::default(),
                 DllModule::global().hinstance,
-                Some(self_ptr),
+                Some(self as *mut _ as _),
             );
 
             SetThreadDpiAwarenessContext(previous_dpi_awareness);
@@ -118,14 +111,12 @@ pub trait GuiWindow {
         }
     }
 
-    fn try_register<T: GuiWindow>(&self, class_name: PCWSTR) -> bool {
+    fn register_class(&self, class_name: PCWSTR) -> bool {
         unsafe {
             let histance = DllModule::global().hinstance;
             let mut wc = WNDCLASSEXW::default();
 
-            if GetClassInfoExW(histance, class_name, &mut wc)
-                == BOOL::from(true)
-            {
+            if GetClassInfoExW(histance, class_name, &mut wc) != BOOL::from(false) {
                 // already registered
                 return true;
             }
@@ -133,7 +124,7 @@ pub trait GuiWindow {
             let wc = WNDCLASSEXW {
                 cbSize: size_of::<WNDCLASSEXW>() as u32,
                 style: CS_HREDRAW | CS_VREDRAW | CS_IME,
-                lpfnWndProc: Some(_static_wndproc::<T>),
+                lpfnWndProc: Some(Self::wndproc),
                 cbClsExtra: 0,
                 hInstance: DllModule::global().hinstance,
                 lpszClassName: class_name,
@@ -151,7 +142,7 @@ pub trait GuiWindow {
         }
     }
 
-    fn wndproc(&self, umsg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
+    fn on_message(&self, umsg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
         unsafe {
             match umsg {
                 WM_NCCREATE => {
@@ -201,13 +192,22 @@ pub trait GuiWindow {
         }
     }
 
+    extern "system" fn wndproc(
+        hwnd: HWND,
+        umsg: u32,
+        wparam: WPARAM,
+        lparam: LPARAM,
+    ) -> LRESULT;
+
     fn class_name(&self) -> &str;
-    fn set_hwnd(&self, hwnd: HWND) -> Result<()>;
+    fn set_hwnd(&mut self, hwnd: HWND);
     fn hwnd(&self) -> HWND;
     fn destroy(&self) {
         let hwnd = self.hwnd();
         if hwnd != HWND::default() {
-            unsafe { DestroyWindow(hwnd); }
+            unsafe {
+                DestroyWindow(hwnd);
+            }
         }
     }
     fn showing(&self) -> bool;
@@ -223,35 +223,4 @@ pub trait GuiWindow {
     fn render(&self);
     fn on_resize(&self);
     fn on_window_pos_changing(&self);
-}
-
-extern "system" fn _static_wndproc<T: GuiWindow>(
-    hwnd: HWND,
-    umsg: u32,
-    wparam: WPARAM,
-    lparam: LPARAM,
-) -> LRESULT {
-    unsafe {
-        let self_ptr = if umsg == WM_NCCREATE {
-            let lpcs: *mut CREATESTRUCTW = transmute(lparam);
-            let ptr =
-                transmute::<*mut c_void, *mut c_void>((*lpcs).lpCreateParams)
-                    as *mut T;
-            if (*ptr).set_hwnd(hwnd).is_err() {
-                return DefWindowProcW(hwnd, umsg, wparam, lparam);
-            }
-            let long_ptr: isize = transmute(ptr);
-            SetWindowLongPtrW(hwnd, GWLP_USERDATA, long_ptr);
-            ptr
-        } else {
-            let long_ptr = GetWindowLongPtrW(hwnd, GWLP_USERDATA);
-            transmute(long_ptr)
-        };
-
-        if self_ptr != std::ptr::null_mut() as *mut T {
-            (*self_ptr).wndproc(umsg, wparam, lparam)
-        } else {
-            DefWindowProcW(hwnd, umsg, wparam, lparam)
-        }
-    }
 }
