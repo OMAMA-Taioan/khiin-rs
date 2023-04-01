@@ -1,11 +1,20 @@
+use windows::core::ComInterface;
 use windows::core::Error;
 use windows::core::Result;
 use windows::core::GUID;
 use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HMODULE;
 use windows::Win32::Foundation::MAX_PATH;
+use windows::Win32::System::Com::CoCreateInstance;
 use windows::Win32::System::Com::StringFromGUID2;
+use windows::Win32::System::Com::CLSCTX_INPROC_SERVER;
 use windows::Win32::System::LibraryLoader::GetModuleFileNameW;
+
+pub fn co_create_inproc<T: ComInterface>(clsid: &GUID) -> Result<T> {
+    let iface: T =
+        unsafe { CoCreateInstance(clsid, None, CLSCTX_INPROC_SERVER)? };
+    Ok(iface)
+}
 
 pub trait WinGuid {
     fn to_string(&self) -> Result<String>;

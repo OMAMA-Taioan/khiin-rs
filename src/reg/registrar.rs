@@ -1,8 +1,8 @@
-use windows::core::{ComInterface, Result, GUID};
+use windows::core::ComInterface;
+use windows::core::Result;
+use windows::core::GUID;
 use windows::w;
 use windows::Win32::Globalization::LocaleNameToLCID;
-use windows::Win32::System::Com::CoCreateInstance;
-use windows::Win32::System::Com::CLSCTX_INPROC_SERVER;
 use windows::Win32::System::Registry::HKEY_CLASSES_ROOT;
 use windows::Win32::UI::TextServices::CLSID_TF_CategoryMgr;
 use windows::Win32::UI::TextServices::CLSID_TF_InputProcessorProfiles;
@@ -19,6 +19,7 @@ use windows::Win32::UI::TextServices::GUID_TFCAT_TIP_KEYBOARD;
 
 use crate::reg::guids::*;
 use crate::reg::hkey::Hkey;
+use crate::utils::win::co_create_inproc;
 use crate::utils::win::WinGuid;
 
 const SUPPORTED_CATEGORIES: &'static [GUID] = &[
@@ -81,11 +82,8 @@ pub fn register_profiles(
     display_name_index: u32,
 ) -> Result<()> {
     unsafe {
-        let profiles: ITfInputProcessorProfiles = CoCreateInstance(
-            &CLSID_TF_InputProcessorProfiles,
-            None,
-            CLSCTX_INPROC_SERVER,
-        )?;
+        let profiles: ITfInputProcessorProfiles =
+            co_create_inproc(&CLSID_TF_InputProcessorProfiles)?;
 
         let lang_id: u16 = LocaleNameToLCID(w!("zh-TW"), 0).try_into().unwrap();
         let mut pch_desc: Vec<u16> = CLSID_DESCRIPTION.encode_utf16().collect();
@@ -118,12 +116,8 @@ pub fn register_profiles(
 
 pub fn unregister_profiles() -> Result<()> {
     unsafe {
-        let profiles: ITfInputProcessorProfiles = CoCreateInstance(
-            &CLSID_TF_InputProcessorProfiles,
-            None,
-            CLSCTX_INPROC_SERVER,
-        )?;
-
+        let profiles: ITfInputProcessorProfiles =
+            co_create_inproc(&CLSID_TF_InputProcessorProfiles)?;
         profiles.Unregister(&IID_KhiinTextService)
     }
 }
@@ -133,11 +127,8 @@ pub fn unregister_profiles() -> Result<()> {
 
 pub fn register_categories() -> Result<()> {
     unsafe {
-        let category_mgr: ITfCategoryMgr = CoCreateInstance(
-            &CLSID_TF_CategoryMgr,
-            None,
-            CLSCTX_INPROC_SERVER,
-        )?;
+        let category_mgr: ITfCategoryMgr =
+            co_create_inproc(&CLSID_TF_CategoryMgr)?;
 
         for category in SUPPORTED_CATEGORIES {
             category_mgr.RegisterCategory(
@@ -153,11 +144,8 @@ pub fn register_categories() -> Result<()> {
 
 pub fn unregister_categories() -> Result<()> {
     unsafe {
-        let category_mgr: ITfCategoryMgr = CoCreateInstance(
-            &CLSID_TF_CategoryMgr,
-            None,
-            CLSCTX_INPROC_SERVER,
-        )?;
+        let category_mgr: ITfCategoryMgr =
+            co_create_inproc(&CLSID_TF_CategoryMgr)?;
 
         for category in SUPPORTED_CATEGORIES {
             category_mgr.UnregisterCategory(

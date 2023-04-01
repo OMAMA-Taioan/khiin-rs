@@ -12,14 +12,14 @@ use windows::Win32::UI::TextServices::ITfDisplayAttributeInfo;
 use windows::Win32::UI::TextServices::ITfDisplayAttributeProvider;
 use windows::Win32::UI::TextServices::ITfDisplayAttributeProvider_Impl;
 
-use crate::reg::guids::IID_DISPLAY_ATTRIBUTE_CONVERTED;
-use crate::reg::guids::IID_DISPLAY_ATTRIBUTE_FOCUSED;
-use crate::reg::guids::IID_DISPLAY_ATTRIBUTE_INPUT;
+use crate::reg::guids::GUID_DISPLAY_ATTRIBUTE_CONVERTED;
+use crate::reg::guids::GUID_DISPLAY_ATTRIBUTE_FOCUSED;
+use crate::reg::guids::GUID_DISPLAY_ATTRIBUTE_INPUT;
 use crate::tip::display_attribute_info::*;
 
 #[implement(IEnumTfDisplayAttributeInfo, ITfDisplayAttributeProvider)]
 pub struct DisplayAttributes {
-    attributes: Vec<DisplayAttributeInfo>,
+    pub attributes: Vec<DisplayAttributeInfo>,
     current_index: Cell<usize>,
 }
 
@@ -29,19 +29,19 @@ impl DisplayAttributes {
 
         attributes.push(DisplayAttributeInfo::new(
             String::from("Input"),
-            IID_DISPLAY_ATTRIBUTE_INPUT,
+            GUID_DISPLAY_ATTRIBUTE_INPUT,
             DISPLAY_ATTRIBUTE_INPUT,
         ));
 
         attributes.push(DisplayAttributeInfo::new(
             String::from("Input"),
-            IID_DISPLAY_ATTRIBUTE_CONVERTED,
+            GUID_DISPLAY_ATTRIBUTE_CONVERTED,
             DISPLAY_ATTRIBUTE_CONVERTED,
         ));
 
         attributes.push(DisplayAttributeInfo::new(
             String::from("Input"),
-            IID_DISPLAY_ATTRIBUTE_FOCUSED,
+            GUID_DISPLAY_ATTRIBUTE_FOCUSED,
             DISPLAY_ATTRIBUTE_FOCUSED,
         ));
 

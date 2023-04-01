@@ -14,17 +14,17 @@ pub const LanguageProfile: GUID =
 
 // DisplayAttribute: Input
 // 829893f8-728d-11ec-8c6e-e0d46491b35a
-pub const IID_DISPLAY_ATTRIBUTE_INPUT: GUID =
+pub const GUID_DISPLAY_ATTRIBUTE_INPUT: GUID =
     GUID::from_u128(0x829893f8_728d_11ec_8c6e_e0d46491b35a);
 
 // DisplayAttribute: Converted
 // 829893f9-728d-11ec-8c6e-e0d46491b35a
-pub const IID_DISPLAY_ATTRIBUTE_CONVERTED: GUID =
+pub const GUID_DISPLAY_ATTRIBUTE_CONVERTED: GUID =
     GUID::from_u128(0x829893f9_728d_11ec_8c6e_e0d46491b35a);
 
 // DisplayAttribute: Focused
 // 829893fb-728d-11ec-8c6e-e0d46491b35a
-pub const IID_DISPLAY_ATTRIBUTE_FOCUSED: GUID =
+pub const GUID_DISPLAY_ATTRIBUTE_FOCUSED: GUID =
     GUID::from_u128(0x829893fb_728d_11ec_8c6e_e0d46491b35a);
 
 // 829893fa-728d-11ec-8c6e-e0d46491b35a
