@@ -52,18 +52,9 @@ use windows::Win32::UI::WindowsAndMessaging::WNDCLASSEXW;
 
 use crate::geometry::Point;
 use crate::pcwstr;
+use crate::ui::dwm::set_rounded_corners;
 use crate::ui::render_factory::RenderFactory;
 use crate::winerr;
-
-unsafe fn set_rounded_corners(hwnd: HWND, pref: DWM_WINDOW_CORNER_PREFERENCE) {
-    let pref = Box::into_raw(Box::new(pref)) as *mut c_void;
-    let _tmp = DwmSetWindowAttribute(
-        hwnd,
-        DWMWA_WINDOW_CORNER_PREFERENCE,
-        pref,
-        std::mem::size_of::<DWM_WINDOW_CORNER_PREFERENCE>() as u32,
-    );
-}
 
 // These were previously in GuiWindow class
 // in c++ version
@@ -82,6 +73,45 @@ pub struct WindowData {
 
 pub trait Window {
     const WINDOW_CLASS_NAME: &'static str;
+
+    fn register_class(module: HMODULE) -> bool {
+        unsafe {
+            let class_name = pcwstr!(Self::WINDOW_CLASS_NAME);
+            let mut wc = WNDCLASSEXW::default();
+
+            if GetClassInfoExW(module, class_name, &mut wc) != BOOL::from(false)
+            {
+                // already registered
+                return true;
+            }
+
+            let wc = WNDCLASSEXW {
+                cbSize: size_of::<WNDCLASSEXW>() as u32,
+                style: CS_HREDRAW | CS_VREDRAW | CS_IME,
+                lpfnWndProc: Some(Self::wndproc),
+                cbClsExtra: 0,
+                hInstance: module,
+                lpszClassName: class_name,
+                hIcon: HICON::default(),
+                hIconSm: HICON::default(),
+                hCursor: HCURSOR::default(),
+                lpszMenuName: PCWSTR::null(),
+                hbrBackground: transmute::<HGDIOBJ, HBRUSH>(GetStockObject(
+                    NULL_BRUSH,
+                )),
+                cbWndExtra: 0,
+            };
+
+            RegisterClassExW(&wc) != 0
+        }
+    }
+
+    fn unregister_class(module: HMODULE) -> bool {
+        unsafe {
+            let class_name = pcwstr!(Self::WINDOW_CLASS_NAME);
+            UnregisterClassW(class_name, module).0 != 0
+        }
+    }
 
     fn create(
         &mut self,
@@ -137,46 +167,6 @@ pub trait Window {
             unsafe {
                 DestroyWindow(hwnd);
             }
-        }
-    }
-
-    fn register_class(module: HMODULE) -> bool {
-        unsafe {
-            let class_name = pcwstr!(Self::WINDOW_CLASS_NAME);
-
-            let mut wc = WNDCLASSEXW::default();
-
-            if GetClassInfoExW(module, class_name, &mut wc) != BOOL::from(false)
-            {
-                // already registered
-                return true;
-            }
-
-            let wc = WNDCLASSEXW {
-                cbSize: size_of::<WNDCLASSEXW>() as u32,
-                style: CS_HREDRAW | CS_VREDRAW | CS_IME,
-                lpfnWndProc: Some(Self::wndproc),
-                cbClsExtra: 0,
-                hInstance: module,
-                lpszClassName: class_name,
-                hIcon: HICON::default(),
-                hIconSm: HICON::default(),
-                hCursor: HCURSOR::default(),
-                lpszMenuName: PCWSTR::null(),
-                hbrBackground: transmute::<HGDIOBJ, HBRUSH>(GetStockObject(
-                    NULL_BRUSH,
-                )),
-                cbWndExtra: 0,
-            };
-
-            RegisterClassExW(&wc) != 0
-        }
-    }
-
-    fn unregister_class(module: HMODULE) -> bool {
-        unsafe {
-            let class_name = pcwstr!(Self::WINDOW_CLASS_NAME);
-            UnregisterClassW(class_name, module).0 != 0
         }
     }
 
@@ -245,7 +235,6 @@ pub trait Window {
     fn on_create(&self) -> Result<()>;
     fn on_display_change(&self);
     fn on_dpi_changed(&self);
-    // fn on_mouse_activate(&self);
     fn on_mouse_move(&self);
     fn on_mouse_leave(&self);
     fn on_click(&self) -> bool;
