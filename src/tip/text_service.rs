@@ -32,6 +32,7 @@ use crate::ui::popup_menu::PopupMenu;
 use crate::ui::window::Window;
 use crate::utils::arc_lock::ArcLock;
 
+use super::preserved_key_mgr::PreservedKeyMgr;
 use super::thread_mgr_event_sink::ThreadMgrEventSink;
 
 const TF_CLIENTID_NULL: u32 = 0;
@@ -77,6 +78,7 @@ pub struct TextService {
     // UI elements
     disp_attrs: DisplayAttributes,
     lang_bar_indicator: RefCell<Option<ITfLangBarItemButton>>,
+    preserved_key_mgr: RefCell<Option<PreservedKeyMgr>>,
 
     // Data
     engine: EngineMgr,
@@ -111,6 +113,7 @@ impl TextService {
             kbd_disabled_sinkmgr: RefCell::new(
                 SinkMgr::<ITfCompartmentEventSink>::new(),
             ),
+            preserved_key_mgr: RefCell::new(None),
             disp_attrs: DisplayAttributes::new(),
             lang_bar_indicator: RefCell::new(None),
             engine: EngineMgr::new(),
@@ -166,6 +169,8 @@ impl TextService {
 
         self.init_kbd_disabled_compartment()?;
 
+        self.init_preserved_key_mgr()?;
+
         self.init_key_event_sink()?;
 
         Ok(())
@@ -173,6 +178,8 @@ impl TextService {
 
     fn deactivate(&self) -> Result<()> {
         let _ = self.deinit_key_event_sink();
+
+        let _ = self.deinit_preserved_key_mgr();
 
         let _ = self.deinit_kbd_disabled_compartment();
 
@@ -247,7 +254,7 @@ impl TextService {
         let x = x.as_ref().unwrap();
         x.get_bool()
     }
-
+    
     // config compartment
     fn init_config_compartment(&self) -> Result<()> {
         self.init_compartment(
@@ -260,7 +267,7 @@ impl TextService {
     fn deinit_config_compartment(&self) -> Result<()> {
         self.deinit_compartment(&self.config_compartment, &self.config_sinkmgr)
     }
-
+    
     // userdata compartment
     fn init_userdata_compartment(&self) -> Result<()> {
         self.init_compartment(
@@ -276,20 +283,20 @@ impl TextService {
             &self.userdata_sinkmgr,
         )
     }
-
+    
     // keyboard disabled compartment
     fn init_kbd_disabled_compartment(&self) -> Result<()> {
         self.init_compartment(
             GUID_COMPARTMENT_KEYBOARD_DISABLED,
-            &self.userdata_compartment,
-            &self.userdata_sinkmgr,
+            &self.kbd_disabled_compartment,
+            &self.kbd_disabled_sinkmgr,
         )
     }
 
     fn deinit_kbd_disabled_compartment(&self) -> Result<()> {
         self.deinit_compartment(
-            &self.userdata_compartment,
-            &self.userdata_sinkmgr,
+            &self.kbd_disabled_compartment,
+            &self.kbd_disabled_sinkmgr,
         )
     }
 
@@ -327,6 +334,17 @@ impl TextService {
         Ok(())
     }
 
+    // preseved key manager
+    fn init_preserved_key_mgr(&self) -> Result<()> {
+        self.preserved_key_mgr.replace(Some(PreservedKeyMgr::new(self.this())));
+        
+        Ok(())
+    }
+
+    fn deinit_preserved_key_mgr(&self) -> Result<()> {
+        Ok(())
+    }
+
     // language bar indicator
     fn init_lang_bar_indicator(&self) -> Result<()> {
         let indicator = LangBarIndicator::new(self.this(), self.threadmgr())?;
@@ -352,7 +370,14 @@ impl TextService {
 impl ITfCompartmentEventSink_Impl for TextService {
     fn OnChange(&self, rguid: *const GUID) -> Result<()> {
         let rguid = unsafe { *rguid };
-        Ok(())
+
+        match rguid {
+            GUID_COMPARTMENT_KEYBOARD_OPENCLOSE => Ok(()),
+            GUID_CONFIG_CHANGED_COMPARTMENT => Ok(()),
+            GUID_RESET_USERDATA_COMPARTMENT => Ok(()),
+            GUID_COMPARTMENT_KEYBOARD_DISABLED => Ok(()),
+            _ => Ok(())
+        }
     }
 }
 

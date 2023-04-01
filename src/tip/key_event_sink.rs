@@ -20,6 +20,9 @@ use windows::Win32::UI::TextServices::ITfThreadMgr;
 use windows::Win32::UI::WindowsAndMessaging::WM_KEYDOWN;
 use windows::Win32::UI::WindowsAndMessaging::WM_KEYUP;
 
+use crate::reg::guids::GUID_PRESERVED_KEY_FULL_WIDTH_SPACE;
+use crate::reg::guids::GUID_PRESERVED_KEY_ON_OFF;
+use crate::reg::guids::GUID_PRESERVED_KEY_SWITCH_MODE;
 use crate::tip::key_event::KeyEvent;
 use crate::tip::text_service::TextService;
 
@@ -230,6 +233,13 @@ impl ITfKeyEventSink_Impl for KeyEventSink {
         pic: Option<&ITfContext>,
         rguid: *const GUID,
     ) -> Result<BOOL> {
-        Ok(FALSE)
+        let guid = unsafe { *rguid };
+
+        match guid {
+            GUID_PRESERVED_KEY_ON_OFF => Ok(TRUE),
+            GUID_PRESERVED_KEY_SWITCH_MODE => Ok(TRUE),
+            GUID_PRESERVED_KEY_FULL_WIDTH_SPACE => Ok(TRUE),
+            _ => Ok(FALSE)
+        }
     }
 }
