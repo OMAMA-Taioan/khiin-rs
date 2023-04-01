@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 
+use windows::Win32::UI::TextServices::GUID_COMPARTMENT_KEYBOARD_DISABLED;
 use windows::core::implement;
 use windows::core::AsImpl;
 use windows::core::ComInterface;
@@ -70,6 +71,9 @@ pub struct TextService {
     userdata_compartment: RefCell<Option<Compartment>>,
     userdata_sinkmgr: RefCell<SinkMgr<ITfCompartmentEventSink>>,
 
+    kbd_disabled_compartment: RefCell<Option<Compartment>>,
+    kbd_disabled_sinkmgr: RefCell<SinkMgr<ITfCompartmentEventSink>>,
+
     // UI elements
     disp_attrs: DisplayAttributes,
     lang_bar_indicator: RefCell<Option<ITfLangBarItemButton>>,
@@ -99,9 +103,12 @@ impl TextService {
             config_sinkmgr: RefCell::new(
                 SinkMgr::<ITfCompartmentEventSink>::new(),
             ),
-
             userdata_compartment: RefCell::new(None),
             userdata_sinkmgr: RefCell::new(
+                SinkMgr::<ITfCompartmentEventSink>::new(),
+            ),
+            kbd_disabled_compartment: RefCell::new(None),
+            kbd_disabled_sinkmgr: RefCell::new(
                 SinkMgr::<ITfCompartmentEventSink>::new(),
             ),
             disp_attrs: DisplayAttributes::new(),
@@ -157,6 +164,8 @@ impl TextService {
 
         self.init_userdata_compartment()?;
 
+        self.init_kbd_disabled_compartment()?;
+
         self.init_key_event_sink()?;
 
         Ok(())
@@ -164,6 +173,8 @@ impl TextService {
 
     fn deactivate(&self) -> Result<()> {
         let _ = self.deinit_key_event_sink();
+
+        let _ = self.deinit_kbd_disabled_compartment();
 
         let _ = self.deinit_userdata_compartment();
 
@@ -260,6 +271,22 @@ impl TextService {
     }
 
     fn deinit_userdata_compartment(&self) -> Result<()> {
+        self.deinit_compartment(
+            &self.userdata_compartment,
+            &self.userdata_sinkmgr,
+        )
+    }
+
+    // keyboard disabled compartment
+    fn init_kbd_disabled_compartment(&self) -> Result<()> {
+        self.init_compartment(
+            GUID_COMPARTMENT_KEYBOARD_DISABLED,
+            &self.userdata_compartment,
+            &self.userdata_sinkmgr,
+        )
+    }
+
+    fn deinit_kbd_disabled_compartment(&self) -> Result<()> {
         self.deinit_compartment(
             &self.userdata_compartment,
             &self.userdata_sinkmgr,
