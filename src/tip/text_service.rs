@@ -17,18 +17,21 @@ use windows::Win32::UI::TextServices::ITfTextInputProcessorEx;
 use windows::Win32::UI::TextServices::ITfTextInputProcessorEx_Impl;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor_Impl;
 use windows::Win32::UI::TextServices::ITfThreadMgr;
+use windows::Win32::UI::TextServices::ITfThreadMgrEventSink;
 use windows::Win32::UI::TextServices::GUID_COMPARTMENT_KEYBOARD_OPENCLOSE;
 
 use crate::dll::DllModule;
+use crate::reg::guids::GUID_CONFIG_CHANGED_COMPARTMENT;
+use crate::reg::guids::GUID_RESET_USERDATA_COMPARTMENT;
+use crate::tip::compartment::Compartment;
 use crate::tip::display_attributes::DisplayAttributes;
 use crate::tip::engine_mgr::EngineMgr;
 use crate::tip::key_event_sink::KeyEventSink;
+use crate::tip::lang_bar_indicator::LangBarIndicator;
+use crate::tip::sink_mgr::SinkMgr;
 use crate::ui::popup_menu::PopupMenu;
 use crate::ui::window::Window;
 use crate::utils::arc_lock::ArcLock;
-
-use super::compartment::Compartment;
-use super::lang_bar_indicator::LangBarIndicator;
 
 const TF_CLIENTID_NULL: u32 = 0;
 
@@ -44,18 +47,36 @@ pub struct TextService {
     // the ITfTextInputProcessor), set `this` as a COM smart pointer
     // to self. All other impls that need TextService should recieve
     // a clone of `this`, and cast it to &TextService using `.as_impl()`
-    // We must destroy this clone in `Deactivate` by setting `this` back
-    // to `None`.
     this: RefCell<Option<ITfTextInputProcessor>>,
+
+    // Given by TSF
+    threadmgr: RefCell<Option<ITfThreadMgr>>,
     clientid: ArcLock<u32>,
     dwflags: ArcLock<u32>,
+
+    // State flag
     enabled: ArcLock<bool>,
-    disp_attrs: DisplayAttributes,
-    engine: EngineMgr,
-    threadmgr: RefCell<Option<ITfThreadMgr>>,
-    open_close_compartment: RefCell<Option<Compartment>>,
+
+    // Sinks (event handlers)
     key_event_sink: RefCell<Option<ITfKeyEventSink>>,
+    threadmgr_event_sink: RefCell<Option<ITfThreadMgrEventSink>>,
+
+    // Compartments
+    open_close_compartment: RefCell<Option<Compartment>>,
+    open_close_sinkmgr: RefCell<SinkMgr<ITfCompartmentEventSink>>,
+
+    config_compartment: RefCell<Option<Compartment>>,
+    config_sinkmgr: RefCell<SinkMgr<ITfCompartmentEventSink>>,
+
+    userdata_compartment: RefCell<Option<Compartment>>,
+    userdata_sinkmgr: RefCell<SinkMgr<ITfCompartmentEventSink>>,
+
+    // UI elements
+    disp_attrs: DisplayAttributes,
     lang_bar_indicator: RefCell<Option<ITfLangBarItemButton>>,
+
+    // Data
+    engine: EngineMgr,
 }
 
 impl TextService {
@@ -63,15 +84,28 @@ impl TextService {
         TextService {
             dll_ref_count,
             this: RefCell::new(None),
-            disp_attrs: DisplayAttributes::new(),
+            threadmgr: RefCell::new(None),
             clientid: ArcLock::new(TF_CLIENTID_NULL),
             dwflags: ArcLock::new(0),
             enabled: ArcLock::new(false),
-            engine: EngineMgr::new(),
-            threadmgr: RefCell::new(None),
-            open_close_compartment: RefCell::new(None),
             key_event_sink: RefCell::new(None),
+            threadmgr_event_sink: RefCell::new(None),
+            open_close_compartment: RefCell::new(None),
+            open_close_sinkmgr: RefCell::new(
+                SinkMgr::<ITfCompartmentEventSink>::new(),
+            ),
+            config_compartment: RefCell::new(None),
+            config_sinkmgr: RefCell::new(
+                SinkMgr::<ITfCompartmentEventSink>::new(),
+            ),
+
+            userdata_compartment: RefCell::new(None),
+            userdata_sinkmgr: RefCell::new(
+                SinkMgr::<ITfCompartmentEventSink>::new(),
+            ),
+            disp_attrs: DisplayAttributes::new(),
             lang_bar_indicator: RefCell::new(None),
+            engine: EngineMgr::new(),
         }
     }
 
@@ -109,37 +143,102 @@ impl TextService {
 
     fn activate(&self) -> Result<()> {
         PopupMenu::register_class(DllModule::global().module);
-        self.init_open_close_compartment()?;
-        self.init_key_event_sink()?;
+
         self.init_lang_bar_indicator()?;
+
+        self.init_open_close_compartment()?;
+
+        self.init_config_compartment()?;
+
+        self.init_userdata_compartment()?;
+
+        self.init_key_event_sink()?;
+
         Ok(())
     }
 
     fn deactivate(&self) -> Result<()> {
-        self.deinit_lang_bar_indicator()?;
-        self.deinit_key_event_sink()?;
-        self.deinit_open_close_compartment()?;
+        let _ = self.deinit_key_event_sink();
+
+        let _ = self.deinit_userdata_compartment();
+
+        let _ = self.deinit_config_compartment();
+
+        let _ = self.deinit_open_close_compartment();
+
+        let _ = self.deinit_lang_bar_indicator();
+
         PopupMenu::unregister_class(DllModule::global().module);
         Ok(())
     }
 
-    fn init_open_close_compartment(&self) -> Result<()> {
-        let unknown: IUnknown = self.threadmgr().cast()?;
-        let compartment = Compartment::new(
-            unknown,
-            self.clientid.get()?,
-            GUID_COMPARTMENT_KEYBOARD_OPENCLOSE,
-            false,
-        )?;
-        self.open_close_compartment.replace(Some(compartment));
-        self.set_open_close_compartment(true)?;
+    fn init_compartment(
+        &self,
+        guid: GUID,
+        compartment: &RefCell<Option<Compartment>>,
+        sinkmgr: &RefCell<SinkMgr<ITfCompartmentEventSink>>,
+    ) -> Result<()> {
+        let comp = Compartment::from(self.threadmgr(), self.clientid()?, guid)?;
+        compartment.replace(Some(comp.clone()));
+
+        let mut sinkmgr = sinkmgr.borrow_mut();
+        let punk: IUnknown = comp.compartment()?.cast()?;
+        let this: ITfCompartmentEventSink = self.this().cast()?;
+        sinkmgr.advise(punk, this)
+    }
+
+    fn deinit_compartment(
+        &self,
+        compartment: &RefCell<Option<Compartment>>,
+        sinkmgr: &RefCell<SinkMgr<ITfCompartmentEventSink>>,
+    ) -> Result<()> {
+        sinkmgr.borrow_mut().unadvise()?;
+        compartment.replace(None);
         Ok(())
+    }
+
+    fn init_open_close_compartment(&self) -> Result<()> {
+        self.init_compartment(
+            GUID_COMPARTMENT_KEYBOARD_OPENCLOSE,
+            &self.open_close_compartment,
+            &self.open_close_sinkmgr,
+        )?;
+        self.set_open_close_compartment(true)
     }
 
     fn deinit_open_close_compartment(&self) -> Result<()> {
         let _ = self.set_open_close_compartment(false);
-        self.open_close_compartment.replace(None);
-        Ok(())
+        self.deinit_compartment(
+            &self.open_close_compartment,
+            &self.open_close_sinkmgr,
+        )
+    }
+
+    fn init_config_compartment(&self) -> Result<()> {
+        self.init_compartment(
+            GUID_CONFIG_CHANGED_COMPARTMENT,
+            &self.config_compartment,
+            &self.config_sinkmgr,
+        )
+    }
+
+    fn deinit_config_compartment(&self) -> Result<()> {
+        self.deinit_compartment(&self.config_compartment, &self.config_sinkmgr)
+    }
+
+    fn init_userdata_compartment(&self) -> Result<()> {
+        self.init_compartment(
+            GUID_RESET_USERDATA_COMPARTMENT,
+            &self.userdata_compartment,
+            &self.userdata_sinkmgr,
+        )
+    }
+
+    fn deinit_userdata_compartment(&self) -> Result<()> {
+        self.deinit_compartment(
+            &self.userdata_compartment,
+            &self.userdata_sinkmgr,
+        )
     }
 
     fn init_key_event_sink(&self) -> Result<()> {

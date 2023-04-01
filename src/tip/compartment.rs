@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::ffi::c_void;
 use std::rc::Weak;
 
@@ -14,7 +15,7 @@ use windows::Win32::UI::TextServices::{ITfCompartment, ITfThreadMgr};
 
 use crate::winerr;
 
-#[implement()]
+#[derive(Clone)]
 pub struct Compartment {
     manager: ITfCompartmentMgr,
     clientid: u32,
@@ -44,6 +45,20 @@ impl Compartment {
                 guid,
             })
         }
+    }
+
+    pub fn from(
+        threadmgr: ITfThreadMgr,
+        clientid: u32,
+        guid: GUID,
+    ) -> Result<Self> {
+        let unknown: IUnknown = threadmgr.cast()?;
+        Compartment::new(
+            unknown,
+            clientid,
+            guid,
+            false,
+        )
     }
 
     pub fn from_void(ptr: *mut c_void) -> Box<Compartment> {
@@ -78,7 +93,7 @@ impl Compartment {
         }
     }
 
-    fn compartment(&self) -> Result<ITfCompartment> {
+    pub fn compartment(&self) -> Result<ITfCompartment> {
         unsafe { self.manager.GetCompartment(&self.guid) }
     }
 }
