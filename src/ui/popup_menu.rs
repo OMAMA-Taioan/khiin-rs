@@ -6,7 +6,6 @@ use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::LRESULT;
 use windows::Win32::Foundation::WPARAM;
 use windows::Win32::Graphics::Direct2D::Common::D2D1_COLOR_F;
-use windows::Win32::Graphics::Direct2D::ID2D1DCRenderTarget;
 use windows::Win32::Graphics::Direct2D::ID2D1SolidColorBrush;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextFormat;
 use windows::Win32::UI::Input::KeyboardAndMouse::ReleaseCapture;
@@ -35,7 +34,6 @@ use crate::ui::render_factory::RenderFactory;
 use crate::ui::window::Window;
 use crate::ui::window::WindowData;
 
-static WINDOW_CLASS_NAME: &str = "LanguageIndicatorPopupMenu";
 static FONT_NAME: &str = "Microsoft JhengHei UI Regular";
 const DW_STYLE: WINDOW_STYLE = WS_POPUP;
 fn window_ex_style() -> WINDOW_EX_STYLE {
@@ -51,8 +49,6 @@ pub fn color_f(r: u32, g: u32, b: u32) -> D2D1_COLOR_F {
     }
 }
 
-// these were in PopupMenu class extending GuiWindow
-// #[derive(GuiWindow)]
 pub struct PopupMenu {
     service: ITfTextInputProcessor,
     brush: ID2D1SolidColorBrush,

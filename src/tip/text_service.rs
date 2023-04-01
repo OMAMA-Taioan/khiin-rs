@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 
-use windows::Win32::UI::TextServices::ITfComposition;
+use windows::Win32::UI::TextServices::ITfUIElement;
 use windows::core::implement;
 use windows::core::AsImpl;
 use windows::core::ComInterface;
@@ -8,9 +8,11 @@ use windows::core::IUnknown;
 use windows::core::Result;
 use windows::core::GUID;
 use windows::Win32::UI::TextServices::CLSID_TF_CategoryMgr;
+use windows::Win32::UI::TextServices::ITfCandidateListUIElement;
 use windows::Win32::UI::TextServices::ITfCategoryMgr;
 use windows::Win32::UI::TextServices::ITfCompartmentEventSink;
 use windows::Win32::UI::TextServices::ITfCompartmentEventSink_Impl;
+use windows::Win32::UI::TextServices::ITfComposition;
 use windows::Win32::UI::TextServices::ITfCompositionSink;
 use windows::Win32::UI::TextServices::ITfCompositionSink_Impl;
 use windows::Win32::UI::TextServices::ITfKeyEventSink;
@@ -30,19 +32,19 @@ use crate::reg::guids::GUID_DISPLAY_ATTRIBUTE_CONVERTED;
 use crate::reg::guids::GUID_DISPLAY_ATTRIBUTE_FOCUSED;
 use crate::reg::guids::GUID_DISPLAY_ATTRIBUTE_INPUT;
 use crate::reg::guids::GUID_RESET_USERDATA_COMPARTMENT;
+use crate::tip::candidate_list_ui::CandidateListUI;
 use crate::tip::compartment::Compartment;
 use crate::tip::display_attributes::DisplayAttributes;
 use crate::tip::engine_mgr::EngineMgr;
 use crate::tip::key_event_sink::KeyEventSink;
 use crate::tip::lang_bar_indicator::LangBarIndicator;
+use crate::tip::preserved_key_mgr::PreservedKeyMgr;
 use crate::tip::sink_mgr::SinkMgr;
+use crate::tip::thread_mgr_event_sink::ThreadMgrEventSink;
 use crate::ui::popup_menu::PopupMenu;
 use crate::ui::window::Window;
 use crate::utils::arc_lock::ArcLock;
 use crate::utils::win::co_create_inproc;
-
-use super::preserved_key_mgr::PreservedKeyMgr;
-use super::thread_mgr_event_sink::ThreadMgrEventSink;
 
 const TF_CLIENTID_NULL: u32 = 0;
 const TF_INVALID_GUIDATOM: u32 = 0;
@@ -93,11 +95,13 @@ pub struct TextService {
     focused_attr_guidatom: ArcLock<u32>,
     lang_bar_indicator: RefCell<Option<ITfLangBarItemButton>>,
     preserved_key_mgr: RefCell<Option<PreservedKeyMgr>>,
+    candidate_list_ui: RefCell<Option<ITfCandidateListUIElement>>,
 
     // Data
     engine: EngineMgr,
 }
 
+// Public portion
 impl TextService {
     pub fn new() -> Self {
         TextService {
@@ -133,6 +137,7 @@ impl TextService {
             converted_attr_guidatom: ArcLock::new(TF_INVALID_GUIDATOM),
             focused_attr_guidatom: ArcLock::new(TF_INVALID_GUIDATOM),
             lang_bar_indicator: RefCell::new(None),
+            candidate_list_ui: RefCell::new(None),
             engine: EngineMgr::new(),
         }
     }
@@ -173,11 +178,19 @@ impl TextService {
         co_create_inproc(&CLSID_TF_CategoryMgr)
     }
 
+    pub fn ui_element(&self) -> Result<ITfUIElement> {
+        self.candidate_list_ui.borrow().clone().unwrap().cast()
+    }
+}
+
+// Private portion
+impl TextService {
     fn activate(&self) -> Result<()> {
         DllModule::global().add_ref();
         PopupMenu::register_class(DllModule::global().module);
         self.init_lang_bar_indicator()?;
         self.init_threadmgr_event_sink()?;
+        self.init_candidate_ui()?;
         self.init_open_close_compartment()?;
         self.init_config_compartment()?;
         self.init_userdata_compartment()?;
@@ -196,6 +209,7 @@ impl TextService {
         let _ = self.deinit_userdata_compartment();
         let _ = self.deinit_config_compartment();
         let _ = self.deinit_open_close_compartment();
+        let _ = self.deinit_candidate_ui();
         let _ = self.deinit_threadmgr_event_sink();
         let _ = self.deinit_lang_bar_indicator();
         PopupMenu::unregister_class(DllModule::global().module);
@@ -371,6 +385,18 @@ impl TextService {
 
     fn lang_bar_indicator(&self) -> ITfLangBarItemButton {
         self.lang_bar_indicator.borrow().clone().unwrap()
+    }
+
+    // candidate ui
+    fn init_candidate_ui(&self) -> Result<()> {
+        self.candidate_list_ui
+            .replace(Some(CandidateListUI::new(self.this()).into()));
+        Ok(())
+    }
+
+    fn deinit_candidate_ui(&self) -> Result<()> {
+        self.candidate_list_ui.replace(None);
+        Ok(())
     }
 
     // display attributes (underlines)

@@ -1,6 +1,7 @@
 pub mod popup_menu;
 pub mod window;
 
+mod candidate_window;
 mod dpi;
 mod dwm;
 mod popup_menu_item;
