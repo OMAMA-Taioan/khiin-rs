@@ -1,18 +1,18 @@
-use std::borrow::Borrow;
 use std::cell::RefCell;
 
+use windows::Win32::UI::TextServices::ITfComposition;
 use windows::core::implement;
 use windows::core::AsImpl;
 use windows::core::ComInterface;
 use windows::core::IUnknown;
 use windows::core::Result;
 use windows::core::GUID;
-use windows::Win32::System::Com::CoCreateInstance;
-use windows::Win32::System::Com::CLSCTX_INPROC_SERVER;
 use windows::Win32::UI::TextServices::CLSID_TF_CategoryMgr;
 use windows::Win32::UI::TextServices::ITfCategoryMgr;
 use windows::Win32::UI::TextServices::ITfCompartmentEventSink;
 use windows::Win32::UI::TextServices::ITfCompartmentEventSink_Impl;
+use windows::Win32::UI::TextServices::ITfCompositionSink;
+use windows::Win32::UI::TextServices::ITfCompositionSink_Impl;
 use windows::Win32::UI::TextServices::ITfKeyEventSink;
 use windows::Win32::UI::TextServices::ITfLangBarItemButton;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
@@ -26,10 +26,10 @@ use windows::Win32::UI::TextServices::GUID_COMPARTMENT_KEYBOARD_OPENCLOSE;
 
 use crate::dll::DllModule;
 use crate::reg::guids::GUID_CONFIG_CHANGED_COMPARTMENT;
-use crate::reg::guids::GUID_RESET_USERDATA_COMPARTMENT;
 use crate::reg::guids::GUID_DISPLAY_ATTRIBUTE_CONVERTED;
 use crate::reg::guids::GUID_DISPLAY_ATTRIBUTE_FOCUSED;
 use crate::reg::guids::GUID_DISPLAY_ATTRIBUTE_INPUT;
+use crate::reg::guids::GUID_RESET_USERDATA_COMPARTMENT;
 use crate::tip::compartment::Compartment;
 use crate::tip::display_attributes::DisplayAttributes;
 use crate::tip::engine_mgr::EngineMgr;
@@ -50,7 +50,8 @@ const TF_INVALID_GUIDATOM: u32 = 0;
 #[implement(
     ITfTextInputProcessorEx,
     ITfTextInputProcessor,
-    ITfCompartmentEventSink
+    ITfCompartmentEventSink,
+    ITfCompositionSink
 )]
 pub struct TextService {
     // After the TextService is pinned in COM (by going `.into()`
@@ -376,8 +377,9 @@ impl TextService {
     fn init_display_attributes(&self) -> Result<()> {
         let categorymgr = self.categorymgr()?;
         unsafe {
-            self.input_attr_guidatom
-                .set(categorymgr.RegisterGUID(&GUID_DISPLAY_ATTRIBUTE_INPUT)?)?;
+            self.input_attr_guidatom.set(
+                categorymgr.RegisterGUID(&GUID_DISPLAY_ATTRIBUTE_INPUT)?,
+            )?;
             self.converted_attr_guidatom.set(
                 categorymgr.RegisterGUID(&GUID_DISPLAY_ATTRIBUTE_CONVERTED)?,
             )?;
@@ -391,6 +393,11 @@ impl TextService {
         Ok(())
     }
 }
+//+---------------------------------------------------------------------------
+//
+// ITfCompartmentEventSink
+//
+//----------------------------------------------------------------------------
 
 impl ITfCompartmentEventSink_Impl for TextService {
     fn OnChange(&self, rguid: *const GUID) -> Result<()> {
@@ -406,6 +413,28 @@ impl ITfCompartmentEventSink_Impl for TextService {
     }
 }
 
+//+---------------------------------------------------------------------------
+//
+// ITfCompositionSink
+//
+//----------------------------------------------------------------------------
+
+impl ITfCompositionSink_Impl for TextService {
+    fn OnCompositionTerminated(
+        &self,
+        ecwrite: u32,
+        pcomposition: Option<&ITfComposition>,
+    ) -> Result<()> {
+        Ok(())
+    }
+}
+
+//+---------------------------------------------------------------------------
+//
+// ITfTextInputProcessor
+//
+//----------------------------------------------------------------------------
+
 impl ITfTextInputProcessor_Impl for TextService {
     fn Activate(&self, ptim: Option<&ITfThreadMgr>, tid: u32) -> Result<()> {
         if self.ActivateEx(ptim, tid, 0).is_err() {
@@ -420,6 +449,12 @@ impl ITfTextInputProcessor_Impl for TextService {
         Ok(())
     }
 }
+
+//+---------------------------------------------------------------------------
+//
+// ITfTextInputProcessorEx
+//
+//----------------------------------------------------------------------------
 
 impl ITfTextInputProcessorEx_Impl for TextService {
     fn ActivateEx(
