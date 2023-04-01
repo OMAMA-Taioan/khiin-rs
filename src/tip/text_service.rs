@@ -33,6 +33,8 @@ use crate::ui::popup_menu::PopupMenu;
 use crate::ui::window::Window;
 use crate::utils::arc_lock::ArcLock;
 
+use super::thread_mgr_event_sink::ThreadMgrEventSink;
+
 const TF_CLIENTID_NULL: u32 = 0;
 
 #[implement(
@@ -60,6 +62,7 @@ pub struct TextService {
     // Sinks (event handlers)
     key_event_sink: RefCell<Option<ITfKeyEventSink>>,
     threadmgr_event_sink: RefCell<Option<ITfThreadMgrEventSink>>,
+    threadmgr_event_sink_sinkmgr: RefCell<SinkMgr<ITfThreadMgrEventSink>>,
 
     // Compartments
     open_close_compartment: RefCell<Option<Compartment>>,
@@ -90,6 +93,9 @@ impl TextService {
             enabled: ArcLock::new(false),
             key_event_sink: RefCell::new(None),
             threadmgr_event_sink: RefCell::new(None),
+            threadmgr_event_sink_sinkmgr: RefCell::new(
+                SinkMgr::<ITfThreadMgrEventSink>::new(),
+            ),
             open_close_compartment: RefCell::new(None),
             open_close_sinkmgr: RefCell::new(
                 SinkMgr::<ITfCompartmentEventSink>::new(),
@@ -137,7 +143,7 @@ impl TextService {
         self.this.borrow().clone().unwrap()
     }
 
-    fn threadmgr(&self) -> ITfThreadMgr {
+    pub fn threadmgr(&self) -> ITfThreadMgr {
         self.threadmgr.borrow().clone().unwrap()
     }
 
@@ -145,6 +151,8 @@ impl TextService {
         PopupMenu::register_class(DllModule::global().module);
 
         self.init_lang_bar_indicator()?;
+
+        self.init_threadmgr_event_sink()?;
 
         self.init_open_close_compartment()?;
 
@@ -166,12 +174,15 @@ impl TextService {
 
         let _ = self.deinit_open_close_compartment();
 
+        let _ = self.deinit_threadmgr_event_sink();
+
         let _ = self.deinit_lang_bar_indicator();
 
         PopupMenu::unregister_class(DllModule::global().module);
         Ok(())
     }
 
+    // compartments & sinkmgrs
     fn init_compartment(
         &self,
         guid: GUID,
@@ -197,6 +208,7 @@ impl TextService {
         Ok(())
     }
 
+    // open-close compartment
     fn init_open_close_compartment(&self) -> Result<()> {
         self.init_compartment(
             GUID_COMPARTMENT_KEYBOARD_OPENCLOSE,
@@ -214,6 +226,19 @@ impl TextService {
         )
     }
 
+    fn set_open_close_compartment(&self, value: bool) -> Result<()> {
+        let x = self.open_close_compartment.borrow_mut();
+        let x = x.as_ref().unwrap();
+        x.set_bool(value)
+    }
+
+    fn get_open_close_compartment(&self) -> Result<bool> {
+        let x = self.open_close_compartment.borrow_mut();
+        let x = x.as_ref().unwrap();
+        x.get_bool()
+    }
+
+    // config compartment
     fn init_config_compartment(&self) -> Result<()> {
         self.init_compartment(
             GUID_CONFIG_CHANGED_COMPARTMENT,
@@ -226,6 +251,7 @@ impl TextService {
         self.deinit_compartment(&self.config_compartment, &self.config_sinkmgr)
     }
 
+    // userdata compartment
     fn init_userdata_compartment(&self) -> Result<()> {
         self.init_compartment(
             GUID_RESET_USERDATA_COMPARTMENT,
@@ -241,6 +267,7 @@ impl TextService {
         )
     }
 
+    // key event sink
     fn init_key_event_sink(&self) -> Result<()> {
         let sink = KeyEventSink::new(self.this(), self.threadmgr());
         let sink: ITfKeyEventSink = sink.into();
@@ -254,6 +281,27 @@ impl TextService {
         Ok(())
     }
 
+    fn key_event_sink(&self) -> ITfKeyEventSink {
+        self.key_event_sink.borrow().clone().unwrap()
+    }
+
+    // threadmgr event sink
+    fn init_threadmgr_event_sink(&self) -> Result<()> {
+        let tip: ITfTextInputProcessor = self.this();
+        self.threadmgr_event_sink
+            .replace(Some(ThreadMgrEventSink::new(tip).into()));
+        let sink = self.threadmgr_event_sink.borrow().clone().unwrap();
+        let punk: IUnknown = self.threadmgr().cast()?;
+        self.threadmgr_event_sink_sinkmgr.borrow_mut().advise(punk, sink)
+    }
+
+    fn deinit_threadmgr_event_sink(&self) -> Result<()> {
+        self.threadmgr_event_sink_sinkmgr.borrow_mut().unadvise()?;
+        self.threadmgr_event_sink.replace(None);
+        Ok(())
+    }
+
+    // language bar indicator
     fn init_lang_bar_indicator(&self) -> Result<()> {
         let indicator = LangBarIndicator::new(self.this(), self.threadmgr())?;
         self.lang_bar_indicator.replace(Some(indicator));
@@ -272,22 +320,6 @@ impl TextService {
 
     fn lang_bar_indicator(&self) -> ITfLangBarItemButton {
         self.lang_bar_indicator.borrow().clone().unwrap()
-    }
-
-    fn key_event_sink(&self) -> ITfKeyEventSink {
-        self.key_event_sink.borrow().clone().unwrap()
-    }
-
-    fn set_open_close_compartment(&self, value: bool) -> Result<()> {
-        let x = self.open_close_compartment.borrow_mut();
-        let x = x.as_ref().unwrap();
-        x.set_bool(value)
-    }
-
-    fn get_open_close_compartment(&self) -> Result<bool> {
-        let x = self.open_close_compartment.borrow_mut();
-        let x = x.as_ref().unwrap();
-        x.get_bool()
     }
 }
 

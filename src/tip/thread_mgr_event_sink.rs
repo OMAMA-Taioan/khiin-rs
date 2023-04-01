@@ -2,34 +2,46 @@ use windows::core::implement;
 use windows::core::Result;
 use windows::Win32::UI::TextServices::ITfContext;
 use windows::Win32::UI::TextServices::ITfDocumentMgr;
+use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 use windows::Win32::UI::TextServices::ITfThreadMgrEventSink;
 use windows::Win32::UI::TextServices::ITfThreadMgrEventSink_Impl;
 
+
 #[implement(ITfThreadMgrEventSink)]
-struct ThreadMgrEventSink;
+pub struct ThreadMgrEventSink {
+    _service: ITfTextInputProcessor,
+}
+
+impl ThreadMgrEventSink {
+    pub fn new(service: ITfTextInputProcessor) -> Self {
+        Self {
+            _service: service,
+        }
+    }
+}
 
 impl ITfThreadMgrEventSink_Impl for ThreadMgrEventSink {
-    fn OnInitDocumentMgr(&self, pdim: Option<&ITfDocumentMgr>) -> Result<()> {
-        todo!()
+    fn OnInitDocumentMgr(&self, _pdim: Option<&ITfDocumentMgr>) -> Result<()> {
+        Ok(())
     }
 
-    fn OnUninitDocumentMgr(&self, pdim: Option<&ITfDocumentMgr>) -> Result<()> {
-        todo!()
+    fn OnUninitDocumentMgr(&self, _pdim: Option<&ITfDocumentMgr>) -> Result<()> {
+        Ok(())
     }
 
     fn OnSetFocus(
         &self,
-        pdimfocus: Option<&ITfDocumentMgr>,
-        pdimprevfocus: Option<&ITfDocumentMgr>,
+        _pdimfocus: Option<&ITfDocumentMgr>,
+        _pdimprevfocus: Option<&ITfDocumentMgr>,
     ) -> Result<()> {
-        todo!()
+        Ok(())
     }
 
-    fn OnPushContext(&self, pic: Option<&ITfContext>) -> Result<()> {
-        todo!()
+    fn OnPushContext(&self, _pic: Option<&ITfContext>) -> Result<()> {
+        Ok(())
     }
 
-    fn OnPopContext(&self, pic: Option<&ITfContext>) -> Result<()> {
-        todo!()
+    fn OnPopContext(&self, _pic: Option<&ITfContext>) -> Result<()> {
+        Ok(())
     }
 }
