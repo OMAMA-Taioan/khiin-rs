@@ -1,4 +1,3 @@
-use num::Num;
 use windows::Win32::Foundation::BOOL;
 use windows::Win32::System::WindowsProgramming::MulDiv;
 use windows::Win32::UI::HiDpi::AreDpiAwarenessContextsEqual;

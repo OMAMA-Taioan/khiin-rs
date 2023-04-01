@@ -1,3 +1,3 @@
-pub mod reg_dll;
+pub mod registrar;
 pub mod hkey;
 pub mod guids;

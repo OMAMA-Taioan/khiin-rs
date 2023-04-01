@@ -1,40 +1,39 @@
 use std::mem::transmute;
 
+use windows::core::Result;
+use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::LRESULT;
 use windows::Win32::Foundation::WPARAM;
-use windows::Win32::UI::WindowsAndMessaging::CREATESTRUCTW;
-use windows::Win32::UI::WindowsAndMessaging::DefWindowProcW;
-use windows::Win32::UI::WindowsAndMessaging::GWLP_USERDATA;
-use windows::Win32::UI::WindowsAndMessaging::GetWindowLongPtrW;
-use windows::Win32::UI::WindowsAndMessaging::SetWindowLongPtrW;
-use windows::Win32::UI::WindowsAndMessaging::WM_NCCREATE;
-use windows::core::Result;
-use windows::Win32::Foundation::HWND;
 use windows::Win32::Graphics::Direct2D::Common::D2D1_COLOR_F;
 use windows::Win32::Graphics::Direct2D::ID2D1DCRenderTarget;
 use windows::Win32::Graphics::Direct2D::ID2D1SolidColorBrush;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextFormat;
 use windows::Win32::UI::Input::KeyboardAndMouse::ReleaseCapture;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
+use windows::Win32::UI::WindowsAndMessaging::DefWindowProcW;
+use windows::Win32::UI::WindowsAndMessaging::GetWindowLongPtrW;
+use windows::Win32::UI::WindowsAndMessaging::SetWindowLongPtrW;
 use windows::Win32::UI::WindowsAndMessaging::ShowWindow;
+use windows::Win32::UI::WindowsAndMessaging::CREATESTRUCTW;
+use windows::Win32::UI::WindowsAndMessaging::GWLP_USERDATA;
 use windows::Win32::UI::WindowsAndMessaging::SW_HIDE;
 use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNA;
 use windows::Win32::UI::WindowsAndMessaging::WINDOW_EX_STYLE;
 use windows::Win32::UI::WindowsAndMessaging::WINDOW_STYLE;
+use windows::Win32::UI::WindowsAndMessaging::WM_NCCREATE;
 use windows::Win32::UI::WindowsAndMessaging::WS_EX_NOACTIVATE;
 use windows::Win32::UI::WindowsAndMessaging::WS_EX_TOOLWINDOW;
 use windows::Win32::UI::WindowsAndMessaging::WS_EX_TOPMOST;
 use windows::Win32::UI::WindowsAndMessaging::WS_POPUP;
 
-// use khiin_windows_macro::GuiWindow;
-
-use crate::geometry::point::Point;
-
-use super::dpi::dpi_aware;
-use super::dpi::Density;
-use super::render_factory::RenderFactory;
-use super::window::Window;
+use crate::dll::DllModule;
+use crate::geometry::Point;
+use crate::ui::dpi::dpi_aware;
+use crate::ui::dpi::Density;
+use crate::ui::render_factory::RenderFactory;
+use crate::ui::window::Window;
+use crate::ui::window::WindowData;
 
 static WINDOW_CLASS_NAME: &str = "LanguageIndicatorPopupMenu";
 static FONT_NAME: &str = "Microsoft JhengHei UI Regular";
@@ -52,21 +51,6 @@ pub fn color_f(r: u32, g: u32, b: u32) -> D2D1_COLOR_F {
     }
 }
 
-// These were previously in GuiWindow class
-// in c++ version
-pub struct WindowData {
-    hwnd: HWND,
-    showing: bool,
-    tracking_mouse: bool,
-    max_width: u32,
-    max_height: u32,
-    dpi_parent: u32,
-    dpi: u32,
-    scale: f32,
-    factory: RenderFactory,
-    target: ID2D1DCRenderTarget,
-}
-
 // these were in PopupMenu class extending GuiWindow
 // #[derive(GuiWindow)]
 pub struct PopupMenu {
@@ -75,7 +59,6 @@ pub struct PopupMenu {
     textformat: IDWriteTextFormat,
     origin: Point<i32>,
     window: WindowData,
-    class_name: &'static str,
 }
 
 impl PopupMenu {
@@ -84,7 +67,7 @@ impl PopupMenu {
         let target = factory.create_dc_render_target()?;
 
         let window = WindowData {
-            hwnd: HWND(0),
+            handle: HWND(0),
             showing: false,
             tracking_mouse: false,
             max_width: 100,
@@ -98,18 +81,19 @@ impl PopupMenu {
 
         let color = Box::into_raw(Box::new(color_f(0, 0, 0)));
         let brush = unsafe { target.CreateSolidColorBrush(color, None)? };
+        let textformat = window.factory.create_text_format(FONT_NAME, 16.0)?;
 
         let mut this = Self {
+            window,
             service,
             brush,
-            textformat: window.factory.create_text_format(FONT_NAME, 16.0)?,
+            textformat,
             origin: Point::default(),
-            window,
-            class_name: WINDOW_CLASS_NAME,
         };
 
         Window::create(
             &mut this,
+            DllModule::global().module,
             "",
             DW_STYLE.0,
             window_ex_style().0,
@@ -120,16 +104,14 @@ impl PopupMenu {
 }
 
 impl Window for PopupMenu {
-    fn class_name(&self) -> &str {
-        self.class_name
-    }
+    const WINDOW_CLASS_NAME: &'static str = "PopupMenuWindow";
 
     fn set_hwnd(&mut self, hwnd: HWND) {
-        self.window.hwnd = hwnd;
+        self.window.handle = hwnd;
     }
 
     fn hwnd(&self) -> HWND {
-        self.window.hwnd
+        self.window.handle
     }
 
     fn showing(&self) -> bool {
@@ -230,7 +212,7 @@ impl Window for PopupMenu {
             } else {
                 let this = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut Self;
                 if !this.is_null() {
-                    return (*this).on_message(umsg, wparam, lparam)
+                    return (*this).on_message(umsg, wparam, lparam);
                 }
             };
 

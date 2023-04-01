@@ -44,7 +44,7 @@ use crate::reg::guids::IID_KhiinTextService;
 use crate::ui::popup_menu::PopupMenu;
 use crate::ui::window::Window;
 use crate::winerr;
-use crate::DllModule;
+use crate::dll::DllModule;
 
 static INFO: TF_LANGBARITEMINFO = TF_LANGBARITEMINFO {
     clsidService: IID_KhiinTextService,
@@ -197,7 +197,7 @@ impl ITfLangBarItemButton_Impl for LangBarIndicator {
             let str = IDI_MODE_CONTINUOUS as *mut u16;
 
             let handle = LoadImageW(
-                DllModule::global().hinstance,
+                DllModule::global().module,
                 PCWSTR(str),
                 IMAGE_ICON,
                 0,

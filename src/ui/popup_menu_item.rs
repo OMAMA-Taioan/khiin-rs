@@ -1,6 +1,6 @@
 use windows::Win32::Graphics::DirectWrite::IDWriteTextLayout;
 
-use crate::geometry::rect::Rect;
+use crate::geometry::Rect;
 
 #[derive(Default)]
 pub struct PopupMenuItem {

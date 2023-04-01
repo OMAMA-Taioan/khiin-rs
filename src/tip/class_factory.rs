@@ -23,7 +23,7 @@ use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 
 use crate::tip::text_service::TextService;
 use crate::utils::win::WinGuid;
-use crate::DllModule;
+use crate::dll::DllModule;
 
 #[implement(IClassFactory)]
 pub struct KhiinClassFactory {

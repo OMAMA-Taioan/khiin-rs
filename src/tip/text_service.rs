@@ -19,9 +19,12 @@ use windows::Win32::UI::TextServices::ITfTextInputProcessor_Impl;
 use windows::Win32::UI::TextServices::ITfThreadMgr;
 use windows::Win32::UI::TextServices::GUID_COMPARTMENT_KEYBOARD_OPENCLOSE;
 
+use crate::dll::DllModule;
 use crate::tip::display_attributes::DisplayAttributes;
 use crate::tip::engine_mgr::EngineMgr;
 use crate::tip::key_event_sink::KeyEventSink;
+use crate::ui::popup_menu::PopupMenu;
+use crate::ui::window::Window;
 use crate::utils::arc_lock::ArcLock;
 
 use super::compartment::Compartment;
@@ -105,6 +108,7 @@ impl TextService {
     }
 
     fn activate(&self) -> Result<()> {
+        PopupMenu::register_class(DllModule::global().module);
         self.init_open_close_compartment()?;
         self.init_key_event_sink()?;
         self.init_lang_bar_indicator()?;
@@ -115,6 +119,7 @@ impl TextService {
         self.deinit_lang_bar_indicator()?;
         self.deinit_key_event_sink()?;
         self.deinit_open_close_compartment()?;
+        PopupMenu::unregister_class(DllModule::global().module);
         Ok(())
     }
 

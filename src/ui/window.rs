@@ -1,15 +1,16 @@
 use std::ffi::c_void;
 use std::mem::size_of;
 use std::mem::transmute;
-
 use windows::core::Result;
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::BOOL;
 use windows::Win32::Foundation::E_FAIL;
+use windows::Win32::Foundation::HMODULE;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::LRESULT;
 use windows::Win32::Foundation::WPARAM;
+use windows::Win32::Graphics::Direct2D::ID2D1DCRenderTarget;
 use windows::Win32::Graphics::Dwm::DwmSetWindowAttribute;
 use windows::Win32::Graphics::Dwm::DWMWA_WINDOW_CORNER_PREFERENCE;
 use windows::Win32::Graphics::Dwm::DWMWCP_ROUND;
@@ -26,6 +27,7 @@ use windows::Win32::UI::WindowsAndMessaging::DefWindowProcW;
 use windows::Win32::UI::WindowsAndMessaging::DestroyWindow;
 use windows::Win32::UI::WindowsAndMessaging::GetClassInfoExW;
 use windows::Win32::UI::WindowsAndMessaging::RegisterClassExW;
+use windows::Win32::UI::WindowsAndMessaging::UnregisterClassW;
 use windows::Win32::UI::WindowsAndMessaging::CS_HREDRAW;
 use windows::Win32::UI::WindowsAndMessaging::CS_IME;
 use windows::Win32::UI::WindowsAndMessaging::CS_VREDRAW;
@@ -48,10 +50,10 @@ use windows::Win32::UI::WindowsAndMessaging::WM_SIZE;
 use windows::Win32::UI::WindowsAndMessaging::WM_WINDOWPOSCHANGING;
 use windows::Win32::UI::WindowsAndMessaging::WNDCLASSEXW;
 
-use crate::geometry::point::Point;
+use crate::geometry::Point;
 use crate::pcwstr;
+use crate::ui::render_factory::RenderFactory;
 use crate::winerr;
-use crate::DllModule;
 
 unsafe fn set_rounded_corners(hwnd: HWND, pref: DWM_WINDOW_CORNER_PREFERENCE) {
     let pref = Box::into_raw(Box::new(pref)) as *mut c_void;
@@ -63,16 +65,34 @@ unsafe fn set_rounded_corners(hwnd: HWND, pref: DWM_WINDOW_CORNER_PREFERENCE) {
     );
 }
 
+// These were previously in GuiWindow class
+// in c++ version
+pub struct WindowData {
+    pub handle: HWND,
+    pub showing: bool,
+    pub tracking_mouse: bool,
+    pub max_width: u32,
+    pub max_height: u32,
+    pub dpi_parent: u32,
+    pub dpi: u32,
+    pub scale: f32,
+    pub factory: RenderFactory,
+    pub target: ID2D1DCRenderTarget,
+}
+
 pub trait Window {
+    const WINDOW_CLASS_NAME: &'static str;
+
     fn create(
         &mut self,
+        module: HMODULE,
         window_name: &str,
         dwstyle: u32,
         dwexstyle: u32,
     ) -> Result<()> {
         unsafe {
-            let class_name = pcwstr!(self.class_name());
-            if !self.register_class(class_name) {
+            let class_name = pcwstr!(Self::WINDOW_CLASS_NAME);
+            if !Self::register_class(module) {
                 return winerr!(E_FAIL);
             }
 
@@ -97,7 +117,7 @@ pub trait Window {
                 CW_USEDEFAULT,
                 HWND_DESKTOP,
                 HMENU::default(),
-                DllModule::global().hinstance,
+                module,
                 Some(self as *mut _ as _),
             );
 
@@ -111,12 +131,23 @@ pub trait Window {
         }
     }
 
-    fn register_class(&self, class_name: PCWSTR) -> bool {
+    fn destroy(&self) {
+        let hwnd = self.hwnd();
+        if hwnd != HWND::default() {
+            unsafe {
+                DestroyWindow(hwnd);
+            }
+        }
+    }
+
+    fn register_class(module: HMODULE) -> bool {
         unsafe {
-            let histance = DllModule::global().hinstance;
+            let class_name = pcwstr!(Self::WINDOW_CLASS_NAME);
+
             let mut wc = WNDCLASSEXW::default();
 
-            if GetClassInfoExW(histance, class_name, &mut wc) != BOOL::from(false) {
+            if GetClassInfoExW(module, class_name, &mut wc) != BOOL::from(false)
+            {
                 // already registered
                 return true;
             }
@@ -126,7 +157,7 @@ pub trait Window {
                 style: CS_HREDRAW | CS_VREDRAW | CS_IME,
                 lpfnWndProc: Some(Self::wndproc),
                 cbClsExtra: 0,
-                hInstance: DllModule::global().hinstance,
+                hInstance: module,
                 lpszClassName: class_name,
                 hIcon: HICON::default(),
                 hIconSm: HICON::default(),
@@ -139,6 +170,13 @@ pub trait Window {
             };
 
             RegisterClassExW(&wc) != 0
+        }
+    }
+
+    fn unregister_class(module: HMODULE) -> bool {
+        unsafe {
+            let class_name = pcwstr!(Self::WINDOW_CLASS_NAME);
+            UnregisterClassW(class_name, module).0 != 0
         }
     }
 
@@ -199,17 +237,8 @@ pub trait Window {
         lparam: LPARAM,
     ) -> LRESULT;
 
-    fn class_name(&self) -> &str;
     fn set_hwnd(&mut self, hwnd: HWND);
     fn hwnd(&self) -> HWND;
-    fn destroy(&self) {
-        let hwnd = self.hwnd();
-        if hwnd != HWND::default() {
-            unsafe {
-                DestroyWindow(hwnd);
-            }
-        }
-    }
     fn showing(&self) -> bool;
     fn show(&mut self, pt: Point<i32>);
     fn hide(&mut self);

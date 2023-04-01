@@ -3,7 +3,6 @@ use std::rc::Weak;
 
 use windows::core::implement;
 use windows::core::ComInterface;
-use windows::core::Error;
 use windows::core::IUnknown;
 use windows::core::Result;
 use windows::core::GUID;
@@ -14,8 +13,6 @@ use windows::Win32::UI::TextServices::ITfCompartmentMgr;
 use windows::Win32::UI::TextServices::{ITfCompartment, ITfThreadMgr};
 
 use crate::winerr;
-
-use super::text_service::TextService;
 
 #[implement()]
 pub struct Compartment {

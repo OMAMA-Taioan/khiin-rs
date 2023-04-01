@@ -2,7 +2,7 @@ use windows::core::Error;
 use windows::core::Result;
 use windows::core::GUID;
 use windows::Win32::Foundation::E_FAIL;
-use windows::Win32::Foundation::HINSTANCE;
+use windows::Win32::Foundation::HMODULE;
 use windows::Win32::Foundation::MAX_PATH;
 use windows::Win32::System::Com::StringFromGUID2;
 use windows::Win32::System::LibraryLoader::GetModuleFileNameW;
@@ -30,7 +30,7 @@ pub trait GetPath {
     fn get_path(&self) -> Result<String>;
 }
 
-impl GetPath for HINSTANCE {
+impl GetPath for HMODULE {
     fn get_path(&self) -> Result<String> {
         let mut buffer = [0u16; MAX_PATH as usize];
         let len = unsafe { GetModuleFileNameW(*self, &mut buffer) };
