@@ -1,5 +1,6 @@
 use log::warn;
 use once_cell::sync::OnceCell;
+use windows::Win32::Foundation::S_FALSE;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
@@ -63,8 +64,6 @@ impl DllModule {
     }
 }
 
-#[allow(non_snake_case)]
-#[allow(dead_code)]
 #[no_mangle]
 pub extern "system" fn DllMain(
     module: HMODULE,
@@ -83,6 +82,14 @@ pub extern "system" fn DllMain(
         _ => (),
     }
     BOOL::from(true)
+}
+
+#[no_mangle]
+pub extern "system" fn DllCanUnloadNow() -> HRESULT {
+    match DllModule::global().can_unload() {
+        true => S_OK,
+        false => S_FALSE,
+    }
 }
 
 #[no_mangle]
@@ -115,7 +122,7 @@ pub extern "system" fn DllGetClassObject(
         return E_UNEXPECTED;
     }
 
-    let factory = KhiinClassFactory::new(DllModule::global().ref_count.clone());
+    let factory = KhiinClassFactory::new();
     let factory: IClassFactory = factory.into();
 
     *ppv = unsafe { core::mem::transmute(factory) };
@@ -123,7 +130,6 @@ pub extern "system" fn DllGetClassObject(
     S_OK
 }
 
-#[allow(unused_must_use)]
 #[no_mangle]
 pub extern "system" fn DllRegisterServer() -> HRESULT {
     unsafe {

@@ -1,6 +1,4 @@
 use std::cell::RefCell;
-use std::sync::atomic::AtomicUsize;
-use std::sync::Arc;
 
 use windows::core::implement;
 use windows::core::AsImpl;
@@ -43,8 +41,6 @@ const TF_CLIENTID_NULL: u32 = 0;
     ITfCompartmentEventSink
 )]
 pub struct TextService {
-    dll_ref_count: Arc<AtomicUsize>,
-
     // After the TextService is pinned in COM (by going `.into()`
     // the ITfTextInputProcessor), set `this` as a COM smart pointer
     // to self. All other impls that need TextService should recieve
@@ -83,9 +79,8 @@ pub struct TextService {
 }
 
 impl TextService {
-    pub fn new(dll_ref_count: Arc<AtomicUsize>) -> Self {
+    pub fn new() -> Self {
         TextService {
-            dll_ref_count,
             this: RefCell::new(None),
             threadmgr: RefCell::new(None),
             clientid: ArcLock::new(TF_CLIENTID_NULL),
@@ -148,6 +143,8 @@ impl TextService {
     }
 
     fn activate(&self) -> Result<()> {
+        DllModule::global().add_ref();
+
         PopupMenu::register_class(DllModule::global().module);
 
         self.init_lang_bar_indicator()?;
@@ -179,6 +176,8 @@ impl TextService {
         let _ = self.deinit_lang_bar_indicator();
 
         PopupMenu::unregister_class(DllModule::global().module);
+
+        DllModule::global().release();
         Ok(())
     }
 

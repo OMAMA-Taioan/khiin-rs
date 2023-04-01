@@ -6,9 +6,6 @@ use log::debug;
 use log::warn;
 use windows::core::AsImpl;
 use windows::core::ComInterface;
-use std::sync::atomic::AtomicUsize;
-use std::sync::atomic::Ordering;
-use std::sync::Arc;
 use windows::core::implement;
 use windows::core::Error;
 use windows::core::IUnknown;
@@ -26,17 +23,11 @@ use crate::utils::win::WinGuid;
 use crate::dll::DllModule;
 
 #[implement(IClassFactory)]
-pub struct KhiinClassFactory {
-    dll_ref_count: Arc<AtomicUsize>,
-}
+pub struct KhiinClassFactory;
 
 impl KhiinClassFactory {
-    pub fn new(dll_ref_count: Arc<AtomicUsize>) -> Self {
-        let old_dll_refs = DllModule::global().add_ref();
-
-        debug!("Created ClassFactory - {} refs", old_dll_refs + 1);
-
-        KhiinClassFactory { dll_ref_count }
+    pub fn new() -> Self {
+        KhiinClassFactory
     }
 }
 
@@ -71,7 +62,7 @@ impl IClassFactory_Impl for KhiinClassFactory {
         }
 
         let text_service: ITfTextInputProcessor =
-            TextService::new(self.dll_ref_count.clone()).into();
+            TextService::new().into();
 
         let it: &TextService = text_service.as_impl();
         it.set_this(text_service.clone());
@@ -85,9 +76,9 @@ impl IClassFactory_Impl for KhiinClassFactory {
         debug!("Lock server: {}", flock.as_bool());
 
         if flock.as_bool() {
-            self.dll_ref_count.fetch_add(1, Ordering::SeqCst);
+            DllModule::global().add_ref();
         } else {
-            self.dll_ref_count.fetch_sub(1, Ordering::SeqCst);
+            DllModule::global().release();
         }
 
         Ok(())
