@@ -174,51 +174,30 @@ impl TextService {
 
     fn activate(&self) -> Result<()> {
         DllModule::global().add_ref();
-
         PopupMenu::register_class(DllModule::global().module);
-
         self.init_lang_bar_indicator()?;
-
         self.init_threadmgr_event_sink()?;
-
         self.init_open_close_compartment()?;
-
         self.init_config_compartment()?;
-
         self.init_userdata_compartment()?;
-
         self.init_kbd_disabled_compartment()?;
-
         self.init_preserved_key_mgr()?;
-
         self.init_key_event_sink()?;
-
         self.init_display_attributes()?;
-
         Ok(())
     }
 
     fn deactivate(&self) -> Result<()> {
         let _ = self.deinit_display_attributes();
-
         let _ = self.deinit_key_event_sink();
-
         let _ = self.deinit_preserved_key_mgr();
-
         let _ = self.deinit_kbd_disabled_compartment();
-
         let _ = self.deinit_userdata_compartment();
-
         let _ = self.deinit_config_compartment();
-
         let _ = self.deinit_open_close_compartment();
-
         let _ = self.deinit_threadmgr_event_sink();
-
         let _ = self.deinit_lang_bar_indicator();
-
         PopupMenu::unregister_class(DllModule::global().module);
-
         DllModule::global().release();
         Ok(())
     }
