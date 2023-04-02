@@ -4,6 +4,8 @@ use windows::Win32::Foundation::HMODULE;
 
 use khiin_protos::config::AppConfig;
 
+use crate::reg::settings::SettingsKey;
+
 pub enum KhiinFile {
     Database,
     Config,
@@ -14,10 +16,10 @@ pub enum KhiinFile {
 impl KhiinFile {
     fn reg_key(&self) -> &'static str {
         match *self {
-            KhiinFile::Database => "khiin_db",
-            KhiinFile::Config => "config_toml",
-            KhiinFile::SettingsApp => "settings_exe",
-            KhiinFile::UserDb => "user_db",
+            KhiinFile::Database => SettingsKey::DatabaseFile.reg_key(),
+            KhiinFile::Config => SettingsKey::ConfigFile.reg_key(),
+            KhiinFile::SettingsApp => SettingsKey::SettingsApp.reg_key(),
+            KhiinFile::UserDb => SettingsKey::UserDbFile.reg_key(),
         }
     }
 }

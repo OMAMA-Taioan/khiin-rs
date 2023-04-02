@@ -58,13 +58,13 @@ impl GetPath for HMODULE {
 pub trait WinString {
     // Use str.to_wide_bytes().as_slice()
     // for COM methods that take `const BYTE *` of a UTF-16 string
-    fn to_wide_bytes(&self) -> Vec<u8>;
+    fn to_wide_bytes_nul(&self) -> Vec<u8>;
 
     fn to_utf16(&self) -> Vec<u16>;
 }
 
 impl WinString for &str {
-    fn to_wide_bytes(&self) -> Vec<u8> {
+    fn to_wide_bytes_nul(&self) -> Vec<u8> {
         let mut s = String::from(*self);
         s.push_str("\0");
         s.encode_utf16()

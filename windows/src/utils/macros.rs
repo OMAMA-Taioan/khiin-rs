@@ -13,14 +13,14 @@ macro_rules! check_win32error {
         if $result.is_ok() {
             Ok(())
         } else {
-            Err(Error::from($result.to_hresult()))
+            Err(windows::core::Error::from($result.to_hresult()))
         }
     };
     ($result:ident,$return:ident) => {
         if $result.is_ok() {
             Ok($return)
         } else {
-            Err(Error::from($result.to_hresult()))
+            Err(windows::core::Error::from($result.to_hresult()))
         }
     };
 }

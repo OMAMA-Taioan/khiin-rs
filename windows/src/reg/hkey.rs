@@ -69,7 +69,7 @@ impl Hkey for HKEY {
                 PCWSTR(HSTRING::from(name).as_ptr()),
                 0,
                 REG_SZ,
-                Some(value.to_wide_bytes().as_slice()),
+                Some(value.to_wide_bytes_nul().as_slice()),
             )
         };
 
