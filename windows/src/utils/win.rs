@@ -1,5 +1,6 @@
 use windows::core::ComInterface;
 use windows::core::Error;
+use windows::core::PCWSTR;
 use windows::core::Result;
 use windows::core::GUID;
 use windows::Win32::Foundation::E_FAIL;

@@ -51,9 +51,9 @@ use windows::Win32::UI::WindowsAndMessaging::WM_WINDOWPOSCHANGING;
 use windows::Win32::UI::WindowsAndMessaging::WNDCLASSEXW;
 
 use crate::geometry::Point;
-use crate::pcwstr;
 use crate::ui::dwm::set_rounded_corners;
 use crate::ui::render_factory::RenderFactory;
+use crate::utils::pcwstr::ToPcwstr;
 use crate::winerr;
 
 // These were previously in GuiWindow class
@@ -76,10 +76,10 @@ pub trait Window {
 
     fn register_class(module: HMODULE) -> bool {
         unsafe {
-            let class_name = pcwstr!(Self::WINDOW_CLASS_NAME);
+            let class_name = Self::WINDOW_CLASS_NAME.to_pcwstr();
             let mut wc = WNDCLASSEXW::default();
 
-            if GetClassInfoExW(module, class_name, &mut wc) != BOOL::from(false)
+            if GetClassInfoExW(module, *class_name, &mut wc) != BOOL::from(false)
             {
                 // already registered
                 return true;
@@ -91,7 +91,7 @@ pub trait Window {
                 lpfnWndProc: Some(Self::wndproc),
                 cbClsExtra: 0,
                 hInstance: module,
-                lpszClassName: class_name,
+                lpszClassName: *class_name,
                 hIcon: HICON::default(),
                 hIconSm: HICON::default(),
                 hCursor: HCURSOR::default(),
@@ -108,8 +108,8 @@ pub trait Window {
 
     fn unregister_class(module: HMODULE) -> bool {
         unsafe {
-            let class_name = pcwstr!(Self::WINDOW_CLASS_NAME);
-            UnregisterClassW(class_name, module).0 != 0
+            let class_name = Self::WINDOW_CLASS_NAME.to_pcwstr();
+            UnregisterClassW(*class_name, module).0 != 0
         }
     }
 
@@ -121,15 +121,15 @@ pub trait Window {
         dwexstyle: u32,
     ) -> Result<()> {
         unsafe {
-            let class_name = pcwstr!(Self::WINDOW_CLASS_NAME);
+            let class_name = Self::WINDOW_CLASS_NAME.to_pcwstr();
             if !Self::register_class(module) {
                 return winerr!(E_FAIL);
             }
 
             let window_name = if window_name.is_empty() {
-                PCWSTR::null()
+                "".to_pcwstr()
             } else {
-                pcwstr!(window_name)
+                window_name.to_pcwstr()
             };
 
             let previous_dpi_awareness = SetThreadDpiAwarenessContext(
@@ -138,8 +138,8 @@ pub trait Window {
 
             CreateWindowExW(
                 WINDOW_EX_STYLE(dwexstyle),
-                class_name,
-                window_name,
+                *class_name,
+                *window_name,
                 WINDOW_STYLE(dwstyle),
                 CW_USEDEFAULT,
                 CW_USEDEFAULT,

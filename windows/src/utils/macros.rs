@@ -8,14 +8,6 @@ macro_rules! winerr {
 }
 
 #[macro_export]
-macro_rules! pcwstr {
-    ($s:expr) => {{
-        let s: &str = $s;
-        windows::core::PCWSTR(windows::core::HSTRING::from(s).as_ptr())
-    }};
-}
-
-#[macro_export]
 macro_rules! check_win32error {
     ($result:ident) => {
         if $result.is_ok() {

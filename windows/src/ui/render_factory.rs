@@ -30,7 +30,7 @@ use windows::Win32::System::Com::CoCreateInstance;
 use windows::Win32::System::Com::CLSCTX_INPROC_SERVER;
 use windows::Win32::UI::WindowsAndMessaging::HICON;
 
-use crate::pcwstr;
+use crate::utils::pcwstr::ToPcwstr;
 use crate::utils::win::WinString;
 
 pub struct RenderFactory {
@@ -84,7 +84,7 @@ impl RenderFactory {
     ) -> Result<IDWriteTextFormat> {
         unsafe {
             let fontname = PCWSTR(HSTRING::from(fontname).as_ptr());
-            let locale = pcwstr!("en-us");
+            let locale = "en-us".to_pcwstr();
             // let mut collection: Option<IDWriteFontCollection> = None;
             // self.dwrite_factory
             //     .GetSystemFontCollection(&mut collection, BOOL::from(false))?;
@@ -97,7 +97,7 @@ impl RenderFactory {
                 DWRITE_FONT_STYLE_NORMAL,
                 DWRITE_FONT_STRETCH_NORMAL,
                 fontsize,
-                locale,
+                *locale,
             )
         }
     }

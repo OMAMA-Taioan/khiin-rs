@@ -14,7 +14,7 @@ use windows::Win32::System::Registry::REG_OPTION_NON_VOLATILE;
 use windows::Win32::System::Registry::REG_SZ;
 
 use crate::check_win32error;
-use crate::pcwstr;
+use crate::utils::pcwstr::ToPcwstr;
 use crate::utils::win::WinString;
 
 pub trait Hkey {
@@ -52,7 +52,8 @@ impl Hkey for HKEY {
     }
 
     fn delete_tree(&self, subkey: &str) -> Result<()> {
-        let result = unsafe { RegDeleteTreeW(*self, pcwstr!(subkey)) };
+        let subkey = subkey.to_pcwstr();
+        let result = unsafe { RegDeleteTreeW(*self, *subkey) };
         check_win32error!(result)
     }
 
