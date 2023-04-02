@@ -18,12 +18,14 @@ impl<T: Copy> ArcLock<T> {
             value: Arc::new(RwLock::new(value)),
         }
     }
+    
     pub fn get(&self) -> Result<T> {
         match self.value.read() {
             Ok(guard) => Ok(*guard),
             Err(_) => winerr!(E_FAIL)
         }
     }
+
     pub fn set(&self, value: T) -> Result<()> {
         match self.value.write() {
             Ok(mut guard) => {

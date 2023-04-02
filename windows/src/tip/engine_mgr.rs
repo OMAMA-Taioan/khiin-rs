@@ -37,13 +37,13 @@ impl EngineMgr {
         false
     }
 
-    pub fn on_key(&self, key_event: WinKeyEvent) -> Command {
+    pub fn on_key(&self, key_event: WinKeyEvent) -> Result<Command> {
         let key_event = translate_key_event(key_event);
         let mut req = Request::new();
         req.key_event = MessageField::some(key_event);
         let mut cmd = Command::new();
         cmd.request = MessageField::some(req);
-        cmd
+        Ok(cmd)
     }
 
     pub fn test(&mut self) {

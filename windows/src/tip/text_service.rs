@@ -5,6 +5,7 @@ use std::sync::Arc;
 use std::sync::RwLock;
 
 use khiin::Engine;
+use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::UI::TextServices::ITfUIElement;
 use windows::core::implement;
 use windows::core::AsImpl;
@@ -50,6 +51,7 @@ use crate::ui::popup_menu::PopupMenu;
 use crate::ui::window::Window;
 use crate::utils::arc_lock::ArcLock;
 use crate::utils::win::co_create_inproc;
+use crate::winerr;
 
 const TF_CLIENTID_NULL: u32 = 0;
 const TF_INVALID_GUIDATOM: u32 = 0;
@@ -81,16 +83,16 @@ pub struct TextService {
     threadmgr_event_sink_sinkmgr: RefCell<SinkMgr<ITfThreadMgrEventSink>>,
 
     // Compartments
-    open_close_compartment: RefCell<Option<Compartment>>,
+    open_close_compartment: Arc<RwLock<Compartment>>,
     open_close_sinkmgr: RefCell<SinkMgr<ITfCompartmentEventSink>>,
 
-    config_compartment: RefCell<Option<Compartment>>,
+    config_compartment: Arc<RwLock<Compartment>>,
     config_sinkmgr: RefCell<SinkMgr<ITfCompartmentEventSink>>,
 
-    userdata_compartment: RefCell<Option<Compartment>>,
+    userdata_compartment: Arc<RwLock<Compartment>>,
     userdata_sinkmgr: RefCell<SinkMgr<ITfCompartmentEventSink>>,
 
-    kbd_disabled_compartment: RefCell<Option<Compartment>>,
+    kbd_disabled_compartment: Arc<RwLock<Compartment>>,
     kbd_disabled_sinkmgr: RefCell<SinkMgr<ITfCompartmentEventSink>>,
 
     // UI elements
@@ -103,13 +105,13 @@ pub struct TextService {
     candidate_list_ui: RefCell<Option<ITfCandidateListUIElement>>,
 
     // Data
-    engine: Arc<RwLock<Option<EngineMgr>>>,
+    engine: Arc<RwLock<EngineMgr>>,
 }
 
 // Public portion
 impl TextService {
-    pub fn new() -> Self {
-        TextService {
+    pub fn new() -> Result<Self> {
+        Ok(TextService {
             this: RefCell::new(None),
             threadmgr: RefCell::new(None),
             clientid: ArcLock::new(TF_CLIENTID_NULL),
@@ -120,19 +122,19 @@ impl TextService {
             threadmgr_event_sink_sinkmgr: RefCell::new(SinkMgr::<
                 ITfThreadMgrEventSink,
             >::new()),
-            open_close_compartment: RefCell::new(None),
+            open_close_compartment: Arc::new(RwLock::new(Compartment::new())),
             open_close_sinkmgr: RefCell::new(
                 SinkMgr::<ITfCompartmentEventSink>::new(),
             ),
-            config_compartment: RefCell::new(None),
+            config_compartment: Arc::new(RwLock::new(Compartment::new())),
             config_sinkmgr: RefCell::new(
                 SinkMgr::<ITfCompartmentEventSink>::new(),
             ),
-            userdata_compartment: RefCell::new(None),
+            userdata_compartment: Arc::new(RwLock::new(Compartment::new())),
             userdata_sinkmgr: RefCell::new(
                 SinkMgr::<ITfCompartmentEventSink>::new(),
             ),
-            kbd_disabled_compartment: RefCell::new(None),
+            kbd_disabled_compartment: Arc::new(RwLock::new(Compartment::new())),
             kbd_disabled_sinkmgr: RefCell::new(SinkMgr::<
                 ITfCompartmentEventSink,
             >::new()),
@@ -143,8 +145,8 @@ impl TextService {
             focused_attr_guidatom: ArcLock::new(TF_INVALID_GUIDATOM),
             lang_bar_indicator: RefCell::new(None),
             candidate_list_ui: RefCell::new(None),
-            engine: Arc::new(RwLock::new(None)),
-        }
+            engine: Arc::new(RwLock::new(EngineMgr::new()?)),
+        })
     }
 
     pub fn disp_attrs(&self) -> &DisplayAttributes {
@@ -163,7 +165,7 @@ impl TextService {
         Ok(())
     }
 
-    pub fn engine(&self) -> Arc<RwLock<Option<EngineMgr>>> {
+    pub fn engine(&self) -> Arc<RwLock<EngineMgr>> {
         self.engine.clone()
     }
 
@@ -226,26 +228,49 @@ impl TextService {
     fn init_compartment(
         &self,
         guid: GUID,
-        compartment: &RefCell<Option<Compartment>>,
+        compartment: &Arc<RwLock<Compartment>>,
         sinkmgr: &RefCell<SinkMgr<ITfCompartmentEventSink>>,
     ) -> Result<()> {
-        let comp = Compartment::from(self.threadmgr(), self.clientid()?, guid)?;
-        compartment.replace(Some(comp.clone()));
-
-        let mut sinkmgr = sinkmgr.borrow_mut();
-        let punk: IUnknown = comp.compartment()?.cast()?;
-        let this: ITfCompartmentEventSink = self.this().cast()?;
-        sinkmgr.advise(punk, this)
+        if let Ok(mut comp) = compartment.write() {
+            comp.init_thread(self.threadmgr(), self.clientid()?, guid);
+            let mut sinkmgr = sinkmgr.borrow_mut();
+            let punk: IUnknown = comp.compartment()?.cast()?;
+            let this: ITfCompartmentEventSink = self.this().cast()?;
+            sinkmgr.advise(punk, this)
+        } else {
+            winerr!(E_FAIL)
+        }
     }
 
     fn deinit_compartment(
         &self,
-        compartment: &RefCell<Option<Compartment>>,
+        compartment: &Arc<RwLock<Compartment>>,
         sinkmgr: &RefCell<SinkMgr<ITfCompartmentEventSink>>,
     ) -> Result<()> {
         sinkmgr.borrow_mut().unadvise()?;
-        compartment.replace(None);
-        Ok(())
+        match compartment.write() {
+            Ok(mut comp) => comp.deinit(),
+            Err(_) => winerr!(E_FAIL)
+        }
+    }
+
+    fn get_compartment_bool(&self, 
+        compartment: &Arc<RwLock<Compartment>>,
+    ) -> Result<bool> {
+        match compartment.read() {
+            Ok(comp) => comp.get_bool(),
+            Err(_) => winerr!(E_FAIL)
+        }
+    }
+
+    fn get_compartment_u32(
+        &self,
+        compartment: &Arc<RwLock<Compartment>>
+    ) -> Result<u32> {
+        match compartment.read() {
+            Ok(comp) => comp.get_value(),
+            Err(_) => winerr!(E_FAIL)
+        }
     }
 
     // open-close compartment
@@ -267,15 +292,10 @@ impl TextService {
     }
 
     fn set_open_close_compartment(&self, value: bool) -> Result<()> {
-        let x = self.open_close_compartment.borrow_mut();
-        let x = x.as_ref().unwrap();
-        x.set_bool(value)
-    }
-
-    fn get_open_close_compartment(&self) -> Result<bool> {
-        let x = self.open_close_compartment.borrow_mut();
-        let x = x.as_ref().unwrap();
-        x.get_bool()
+        match self.open_close_compartment.read() {
+            Ok(comp) => comp.set_bool(value),
+            Err(_) => winerr!(E_FAIL)
+        }
     }
 
     // config compartment

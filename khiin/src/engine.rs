@@ -2,7 +2,7 @@ pub struct Engine;
 
 impl Engine {
     pub fn new() -> Option<Engine> {
-        None
+        Some(Engine)
     }
 }
 
@@ -13,6 +13,6 @@ mod tests {
     #[test]
     fn it_works() {
         let engine = Engine::new();
-        assert!(engine.is_none());
+        assert!(engine.is_some());
     }
 }

@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::ffi::c_void;
 use std::rc::Weak;
 
+use windows::Win32::Foundation::E_FAIL;
 use windows::core::implement;
 use windows::core::ComInterface;
 use windows::core::IUnknown;
@@ -17,48 +18,55 @@ use crate::winerr;
 
 #[derive(Clone)]
 pub struct Compartment {
-    manager: ITfCompartmentMgr,
+    manager: Option<ITfCompartmentMgr>,
     clientid: u32,
     guid: GUID,
 }
 
 impl Compartment {
-    pub fn new(
+    pub fn new() -> Self {
+        Self {
+            manager: None,
+            clientid: 0,
+            guid: GUID::zeroed(),
+        }
+    }
+
+    fn init(
+        &mut self,
         provider: IUnknown,
         clientid: u32,
         guid: GUID,
         global: bool,
-    ) -> Result<Self> {
+    ) -> Result<()> {
         if global {
             let threadmgr: ITfThreadMgr = provider.cast()?;
-            let manager: ITfCompartmentMgr = threadmgr.cast()?;
-            Ok(Compartment {
-                manager,
-                clientid,
-                guid,
-            })
+            self.manager = Some(threadmgr.cast()?);
         } else {
-            let manager: ITfCompartmentMgr = provider.cast()?;
-            Ok(Compartment {
-                manager,
-                clientid,
-                guid,
-            })
+            self.manager = Some(provider.cast()?);
         }
+
+        self.clientid = clientid;
+        self.guid = guid;
+        
+        Ok(())
     }
 
-    pub fn from(
+    pub fn init_thread(
+        &mut self,
         threadmgr: ITfThreadMgr,
         clientid: u32,
         guid: GUID,
-    ) -> Result<Self> {
+    ) -> Result<()> {
         let unknown: IUnknown = threadmgr.cast()?;
-        Compartment::new(
-            unknown,
-            clientid,
-            guid,
-            false,
-        )
+        self.init(unknown, clientid, guid, false)
+    }
+
+    pub fn deinit(&mut self) -> Result<()> {
+        self.manager = None;
+        self.clientid = 0;
+        self.guid = GUID::zeroed();
+        Ok(())
     }
 
     pub fn from_void(ptr: *mut c_void) -> Box<Compartment> {
@@ -94,6 +102,9 @@ impl Compartment {
     }
 
     pub fn compartment(&self) -> Result<ITfCompartment> {
-        unsafe { self.manager.GetCompartment(&self.guid) }
+        match self.manager.clone() {
+            Some(manager) => unsafe { manager.GetCompartment(&self.guid) },
+            None => winerr!(E_FAIL)
+        }
     }
 }

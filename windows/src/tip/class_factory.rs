@@ -62,7 +62,7 @@ impl IClassFactory_Impl for KhiinClassFactory {
         }
 
         let text_service: ITfTextInputProcessor =
-            TextService::new().into();
+            TextService::new()?.into();
 
         let it: &TextService = text_service.as_impl();
         it.set_this(text_service.clone());
@@ -75,12 +75,11 @@ impl IClassFactory_Impl for KhiinClassFactory {
     fn LockServer(&self, flock: BOOL) -> Result<()> {
         debug!("Lock server: {}", flock.as_bool());
 
-        if flock.as_bool() {
-            DllModule::global().add_ref();
-        } else {
-            DllModule::global().release();
-        }
-
+        match flock.as_bool() {
+            true => DllModule::global().add_ref(),
+            false => DllModule::global().release(),
+        };
+        
         Ok(())
     }
 }

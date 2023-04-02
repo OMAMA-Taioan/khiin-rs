@@ -98,16 +98,14 @@ impl KeyEventSink {
 
         // TODO: check for candidate UI priority keys
 
-        if let Ok(guard) = service.engine().read() {
-            return guard.as_ref().and_then(|engine| {
-                Some(match engine.on_test_key(&key_event) {
-                    true => Ok(TRUE),
-                    false => Ok(FALSE),
-                })
-            }).unwrap_or_else(|| Ok(FALSE));
+        if let Ok(engine) = service.engine().read() {
+            match engine.on_test_key(&key_event) {
+                true => Ok(TRUE),
+                false => Ok(FALSE),
+            }
+        } else {
+            Ok(FALSE)
         }
-
-        Ok(FALSE)
     }
 
     fn key_down(

@@ -51,12 +51,9 @@ pub fn handle_key(
     context: &ITfContext,
     key_event: KeyEvent,
 ) -> Result<()> {
-    if let Ok(guard) = service.engine().read() {
-        guard
-            .as_ref()
-            .and_then(|engine| Some(engine.on_key(key_event)))
-            .and_then(|command| Some(open_session_for_commit(service, context, command)))
-            .unwrap_or_else(|| winerr!(E_FAIL))
+    if let Ok(engine) = service.engine().read() {
+        let command = engine.on_key(key_event)?;
+        open_session_for_commit(service, context, command)
     } else {
         winerr!(E_FAIL)
     }
