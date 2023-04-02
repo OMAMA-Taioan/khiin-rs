@@ -1,4 +1,4 @@
-pub mod class_factory;
+pub(crate) mod class_factory;
 
 mod candidate_list_ui;
 mod compartment;

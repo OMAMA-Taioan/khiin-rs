@@ -1,8 +1,8 @@
-pub mod popup_menu;
-pub mod window;
+pub(crate) mod colors;
+pub(crate) mod popup_menu;
+pub(crate) mod window;
 
 mod candidate_window;
-mod colors;
 mod dpi;
 mod dwm;
 mod popup_menu_item;

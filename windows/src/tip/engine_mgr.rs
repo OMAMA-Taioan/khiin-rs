@@ -1,7 +1,12 @@
+use std::cell::RefCell;
+use std::sync::Arc;
+use std::sync::Weak;
+
 use protobuf::MessageField;
 
-use windows::Win32::Foundation::E_FAIL;
+use windows::core::IUnknown;
 use windows::core::Result;
+use windows::Win32::Foundation::E_FAIL;
 
 use khiin_protos::command::Command;
 use khiin_protos::command::KeyEvent;
@@ -9,6 +14,8 @@ use khiin_protos::command::Request;
 
 use crate::tip::key_event::KeyEvent as WinKeyEvent;
 use crate::winerr;
+
+use super::text_service::TextService;
 
 pub fn translate_key_event(input: WinKeyEvent) -> KeyEvent {
     let mut proto = KeyEvent::new();

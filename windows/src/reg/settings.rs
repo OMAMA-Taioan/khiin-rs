@@ -2,25 +2,34 @@ use std::ffi::c_void;
 use std::ffi::OsString;
 use std::os::windows::prelude::OsStringExt;
 
-use windows::Win32::System::Registry::REG_DWORD;
+use log::debug;
 use windows::core::Result;
 use windows::Win32::Foundation::GetLastError;
 use windows::Win32::Foundation::ERROR_SUCCESS;
 use windows::Win32::Foundation::E_FAIL;
+use windows::Win32::System::Registry::RegDeleteValueA;
+use windows::Win32::System::Registry::RegDeleteValueW;
 use windows::Win32::System::Registry::RegGetValueA;
 use windows::Win32::System::Registry::RegGetValueW;
 use windows::Win32::System::Registry::RegSetValueExW;
 use windows::Win32::System::Registry::HKEY;
 use windows::Win32::System::Registry::HKEY_CURRENT_USER;
+use windows::Win32::System::Registry::REG_DWORD;
 use windows::Win32::System::Registry::REG_SZ;
 use windows::Win32::System::Registry::RRF_RT_REG_DWORD;
 use windows::Win32::System::Registry::RRF_RT_REG_SZ;
 
 use crate::check_win32error;
 use crate::reg::hkey::Hkey;
+use crate::ui::colors::SystemTheme;
 use crate::utils::pcwstr::ToPcwstr;
 use crate::utils::win::WinString;
 use crate::winerr;
+
+static SETTINGS_REG_PATH: &str = "Software\\Khiin PJH\\Settings";
+static SYSTEM_THEME_SUBKEY: &str =
+    "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize";
+static SYSTEM_THEME_SUBKEY_NAME: &str = "SystemUsesLightTheme";
 
 pub enum SettingsKey {
     SettingsApp,
@@ -54,7 +63,37 @@ impl SettingsKey {
     }
 }
 
-static SETTINGS_REG_PATH: &str = "Software\\Khiin PJH\\Settings";
+pub fn get_system_theme() -> Result<SystemTheme> {
+    unsafe {
+        let subkey = SYSTEM_THEME_SUBKEY.to_pcwstr();
+        let name = SYSTEM_THEME_SUBKEY_NAME.to_pcwstr();
+        let data = Box::into_raw(Box::from(0u32));
+        let mut data_size = std::mem::size_of::<u32>() as u32;
+
+        let err = RegGetValueW(
+            HKEY_CURRENT_USER,
+            *subkey,
+            *name,
+            RRF_RT_REG_DWORD,
+            None,
+            Some(data as *mut c_void),
+            Some(&mut data_size),
+        );
+
+        if err != ERROR_SUCCESS {
+            let err = GetLastError().0;
+            debug!("error: {}", err);
+            return winerr!(E_FAIL);
+        }
+
+        let data = Box::from_raw(data);
+
+        match *data {
+            1 => Ok(SystemTheme::Light),
+            _ => Ok(SystemTheme::Dark),
+        }
+    }
+}
 
 pub fn get_settings_string(key: SettingsKey) -> Result<OsString> {
     get_string_value(settings_root()?, key.reg_key())
@@ -92,7 +131,7 @@ fn get_string_value(key: HKEY, name: &str) -> Result<OsString> {
 
         if err != ERROR_SUCCESS {
             let err = GetLastError().0;
-            println!("error: {}", err);
+            debug!("error: {}", err);
             return winerr!(E_FAIL);
         }
 
@@ -128,11 +167,11 @@ fn set_string_value(hkey: HKEY, name: &str, value: &str) -> Result<()> {
 }
 
 fn get_u32_value(hkey: HKEY, name: &str) -> Result<u32> {
-    let name = name.to_pcwstr();
-    let data = Box::into_raw(Box::from(0u32));
-    let mut data_size = std::mem::size_of::<u32>() as u32; //Box::into_raw(Box::from(std::mem::size_of::<u32>() as u32));
-    let err = unsafe {
-        RegGetValueW(
+    unsafe {
+        let name = name.to_pcwstr();
+        let data = Box::into_raw(Box::from(0u32));
+        let mut data_size = std::mem::size_of::<u32>() as u32;
+        let err = RegGetValueW(
             hkey,
             None,
             *name,
@@ -141,16 +180,35 @@ fn get_u32_value(hkey: HKEY, name: &str) -> Result<u32> {
             Some(data as *mut c_void),
             Some(&mut data_size),
         );
-    };
-    let data = unsafe { Box::from_raw(data) };
-    Ok(*data)
+        if err != ERROR_SUCCESS {
+            let err = GetLastError().0;
+            debug!("error: {}", err);
+            return winerr!(E_FAIL);
+        }
+        let data = Box::from_raw(data);
+        Ok(*data)
+    }
 }
 
 fn set_u32_value(hkey: HKEY, name: &str, value: u32) -> Result<()> {
     let name = name.to_pcwstr();
     let value = value.to_le_bytes();
-    let err = unsafe { RegSetValueExW(hkey, *name, 0, REG_DWORD, Some(&value)) };
+    let err =
+        unsafe { RegSetValueExW(hkey, *name, 0, REG_DWORD, Some(&value)) };
     check_win32error!(err)
+}
+
+fn delete_settings_value(name: &str) -> Result<()> {
+    unsafe {
+        let name = name.to_pcwstr();
+        let err = RegDeleteValueW(settings_root()?, *name);
+        if err != ERROR_SUCCESS {
+            let err = GetLastError().0;
+            debug!("Error deleting key: {}", err);
+            return winerr!(E_FAIL);
+        }
+        Ok(())
+    }
 }
 
 #[cfg(debug_assertions)]
@@ -167,6 +225,7 @@ mod tests {
         assert!(set_string_value(key, name, value).is_ok());
         let retrieved = get_string_value(key, name).unwrap();
         assert_eq!(retrieved, OsString::from(value));
+        assert!(delete_settings_value(name).is_ok());
     }
 
     #[test]
@@ -177,5 +236,13 @@ mod tests {
         assert!(set_u32_value(key, name, value).is_ok());
         let retrieved = get_u32_value(key, name).unwrap();
         assert_eq!(retrieved, value);
+        assert!(delete_settings_value(name).is_ok());
+    }
+
+    #[test]
+    fn can_get_system_theme() {
+        let theme = get_system_theme();
+        assert!(theme.is_ok());
+        println!("System theme is: {:?}", theme.unwrap());
     }
 }

@@ -3,6 +3,7 @@ use std::cell::RefMut;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::RwLock;
+use std::sync::mpsc::channel;
 
 use khiin::Engine;
 use windows::core::implement;
@@ -111,33 +112,39 @@ pub struct TextService {
 // Public portion
 impl TextService {
     pub fn new() -> Result<Self> {
-        Ok(TextService {
+        Ok(Self {
             this: RefCell::new(None),
             threadmgr: RefCell::new(None),
             clientid: ArcLock::new(TF_CLIENTID_NULL),
             dwflags: ArcLock::new(0),
             enabled: ArcLock::new(false),
             key_event_sink: RefCell::new(None),
+
             threadmgr_event_sink: RefCell::new(None),
             threadmgr_event_sink_sinkmgr: RefCell::new(SinkMgr::<
                 ITfThreadMgrEventSink,
             >::new()),
+
             open_close_compartment: Arc::new(RwLock::new(Compartment::new())),
             open_close_sinkmgr: RefCell::new(
                 SinkMgr::<ITfCompartmentEventSink>::new(),
             ),
+
             config_compartment: Arc::new(RwLock::new(Compartment::new())),
             config_sinkmgr: RefCell::new(
                 SinkMgr::<ITfCompartmentEventSink>::new(),
             ),
+
             userdata_compartment: Arc::new(RwLock::new(Compartment::new())),
             userdata_sinkmgr: RefCell::new(
                 SinkMgr::<ITfCompartmentEventSink>::new(),
             ),
+
             kbd_disabled_compartment: Arc::new(RwLock::new(Compartment::new())),
             kbd_disabled_sinkmgr: RefCell::new(SinkMgr::<
                 ITfCompartmentEventSink,
             >::new()),
+
             preserved_key_mgr: RefCell::new(None),
             disp_attrs: DisplayAttributes::new(),
             input_attr_guidatom: ArcLock::new(TF_INVALID_GUIDATOM),
@@ -195,6 +202,7 @@ impl TextService {
     fn activate(&self) -> Result<()> {
         DllModule::global().add_ref();
         PopupMenu::register_class(DllModule::global().module);
+        self.init_engine()?;
         self.init_lang_bar_indicator()?;
         self.init_threadmgr_event_sink()?;
         self.init_candidate_ui()?;
@@ -221,6 +229,13 @@ impl TextService {
         let _ = self.deinit_lang_bar_indicator();
         PopupMenu::unregister_class(DllModule::global().module);
         DllModule::global().release();
+        Ok(())
+    }
+
+    fn init_engine(&self) -> Result<()> {
+        if let Ok(engine) = self.engine.write() {
+            // TODO
+        }
         Ok(())
     }
 

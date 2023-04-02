@@ -1,4 +1,4 @@
-pub mod guids;
-pub mod hkey;
-pub mod registrar;
-pub mod settings;
+pub(crate) mod guids;
+pub(crate) mod hkey;
+pub(crate) mod registrar;
+pub(crate) mod settings;

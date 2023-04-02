@@ -1,6 +1,12 @@
 use windows::UI::Color;
 use windows::Win32::Graphics::Direct2D::Common::D2D1_COLOR_F;
 
+#[derive(Debug)]
+pub enum SystemTheme {
+    Light,
+    Dark,
+}
+
 pub const fn color(color: u32) -> Color {
     let R = ((color >> 16) & 0xFF) as u8;
     let G = ((color >> 8) & 0xFF) as u8;
@@ -66,4 +72,3 @@ const COLOR_SCHEME_DARK: ColorScheme = ColorScheme {
     background_selected: color(0x1E1E1E),
     accent: COLOR_SKY_BLUE,
 };
-
