@@ -1,10 +1,14 @@
 use protobuf::MessageField;
 
+use windows::Win32::Foundation::E_FAIL;
+use windows::core::Result;
+
 use khiin_protos::command::Command;
 use khiin_protos::command::KeyEvent;
 use khiin_protos::command::Request;
 
 use crate::tip::key_event::KeyEvent as WinKeyEvent;
+use crate::winerr;
 
 pub fn translate_key_event(input: WinKeyEvent) -> KeyEvent {
     let mut proto = KeyEvent::new();
@@ -12,11 +16,21 @@ pub fn translate_key_event(input: WinKeyEvent) -> KeyEvent {
     proto
 }
 
-pub struct EngineMgr;
+pub struct EngineMgr {
+    engine: khiin::Engine,
+}
 
 impl EngineMgr {
-    pub fn new() -> Self {
-        EngineMgr
+    pub fn new() -> Result<Self> {
+        let engine = khiin::Engine::new();
+
+        if engine.is_none() {
+            return winerr!(E_FAIL);
+        }
+
+        Ok(EngineMgr {
+            engine: engine.unwrap(),
+        })
     }
 
     pub fn on_test_key(&self, _key_event: &WinKeyEvent) -> bool {
@@ -30,5 +44,9 @@ impl EngineMgr {
         let mut cmd = Command::new();
         cmd.request = MessageField::some(req);
         cmd
+    }
+
+    pub fn test(&mut self) {
+        return;
     }
 }

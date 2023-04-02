@@ -1,4 +1,5 @@
 use windows::core::Result;
+use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::UI::TextServices::ITfContext;
 use windows::Win32::UI::TextServices::ITfEditSession;
 use windows::Win32::UI::TextServices::TF_ES_READWRITE;
@@ -9,6 +10,7 @@ use khiin_protos::command::Command;
 use crate::tip::edit_session::CallbackEditSession;
 use crate::tip::key_event::KeyEvent;
 use crate::tip::text_service::TextService;
+use crate::winerr;
 
 fn handle_commit(
     ec: u32,
@@ -49,6 +51,13 @@ pub fn handle_key(
     context: &ITfContext,
     key_event: KeyEvent,
 ) -> Result<()> {
-    let command = service.engine().on_key(key_event);
-    open_session_for_commit(service, context, command)
+    if let Ok(guard) = service.engine().read() {
+        guard
+            .as_ref()
+            .and_then(|engine| Some(engine.on_key(key_event)))
+            .and_then(|command| Some(open_session_for_commit(service, context, command)))
+            .unwrap_or_else(|| winerr!(E_FAIL))
+    } else {
+        winerr!(E_FAIL)
+    }
 }

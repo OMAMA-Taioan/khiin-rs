@@ -25,6 +25,7 @@ use crate::reg::guids::GUID_PRESERVED_KEY_ON_OFF;
 use crate::reg::guids::GUID_PRESERVED_KEY_SWITCH_MODE;
 use crate::tip::key_event::KeyEvent;
 use crate::tip::text_service::TextService;
+use crate::winerr;
 
 // use super::engine_mgr;
 use super::key_handlers::handle_key;
@@ -97,10 +98,16 @@ impl KeyEventSink {
 
         // TODO: check for candidate UI priority keys
 
-        match service.engine().on_test_key(&key_event) {
-            true => Ok(TRUE),
-            false => Ok(FALSE),
+        if let Ok(guard) = service.engine().read() {
+            return guard.as_ref().and_then(|engine| {
+                Some(match engine.on_test_key(&key_event) {
+                    true => Ok(TRUE),
+                    false => Ok(FALSE),
+                })
+            }).unwrap_or_else(|| Ok(FALSE));
         }
+
+        Ok(FALSE)
     }
 
     fn key_down(
@@ -239,7 +246,7 @@ impl ITfKeyEventSink_Impl for KeyEventSink {
             GUID_PRESERVED_KEY_ON_OFF => Ok(TRUE),
             GUID_PRESERVED_KEY_SWITCH_MODE => Ok(TRUE),
             GUID_PRESERVED_KEY_FULL_WIDTH_SPACE => Ok(TRUE),
-            _ => Ok(FALSE)
+            _ => Ok(FALSE),
         }
     }
 }

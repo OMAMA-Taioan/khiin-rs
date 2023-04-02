@@ -1,0 +1,12 @@
+[package]
+name = "khiin"
+version = "0.1.0"
+edition = "2021"
+authors = ["Ko An Iong <aiongtaigi@gmail.com"]
+publish = false
+
+[lib]
+crate-type = ["lib"]
+
+[dependencies]
+khiin-protos = { path = "../protos" }

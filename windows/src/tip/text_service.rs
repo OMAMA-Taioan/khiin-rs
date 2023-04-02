@@ -1,5 +1,10 @@
 use std::cell::RefCell;
+use std::cell::RefMut;
+use std::rc::Rc;
+use std::sync::Arc;
+use std::sync::RwLock;
 
+use khiin::Engine;
 use windows::Win32::UI::TextServices::ITfUIElement;
 use windows::core::implement;
 use windows::core::AsImpl;
@@ -98,7 +103,7 @@ pub struct TextService {
     candidate_list_ui: RefCell<Option<ITfCandidateListUIElement>>,
 
     // Data
-    engine: EngineMgr,
+    engine: Arc<RwLock<Option<EngineMgr>>>,
 }
 
 // Public portion
@@ -138,7 +143,7 @@ impl TextService {
             focused_attr_guidatom: ArcLock::new(TF_INVALID_GUIDATOM),
             lang_bar_indicator: RefCell::new(None),
             candidate_list_ui: RefCell::new(None),
-            engine: EngineMgr::new(),
+            engine: Arc::new(RwLock::new(None)),
         }
     }
 
@@ -158,8 +163,8 @@ impl TextService {
         Ok(())
     }
 
-    pub fn engine(&self) -> &EngineMgr {
-        &self.engine
+    pub fn engine(&self) -> Arc<RwLock<Option<EngineMgr>>> {
+        self.engine.clone()
     }
 
     pub fn set_this(&self, this: ITfTextInputProcessor) {
