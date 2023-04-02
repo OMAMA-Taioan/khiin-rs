@@ -5,7 +5,6 @@ use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::LRESULT;
 use windows::Win32::Foundation::WPARAM;
-use windows::Win32::Graphics::Direct2D::Common::D2D1_COLOR_F;
 use windows::Win32::Graphics::Direct2D::ID2D1SolidColorBrush;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextFormat;
 use windows::Win32::UI::Input::KeyboardAndMouse::ReleaseCapture;
@@ -28,6 +27,8 @@ use windows::Win32::UI::WindowsAndMessaging::WS_POPUP;
 
 use crate::dll::DllModule;
 use crate::geometry::Point;
+use crate::ui::colors::color;
+use crate::ui::colors::AsD2D1_F;
 use crate::ui::dpi::dpi_aware;
 use crate::ui::dpi::Density;
 use crate::ui::render_factory::RenderFactory;
@@ -38,15 +39,6 @@ static FONT_NAME: &str = "Microsoft JhengHei UI Regular";
 const DW_STYLE: WINDOW_STYLE = WS_POPUP;
 fn window_ex_style() -> WINDOW_EX_STYLE {
     WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE
-}
-
-pub fn color_f(r: u32, g: u32, b: u32) -> D2D1_COLOR_F {
-    D2D1_COLOR_F {
-        r: r as f32,
-        g: g as f32,
-        b: b as f32,
-        a: 0.0,
-    }
 }
 
 pub struct PopupMenu {
@@ -75,7 +67,7 @@ impl PopupMenu {
             target: target.clone(),
         };
 
-        let color = Box::into_raw(Box::new(color_f(0, 0, 0)));
+        let color = Box::into_raw(Box::new(color(0).f()));
         let brush = unsafe { target.CreateSolidColorBrush(color, None)? };
         let textformat = window.factory.create_text_format(FONT_NAME, 16.0)?;
 

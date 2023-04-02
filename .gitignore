@@ -68,3 +68,7 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/rust,rust-analyzer,visualstudiocode,windows
+
+khiin.db
+khiin_config.toml
+khiin_userdb.txt
