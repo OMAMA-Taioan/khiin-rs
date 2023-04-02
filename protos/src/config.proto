@@ -1,0 +1,51 @@
+syntax = "proto3";
+option optimize_for = LITE_RUNTIME;
+option java_multiple_files = true;
+
+package khiin.proto;
+
+message BoolValue {
+    bool value = 1;
+}
+
+message KeyConfiguration {
+    string telex_t2 = 1;
+    string telex_t3 = 2;
+    string telex_t5 = 3;
+    string telex_t6 = 4;
+    string telex_t7 = 5;
+    string telex_t8 = 6;
+    string telex_t9 = 7;
+    string telex_khin = 8;
+    string alt_hyphen = 9;
+    string nasal = 10;
+    string dot_above_right = 11;
+    string dots_below = 12;
+    BoolValue enable_uppercase_nasal = 13;
+    BoolValue use_digits_as_fallback = 14;
+}
+
+enum InputMode {
+    IM_UNSPECIFIED = 0;
+    IM_CONTINUOUS = 1;
+    IM_BASIC = 2;
+    IM_PRO = 3;
+}
+
+enum DefaultPunctuation {
+    PUNCT_UNSPECIFIED = 0;
+    PUNCT_HALF = 1;
+    PUNCT_WHOLE = 2;
+}
+
+message AppConfig {
+    BoolValue ime_enabled = 1;
+    KeyConfiguration key_config = 2;
+    InputMode input_mode = 3;
+    BoolValue telex_enabled = 4;
+    BoolValue dotted_khin = 5;
+    BoolValue autokhin = 6;
+    DefaultPunctuation default_punctuation = 7;
+    BoolValue easy_ch = 8;
+    BoolValue uppercase_nasal = 9;
+}

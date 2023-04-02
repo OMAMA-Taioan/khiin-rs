@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "protos",
+    "windows",
+]
