@@ -5,14 +5,13 @@ use std::sync::Arc;
 use std::sync::RwLock;
 
 use khiin::Engine;
-use windows::Win32::Foundation::E_FAIL;
-use windows::Win32::UI::TextServices::ITfUIElement;
 use windows::core::implement;
 use windows::core::AsImpl;
 use windows::core::ComInterface;
 use windows::core::IUnknown;
 use windows::core::Result;
 use windows::core::GUID;
+use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::UI::TextServices::CLSID_TF_CategoryMgr;
 use windows::Win32::UI::TextServices::ITfCandidateListUIElement;
 use windows::Win32::UI::TextServices::ITfCategoryMgr;
@@ -29,6 +28,7 @@ use windows::Win32::UI::TextServices::ITfTextInputProcessorEx_Impl;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor_Impl;
 use windows::Win32::UI::TextServices::ITfThreadMgr;
 use windows::Win32::UI::TextServices::ITfThreadMgrEventSink;
+use windows::Win32::UI::TextServices::ITfUIElement;
 use windows::Win32::UI::TextServices::GUID_COMPARTMENT_KEYBOARD_DISABLED;
 use windows::Win32::UI::TextServices::GUID_COMPARTMENT_KEYBOARD_OPENCLOSE;
 
@@ -250,26 +250,27 @@ impl TextService {
         sinkmgr.borrow_mut().unadvise()?;
         match compartment.write() {
             Ok(mut comp) => comp.deinit(),
-            Err(_) => winerr!(E_FAIL)
+            Err(_) => winerr!(E_FAIL),
         }
     }
 
-    fn get_compartment_bool(&self, 
+    fn get_compartment_bool(
+        &self,
         compartment: &Arc<RwLock<Compartment>>,
     ) -> Result<bool> {
         match compartment.read() {
             Ok(comp) => comp.get_bool(),
-            Err(_) => winerr!(E_FAIL)
+            Err(_) => winerr!(E_FAIL),
         }
     }
 
     fn get_compartment_u32(
         &self,
-        compartment: &Arc<RwLock<Compartment>>
+        compartment: &Arc<RwLock<Compartment>>,
     ) -> Result<u32> {
         match compartment.read() {
             Ok(comp) => comp.get_value(),
-            Err(_) => winerr!(E_FAIL)
+            Err(_) => winerr!(E_FAIL),
         }
     }
 
@@ -294,7 +295,7 @@ impl TextService {
     fn set_open_close_compartment(&self, value: bool) -> Result<()> {
         match self.open_close_compartment.read() {
             Ok(comp) => comp.set_bool(value),
-            Err(_) => winerr!(E_FAIL)
+            Err(_) => winerr!(E_FAIL),
         }
     }
 
