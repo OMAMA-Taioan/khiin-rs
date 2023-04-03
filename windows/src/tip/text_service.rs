@@ -1,11 +1,15 @@
 use std::cell::RefCell;
 use std::cell::RefMut;
 use std::rc::Rc;
+use std::sync::mpsc::channel;
 use std::sync::Arc;
 use std::sync::RwLock;
-use std::sync::mpsc::channel;
 
 use khiin::Engine;
+use khiin_protos::command::Command;
+use khiin_protos::config::AppConfig;
+use khiin_protos::config::BoolValue;
+use protobuf::MessageField;
 use windows::core::implement;
 use windows::core::AsImpl;
 use windows::core::ComInterface;
@@ -21,6 +25,7 @@ use windows::Win32::UI::TextServices::ITfCompartmentEventSink_Impl;
 use windows::Win32::UI::TextServices::ITfComposition;
 use windows::Win32::UI::TextServices::ITfCompositionSink;
 use windows::Win32::UI::TextServices::ITfCompositionSink_Impl;
+use windows::Win32::UI::TextServices::ITfContext;
 use windows::Win32::UI::TextServices::ITfKeyEventSink;
 use windows::Win32::UI::TextServices::ITfLangBarItemButton;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
@@ -41,6 +46,7 @@ use crate::reg::guids::GUID_DISPLAY_ATTRIBUTE_INPUT;
 use crate::reg::guids::GUID_RESET_USERDATA_COMPARTMENT;
 use crate::tip::candidate_list_ui::CandidateListUI;
 use crate::tip::compartment::Compartment;
+use crate::tip::composition_mgr::CompositionMgr;
 use crate::tip::display_attributes::DisplayAttributes;
 use crate::tip::engine_mgr::EngineMgr;
 use crate::tip::key_event_sink::KeyEventSink;
@@ -75,11 +81,14 @@ pub struct TextService {
     clientid: ArcLock<u32>,
     dwflags: ArcLock<u32>,
 
-    // State flag
-    enabled: ArcLock<bool>,
+    // Config
+    on_off_state_locked: ArcLock<bool>,
+    config: Arc<RwLock<AppConfig>>,
 
-    // Sinks (event handlers)
+    // Key handling
     key_event_sink: RefCell<Option<ITfKeyEventSink>>,
+
+    // Thread mgr
     threadmgr_event_sink: RefCell<Option<ITfThreadMgrEventSink>>,
     threadmgr_event_sink_sinkmgr: RefCell<SinkMgr<ITfThreadMgrEventSink>>,
 
@@ -104,6 +113,7 @@ pub struct TextService {
     lang_bar_indicator: RefCell<Option<ITfLangBarItemButton>>,
     preserved_key_mgr: RefCell<Option<PreservedKeyMgr>>,
     candidate_list_ui: RefCell<Option<ITfCandidateListUIElement>>,
+    composition_mgr: Arc<RwLock<CompositionMgr>>,
 
     // Data
     engine: Arc<RwLock<EngineMgr>>,
@@ -117,7 +127,10 @@ impl TextService {
             threadmgr: RefCell::new(None),
             clientid: ArcLock::new(TF_CLIENTID_NULL),
             dwflags: ArcLock::new(0),
-            enabled: ArcLock::new(false),
+
+            on_off_state_locked: ArcLock::new(false),
+            config: Arc::new(RwLock::new(AppConfig::new())),
+
             key_event_sink: RefCell::new(None),
 
             threadmgr_event_sink: RefCell::new(None),
@@ -152,6 +165,7 @@ impl TextService {
             focused_attr_guidatom: ArcLock::new(TF_INVALID_GUIDATOM),
             lang_bar_indicator: RefCell::new(None),
             candidate_list_ui: RefCell::new(None),
+            composition_mgr: Arc::new(RwLock::new(CompositionMgr::new()?)),
             engine: Arc::new(RwLock::new(EngineMgr::new()?)),
         })
     }
@@ -165,7 +179,31 @@ impl TextService {
     }
 
     pub fn enabled(&self) -> Result<bool> {
-        self.enabled.get()
+        if let Ok(config) = self.config.read() {
+            Ok(config.ime_enabled.value)
+        } else {
+            Ok(false)
+        }
+    }
+
+    pub fn set_enabled(&self, on_off: bool) -> Result<()> {
+        if self.on_off_state_locked.get()? {
+            return Ok(());
+        }
+
+        if let Ok(mut config) = self.config.write() {
+            if config.ime_enabled.value != on_off {
+                let mut enabled = BoolValue::new();
+                enabled.value = on_off;
+                config.ime_enabled = MessageField::some(enabled);
+            }
+        }
+
+        if !on_off {
+            // TODO: commit outstanding buffer
+        }
+
+        Ok(())
     }
 
     pub fn toggle_enabled(&self) -> Result<()> {
@@ -195,6 +233,20 @@ impl TextService {
     pub fn ui_element(&self) -> Result<ITfUIElement> {
         self.candidate_list_ui.borrow().clone().unwrap().cast()
     }
+
+    pub fn notify_command(
+        &self,
+        ec: u32,
+        context: ITfContext,
+        command: Arc<Command>,
+    ) -> Result<()> {
+        if let Ok(mut mgr) = self.composition_mgr.write() {
+            let sink: ITfCompositionSink = self.this().cast()?;
+            return mgr.notify_command(ec, context, sink, command);
+        }
+
+        Ok(())
+    }
 }
 
 // Private portion
@@ -213,28 +265,38 @@ impl TextService {
         self.init_preserved_key_mgr()?;
         self.init_key_event_sink()?;
         self.init_display_attributes()?;
+        self.set_enabled(true)?;
         Ok(())
     }
 
     fn deactivate(&self) -> Result<()> {
-        let _ = self.deinit_display_attributes();
-        let _ = self.deinit_key_event_sink();
-        let _ = self.deinit_preserved_key_mgr();
-        let _ = self.deinit_kbd_disabled_compartment();
-        let _ = self.deinit_userdata_compartment();
-        let _ = self.deinit_config_compartment();
-        let _ = self.deinit_open_close_compartment();
-        let _ = self.deinit_candidate_ui();
-        let _ = self.deinit_threadmgr_event_sink();
-        let _ = self.deinit_lang_bar_indicator();
+        self.set_enabled(false).ok();
+        self.deinit_display_attributes().ok();
+        self.deinit_key_event_sink().ok();
+        self.deinit_preserved_key_mgr().ok();
+        self.deinit_kbd_disabled_compartment().ok();
+        self.deinit_userdata_compartment().ok();
+        self.deinit_config_compartment().ok();
+        self.deinit_open_close_compartment().ok();
+        self.deinit_candidate_ui().ok();
+        self.deinit_threadmgr_event_sink().ok();
+        self.deinit_lang_bar_indicator().ok();
+        self.deinit_engine().ok();
         PopupMenu::unregister_class(DllModule::global().module);
         DllModule::global().release();
         Ok(())
     }
 
     fn init_engine(&self) -> Result<()> {
-        if let Ok(engine) = self.engine.write() {
-            // TODO
+        if let Ok(mut engine) = self.engine.write() {
+            engine.init(self.this());
+        }
+        Ok(())
+    }
+
+    fn deinit_engine(&self) -> Result<()> {
+        if let Ok(mut engine) = self.engine.write() {
+            engine.deinit();
         }
         Ok(())
     }

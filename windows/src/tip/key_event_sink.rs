@@ -32,18 +32,18 @@ use super::key_handlers::handle_key;
 
 #[implement(ITfKeyEventSink)]
 pub struct KeyEventSink {
-    service: ITfTextInputProcessor,
+    tip: ITfTextInputProcessor,
     threadmgr: ITfThreadMgr,
     shift_pressed: Cell<bool>,
 }
 
 impl KeyEventSink {
     pub fn new(
-        service: ITfTextInputProcessor,
+        tip: ITfTextInputProcessor,
         threadmgr: ITfThreadMgr,
     ) -> Self {
         KeyEventSink {
-            service,
+            tip,
             threadmgr,
             shift_pressed: Cell::new(false),
         }
@@ -51,10 +51,10 @@ impl KeyEventSink {
 
     pub fn advise(&self) -> Result<()> {
         let sink: ITfKeyEventSink =
-            KeyEventSink::new(self.service.clone(), self.threadmgr.clone())
+            KeyEventSink::new(self.tip.clone(), self.threadmgr.clone())
                 .into();
         let keystroke_mgr: ITfKeystrokeMgr = self.threadmgr.cast()?;
-        let service: &TextService = self.service.as_impl();
+        let service: &TextService = self.tip.as_impl();
 
         unsafe {
             keystroke_mgr.AdviseKeyEventSink(
@@ -69,7 +69,7 @@ impl KeyEventSink {
 
     pub fn unadvise(&self) -> Result<()> {
         let keystroke_mgr: ITfKeystrokeMgr = self.threadmgr.cast()?;
-        let service: &TextService = self.service.as_impl();
+        let service: &TextService = self.tip.as_impl();
 
         unsafe {
             keystroke_mgr.UnadviseKeyEventSink(service.clientid()?)?;
@@ -80,10 +80,10 @@ impl KeyEventSink {
 
     fn test_key_down(
         &self,
-        _context: &ITfContext,
+        _context: ITfContext,
         key_event: &KeyEvent,
     ) -> Result<BOOL> {
-        let service = self.service.as_impl();
+        let service = self.tip.as_impl();
 
         if !service.enabled()? {
             return Ok(FALSE);
@@ -110,16 +110,16 @@ impl KeyEventSink {
 
     fn key_down(
         &self,
-        context: &ITfContext,
+        context: ITfContext,
         key_event: KeyEvent,
     ) -> Result<BOOL> {
-        let service = self.service.as_impl();
+        let service = self.tip.as_impl();
 
         if !service.enabled()? {
             return Ok(FALSE);
         }
 
-        let test = self.test_key_down(context, &key_event);
+        let test = self.test_key_down(context.clone(), &key_event);
 
         if self.shift_pressed.get() {
             return Ok(FALSE);
@@ -128,7 +128,7 @@ impl KeyEventSink {
         match test {
             Ok(TRUE) => {
                 self.shift_pressed.set(false);
-                match handle_key(service, context, key_event) {
+                match handle_key(self.tip.clone(), context, key_event) {
                     Ok(_) => Ok(TRUE),
                     Err(_) => Ok(FALSE),
                 }
@@ -182,7 +182,7 @@ impl ITfKeyEventSink_Impl for KeyEventSink {
         match pic {
             Some(context) => {
                 let key_event = KeyEvent::new(WM_KEYDOWN, wparam, lparam);
-                self.test_key_down(context, &key_event)
+                self.test_key_down(context.clone(), &key_event)
             }
             None => Ok(FALSE),
         }
@@ -212,7 +212,7 @@ impl ITfKeyEventSink_Impl for KeyEventSink {
         match pic {
             Some(context) => {
                 let key_event = KeyEvent::new(WM_KEYDOWN, wparam, lparam);
-                self.key_down(context, key_event)
+                self.key_down(context.clone(), key_event)
             }
             None => Ok(FALSE),
         }

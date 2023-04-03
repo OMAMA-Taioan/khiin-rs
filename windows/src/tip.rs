@@ -2,7 +2,7 @@ pub(crate) mod class_factory;
 
 mod candidate_list_ui;
 mod compartment;
-mod composition_sink;
+mod composition_mgr;
 mod display_attribute_info;
 mod display_attributes;
 mod edit_session;

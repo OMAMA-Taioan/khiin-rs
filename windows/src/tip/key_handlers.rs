@@ -1,3 +1,7 @@
+use std::sync::Arc;
+
+use windows::Win32::UI::TextServices::ITfTextInputProcessor;
+use windows::core::AsImpl;
 use windows::core::Result;
 use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::UI::TextServices::ITfContext;
@@ -12,26 +16,19 @@ use crate::tip::key_event::KeyEvent;
 use crate::tip::text_service::TextService;
 use crate::winerr;
 
-fn handle_commit(
-    ec: u32,
-    service: &TextService,
-    context: &ITfContext,
-    command: Command,
-) -> Result<()> {
-    Ok(())
-}
-
 fn open_session_for_commit(
-    service: &TextService,
-    context: &ITfContext,
-    command: Command,
+    tip: ITfTextInputProcessor,
+    context: ITfContext,
+    command: Arc<Command>,
 ) -> Result<()> {
     let session: ITfEditSession =
         CallbackEditSession::new(|ec| -> Result<()> {
-            handle_commit(ec, service, context, command.clone())
+            let service = tip.as_impl();
+            service.notify_command(ec, context.clone(), command.clone())
         })
         .into();
 
+    let service = tip.as_impl();
     let result = unsafe {
         context.RequestEditSession(
             service.clientid()?,
@@ -47,13 +44,14 @@ fn open_session_for_commit(
 }
 
 pub fn handle_key(
-    service: &TextService,
-    context: &ITfContext,
+    tip: ITfTextInputProcessor,
+    context: ITfContext,
     key_event: KeyEvent,
 ) -> Result<()> {
+    let service = tip.as_impl();
     if let Ok(engine) = service.engine().read() {
         let command = engine.on_key(key_event)?;
-        open_session_for_commit(service, context, command)
+        open_session_for_commit(tip, context, command)
     } else {
         winerr!(E_FAIL)
     }

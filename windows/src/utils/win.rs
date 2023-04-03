@@ -79,6 +79,18 @@ impl WinString for &str {
     }
 }
 
+impl WinString for String {
+    fn to_wide_bytes_nul(&self) -> Vec<u8> {
+        let s = &self[..];
+        s.to_wide_bytes_nul()
+    }
+
+    fn to_utf16(&self) -> Vec<u16> {
+        let s = &self[..];
+        s.to_utf16()
+    }
+}
+
 pub fn _lo_word(value: u32) -> u16 {
     (value & 0xffff) as u16
 }
