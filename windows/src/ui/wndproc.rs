@@ -137,7 +137,7 @@ where
 
             SetThreadDpiAwarenessContext(previous_dpi_awareness);
 
-            if self.hwnd() == HWND::default() {
+            if self.handle().unwrap() == HWND::default() {
                 winerr!(E_FAIL)
             } else {
                 Ok(())
@@ -145,13 +145,19 @@ where
         }
     }
 
-    fn destroy(&self) {
-        let hwnd = self.hwnd();
-        if hwnd != HWND::default() {
-            unsafe {
-                DestroyWindow(hwnd);
-            }
-        }
+    fn destroy(&self) -> Result<()> {
+        let mut handle = HWND(0);
+
+        match self.window_data().try_borrow_mut() {
+            Ok(mut window) => {
+                handle = window.handle.unwrap();
+                window.handle = None;
+            },
+            _ => return winerr!(E_FAIL)
+        };
+
+        unsafe { DestroyWindow(handle); }
+        Ok(())
     }
 
     // This is the external window procedure that will be called
@@ -160,25 +166,30 @@ where
     // for subsequent messages, and to route those messages to the
     // "on_message" method of the Window trait.
     extern "system" fn wndproc(
-        hwnd: HWND,
-        umsg: u32,
+        handle: HWND,
+        message: u32,
         wparam: WPARAM,
         lparam: LPARAM,
     ) -> LRESULT {
         unsafe {
-            if umsg == WM_NCCREATE {
+            if message == WM_NCCREATE {
                 let lpcs: *mut CREATESTRUCTW = transmute(lparam);
                 let this = (*lpcs).lpCreateParams as *mut T;
-                (*this).set_hwnd(hwnd);
-                SetWindowLongPtrW(hwnd, GWLP_USERDATA, transmute(this));
+                if (*this).set_handle(handle).is_ok() {
+                    SetWindowLongPtrW(handle, GWLP_USERDATA, transmute(this));
+                }
             } else {
-                let this = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut T;
+                let this = GetWindowLongPtrW(handle, GWLP_USERDATA) as *mut T;
                 if !this.is_null() {
-                    return (*this).on_message(umsg, wparam, lparam);
+                    if let Ok(window) = (*this).window_data().try_borrow() {
+                        if window.handle.is_some() {
+                            return (*this).on_message(message, wparam, lparam);
+                        }
+                    }
                 }
             };
 
-            DefWindowProcW(hwnd, umsg, wparam, lparam)
+            DefWindowProcW(handle, message, wparam, lparam)
         }
     }
 }

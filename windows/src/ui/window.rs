@@ -1,6 +1,10 @@
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::sync::Arc;
+use std::sync::RwLock;
+use windows::core::Error;
 use windows::core::Result;
+use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::LRESULT;
@@ -29,11 +33,12 @@ use crate::ui::dpi::dpi_aware;
 use crate::ui::dpi::Density;
 use crate::ui::dwm::set_rounded_corners;
 use crate::ui::render_factory::RenderFactory;
+use crate::winerr;
 
 // These were previously in GuiWindow class
 // in c++ version
 pub struct WindowData {
-    pub handle: HWND,
+    pub handle: Option<HWND>,
     pub showing: bool,
     pub tracking_mouse: bool,
     pub max_width: u32,
@@ -41,7 +46,7 @@ pub struct WindowData {
     pub dpi_parent: u32,
     pub dpi: u32,
     pub scale: f32,
-    pub factory: RenderFactory,
+    pub factory: Arc<RenderFactory>,
     pub target: ID2D1DCRenderTarget,
     pub origin: Point<i32>,
 }
@@ -51,11 +56,24 @@ pub trait WindowHandler {
 
     fn window_data(&self) -> Rc<RefCell<WindowData>>;
 
-    fn on_message(&self, umsg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
+    fn on_message(
+        &self,
+        message: u32,
+        wparam: WPARAM,
+        lparam: LPARAM,
+    ) -> LRESULT {
         unsafe {
-            match umsg {
+            let handle = self.window_data().borrow().handle;
+
+            if handle.is_none() {
+                return DefWindowProcW(HWND(0), message, wparam, lparam);
+            }
+
+            let handle = handle.unwrap();
+
+            match message {
                 WM_NCCREATE => {
-                    set_rounded_corners(self.hwnd(), DWMWCP_ROUND);
+                    set_rounded_corners(handle, DWMWCP_ROUND);
                 }
                 WM_CREATE => {
                     if self.on_create().is_ok() {
@@ -97,59 +115,93 @@ pub trait WindowHandler {
                 _ => (),
             };
 
-            DefWindowProcW(self.hwnd(), umsg, wparam, lparam)
+            DefWindowProcW(handle, message, wparam, lparam)
         }
     }
 
-    fn set_hwnd(&mut self, hwnd: HWND) {
-        let window = self.window_data();
-        let mut window = window.borrow_mut();
-        window.handle = hwnd;
-    }
-
-    fn hwnd(&self) -> HWND {
-        self.window_data().borrow().handle
-    }
-
-    fn showing(&self) -> bool {
-        self.window_data().borrow().showing
-    }
-
-    fn show(&mut self, pt: Point<i32>) {
-        let dpi = self.window_data().borrow().dpi;
-        let window = self.window_data();
-        let mut window = window.borrow_mut();
-        window.origin = if dpi_aware() {
-            pt
-        } else {
-            Point {
-                x: pt.x.to_dp(dpi),
-                y: pt.y.to_dp(dpi),
+    fn set_handle(&self, handle: HWND) -> Result<()> {
+        match self.window_data().try_borrow_mut() {
+            Ok(mut window) => {
+                window.handle = Some(handle);
+                Ok(())
             }
-        };
-
-        unsafe {
-            ShowWindow(self.hwnd(), SW_SHOWNA);
+            _ => winerr!(E_FAIL),
         }
 
-        window.showing = true;
-        window.tracking_mouse = true;
+        // match self.window_data().write() {
+        //     Ok(mut window) => {
+        //         window.handle = handle;
+        //         Ok(())
+        //     }
+        //     _ => winerr!(E_FAIL),
+        // }
     }
 
-    fn hide(&mut self) {
-        let window = self.window_data();
-        let mut window = window.borrow_mut();
-        if !window.showing {
-            return;
+    fn handle(&self) -> Result<HWND> {
+        match self.window_data().try_borrow() {
+            Ok(window) => window.handle.ok_or(Error::from(E_FAIL)),
+            _ => winerr!(E_FAIL),
         }
-        unsafe {
-            ShowWindow(self.hwnd(), SW_HIDE);
+    }
+
+    fn show(&self, pt: Point<i32>) -> Result<()> {
+        let mut handle = HWND(0);
+
+        if let Ok(mut window) = self.window_data().try_borrow_mut() {
+            let dpi = window.dpi;
+            window.origin = if dpi_aware() {
+                pt
+            } else {
+                Point {
+                    x: pt.x.to_dp(dpi),
+                    y: pt.y.to_dp(dpi),
+                }
+            };
+
+            window.showing = true;
+            window.tracking_mouse = true;
+            handle = window.handle.unwrap();
         }
-        if window.tracking_mouse {
+
+        if handle != HWND(0) {
             unsafe {
+                ShowWindow(handle, SW_SHOWNA);
+            }
+            Ok(())
+        } else {
+            winerr!(E_FAIL)
+        }
+    }
+
+    fn hide(&self) -> Result<()> {
+        let mut handle = HWND(0);
+        let mut tracking = false;
+
+        match self.window_data().try_borrow() {
+            Ok(window) => {
+                if !window.showing {
+                    return Ok(());
+                }
+                handle = window.handle.unwrap();
+                tracking = window.tracking_mouse;
+            },
+            _ => return Err(Error::from(E_FAIL))
+        }
+
+        unsafe {
+            ShowWindow(handle, SW_HIDE);
+            if tracking {
                 ReleaseCapture();
             }
-            window.tracking_mouse = false;
+        }
+
+        match self.window_data().try_borrow_mut() {
+            Ok(mut window) => {
+                window.showing = false;
+                window.tracking_mouse = false;
+                Ok(())
+            },
+            _ => winerr!(E_FAIL)
         }
     }
 

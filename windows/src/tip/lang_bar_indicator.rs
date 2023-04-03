@@ -2,10 +2,9 @@ use std::cell::Cell;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::sync::RwLock;
 
-use windows::Win32::UI::WindowsAndMessaging::IMAGE_ICON;
-use windows::Win32::UI::WindowsAndMessaging::LR_DEFAULTCOLOR;
-use windows::core::PCWSTR;
+use khiin_protos::config::AppConfig;
 use windows::core::implement;
 use windows::core::AsImpl;
 use windows::core::ComInterface;
@@ -13,6 +12,7 @@ use windows::core::IUnknown;
 use windows::core::Result;
 use windows::core::BSTR;
 use windows::core::GUID;
+use windows::core::PCWSTR;
 use windows::Win32::Foundation::BOOL;
 use windows::Win32::Foundation::E_INVALIDARG;
 use windows::Win32::Foundation::E_NOTIMPL;
@@ -36,15 +36,20 @@ use windows::Win32::UI::TextServices::GUID_LBI_INPUTMODE;
 use windows::Win32::UI::TextServices::TF_LANGBARITEMINFO;
 use windows::Win32::UI::TextServices::TF_LBI_CLK_LEFT;
 use windows::Win32::UI::TextServices::TF_LBI_CLK_RIGHT;
+use windows::Win32::UI::TextServices::TF_LBI_ICON;
 use windows::Win32::UI::TextServices::TF_LBI_STYLE_BTN_BUTTON;
 use windows::Win32::UI::WindowsAndMessaging::LoadImageW;
 use windows::Win32::UI::WindowsAndMessaging::HICON;
+use windows::Win32::UI::WindowsAndMessaging::IMAGE_ICON;
+use windows::Win32::UI::WindowsAndMessaging::LR_DEFAULTCOLOR;
 
+use crate::dll::DllModule;
+use crate::geometry::Point;
 use crate::reg::guids::IID_KhiinTextService;
 use crate::ui::popup_menu::PopupMenu;
+use crate::ui::window::WindowHandler;
 use crate::ui::wndproc::Wndproc;
 use crate::winerr;
-use crate::dll::DllModule;
 
 static INFO: TF_LANGBARITEMINFO = TF_LANGBARITEMINFO {
     clsidService: IID_KhiinTextService,
@@ -115,6 +120,21 @@ impl LangBarIndicator {
         indicator.added.set(false);
         Ok(())
     }
+
+    pub fn on_config_change(
+        &self,
+        config: Arc<RwLock<AppConfig>>,
+    ) -> Result<()> {
+        if let Ok(map) = self.sink_map.lock() {
+            for (_, sink) in map.iter() {
+                unsafe {
+                    sink.OnUpdate(TF_LBI_ICON)?;
+                }
+            }
+        }
+
+        self.popup.on_config_change(config)
+    }
 }
 
 impl ITfSource_Impl for LangBarIndicator {
@@ -132,11 +152,15 @@ impl ITfSource_Impl for LangBarIndicator {
         }
 
         let sink: ITfLangBarItemSink = punk.unwrap().clone().cast()?;
-        let mut map = self.sink_map.lock().unwrap();
-        let cookie = map.keys().max().unwrap_or(&0) + 1;
-        match map.insert(cookie, sink) {
-            Some(_) => winerr!(CONNECT_E_CANNOTCONNECT),
-            None => Ok(cookie),
+        
+        if let Ok(mut map) = self.sink_map.lock() {
+            let cookie = map.keys().max().unwrap_or(&0) + 1;
+            match map.insert(cookie, sink) {
+                Some(_) => winerr!(CONNECT_E_CANNOTCONNECT),
+                None => Ok(cookie),
+            }
+        } else {
+            winerr!(CONNECT_E_CANNOTCONNECT)
         }
     }
 
@@ -177,7 +201,7 @@ impl ITfLangBarItemButton_Impl for LangBarIndicator {
     ) -> Result<()> {
         match click {
             TF_LBI_CLK_LEFT => self.tip.as_impl().toggle_enabled(),
-            TF_LBI_CLK_RIGHT => Ok(()), // TODO
+            TF_LBI_CLK_RIGHT => self.popup.show(pt.into()),
             _ => Ok(()),
         }
     }

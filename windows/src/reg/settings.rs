@@ -43,6 +43,7 @@ pub enum SettingsKey {
     OnOffHotkey,
     InputModeHotkey,
     UserDictionaryFile,
+    DebugSingleAppMode,
 }
 
 impl SettingsKey {
@@ -59,6 +60,7 @@ impl SettingsKey {
             SettingsKey::OnOffHotkey => "on_off_hotkey",
             SettingsKey::InputModeHotkey => "input_mode_hotkey",
             SettingsKey::UserDictionaryFile => "user_dictionary_file",
+            SettingsKey::DebugSingleAppMode => "SingleAppDebugMode",
         }
     }
 }

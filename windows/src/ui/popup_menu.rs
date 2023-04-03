@@ -1,6 +1,9 @@
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::sync::Arc;
+use std::sync::RwLock;
 
+use windows::core::AsImpl;
 use windows::core::Result;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Graphics::Direct2D::ID2D1SolidColorBrush;
@@ -13,11 +16,12 @@ use windows::Win32::UI::WindowsAndMessaging::WS_EX_TOOLWINDOW;
 use windows::Win32::UI::WindowsAndMessaging::WS_EX_TOPMOST;
 use windows::Win32::UI::WindowsAndMessaging::WS_POPUP;
 
+use khiin_protos::config::AppConfig;
+
 use crate::dll::DllModule;
 use crate::geometry::Point;
 use crate::ui::colors::color;
 use crate::ui::colors::AsD2D1_F;
-use crate::ui::render_factory::RenderFactory;
 use crate::ui::window::WindowData;
 use crate::ui::wndproc::Wndproc;
 
@@ -30,20 +34,21 @@ fn window_ex_style() -> WINDOW_EX_STYLE {
 }
 
 pub struct PopupMenu {
-    service: ITfTextInputProcessor,
+    tip: ITfTextInputProcessor,
     brush: ID2D1SolidColorBrush,
     textformat: IDWriteTextFormat,
-    origin: Point<i32>,
     window: Rc<RefCell<WindowData>>,
 }
 
 impl PopupMenu {
-    pub fn new(service: ITfTextInputProcessor) -> Result<Self> {
-        let factory = RenderFactory::new()?;
+    pub fn new(tip: ITfTextInputProcessor) -> Result<Self> {
+        let service = tip.as_impl();
+        let factory = service.render_factory.clone();
         let target = factory.create_dc_render_target()?;
 
         let window = WindowData {
-            handle: HWND(0),
+            handle: None,
+            factory,
             showing: false,
             tracking_mouse: false,
             max_width: 100,
@@ -51,8 +56,7 @@ impl PopupMenu {
             dpi_parent: 96,
             dpi: 96,
             scale: 1.0,
-            origin: Point::<i32>::default(),
-            factory,
+            origin: Point::default(),
             target: target.clone(),
         };
 
@@ -62,10 +66,9 @@ impl PopupMenu {
 
         let mut this = Self {
             window: Rc::new(RefCell::new(window)),
-            service,
+            tip,
             brush,
             textformat,
-            origin: Point::default(),
         };
 
         Wndproc::create(
@@ -77,6 +80,13 @@ impl PopupMenu {
         )?;
 
         Ok(this)
+    }
+
+    pub fn on_config_change(
+        &self,
+        config: Arc<RwLock<AppConfig>>,
+    ) -> Result<()> {
+        Ok(())
     }
 }
 

@@ -55,6 +55,7 @@ use crate::tip::preserved_key_mgr::PreservedKeyMgr;
 use crate::tip::sink_mgr::SinkMgr;
 use crate::tip::thread_mgr_event_sink::ThreadMgrEventSink;
 use crate::ui::popup_menu::PopupMenu;
+use crate::ui::render_factory::RenderFactory;
 use crate::ui::wndproc::Wndproc;
 use crate::utils::arc_lock::ArcLock;
 use crate::utils::win::co_create_inproc;
@@ -114,6 +115,7 @@ pub struct TextService {
     preserved_key_mgr: RefCell<Option<PreservedKeyMgr>>,
     candidate_list_ui: RefCell<Option<ITfCandidateListUIElement>>,
     composition_mgr: Arc<RwLock<CompositionMgr>>,
+    pub render_factory: Arc<RenderFactory>,
 
     // Data
     engine: Arc<RwLock<EngineMgr>>,
@@ -166,6 +168,7 @@ impl TextService {
             lang_bar_indicator: RefCell::new(None),
             candidate_list_ui: RefCell::new(None),
             composition_mgr: Arc::new(RwLock::new(CompositionMgr::new()?)),
+            render_factory: Arc::new(RenderFactory::new()?),
             engine: Arc::new(RwLock::new(EngineMgr::new()?)),
         })
     }

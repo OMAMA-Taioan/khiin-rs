@@ -1,5 +1,6 @@
 use log::warn;
 use once_cell::sync::OnceCell;
+use windows::Win32::Foundation::FALSE;
 use windows::Win32::Foundation::S_FALSE;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
@@ -29,12 +30,44 @@ use crate::reg::registrar::register_profiles;
 use crate::reg::registrar::unregister_categories;
 use crate::reg::registrar::unregister_clsid;
 use crate::reg::registrar::unregister_profiles;
+use crate::reg::settings;
+use crate::reg::settings::SettingsKey::DebugSingleAppMode;
 use crate::tip::class_factory::KhiinClassFactory;
 use crate::utils::win::GetPath;
 use crate::utils::win::WinGuid;
 
+// Normally leave this `false`, but due to the nature of some bugs
+// causing a cascade of DLL loads and crashes, it is sometimes very
+// convenient to set this to `true` so that the DLL will only load in
+// at most one app at a time. If you set this to `true`, you must
+// manually reset the registry entry each time you run the app,
+// or you won't be able to run it again. The entry is at
+//     HKEY_CURRENT_USER\Software\Khiin PJH\Settings
+// Set `SingleAppDebugMode` to 0 to run it, and running once will
+// change this key to 1 to prevent future attachments.
+static DEBUG_SINGLE_APP_MODE: bool = false;
+
 static DLL_INSTANCE: OnceCell<DllModule> = OnceCell::new();
 const IDS_TEXT_SERVICE_DISPLAY_NAME: u32 = 101;
+
+fn locked_for_debugging() -> bool {
+    if !DEBUG_SINGLE_APP_MODE {
+        return false;
+    }
+
+    let already_in_use = match settings::get_settings_u32(DebugSingleAppMode) {
+        Ok(val) => val != 0,
+        _ => false
+    };
+
+    match already_in_use {
+        true => true,
+        false => {
+            settings::set_settings_u32(DebugSingleAppMode, 1).ok();
+            false
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct DllModule {
@@ -72,6 +105,10 @@ pub extern "system" fn DllMain(
 ) -> BOOL {
     match call_reason {
         DLL_PROCESS_ATTACH => {
+            if locked_for_debugging() {
+                return FALSE;
+            }
+
             let dll_module = DllModule {
                 ref_count: Arc::new(AtomicUsize::new(0)),
                 module,
