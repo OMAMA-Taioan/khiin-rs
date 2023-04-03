@@ -41,9 +41,9 @@ pub struct WindowData {
     pub handle: Option<HWND>,
     pub showing: bool,
     pub tracking_mouse: bool,
-    pub max_width: u32,
-    pub max_height: u32,
-    pub dpi_parent: u32,
+    pub max_width: i32,
+    pub max_height: i32,
+    pub dpi_parent: i32,
     pub dpi: u32,
     pub scale: f32,
     pub factory: Arc<RenderFactory>,
@@ -153,8 +153,8 @@ pub trait WindowHandler {
                 pt
             } else {
                 Point {
-                    x: pt.x.to_dp(dpi),
-                    y: pt.y.to_dp(dpi),
+                    x: pt.x.to_dp(dpi) as i32,
+                    y: pt.y.to_dp(dpi) as i32,
                 }
             };
 
@@ -237,10 +237,7 @@ pub trait WindowHandler {
         true // TODO
     }
 
-    fn render(&self) {
-        // TODO
-        return;
-    }
+    fn render(&self) -> Result<()>;
 
     fn on_resize(&self) {
         // TODO
