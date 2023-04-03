@@ -1,5 +1,6 @@
 use std::mem::transmute;
 
+use windows::Win32::Graphics::Dwm::DWMWCP_ROUND;
 use windows::core::Result;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::LPARAM;
@@ -34,6 +35,9 @@ use crate::ui::dpi::Density;
 use crate::ui::render_factory::RenderFactory;
 use crate::ui::window::Window;
 use crate::ui::window::WindowData;
+
+use super::dwm::set_rounded_corners;
+use super::window::WindowHandler;
 
 static FONT_NAME: &str = "Microsoft JhengHei UI Regular";
 const DW_STYLE: WINDOW_STYLE = WS_POPUP;
@@ -91,15 +95,59 @@ impl PopupMenu {
     }
 }
 
-impl Window for PopupMenu {
-    const WINDOW_CLASS_NAME: &'static str = "PopupMenuWindow";
+impl WindowHandler for PopupMenu {
+    fn on_message(&self, umsg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
+        unsafe {
+            match umsg {
+                WM_NCCREATE => {
+                    set_rounded_corners(self.hwnd(), DWMWCP_ROUND);
+                }
+                WM_CREATE => {
+                    if self.on_create().is_ok() {
+                        return LRESULT(0);
+                    }
+                    return LRESULT(1);
+                }
+                WM_DISPLAYCHANGE => {
+                    self.on_display_change();
+                }
+                WM_DPICHANGED => {
+                    self.on_dpi_changed();
+                    return LRESULT(0);
+                }
+                WM_MOUSEACTIVATE => {
+                    // self.on_mouse_activate();
+                }
+                WM_MOUSEMOVE => {
+                    self.on_mouse_move();
+                }
+                WM_MOUSELEAVE => {
+                    self.on_mouse_leave();
+                }
+                WM_LBUTTONDOWN => {
+                    if self.on_click() {
+                        return LRESULT(0);
+                    }
+                }
+                WM_PAINT => {
+                    self.render();
+                    return LRESULT(0);
+                }
+                WM_SIZE => {
+                    self.on_resize();
+                }
+                WM_WINDOWPOSCHANGING => {
+                    self.on_window_pos_changing();
+                }
+                _ => (),
+            };
+
+            DefWindowProcW(self.hwnd(), umsg, wparam, lparam)
+        }
+    }
 
     fn set_hwnd(&mut self, hwnd: HWND) {
         self.window.handle = hwnd;
-    }
-
-    fn hwnd(&self) -> HWND {
-        self.window.handle
     }
 
     fn showing(&self) -> bool {
@@ -185,26 +233,11 @@ impl Window for PopupMenu {
         return;
     }
 
-    extern "system" fn wndproc(
-        hwnd: HWND,
-        umsg: u32,
-        wparam: WPARAM,
-        lparam: LPARAM,
-    ) -> LRESULT {
-        unsafe {
-            if umsg == WM_NCCREATE {
-                let lpcs: *mut CREATESTRUCTW = transmute(lparam);
-                let this = (*lpcs).lpCreateParams as *mut Self;
-                (*this).set_hwnd(hwnd);
-                SetWindowLongPtrW(hwnd, GWLP_USERDATA, transmute(this));
-            } else {
-                let this = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut Self;
-                if !this.is_null() {
-                    return (*this).on_message(umsg, wparam, lparam);
-                }
-            };
-
-            DefWindowProcW(hwnd, umsg, wparam, lparam)
-        }
+    fn hwnd(&self) -> HWND {
+        self.window.handle
     }
+}
+
+impl Window<PopupMenu> for PopupMenu {
+    const WINDOW_CLASS_NAME: &'static str = "PopupMenuWindow";
 }

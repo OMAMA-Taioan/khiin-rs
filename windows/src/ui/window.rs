@@ -1,6 +1,10 @@
 use std::ffi::c_void;
 use std::mem::size_of;
 use std::mem::transmute;
+use windows::Win32::UI::WindowsAndMessaging::CREATESTRUCTW;
+use windows::Win32::UI::WindowsAndMessaging::GWLP_USERDATA;
+use windows::Win32::UI::WindowsAndMessaging::GetWindowLongPtrW;
+use windows::Win32::UI::WindowsAndMessaging::SetWindowLongPtrW;
 use windows::core::Result;
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::BOOL;
@@ -71,7 +75,25 @@ pub struct WindowData {
     pub target: ID2D1DCRenderTarget,
 }
 
-pub trait Window {
+pub trait WindowHandler {
+    fn on_message(&self, umsg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT;
+    fn set_hwnd(&mut self, hwnd: HWND);
+    fn hwnd(&self) -> HWND;
+    fn showing(&self) -> bool;
+    fn show(&mut self, pt: Point<i32>);
+    fn hide(&mut self);
+    fn on_create(&self) -> Result<()>;
+    fn on_display_change(&self);
+    fn on_dpi_changed(&self);
+    fn on_mouse_move(&self);
+    fn on_mouse_leave(&self);
+    fn on_click(&self) -> bool;
+    fn render(&self);
+    fn on_resize(&self);
+    fn on_window_pos_changing(&self);
+}
+
+pub trait Window<T : WindowHandler>: WindowHandler {
     const WINDOW_CLASS_NAME: &'static str;
 
     fn register_class(module: HMODULE) -> bool {
@@ -170,75 +192,26 @@ pub trait Window {
         }
     }
 
-    fn on_message(&self, umsg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
-        unsafe {
-            match umsg {
-                WM_NCCREATE => {
-                    set_rounded_corners(self.hwnd(), DWMWCP_ROUND);
-                }
-                WM_CREATE => {
-                    if self.on_create().is_ok() {
-                        return LRESULT(0);
-                    }
-                    return LRESULT(1);
-                }
-                WM_DISPLAYCHANGE => {
-                    self.on_display_change();
-                }
-                WM_DPICHANGED => {
-                    self.on_dpi_changed();
-                    return LRESULT(0);
-                }
-                WM_MOUSEACTIVATE => {
-                    // self.on_mouse_activate();
-                }
-                WM_MOUSEMOVE => {
-                    self.on_mouse_move();
-                }
-                WM_MOUSELEAVE => {
-                    self.on_mouse_leave();
-                }
-                WM_LBUTTONDOWN => {
-                    if self.on_click() {
-                        return LRESULT(0);
-                    }
-                }
-                WM_PAINT => {
-                    self.render();
-                    return LRESULT(0);
-                }
-                WM_SIZE => {
-                    self.on_resize();
-                }
-                WM_WINDOWPOSCHANGING => {
-                    self.on_window_pos_changing();
-                }
-                _ => (),
-            };
-
-            DefWindowProcW(self.hwnd(), umsg, wparam, lparam)
-        }
-    }
-
     extern "system" fn wndproc(
         hwnd: HWND,
         umsg: u32,
         wparam: WPARAM,
         lparam: LPARAM,
-    ) -> LRESULT;
+    ) -> LRESULT {
+        unsafe {
+            if umsg == WM_NCCREATE {
+                let lpcs: *mut CREATESTRUCTW = transmute(lparam);
+                let this = (*lpcs).lpCreateParams as *mut T;
+                (*this).set_hwnd(hwnd);
+                SetWindowLongPtrW(hwnd, GWLP_USERDATA, transmute(this));
+            } else {
+                let this = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut T;
+                if !this.is_null() {
+                    return (*this).on_message(umsg, wparam, lparam);
+                }
+            };
 
-    fn set_hwnd(&mut self, hwnd: HWND);
-    fn hwnd(&self) -> HWND;
-    fn showing(&self) -> bool;
-    fn show(&mut self, pt: Point<i32>);
-    fn hide(&mut self);
-    fn on_create(&self) -> Result<()>;
-    fn on_display_change(&self);
-    fn on_dpi_changed(&self);
-    fn on_mouse_move(&self);
-    fn on_mouse_leave(&self);
-    fn on_click(&self) -> bool;
-    fn render(&self);
-    fn on_resize(&self);
-    fn on_window_pos_changing(&self);
+            DefWindowProcW(hwnd, umsg, wparam, lparam)
+        }
+    }
 }
