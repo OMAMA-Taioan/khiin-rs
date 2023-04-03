@@ -56,7 +56,7 @@ static INFO: TF_LANGBARITEMINFO = TF_LANGBARITEMINFO {
 
 #[implement(ITfSource, ITfLangBarItem, ITfLangBarItemButton)]
 pub struct LangBarIndicator {
-    service: ITfTextInputProcessor,
+    tip: ITfTextInputProcessor,
     threadmgr: ITfThreadMgr,
     sink_map: Arc<Mutex<HashMap<u32, ITfLangBarItemSink>>>,
     status: u32,
@@ -66,16 +66,16 @@ pub struct LangBarIndicator {
 
 impl LangBarIndicator {
     pub fn new(
-        service: ITfTextInputProcessor,
+        tip: ITfTextInputProcessor,
         threadmgr: ITfThreadMgr,
     ) -> Result<ITfLangBarItemButton> {
         let this = LangBarIndicator {
-            service: service.clone(),
+            tip: tip.clone(),
             threadmgr: threadmgr.clone(),
             sink_map: Arc::new(Mutex::new(HashMap::new())),
             status: 0, // always 0
             added: Cell::new(false),
-            popup: PopupMenu::new(service.clone())?,
+            popup: PopupMenu::new(tip.clone())?,
         };
         let button: ITfLangBarItemButton = this.into();
         LangBarIndicator::add_item(threadmgr, button.clone())?;
@@ -176,7 +176,7 @@ impl ITfLangBarItemButton_Impl for LangBarIndicator {
         prcarea: *const RECT,
     ) -> Result<()> {
         match click {
-            TF_LBI_CLK_LEFT => self.service.as_impl().toggle_enabled(),
+            TF_LBI_CLK_LEFT => self.tip.as_impl().toggle_enabled(),
             TF_LBI_CLK_RIGHT => Ok(()), // TODO
             _ => Ok(()),
         }

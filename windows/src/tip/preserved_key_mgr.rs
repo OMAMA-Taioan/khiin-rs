@@ -53,21 +53,21 @@ static PREKEY_FULL_WIDTH_SPACE: PreservedKey = PreservedKey {
 };
 
 pub struct PreservedKeyMgr {
-    service: ITfTextInputProcessor,
+    tip: ITfTextInputProcessor,
 }
 
 impl PreservedKeyMgr {
-    pub fn new(service: ITfTextInputProcessor) -> Self {
-        Self { service }
+    pub fn new(tip: ITfTextInputProcessor) -> Self {
+        Self { tip }
     }
 
     fn keystroke_mgr(&self) -> Result<ITfKeystrokeMgr> {
-        let service = self.service.as_impl();
+        let service = self.tip.as_impl();
         service.threadmgr().cast()
     }
 
     fn preserve_key(&self, pk: PreservedKey) -> Result<()> {
-        let service = self.service.as_impl();
+        let service = self.tip.as_impl();
         let desc: &str = &pk.desc;
         let pchdesc = desc.to_utf16();
         unsafe {
