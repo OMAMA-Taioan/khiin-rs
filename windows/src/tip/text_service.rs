@@ -55,7 +55,7 @@ use crate::tip::preserved_key_mgr::PreservedKeyMgr;
 use crate::tip::sink_mgr::SinkMgr;
 use crate::tip::thread_mgr_event_sink::ThreadMgrEventSink;
 use crate::ui::popup_menu::PopupMenu;
-use crate::ui::window::Window;
+use crate::ui::wndproc::Wndproc;
 use crate::utils::arc_lock::ArcLock;
 use crate::utils::win::co_create_inproc;
 use crate::winerr;

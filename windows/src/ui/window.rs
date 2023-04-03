@@ -1,47 +1,18 @@
-use std::ffi::c_void;
-use std::mem::size_of;
-use std::mem::transmute;
-use windows::Win32::UI::WindowsAndMessaging::CREATESTRUCTW;
-use windows::Win32::UI::WindowsAndMessaging::GWLP_USERDATA;
-use windows::Win32::UI::WindowsAndMessaging::GetWindowLongPtrW;
-use windows::Win32::UI::WindowsAndMessaging::SetWindowLongPtrW;
+use std::cell::RefCell;
+use std::rc::Rc;
 use windows::core::Result;
-use windows::core::PCWSTR;
-use windows::Win32::Foundation::BOOL;
-use windows::Win32::Foundation::E_FAIL;
-use windows::Win32::Foundation::HMODULE;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::LRESULT;
 use windows::Win32::Foundation::WPARAM;
 use windows::Win32::Graphics::Direct2D::ID2D1DCRenderTarget;
-use windows::Win32::Graphics::Dwm::DwmSetWindowAttribute;
-use windows::Win32::Graphics::Dwm::DWMWA_WINDOW_CORNER_PREFERENCE;
 use windows::Win32::Graphics::Dwm::DWMWCP_ROUND;
-use windows::Win32::Graphics::Dwm::DWM_WINDOW_CORNER_PREFERENCE;
-use windows::Win32::Graphics::Gdi::GetStockObject;
-use windows::Win32::Graphics::Gdi::HBRUSH;
-use windows::Win32::Graphics::Gdi::HGDIOBJ;
-use windows::Win32::Graphics::Gdi::NULL_BRUSH;
 use windows::Win32::UI::Controls::WM_MOUSELEAVE;
-use windows::Win32::UI::HiDpi::SetThreadDpiAwarenessContext;
-use windows::Win32::UI::HiDpi::DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2;
-use windows::Win32::UI::WindowsAndMessaging::CreateWindowExW;
+use windows::Win32::UI::Input::KeyboardAndMouse::ReleaseCapture;
 use windows::Win32::UI::WindowsAndMessaging::DefWindowProcW;
-use windows::Win32::UI::WindowsAndMessaging::DestroyWindow;
-use windows::Win32::UI::WindowsAndMessaging::GetClassInfoExW;
-use windows::Win32::UI::WindowsAndMessaging::RegisterClassExW;
-use windows::Win32::UI::WindowsAndMessaging::UnregisterClassW;
-use windows::Win32::UI::WindowsAndMessaging::CS_HREDRAW;
-use windows::Win32::UI::WindowsAndMessaging::CS_IME;
-use windows::Win32::UI::WindowsAndMessaging::CS_VREDRAW;
-use windows::Win32::UI::WindowsAndMessaging::CW_USEDEFAULT;
-use windows::Win32::UI::WindowsAndMessaging::HCURSOR;
-use windows::Win32::UI::WindowsAndMessaging::HICON;
-use windows::Win32::UI::WindowsAndMessaging::HMENU;
-use windows::Win32::UI::WindowsAndMessaging::HWND_DESKTOP;
-use windows::Win32::UI::WindowsAndMessaging::WINDOW_EX_STYLE;
-use windows::Win32::UI::WindowsAndMessaging::WINDOW_STYLE;
+use windows::Win32::UI::WindowsAndMessaging::ShowWindow;
+use windows::Win32::UI::WindowsAndMessaging::SW_HIDE;
+use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNA;
 use windows::Win32::UI::WindowsAndMessaging::WM_CREATE;
 use windows::Win32::UI::WindowsAndMessaging::WM_DISPLAYCHANGE;
 use windows::Win32::UI::WindowsAndMessaging::WM_DPICHANGED;
@@ -52,13 +23,12 @@ use windows::Win32::UI::WindowsAndMessaging::WM_NCCREATE;
 use windows::Win32::UI::WindowsAndMessaging::WM_PAINT;
 use windows::Win32::UI::WindowsAndMessaging::WM_SIZE;
 use windows::Win32::UI::WindowsAndMessaging::WM_WINDOWPOSCHANGING;
-use windows::Win32::UI::WindowsAndMessaging::WNDCLASSEXW;
 
 use crate::geometry::Point;
+use crate::ui::dpi::dpi_aware;
+use crate::ui::dpi::Density;
 use crate::ui::dwm::set_rounded_corners;
 use crate::ui::render_factory::RenderFactory;
-use crate::utils::pcwstr::ToPcwstr;
-use crate::winerr;
 
 // These were previously in GuiWindow class
 // in c++ version
@@ -73,145 +43,160 @@ pub struct WindowData {
     pub scale: f32,
     pub factory: RenderFactory,
     pub target: ID2D1DCRenderTarget,
+    pub origin: Point<i32>,
 }
 
 pub trait WindowHandler {
-    fn on_message(&self, umsg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT;
-    fn set_hwnd(&mut self, hwnd: HWND);
-    fn hwnd(&self) -> HWND;
-    fn showing(&self) -> bool;
-    fn show(&mut self, pt: Point<i32>);
-    fn hide(&mut self);
-    fn on_create(&self) -> Result<()>;
-    fn on_display_change(&self);
-    fn on_dpi_changed(&self);
-    fn on_mouse_move(&self);
-    fn on_mouse_leave(&self);
-    fn on_click(&self) -> bool;
-    fn render(&self);
-    fn on_resize(&self);
-    fn on_window_pos_changing(&self);
-}
-
-pub trait Window<T : WindowHandler>: WindowHandler {
     const WINDOW_CLASS_NAME: &'static str;
 
-    fn register_class(module: HMODULE) -> bool {
+    fn window_data(&self) -> Rc<RefCell<WindowData>>;
+
+    fn on_message(&self, umsg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
         unsafe {
-            let class_name = Self::WINDOW_CLASS_NAME.to_pcwstr();
-            let mut wc = WNDCLASSEXW::default();
-
-            if GetClassInfoExW(module, *class_name, &mut wc) != BOOL::from(false)
-            {
-                // already registered
-                return true;
-            }
-
-            let wc = WNDCLASSEXW {
-                cbSize: size_of::<WNDCLASSEXW>() as u32,
-                style: CS_HREDRAW | CS_VREDRAW | CS_IME,
-                lpfnWndProc: Some(Self::wndproc),
-                cbClsExtra: 0,
-                hInstance: module,
-                lpszClassName: *class_name,
-                hIcon: HICON::default(),
-                hIconSm: HICON::default(),
-                hCursor: HCURSOR::default(),
-                lpszMenuName: PCWSTR::null(),
-                hbrBackground: transmute::<HGDIOBJ, HBRUSH>(GetStockObject(
-                    NULL_BRUSH,
-                )),
-                cbWndExtra: 0,
-            };
-
-            RegisterClassExW(&wc) != 0
-        }
-    }
-
-    fn unregister_class(module: HMODULE) -> bool {
-        unsafe {
-            let class_name = Self::WINDOW_CLASS_NAME.to_pcwstr();
-            UnregisterClassW(*class_name, module).0 != 0
-        }
-    }
-
-    fn create(
-        &mut self,
-        module: HMODULE,
-        window_name: &str,
-        dwstyle: u32,
-        dwexstyle: u32,
-    ) -> Result<()> {
-        unsafe {
-            let class_name = Self::WINDOW_CLASS_NAME.to_pcwstr();
-            if !Self::register_class(module) {
-                return winerr!(E_FAIL);
-            }
-
-            let window_name = if window_name.is_empty() {
-                "".to_pcwstr()
-            } else {
-                window_name.to_pcwstr()
-            };
-
-            let previous_dpi_awareness = SetThreadDpiAwarenessContext(
-                DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2,
-            );
-
-            CreateWindowExW(
-                WINDOW_EX_STYLE(dwexstyle),
-                *class_name,
-                *window_name,
-                WINDOW_STYLE(dwstyle),
-                CW_USEDEFAULT,
-                CW_USEDEFAULT,
-                CW_USEDEFAULT,
-                CW_USEDEFAULT,
-                HWND_DESKTOP,
-                HMENU::default(),
-                module,
-                Some(self as *mut _ as _),
-            );
-
-            SetThreadDpiAwarenessContext(previous_dpi_awareness);
-
-            if self.hwnd() == HWND::default() {
-                winerr!(E_FAIL)
-            } else {
-                Ok(())
-            }
-        }
-    }
-
-    fn destroy(&self) {
-        let hwnd = self.hwnd();
-        if hwnd != HWND::default() {
-            unsafe {
-                DestroyWindow(hwnd);
-            }
-        }
-    }
-
-    extern "system" fn wndproc(
-        hwnd: HWND,
-        umsg: u32,
-        wparam: WPARAM,
-        lparam: LPARAM,
-    ) -> LRESULT {
-        unsafe {
-            if umsg == WM_NCCREATE {
-                let lpcs: *mut CREATESTRUCTW = transmute(lparam);
-                let this = (*lpcs).lpCreateParams as *mut T;
-                (*this).set_hwnd(hwnd);
-                SetWindowLongPtrW(hwnd, GWLP_USERDATA, transmute(this));
-            } else {
-                let this = GetWindowLongPtrW(hwnd, GWLP_USERDATA) as *mut T;
-                if !this.is_null() {
-                    return (*this).on_message(umsg, wparam, lparam);
+            match umsg {
+                WM_NCCREATE => {
+                    set_rounded_corners(self.hwnd(), DWMWCP_ROUND);
                 }
+                WM_CREATE => {
+                    if self.on_create().is_ok() {
+                        return LRESULT(0);
+                    }
+                    return LRESULT(1);
+                }
+                WM_DISPLAYCHANGE => {
+                    self.on_display_change();
+                }
+                WM_DPICHANGED => {
+                    self.on_dpi_changed();
+                    return LRESULT(0);
+                }
+                WM_MOUSEACTIVATE => {
+                    // self.on_mouse_activate();
+                }
+                WM_MOUSEMOVE => {
+                    self.on_mouse_move();
+                }
+                WM_MOUSELEAVE => {
+                    self.on_mouse_leave();
+                }
+                WM_LBUTTONDOWN => {
+                    if self.on_click() {
+                        return LRESULT(0);
+                    }
+                }
+                WM_PAINT => {
+                    self.render();
+                    return LRESULT(0);
+                }
+                WM_SIZE => {
+                    self.on_resize();
+                }
+                WM_WINDOWPOSCHANGING => {
+                    self.on_window_pos_changing();
+                }
+                _ => (),
             };
 
-            DefWindowProcW(hwnd, umsg, wparam, lparam)
+            DefWindowProcW(self.hwnd(), umsg, wparam, lparam)
         }
+    }
+
+    fn set_hwnd(&mut self, hwnd: HWND) {
+        let window = self.window_data();
+        let mut window = window.borrow_mut();
+        window.handle = hwnd;
+    }
+
+    fn hwnd(&self) -> HWND {
+        self.window_data().borrow().handle
+    }
+
+    fn showing(&self) -> bool {
+        self.window_data().borrow().showing
+    }
+
+    fn show(&mut self, pt: Point<i32>) {
+        let dpi = self.window_data().borrow().dpi;
+        let window = self.window_data();
+        let mut window = window.borrow_mut();
+        window.origin = if dpi_aware() {
+            pt
+        } else {
+            Point {
+                x: pt.x.to_dp(dpi),
+                y: pt.y.to_dp(dpi),
+            }
+        };
+
+        unsafe {
+            ShowWindow(self.hwnd(), SW_SHOWNA);
+        }
+
+        window.showing = true;
+        window.tracking_mouse = true;
+    }
+
+    fn hide(&mut self) {
+        let window = self.window_data();
+        let mut window = window.borrow_mut();
+        if !window.showing {
+            return;
+        }
+        unsafe {
+            ShowWindow(self.hwnd(), SW_HIDE);
+        }
+        if window.tracking_mouse {
+            unsafe {
+                ReleaseCapture();
+            }
+            window.tracking_mouse = false;
+        }
+    }
+
+    fn on_create(&self) -> Result<()> {
+        Ok(())
+    }
+
+    fn on_display_change(&self) {
+        // TODO
+        return;
+    }
+
+    fn on_dpi_changed(&self) {
+        // TODO
+        return;
+    }
+
+    // fn on_mouse_activate(&self) {
+    //     todo!()
+    // }
+
+    fn on_mouse_move(&self) {
+        // TODO
+        return;
+    }
+
+    fn on_mouse_leave(&self) {
+        // TODO
+        return;
+    }
+
+    fn on_click(&self) -> bool {
+        true // TODO
+    }
+
+    fn render(&self) {
+        // TODO
+        return;
+    }
+
+    fn on_resize(&self) {
+        // TODO
+        return;
+    }
+
+    fn on_window_pos_changing(&self) {
+        // TODO
+        return;
     }
 }

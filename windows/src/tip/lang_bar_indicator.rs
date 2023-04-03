@@ -42,7 +42,7 @@ use windows::Win32::UI::WindowsAndMessaging::HICON;
 
 use crate::reg::guids::IID_KhiinTextService;
 use crate::ui::popup_menu::PopupMenu;
-use crate::ui::window::Window;
+use crate::ui::wndproc::Wndproc;
 use crate::winerr;
 use crate::dll::DllModule;
 

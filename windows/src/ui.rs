@@ -1,6 +1,7 @@
 pub(crate) mod colors;
 pub(crate) mod popup_menu;
 pub(crate) mod window;
+pub(crate) mod wndproc;
 
 mod candidate_window;
 mod dpi;

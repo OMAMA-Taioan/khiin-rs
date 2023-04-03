@@ -1,4 +1,3 @@
-use windows::core::Error;
 use windows::core::Result;
 use windows::core::HSTRING;
 use windows::core::PCWSTR;

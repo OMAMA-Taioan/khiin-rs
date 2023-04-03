@@ -25,7 +25,6 @@ use crate::reg::guids::GUID_PRESERVED_KEY_ON_OFF;
 use crate::reg::guids::GUID_PRESERVED_KEY_SWITCH_MODE;
 use crate::tip::key_event::KeyEvent;
 use crate::tip::text_service::TextService;
-use crate::winerr;
 
 // use super::engine_mgr;
 use super::key_handlers::handle_key;

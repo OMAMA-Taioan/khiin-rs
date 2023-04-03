@@ -13,7 +13,6 @@ use khiin_protos::command::Command;
 
 use crate::tip::edit_session::CallbackEditSession;
 use crate::tip::key_event::KeyEvent;
-use crate::tip::text_service::TextService;
 use crate::winerr;
 
 fn open_session_for_commit(

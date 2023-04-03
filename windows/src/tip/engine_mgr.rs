@@ -1,6 +1,9 @@
 use std::cell::RefCell;
 use std::sync::Arc;
-use std::sync::Weak;
+
+use windows::core::Result;
+use windows::Win32::Foundation::E_FAIL;
+use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 
 use khiin_protos::command::Candidate;
 use khiin_protos::command::CandidateList;
@@ -8,23 +11,12 @@ use khiin_protos::command::Preedit;
 use khiin_protos::command::Response;
 use khiin_protos::command::SegmentStatus;
 use khiin_protos::command::preedit::Segment;
-use protobuf::Message;
-use protobuf::MessageField;
-
-use windows::core::IUnknown;
-use windows::core::Result;
-use windows::Win32::Foundation::E_FAIL;
-use windows::Win32::UI::TextServices::ITfTextInputProcessor;
-
 use khiin_protos::command::Command;
 use khiin_protos::command::KeyEvent;
 use khiin_protos::command::Request;
-use windows::core::implement;
 
 use crate::tip::key_event::KeyEvent as WinKeyEvent;
 use crate::winerr;
-
-use super::text_service::TextService;
 
 pub fn get_mock_command(key_event: WinKeyEvent) -> Command {
     let mut key_event = Some(translate_key_event(key_event)).into();
