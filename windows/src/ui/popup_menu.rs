@@ -1,26 +1,31 @@
+use std::borrow::Borrow;
+use std::borrow::BorrowMut;
 use std::cell::RefCell;
 use std::cmp::max;
 use std::ffi::c_void;
+use std::pin::Pin;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::RwLock;
 
-use windows::Win32::Foundation::HWND;
-use windows::Win32::Graphics::Gdi::HRGN;
-use windows::Win32::Graphics::Gdi::RDW_INVALIDATE;
-use windows::Win32::Graphics::Gdi::RDW_UPDATENOW;
-use windows::Win32::Graphics::Gdi::RedrawWindow;
+use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNA;
+use windows::Win32::UI::WindowsAndMessaging::ShowWindow;
 use windows::core::AsImpl;
 use windows::core::Error;
 use windows::core::Result;
 use windows::Win32::Foundation::E_FAIL;
+use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::RECT;
 use windows::Win32::Graphics::Direct2D::ID2D1SolidColorBrush;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextFormat;
 use windows::Win32::Graphics::DirectWrite::DWRITE_TEXT_METRICS;
 use windows::Win32::Graphics::Gdi::BeginPaint;
 use windows::Win32::Graphics::Gdi::EndPaint;
+use windows::Win32::Graphics::Gdi::RedrawWindow;
+use windows::Win32::Graphics::Gdi::HRGN;
 use windows::Win32::Graphics::Gdi::PAINTSTRUCT;
+use windows::Win32::Graphics::Gdi::RDW_INVALIDATE;
+use windows::Win32::Graphics::Gdi::RDW_UPDATENOW;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
 use windows::Win32::UI::WindowsAndMessaging::SetWindowPos;
@@ -54,6 +59,8 @@ use crate::ui::window::WindowData;
 use crate::ui::window::WindowHandler;
 use crate::ui::wndproc::Wndproc;
 use crate::winerr;
+
+use super::render_factory::RenderFactory;
 
 static FONT_NAME: &str = "Microsoft JhengHei UI Regular";
 
@@ -108,18 +115,25 @@ fn get_menu_items() -> Vec<PopupMenuItem> {
     ret
 }
 
+fn to_owned<T>(rc: Rc<RefCell<T>>) -> Result<T>
+where
+    T: Clone,
+{
+    Ok(rc.try_borrow().map_err(|_| Error::from(E_FAIL))?.clone())
+}
+
 pub struct PopupMenu {
     tip: ITfTextInputProcessor,
     brush: ID2D1SolidColorBrush,
     textformat: IDWriteTextFormat,
     window: Rc<RefCell<WindowData>>,
     colors: RefCell<ColorScheme_F>,
-    items: RefCell<Vec<PopupMenuItem>>,
+    items: Rc<RefCell<Vec<PopupMenuItem>>>,
     highlighted_index: RefCell<Option<usize>>,
 }
 
 impl PopupMenu {
-    pub fn new(tip: ITfTextInputProcessor) -> Result<Self> {
+    pub fn new(tip: ITfTextInputProcessor) -> Result<Arc<Self>> {
         let service = tip.as_impl();
         let factory = service.render_factory.clone();
         let target = factory.create_dc_render_target()?;
@@ -142,18 +156,18 @@ impl PopupMenu {
         let brush = unsafe { target.CreateSolidColorBrush(&color, None)? };
         let textformat = window.factory.create_text_format(FONT_NAME, 16.0)?;
 
-        let mut this = Self {
+        let this = Arc::new(Self {
             window: Rc::new(RefCell::new(window)),
             tip,
             brush,
             textformat,
             colors: RefCell::new(COLOR_SCHEME_LIGHT.into()),
-            items: RefCell::new(get_menu_items()),
+            items: Rc::new(RefCell::new(get_menu_items())),
             highlighted_index: RefCell::new(None),
-        };
+        });
 
         Wndproc::create(
-            &mut this,
+            this.clone(),
             DllModule::global().module,
             "",
             DW_STYLE.0,
@@ -170,33 +184,41 @@ impl PopupMenu {
         Ok(())
     }
 
-    fn calculate_layout(&self) -> Result<()> {
+    fn set_origin(&self, pt: Point<i32>) -> Result<()> {
+        if let Ok(mut window) = self.window.try_borrow_mut() {
+            let dpi = window.dpi;
+            if !dpi_aware() {
+                window.origin = Point {
+                    x: pt.x.to_dp(dpi) as i32,
+                    y: pt.y.to_dp(dpi) as i32,
+                };
+            } else {
+                window.origin = pt;
+            }
+            Ok(())
+        } else {
+            winerr!(E_FAIL)
+        }
+    }
+
+    fn calculate_layout(&self) -> Result<(i32, i32, i32, i32)> {
         let mut max_item_width = 0i32;
         let mut max_row_height = 0i32;
 
-        let items = self.items.try_borrow_mut();
-        if items.is_err() {
-            return winerr!(E_FAIL);
-        }
-        let mut items = items.unwrap();
+        let mut items = self
+            .items
+            .try_borrow_mut()
+            .map_err(|_| Error::from(E_FAIL))?;
 
-        let window = self.window.try_borrow();
-        if window.is_err() {
-            return winerr!(E_FAIL);
-        }
-        let window = window.unwrap();
-
-        if window.handle.is_none() {
-            return winerr!(E_FAIL);
-        }
-        let handle = window.handle.unwrap();
+        let window =
+            self.window.try_borrow().map_err(|_| Error::from(E_FAIL))?;
 
         for item in items.iter_mut() {
             if item.separator {
                 continue;
             }
             unsafe {
-                let layout = self.window.borrow().factory.create_text_layout(
+                let layout = window.factory.create_text_layout(
                     "Test",
                     self.textformat.clone(),
                     window.max_width as f32,
@@ -250,19 +272,7 @@ impl PopupMenu {
             x -= x + w - max_width;
         }
 
-        unsafe {
-            SetWindowPos(
-                handle,
-                HWND::default(),
-                x as i32,
-                y as i32,
-                w as i32,
-                h as i32,
-                SWP_NOACTIVATE | SWP_NOZORDER,
-            );
-            RedrawWindow(handle, None, HRGN::default(), RDW_INVALIDATE | RDW_UPDATENOW);
-        }
-        Ok(())
+        Ok((x, y, w, h))
     }
 }
 
@@ -274,63 +284,98 @@ impl WindowHandler for PopupMenu {
         self.window.clone()
     }
 
-    fn show(&self, pt: Point<i32>) -> Result<()> {
+    fn set_window_data(&self, new_window: WindowData) -> Result<()> {
+        self.window.replace(new_window);
+        Ok(())
+    }
+
+    fn set_handle(&self, handle: Option<HWND>) -> Result<()> {
         if let Ok(mut window) = self.window.try_borrow_mut() {
-            let dpi = window.dpi;
-            if !dpi_aware() {
-                window.origin = Point{ x: pt.x.to_dp(dpi) as i32, y: pt.y.to_dp(dpi) as i32 };
-            } else {
-                window.origin = pt;
-            }
+            window.handle = handle;
         }
-        self.calculate_layout()?;
+        Ok(())
+    }
+
+    fn show(&self, pt: Point<i32>) -> Result<()> {
+        self.set_origin(pt)?;
+        let (x, y, w, h) = self.calculate_layout()?;
+        let handle = self.handle()?;
+        unsafe {
+            SetWindowPos(
+                handle,
+                HWND::default(),
+                x as i32,
+                y as i32,
+                w as i32,
+                h as i32,
+                SWP_NOACTIVATE | SWP_NOZORDER,
+            );
+            // RedrawWindow(
+            //     handle,
+            //     None,
+            //     HRGN::default(),
+            //     RDW_INVALIDATE | RDW_UPDATENOW,
+            // );
+            ShowWindow(handle, SW_SHOWNA);
+        }
+
+        Ok(())
+    }
+
+    fn on_show_window(&self) -> Result<()> {
+        Ok(())
+    }
+
+    fn on_hide_window(&self) -> Result<()> {
+        let mut window = self
+            .window
+            .try_borrow_mut()
+            .map_err(|_| Error::from(E_FAIL))?;
+        window.showing = false;
+        window.tracking_mouse = false;
         Ok(())
     }
 
     fn render(&self) -> Result<()> {
-        if let Ok(window) = self.window_data().try_borrow() {
-            if let Some(handle) = window.handle {
-                unsafe {
-                    let target = &window.target;
-                    let mut ps = PAINTSTRUCT::default();
-                    let mut rc = RECT::default();
-                    GetClientRect(handle, &mut rc);
-                    BeginPaint(handle, &mut ps);
-                    target.BindDC(ps.hdc, &rc)?;
-                    target.BeginDraw();
+        let items = to_owned(self.items.clone())?;
+        let window = to_owned(self.window.clone())?;
+        let handle = window.handle.unwrap();
+        let target = window.target;
+        let mut ps = PAINTSTRUCT::default();
+        let mut rc = RECT::default();
 
-                    {
-                        let items = self.items.borrow();
-                        let colors = self.colors.borrow();
-                        let highlighted =
-                            self.highlighted_index.borrow().clone();
-                        let brush = &self.brush;
-                        target.Clear(Some(&colors.background));
+        unsafe {
+            GetClientRect(handle, &mut rc);
+            BeginPaint(handle, &mut ps);
+            target.BindDC(ps.hdc, &rc)?;
+            target.BeginDraw();
 
-                        for (i, item) in items.iter().enumerate() {
-                            let rect = item.d2d_rect_f();
+            {
+                let colors = self.colors.borrow();
+                let highlighted = self.highlighted_index.borrow().clone();
+                let brush = &self.brush;
+                target.Clear(Some(&colors.background));
 
-                            if !item.separator {
-                                if let Some(hl) = highlighted {
-                                    if hl == i {
-                                        brush.SetColor(
-                                            &colors.background_selected,
-                                        );
-                                        target.FillRectangle(&rect, brush);
-                                    }
-                                }
+                for (i, item) in items.iter().enumerate() {
+                    let rect = item.d2d_rect_f();
 
-                                brush.SetColor(&colors.text);
-                            } else {
+                    if !item.separator {
+                        if let Some(hl) = highlighted {
+                            if hl == i {
+                                brush.SetColor(&colors.background_selected);
+                                target.FillRectangle(&rect, brush);
                             }
                         }
-                    }
 
-                    window.target.EndDraw(None, None)?;
-                    EndPaint(handle, &ps);
-                    return Ok(());
+                        brush.SetColor(&colors.text);
+                    } else {
+                    }
                 }
             }
+
+            target.EndDraw(None, None)?;
+            EndPaint(handle, &ps);
+            return Ok(());
         }
 
         winerr!(E_FAIL)

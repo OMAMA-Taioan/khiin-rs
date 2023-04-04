@@ -38,7 +38,7 @@ pub struct Size<T> where T: Copy + Num + NumCast {
     pub h: T,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Rect<T> where T: Copy + Num + NumCast {
     pub o: Point<T>, // top left
     pub w: T,

@@ -3,12 +3,13 @@
 #![allow(non_camel_case_types)]
 
 // temporary
-#![allow(unused)]
+// #![allow(unused)]
 
 mod config;
 mod dll;
 mod geometry;
 mod reg;
+mod resource;
 mod tip;
 mod ui;
 mod utils;

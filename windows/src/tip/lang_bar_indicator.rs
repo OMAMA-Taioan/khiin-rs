@@ -1,5 +1,6 @@
 use std::cell::Cell;
 use std::collections::HashMap;
+use std::pin::Pin;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::RwLock;
@@ -66,7 +67,7 @@ pub struct LangBarIndicator {
     sink_map: Arc<Mutex<HashMap<u32, ITfLangBarItemSink>>>,
     status: u32,
     added: Cell<bool>,
-    popup: PopupMenu,
+    popup: Arc<PopupMenu>,
 }
 
 impl LangBarIndicator {
@@ -82,6 +83,7 @@ impl LangBarIndicator {
             added: Cell::new(false),
             popup: PopupMenu::new(tip.clone())?,
         };
+
         let button: ITfLangBarItemButton = this.into();
         LangBarIndicator::add_item(threadmgr, button.clone())?;
         Ok(button)

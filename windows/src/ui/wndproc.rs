@@ -1,5 +1,8 @@
+use std::ffi::c_void;
 use std::mem::size_of;
 use std::mem::transmute;
+use std::pin::Pin;
+use std::sync::Arc;
 use windows::core::Result;
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::BOOL;
@@ -98,7 +101,7 @@ where
     }
 
     fn create(
-        &mut self,
+        this: Arc<Self>,
         module: HMODULE,
         window_name: &str,
         dwstyle: u32,
@@ -120,7 +123,9 @@ where
                 DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2,
             );
 
-            CreateWindowExW(
+            let this_ptr = Arc::into_raw(this.clone());
+
+            let handle = CreateWindowExW(
                 WINDOW_EX_STYLE(dwexstyle),
                 *class_name,
                 *window_name,
@@ -132,12 +137,14 @@ where
                 HWND_DESKTOP,
                 HMENU::default(),
                 module,
-                Some(self as *mut _ as _),
+                Some(this_ptr as *mut c_void),
             );
+
+            this.set_handle(Some(handle))?;
 
             SetThreadDpiAwarenessContext(previous_dpi_awareness);
 
-            if self.handle().unwrap() == HWND::default() {
+            if this.handle().unwrap() == HWND::default() {
                 winerr!(E_FAIL)
             } else {
                 Ok(())
@@ -146,17 +153,12 @@ where
     }
 
     fn destroy(&self) -> Result<()> {
-        let mut handle = HWND(0);
+        let handle = self.handle()?;
+        self.set_handle(None)?;
 
-        match self.window_data().try_borrow_mut() {
-            Ok(mut window) => {
-                handle = window.handle.unwrap();
-                window.handle = None;
-            },
-            _ => return winerr!(E_FAIL)
-        };
-
-        unsafe { DestroyWindow(handle); }
+        unsafe {
+            DestroyWindow(handle);
+        }
         Ok(())
     }
 
@@ -165,6 +167,36 @@ where
     // message, WM_NCCREATE, in order to save a pointer to this object
     // for subsequent messages, and to route those messages to the
     // "on_message" method of the Window trait.
+    // extern "system" fn wndproc(
+    //     handle: HWND,
+    //     message: u32,
+    //     wparam: WPARAM,
+    //     lparam: LPARAM,
+    // ) -> LRESULT {
+    //     unsafe {
+    //         if message == WM_NCCREATE {
+    //             let lpcs: *mut CREATESTRUCTW = transmute(lparam);
+    //             let this = (*lpcs).lpCreateParams as *mut T;
+    //             SetWindowLongPtrW(handle, GWLP_USERDATA, transmute(this));
+    //         } else {
+    //             let this = GetWindowLongPtrW(handle, GWLP_USERDATA) as *mut T;
+    //             if !this.is_null() {
+    //                 if (*this).on_message(handle, message, wparam, lparam) {
+    //                     return LRESULT::default();
+    //                 } else {
+    //                     return DefWindowProcW(handle, message, wparam, lparam);
+    //                 }
+    //                 // if let Ok(window) = (*this).window_data().try_borrow() {
+    //                 //     if window.handle.is_some() {
+    //                 //     }
+    //                 // }
+    //             }
+    //         };
+
+    //         DefWindowProcW(handle, message, wparam, lparam)
+    //     }
+    // }
+
     extern "system" fn wndproc(
         handle: HWND,
         message: u32,
@@ -172,24 +204,29 @@ where
         lparam: LPARAM,
     ) -> LRESULT {
         unsafe {
-            if message == WM_NCCREATE {
-                let lpcs: *mut CREATESTRUCTW = transmute(lparam);
-                let this = (*lpcs).lpCreateParams as *mut T;
-                if (*this).set_handle(handle).is_ok() {
-                    SetWindowLongPtrW(handle, GWLP_USERDATA, transmute(this));
+            match message {
+                WM_NCCREATE => {
+                    let lpcs: &CREATESTRUCTW = transmute(lparam);
+                    SetWindowLongPtrW(
+                        handle,
+                        GWLP_USERDATA,
+                        lpcs.lpCreateParams as _,
+                    );
+                    DefWindowProcW(handle, message, wparam, lparam)
                 }
-            } else {
-                let this = GetWindowLongPtrW(handle, GWLP_USERDATA) as *mut T;
-                if !this.is_null() {
-                    if let Ok(window) = (*this).window_data().try_borrow() {
-                        if window.handle.is_some() {
-                            return (*this).on_message(message, wparam, lparam);
-                        }
+                _ => {
+                    let userdata = GetWindowLongPtrW(handle, GWLP_USERDATA);
+                    let this = std::ptr::NonNull::<T>::new(userdata as _);
+                    let handled = this.map_or(false, |mut s| {
+                        s.as_mut().on_message(handle, message, wparam, lparam)
+                    });
+                    if handled {
+                        LRESULT::default()
+                    } else {
+                        DefWindowProcW(handle, message, wparam, lparam)
                     }
                 }
-            };
-
-            DefWindowProcW(handle, message, wparam, lparam)
+            }
         }
     }
 }

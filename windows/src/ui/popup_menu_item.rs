@@ -4,7 +4,7 @@ use windows::Win32::Graphics::{
 
 use crate::geometry::Rect;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct PopupMenuItem {
     pub separator: bool,
     pub checked: bool,
