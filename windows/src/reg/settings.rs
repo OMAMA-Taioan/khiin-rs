@@ -3,6 +3,8 @@ use std::ffi::OsString;
 use std::os::windows::prelude::OsStringExt;
 
 use log::debug;
+use windows::Win32::Foundation::ERROR_FILE_NOT_FOUND;
+use windows::Win32::System::Registry::RegEnumValueW;
 use windows::core::Result;
 use windows::Win32::Foundation::GetLastError;
 use windows::Win32::Foundation::ERROR_SUCCESS;
@@ -43,7 +45,7 @@ pub enum SettingsKey {
     OnOffHotkey,
     InputModeHotkey,
     UserDictionaryFile,
-    DebugSingleAppMode,
+    DebugLock,
 }
 
 impl SettingsKey {
@@ -60,7 +62,7 @@ impl SettingsKey {
             SettingsKey::OnOffHotkey => "on_off_hotkey",
             SettingsKey::InputModeHotkey => "input_mode_hotkey",
             SettingsKey::UserDictionaryFile => "user_dictionary_file",
-            SettingsKey::DebugSingleAppMode => "SingleAppDebugMode",
+            SettingsKey::DebugLock => "DebugLock",
         }
     }
 }
@@ -171,7 +173,7 @@ fn set_string_value(hkey: HKEY, name: &str, value: &str) -> Result<()> {
 fn get_u32_value(hkey: HKEY, name: &str) -> Result<u32> {
     unsafe {
         let name = name.to_pcwstr();
-        let data = Box::into_raw(Box::from(0u32));
+        let mut data = 0u32;
         let mut data_size = std::mem::size_of::<u32>() as u32;
         let err = RegGetValueW(
             hkey,
@@ -187,8 +189,7 @@ fn get_u32_value(hkey: HKEY, name: &str) -> Result<u32> {
             debug!("error: {}", err);
             return winerr!(E_FAIL);
         }
-        let data = Box::from_raw(data);
-        Ok(*data)
+        Ok(data)
     }
 }
 
@@ -210,6 +211,33 @@ fn delete_settings_value(name: &str) -> Result<()> {
             return winerr!(E_FAIL);
         }
         Ok(())
+    }
+}
+
+pub fn can_attach_in_debug() -> Result<()> {
+    unsafe {
+        let hkey = settings_root()?;
+        let name = SettingsKey::DebugLock.reg_key().to_pcwstr();
+        let data = 0u32;
+        let mut data_size = std::mem::size_of::<u32>() as u32;
+        let err = RegGetValueW(
+            hkey,
+            None,
+            *name,
+            RRF_RT_REG_DWORD,
+            None,
+            Some(data as *mut c_void),
+            Some(&mut data_size),
+        );
+        if err == ERROR_FILE_NOT_FOUND {
+            let value = 0u32.to_le_bytes();
+            match RegSetValueExW(hkey, *name, 0, REG_DWORD, Some(&value)) {
+                ERROR_SUCCESS => Ok(()),
+                _ => winerr!(E_FAIL)
+            }
+        } else {
+            winerr!(E_FAIL)
+        }
     }
 }
 

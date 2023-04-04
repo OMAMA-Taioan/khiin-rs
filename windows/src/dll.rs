@@ -31,7 +31,6 @@ use crate::reg::registrar::unregister_categories;
 use crate::reg::registrar::unregister_clsid;
 use crate::reg::registrar::unregister_profiles;
 use crate::reg::settings;
-use crate::reg::settings::SettingsKey::DebugSingleAppMode;
 use crate::tip::class_factory::KhiinClassFactory;
 use crate::utils::win::GetPath;
 use crate::utils::win::WinGuid;
@@ -40,34 +39,27 @@ use crate::utils::win::WinGuid;
 // causing a cascade of DLL loads and crashes, it is sometimes very
 // convenient to set this to `true` so that the DLL will only load in
 // at most one app at a time. If you set this to `true`, you must
-// manually reset the registry entry each time you run the app,
+// manually delete the registry entry each time you run the app,
 // or you won't be able to run it again. The entry is at
 //     HKEY_CURRENT_USER\Software\Khiin PJH\Settings
-// Set `SingleAppDebugMode` to 0 to run it, and running once will
-// change this key to 1 to prevent future attachments.
-static DEBUG_SINGLE_APP_MODE: bool = false;
+// Look for the `DebugLock` value and delete it in order to run the app.
+#[cfg(debug_assertions)]
+static ENABLE_DEBUG_LOCK: bool = true;
 
 static DLL_INSTANCE: OnceCell<DllModule> = OnceCell::new();
 const IDS_TEXT_SERVICE_DISPLAY_NAME: u32 = 101;
 
-fn locked_for_debugging() -> bool {
-    if !DEBUG_SINGLE_APP_MODE {
-        return false;
+#[cfg(debug_assertions)]
+fn can_attach() -> bool {
+    if !ENABLE_DEBUG_LOCK {
+        return true;
     }
 
-    let already_in_use = match settings::get_settings_u32(DebugSingleAppMode) {
-        Ok(val) => val != 0,
-        _ => false
-    };
-
-    match already_in_use {
-        true => true,
-        false => {
-            settings::set_settings_u32(DebugSingleAppMode, 1).ok();
-            false
-        }
-    }
+    settings::can_attach_in_debug().map(|_| true).unwrap_or(false)
 }
+
+#[cfg(not(debug_assertions))]
+fn can_attach() -> bool { true }
 
 #[derive(Debug)]
 pub struct DllModule {
@@ -105,7 +97,7 @@ pub extern "system" fn DllMain(
 ) -> BOOL {
     match call_reason {
         DLL_PROCESS_ATTACH => {
-            if locked_for_debugging() {
+            if !can_attach() {
                 return FALSE;
             }
 
