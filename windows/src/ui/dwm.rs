@@ -11,7 +11,7 @@ pub fn set_rounded_corners(
     pref: DWM_WINDOW_CORNER_PREFERENCE,
 ) -> Result<()> {
     unsafe {
-        let mut pref = pref;
+        let mut pref = pref.0;
         DwmSetWindowAttribute(
             hwnd,
             DWMWA_WINDOW_CORNER_PREFERENCE,

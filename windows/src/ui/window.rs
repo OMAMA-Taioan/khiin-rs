@@ -2,19 +2,17 @@ use std::cell::RefCell;
 use std::mem::transmute;
 use std::rc::Rc;
 use std::sync::Arc;
-use std::sync::RwLock;
+use windows::Win32::Foundation::E_NOTIMPL;
 use windows::Win32::Foundation::RECT;
 use windows::Win32::UI::HiDpi::GetDpiForWindow;
 use windows::Win32::UI::WindowsAndMessaging::SWP_NOACTIVATE;
 use windows::Win32::UI::WindowsAndMessaging::SWP_NOZORDER;
 use windows::Win32::UI::WindowsAndMessaging::SetWindowPos;
 use windows::Win32::UI::WindowsAndMessaging::USER_DEFAULT_SCREEN_DPI;
-use windows::core::Error;
 use windows::core::Result;
 use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::LPARAM;
-use windows::Win32::Foundation::LRESULT;
 use windows::Win32::Foundation::WPARAM;
 use windows::Win32::Graphics::Direct2D::ID2D1DCRenderTarget;
 use windows::Win32::Graphics::Dwm::DWMWCP_ROUND;
@@ -24,16 +22,13 @@ use windows::Win32::Graphics::Gdi::MONITORINFO;
 use windows::Win32::Graphics::Gdi::MONITOR_DEFAULTTONEAREST;
 use windows::Win32::UI::Controls::WM_MOUSELEAVE;
 use windows::Win32::UI::Input::KeyboardAndMouse::ReleaseCapture;
-use windows::Win32::UI::WindowsAndMessaging::DefWindowProcW;
 use windows::Win32::UI::WindowsAndMessaging::GetParent;
 use windows::Win32::UI::WindowsAndMessaging::ShowWindow;
 use windows::Win32::UI::WindowsAndMessaging::SW_HIDE;
-use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNA;
 use windows::Win32::UI::WindowsAndMessaging::WM_CREATE;
 use windows::Win32::UI::WindowsAndMessaging::WM_DISPLAYCHANGE;
 use windows::Win32::UI::WindowsAndMessaging::WM_DPICHANGED;
 use windows::Win32::UI::WindowsAndMessaging::WM_LBUTTONDOWN;
-use windows::Win32::UI::WindowsAndMessaging::WM_MOUSEACTIVATE;
 use windows::Win32::UI::WindowsAndMessaging::WM_MOUSEMOVE;
 use windows::Win32::UI::WindowsAndMessaging::WM_NCCREATE;
 use windows::Win32::UI::WindowsAndMessaging::WM_PAINT;
@@ -71,7 +66,6 @@ pub trait WindowHandler {
     const WINDOW_CLASS_NAME: &'static str;
 
     fn window_data(&self) -> Rc<RefCell<WindowData>>;
-    fn set_window_data(&self, new_window: WindowData) -> Result<()>;
 
     fn on_message(
         &mut self,
@@ -81,7 +75,9 @@ pub trait WindowHandler {
         lparam: LPARAM,
     ) -> Result<()> {
         match message {
-            WM_NCCREATE => set_rounded_corners(handle, DWMWCP_ROUND),
+            WM_NCCREATE => {
+                set_rounded_corners(handle, DWMWCP_ROUND)
+            },
             WM_CREATE => self.on_create(handle),
             WM_DISPLAYCHANGE => self.on_monitor_change(handle),
             WM_DPICHANGED => {
@@ -89,11 +85,6 @@ pub trait WindowHandler {
                 let rect: &RECT = unsafe{ transmute(lparam) };
                 self.on_dpi_changed(handle, dpi, rect.into())
             },
-            WM_MOUSEACTIVATE => {
-                // not sure if we need this one
-                // self.on_mouse_activate();
-                winerr!(E_FAIL)
-            }
             WM_MOUSEMOVE => self.on_mouse_move(),
             WM_MOUSELEAVE => self.on_mouse_leave(),
             WM_LBUTTONDOWN => self.on_click(),
@@ -102,8 +93,8 @@ pub trait WindowHandler {
                     0 => self.on_hide_window(),
                     _ => self.on_show_window()
                 }
-            }
-            WM_PAINT => self.render(),
+            },
+            WM_PAINT => self.render(handle),
             WM_SIZE => self.on_resize(),
             WM_WINDOWPOSCHANGING => self.on_monitor_change(handle),
             _ => winerr!(E_FAIL),
@@ -121,64 +112,42 @@ pub trait WindowHandler {
         winerr!(E_FAIL)
     }
 
-    fn show(&self, pt: Point<i32>) -> Result<()>;
+    fn set_origin(&self, pt: Point<i32>) -> Result<()> {
+        if let Ok(mut window) = self.window_data().try_borrow_mut() {
+            let dpi = window.dpi;
+            if !dpi_aware() {
+                window.origin = Point {
+                    x: pt.x.to_dp(dpi) as i32,
+                    y: pt.y.to_dp(dpi) as i32,
+                };
+            } else {
+                window.origin = pt;
+            }
+            Ok(())
+        } else {
+            winerr!(E_FAIL)
+        }
+    }
 
-    fn on_show_window(&self) -> Result<()>;
+    fn show(&self, _pt: Point<i32>) -> Result<()> {
+        winerr!(E_NOTIMPL)
+    }
 
-    fn on_hide_window(&self) -> Result<()>;
-
-    // fn show(&mut self, pt: Point<i32>) -> Result<()> {
-    //     let mut window = (*self.window_data()).clone();
-    //     let handle = window.handle.unwrap();
-
-    //     let dpi = window.dpi;
-
-    //     window.origin = if dpi_aware() {
-    //         pt
-    //     } else {
-    //         Point {
-    //             x: pt.x.to_dp(dpi) as i32,
-    //             y: pt.y.to_dp(dpi) as i32,
-    //         }
-    //     };
-    //     window.showing = true;
-    //     window.tracking_mouse = true;
-
-    //     if handle != HWND(0) {
-    //         unsafe {
-    //             ShowWindow(handle, SW_SHOWNA);
-    //         }
-    //         self.set_window_data(window)
-    //     } else {
-    //         winerr!(E_FAIL)
-    //     }
-    // }
+    fn on_show_window(&self) -> Result<()> {
+        winerr!(E_NOTIMPL)
+    }
 
     fn hide(&self) -> Result<()> {
-        // let window = self.window_data();
-        // if !window.showing {
-        //     return Ok(());
-        // }
-
-        // let mut window = (*window).clone();
-        // let handle = window.handle.unwrap();
-        // let tracking = window.tracking_mouse;
         let handle = self.handle()?;
-
         unsafe {
             ShowWindow(handle, SW_HIDE);
+            ReleaseCapture();
         }
         Ok(())
-        // window.showing = false;
+    }
 
-        // if tracking {
-        //     unsafe {
-        //         ReleaseCapture();
-        //     }
-        //     window.tracking_mouse = false;
-        // }
-
-        // self.set_window_data(window)
+    fn on_hide_window(&self) -> Result<()> {
+        winerr!(E_NOTIMPL)
     }
 
     fn on_create(&self, handle: HWND) -> Result<()> {
@@ -227,33 +196,21 @@ pub trait WindowHandler {
         Ok(())
     }
 
-    // fn on_mouse_activate(&self) {
-    //     todo!()
-    // }
-
     fn on_mouse_move(&self) -> Result<()> {
-        // TODO
-        Ok(())
+        winerr!(E_NOTIMPL)
     }
 
     fn on_mouse_leave(&self) -> Result<()> {
-        // TODO
-        Ok(())
+        winerr!(E_NOTIMPL)
     }
 
     fn on_click(&self) -> Result<()> {
-        Ok(())
+        winerr!(E_NOTIMPL)
     }
-
-    fn render(&self) -> Result<()>;
-
+    
     fn on_resize(&self) -> Result<()> {
-        // TODO
-        Ok(())
+        winerr!(E_NOTIMPL)
     }
 
-    // fn on_window_pos_changing(&self) {
-    //     // TODO
-    //     return;
-    // }
+    fn render(&self, handle: HWND) -> Result<()>;
 }

@@ -1,15 +1,10 @@
-use std::borrow::Borrow;
-use std::borrow::BorrowMut;
 use std::cell::RefCell;
 use std::cmp::max;
 use std::ffi::c_void;
-use std::pin::Pin;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::RwLock;
 
-use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNA;
-use windows::Win32::UI::WindowsAndMessaging::ShowWindow;
 use windows::core::AsImpl;
 use windows::core::Error;
 use windows::core::Result;
@@ -21,18 +16,16 @@ use windows::Win32::Graphics::DirectWrite::IDWriteTextFormat;
 use windows::Win32::Graphics::DirectWrite::DWRITE_TEXT_METRICS;
 use windows::Win32::Graphics::Gdi::BeginPaint;
 use windows::Win32::Graphics::Gdi::EndPaint;
-use windows::Win32::Graphics::Gdi::RedrawWindow;
-use windows::Win32::Graphics::Gdi::HRGN;
 use windows::Win32::Graphics::Gdi::PAINTSTRUCT;
-use windows::Win32::Graphics::Gdi::RDW_INVALIDATE;
-use windows::Win32::Graphics::Gdi::RDW_UPDATENOW;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
 use windows::Win32::UI::WindowsAndMessaging::SetWindowPos;
+use windows::Win32::UI::WindowsAndMessaging::ShowWindow;
 use windows::Win32::UI::WindowsAndMessaging::SystemParametersInfoW;
 use windows::Win32::UI::WindowsAndMessaging::SPI_GETWORKAREA;
 use windows::Win32::UI::WindowsAndMessaging::SWP_NOACTIVATE;
 use windows::Win32::UI::WindowsAndMessaging::SWP_NOZORDER;
+use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNA;
 use windows::Win32::UI::WindowsAndMessaging::SYSTEM_PARAMETERS_INFO_UPDATE_FLAGS;
 use windows::Win32::UI::WindowsAndMessaging::WINDOW_EX_STYLE;
 use windows::Win32::UI::WindowsAndMessaging::WINDOW_STYLE;
@@ -47,7 +40,6 @@ use crate::dll::DllModule;
 use crate::geometry::Point;
 use crate::geometry::Rect;
 use crate::resource::*;
-use crate::ui::colors::color;
 use crate::ui::colors::color_f;
 use crate::ui::colors::ColorScheme_F;
 use crate::ui::colors::COLOR_BLACK;
@@ -58,9 +50,6 @@ use crate::ui::popup_menu_item::PopupMenuItem;
 use crate::ui::window::WindowData;
 use crate::ui::window::WindowHandler;
 use crate::ui::wndproc::Wndproc;
-use crate::winerr;
-
-use super::render_factory::RenderFactory;
 
 static FONT_NAME: &str = "Microsoft JhengHei UI Regular";
 
@@ -129,7 +118,7 @@ pub struct PopupMenu {
     window: Rc<RefCell<WindowData>>,
     colors: RefCell<ColorScheme_F>,
     items: Rc<RefCell<Vec<PopupMenuItem>>>,
-    highlighted_index: RefCell<Option<usize>>,
+    highlighted_index: RefCell<usize>,
 }
 
 impl PopupMenu {
@@ -163,7 +152,7 @@ impl PopupMenu {
             textformat,
             colors: RefCell::new(COLOR_SCHEME_LIGHT.into()),
             items: Rc::new(RefCell::new(get_menu_items())),
-            highlighted_index: RefCell::new(None),
+            highlighted_index: RefCell::new(usize::MAX),
         });
 
         Wndproc::create(
@@ -182,23 +171,6 @@ impl PopupMenu {
         config: Arc<RwLock<AppConfig>>,
     ) -> Result<()> {
         Ok(())
-    }
-
-    fn set_origin(&self, pt: Point<i32>) -> Result<()> {
-        if let Ok(mut window) = self.window.try_borrow_mut() {
-            let dpi = window.dpi;
-            if !dpi_aware() {
-                window.origin = Point {
-                    x: pt.x.to_dp(dpi) as i32,
-                    y: pt.y.to_dp(dpi) as i32,
-                };
-            } else {
-                window.origin = pt;
-            }
-            Ok(())
-        } else {
-            winerr!(E_FAIL)
-        }
     }
 
     fn calculate_layout(&self) -> Result<(i32, i32, i32, i32)> {
@@ -284,11 +256,6 @@ impl WindowHandler for PopupMenu {
         self.window.clone()
     }
 
-    fn set_window_data(&self, new_window: WindowData) -> Result<()> {
-        self.window.replace(new_window);
-        Ok(())
-    }
-
     fn set_handle(&self, handle: Option<HWND>) -> Result<()> {
         if let Ok(mut window) = self.window.try_borrow_mut() {
             window.handle = handle;
@@ -310,19 +277,9 @@ impl WindowHandler for PopupMenu {
                 h as i32,
                 SWP_NOACTIVATE | SWP_NOZORDER,
             );
-            // RedrawWindow(
-            //     handle,
-            //     None,
-            //     HRGN::default(),
-            //     RDW_INVALIDATE | RDW_UPDATENOW,
-            // );
             ShowWindow(handle, SW_SHOWNA);
         }
 
-        Ok(())
-    }
-
-    fn on_show_window(&self) -> Result<()> {
         Ok(())
     }
 
@@ -336,10 +293,9 @@ impl WindowHandler for PopupMenu {
         Ok(())
     }
 
-    fn render(&self) -> Result<()> {
+    fn render(&self, handle: HWND) -> Result<()> {
         let items = to_owned(self.items.clone())?;
         let window = to_owned(self.window.clone())?;
-        let handle = window.handle.unwrap();
         let target = window.target;
         let mut ps = PAINTSTRUCT::default();
         let mut rc = RECT::default();
@@ -360,11 +316,9 @@ impl WindowHandler for PopupMenu {
                     let rect = item.d2d_rect_f();
 
                     if !item.separator {
-                        if let Some(hl) = highlighted {
-                            if hl == i {
-                                brush.SetColor(&colors.background_selected);
-                                target.FillRectangle(&rect, brush);
-                            }
+                        if highlighted == i {
+                            brush.SetColor(&colors.background_selected);
+                            target.FillRectangle(&rect, brush);
                         }
 
                         brush.SetColor(&colors.text);
@@ -375,9 +329,7 @@ impl WindowHandler for PopupMenu {
 
             target.EndDraw(None, None)?;
             EndPaint(handle, &ps);
-            return Ok(());
+            Ok(())
         }
-
-        winerr!(E_FAIL)
     }
 }

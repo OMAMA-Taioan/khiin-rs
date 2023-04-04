@@ -1,7 +1,6 @@
 use std::ffi::c_void;
 use std::mem::size_of;
 use std::mem::transmute;
-use std::pin::Pin;
 use std::sync::Arc;
 use windows::core::Result;
 use windows::core::PCWSTR;
@@ -12,6 +11,7 @@ use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::LRESULT;
 use windows::Win32::Foundation::WPARAM;
+use windows::Win32::Graphics::Dwm::DWMWCP_ROUND;
 use windows::Win32::Graphics::Gdi::GetStockObject;
 use windows::Win32::Graphics::Gdi::HBRUSH;
 use windows::Win32::Graphics::Gdi::HGDIOBJ;
@@ -44,6 +44,8 @@ use windows::Win32::UI::WindowsAndMessaging::WNDCLASSEXW;
 use crate::ui::window::WindowHandler;
 use crate::utils::pcwstr::ToPcwstr;
 use crate::winerr;
+
+use super::dwm::set_rounded_corners;
 
 pub trait Wndproc<T>: WindowHandler
 where
@@ -167,36 +169,6 @@ where
     // message, WM_NCCREATE, in order to save a pointer to this object
     // for subsequent messages, and to route those messages to the
     // "on_message" method of the Window trait.
-    // extern "system" fn wndproc(
-    //     handle: HWND,
-    //     message: u32,
-    //     wparam: WPARAM,
-    //     lparam: LPARAM,
-    // ) -> LRESULT {
-    //     unsafe {
-    //         if message == WM_NCCREATE {
-    //             let lpcs: *mut CREATESTRUCTW = transmute(lparam);
-    //             let this = (*lpcs).lpCreateParams as *mut T;
-    //             SetWindowLongPtrW(handle, GWLP_USERDATA, transmute(this));
-    //         } else {
-    //             let this = GetWindowLongPtrW(handle, GWLP_USERDATA) as *mut T;
-    //             if !this.is_null() {
-    //                 if (*this).on_message(handle, message, wparam, lparam) {
-    //                     return LRESULT::default();
-    //                 } else {
-    //                     return DefWindowProcW(handle, message, wparam, lparam);
-    //                 }
-    //                 // if let Ok(window) = (*this).window_data().try_borrow() {
-    //                 //     if window.handle.is_some() {
-    //                 //     }
-    //                 // }
-    //             }
-    //         };
-
-    //         DefWindowProcW(handle, message, wparam, lparam)
-    //     }
-    // }
-
     extern "system" fn wndproc(
         handle: HWND,
         message: u32,
@@ -204,30 +176,28 @@ where
         lparam: LPARAM,
     ) -> LRESULT {
         unsafe {
-            match message {
-                WM_NCCREATE => {
-                    let lpcs: &CREATESTRUCTW = transmute(lparam);
-                    SetWindowLongPtrW(
-                        handle,
-                        GWLP_USERDATA,
-                        lpcs.lpCreateParams as _,
-                    );
-                    DefWindowProcW(handle, message, wparam, lparam)
-                }
-                _ => {
-                    let userdata = GetWindowLongPtrW(handle, GWLP_USERDATA);
-                    let this = std::ptr::NonNull::<T>::new(userdata as _);
-                    let handled = this.map_or(false, |mut s| {
-                        s.as_mut()
-                            .on_message(handle, message, wparam, lparam)
-                            .is_ok()
-                    });
-                    if handled {
-                        LRESULT::default()
-                    } else {
-                        DefWindowProcW(handle, message, wparam, lparam)
-                    }
-                }
+            if message == WM_NCCREATE {
+                let lpcs: &CREATESTRUCTW = transmute(lparam);
+                SetWindowLongPtrW(
+                    handle,
+                    GWLP_USERDATA,
+                    lpcs.lpCreateParams as _,
+                );
+                set_rounded_corners(handle, DWMWCP_ROUND).ok();
+                return DefWindowProcW(handle, message, wparam, lparam);
+            }
+
+            let userdata = GetWindowLongPtrW(handle, GWLP_USERDATA);
+            let this = std::ptr::NonNull::<T>::new(userdata as _);
+            let handled = this.map_or(false, |mut s| {
+                s.as_mut()
+                    .on_message(handle, message, wparam, lparam)
+                    .is_ok()
+            });
+            if handled {
+                LRESULT::default()
+            } else {
+                DefWindowProcW(handle, message, wparam, lparam)
             }
         }
     }
