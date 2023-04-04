@@ -218,7 +218,9 @@ where
                     let userdata = GetWindowLongPtrW(handle, GWLP_USERDATA);
                     let this = std::ptr::NonNull::<T>::new(userdata as _);
                     let handled = this.map_or(false, |mut s| {
-                        s.as_mut().on_message(handle, message, wparam, lparam)
+                        s.as_mut()
+                            .on_message(handle, message, wparam, lparam)
+                            .is_ok()
                     });
                     if handled {
                         LRESULT::default()

@@ -90,9 +90,8 @@ impl LangBarIndicator {
     }
 
     pub fn shutdown(&self, button: ITfLangBarItemButton) -> Result<()> {
-        self.popup.destroy();
-        self.remove_item(button)?;
-        Ok(())
+        self.popup.destroy()?;
+        self.remove_item(button)
     }
 
     pub fn add_item(

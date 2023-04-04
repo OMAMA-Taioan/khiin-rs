@@ -1,10 +1,13 @@
-use num::{Num, ToPrimitive};
 use num::cast::NumCast;
 use num::traits::AsPrimitive;
-use windows::Win32::Foundation::POINT;
+use num::{Num, ToPrimitive};
+use windows::Win32::Foundation::{POINT, RECT};
 
 #[derive(Copy, Clone, Default)]
-pub struct Point<T> where T: Copy + Num + NumCast {
+pub struct Point<T>
+where
+    T: Copy + Num + NumCast,
+{
     pub x: T,
     pub y: T,
 }
@@ -33,19 +36,28 @@ where
     }
 }
 
-pub struct Size<T> where T: Copy + Num + NumCast {
+pub struct Size<T>
+where
+    T: Copy + Num + NumCast,
+{
     pub w: T,
     pub h: T,
 }
 
 #[derive(Default, Clone)]
-pub struct Rect<T> where T: Copy + Num + NumCast {
+pub struct Rect<T>
+where
+    T: Copy + Num + NumCast,
+{
     pub o: Point<T>, // top left
     pub w: T,
     pub h: T,
 }
 
-impl<T> Rect<T> where T: Copy + Num + NumCast {
+impl<T> Rect<T>
+where
+    T: Copy + Num + NumCast,
+{
     pub fn new(origin: Point<T>, width: T, height: T) -> Self {
         Rect {
             o: origin,
@@ -86,5 +98,18 @@ impl<T> Rect<T> where T: Copy + Num + NumCast {
             x: self.o.x + self.w / (T::one() + T::one()),
             y: self.o.y + self.h / (T::one() + T::one()),
         };
+    }
+}
+
+impl From<&RECT> for Rect<i32> {
+    fn from(value: &RECT) -> Self {
+        Rect {
+            o: Point {
+                x: value.left,
+                y: value.top,
+            },
+            w: value.right - value.left,
+            h: value.bottom - value.top,
+        }
     }
 }
