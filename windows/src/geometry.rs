@@ -49,9 +49,9 @@ pub struct Rect<T>
 where
     T: Copy + Num + NumCast,
 {
-    pub o: Point<T>, // top left
-    pub w: T,
-    pub h: T,
+    pub origin: Point<T>, // top left
+    pub width: T,
+    pub height: T,
 }
 
 impl<T> Rect<T>
@@ -60,43 +60,39 @@ where
 {
     pub fn new(origin: Point<T>, width: T, height: T) -> Self {
         Rect {
-            o: origin,
-            w: width,
-            h: height,
+            origin,
+            width,
+            height,
         }
     }
 
-    pub fn w(&self) -> T {
-        self.o.x
+    pub fn left(&self) -> T {
+        self.origin.x
     }
 
-    pub fn e(&self) -> T {
-        self.o.x + self.w
+    pub fn right(&self) -> T {
+        self.origin.x + self.width
     }
 
-    pub fn n(&self) -> T {
-        self.o.y
+    pub fn top(&self) -> T {
+        self.origin.y
     }
 
-    pub fn s(&self) -> T {
-        self.o.y + self.h
+    pub fn bottom(&self) -> T {
+        self.origin.y + self.height
     }
 
     pub fn size(&self) -> Size<T> {
         Size {
-            w: self.w,
-            h: self.h,
+            w: self.width,
+            h: self.height,
         }
-    }
-
-    pub fn o(&self) -> Point<T> {
-        self.o
     }
 
     pub fn center(&self) -> Point<T> {
         return Point {
-            x: self.o.x + self.w / (T::one() + T::one()),
-            y: self.o.y + self.h / (T::one() + T::one()),
+            x: self.origin.x + self.width / (T::one() + T::one()),
+            y: self.origin.y + self.height / (T::one() + T::one()),
         };
     }
 }
@@ -104,12 +100,12 @@ where
 impl From<&RECT> for Rect<i32> {
     fn from(value: &RECT) -> Self {
         Rect {
-            o: Point {
+            origin: Point {
                 x: value.left,
                 y: value.top,
             },
-            w: value.right - value.left,
-            h: value.bottom - value.top,
+            width: value.right - value.left,
+            height: value.bottom - value.top,
         }
     }
 }

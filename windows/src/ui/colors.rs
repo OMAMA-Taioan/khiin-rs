@@ -42,6 +42,7 @@ pub struct ColorScheme {
     pub accent: Color,
 }
 
+#[derive(Clone)]
 pub struct ColorScheme_F {
     pub text: D2D1_COLOR_F,
     pub text_disabled: D2D1_COLOR_F,

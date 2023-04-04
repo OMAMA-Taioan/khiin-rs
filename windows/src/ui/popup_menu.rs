@@ -5,12 +5,22 @@ use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::RwLock;
 
+use windows::Win32::Foundation::D2DERR_RECREATE_TARGET;
+use windows::Win32::Graphics::Direct2D::Common::D2D_POINT_2F;
+use windows::Win32::Graphics::Direct2D::D2D1_DRAW_TEXT_OPTIONS;
+use windows::Win32::Graphics::Direct2D::D2D1_DRAW_TEXT_OPTIONS_NONE;
+use windows::Win32::Graphics::Direct2D::D2D1_ELLIPSE;
+use windows::Win32::Graphics::DirectWrite::IDWriteTextLayout;
+use windows::Win32::Graphics::Gdi::RDW_INVALIDATE;
+use windows::Win32::Graphics::Gdi::RDW_UPDATENOW;
+use windows::Win32::Graphics::Gdi::RedrawWindow;
 use windows::core::AsImpl;
 use windows::core::Error;
 use windows::core::Result;
 use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::RECT;
+use windows::Win32::Graphics::Direct2D::ID2D1DCRenderTarget;
 use windows::Win32::Graphics::Direct2D::ID2D1SolidColorBrush;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextFormat;
 use windows::Win32::Graphics::DirectWrite::DWRITE_TEXT_METRICS;
@@ -51,7 +61,7 @@ use crate::ui::window::WindowData;
 use crate::ui::window::WindowHandler;
 use crate::ui::wndproc::Wndproc;
 
-static FONT_NAME: &str = "Microsoft JhengHei UI Regular";
+static FONT_NAME: &str = "Arial";
 
 const DW_STYLE: WINDOW_STYLE = WS_POPUP;
 
@@ -83,23 +93,15 @@ fn get_menu_items() -> Vec<PopupMenuItem> {
     let mut ret = Vec::new();
 
     ret.push(PopupMenuItem::button(
-        IDS_CONTINUOUS_MODE,
+        "continuous",
         IDI_MODE_CONTINUOUS,
         true,
     ));
-    ret.push(PopupMenuItem::button(IDS_BASIC_MODE, IDI_MODE_BASIC, false));
-    ret.push(PopupMenuItem::button(IDS_MANUAL_MODE, IDI_MODE_PRO, false));
-    ret.push(PopupMenuItem::button(
-        IDS_DIRECT_MODE,
-        IDI_MODE_ALPHA,
-        false,
-    ));
+    ret.push(PopupMenuItem::button("basic", IDI_MODE_BASIC, false));
+    ret.push(PopupMenuItem::button("manual", IDI_MODE_PRO, false));
+    ret.push(PopupMenuItem::button("direct", IDI_MODE_ALPHA, false));
     ret.push(PopupMenuItem::sep());
-    ret.push(PopupMenuItem::button(
-        IDS_OPEN_SETTINGS,
-        IDI_SETTINGS,
-        false,
-    ));
+    ret.push(PopupMenuItem::button("settings", IDI_SETTINGS, false));
 
     ret
 }
@@ -113,8 +115,8 @@ where
 
 pub struct PopupMenu {
     tip: ITfTextInputProcessor,
-    brush: ID2D1SolidColorBrush,
-    textformat: IDWriteTextFormat,
+    brush: RefCell<Option<ID2D1SolidColorBrush>>,
+    textformat: RefCell<Option<IDWriteTextFormat>>,
     window: Rc<RefCell<WindowData>>,
     colors: RefCell<ColorScheme_F>,
     items: Rc<RefCell<Vec<PopupMenuItem>>>,
@@ -141,15 +143,11 @@ impl PopupMenu {
             target: target.clone(),
         };
 
-        let color = color_f(&COLOR_BLACK);
-        let brush = unsafe { target.CreateSolidColorBrush(&color, None)? };
-        let textformat = window.factory.create_text_format(FONT_NAME, 16.0)?;
-
         let this = Arc::new(Self {
             window: Rc::new(RefCell::new(window)),
             tip,
-            brush,
-            textformat,
+            brush: RefCell::new(None),
+            textformat: RefCell::new(None),
             colors: RefCell::new(COLOR_SCHEME_LIGHT.into()),
             items: Rc::new(RefCell::new(get_menu_items())),
             highlighted_index: RefCell::new(usize::MAX),
@@ -190,9 +188,11 @@ impl PopupMenu {
                 continue;
             }
             unsafe {
+                let text = t!(&item.string_key[..]);
+                println!("{}", text);
                 let layout = window.factory.create_text_layout(
-                    "Test",
-                    self.textformat.clone(),
+                    "Just testing a string".to_string(),
+                    self.textformat.borrow().clone().unwrap(),
                     window.max_width as f32,
                     window.max_height as f32,
                 )?;
@@ -213,12 +213,12 @@ impl PopupMenu {
         for item in items.iter_mut() {
             let item_height = if item.separator { VPAD } else { row_height };
             item.rect = Rect {
-                o: Point {
+                origin: Point {
                     x: 0,
                     y: total_height,
                 },
-                w: total_width,
-                h: item_height,
+                width: total_width,
+                height: item_height,
             };
             total_height += item_height;
         }
@@ -246,6 +246,20 @@ impl PopupMenu {
 
         Ok((x, y, w, h))
     }
+
+    fn reset_graphics_resources(&self) -> Result<()> {
+        if let Ok(mut window) = self.window.try_borrow_mut() {
+            let target = window.factory.create_dc_render_target()?;
+            window.target = target.clone();
+            let color = color_f(&COLOR_BLACK);
+            let brush = unsafe { target.CreateSolidColorBrush(&color, None)? };
+            self.brush.replace(Some(brush));
+            let textformat = window.factory.create_text_format(FONT_NAME, 16.0)?;
+            self.textformat.replace(Some(textformat));
+        }
+
+        Ok(())
+    }
 }
 
 impl Wndproc<PopupMenu> for PopupMenu {}
@@ -264,6 +278,7 @@ impl WindowHandler for PopupMenu {
     }
 
     fn show(&self, pt: Point<i32>) -> Result<()> {
+        self.reset_graphics_resources()?;
         self.set_origin(pt)?;
         let (x, y, w, h) = self.calculate_layout()?;
         let handle = self.handle()?;
@@ -278,6 +293,7 @@ impl WindowHandler for PopupMenu {
                 SWP_NOACTIVATE | SWP_NOZORDER,
             );
             ShowWindow(handle, SW_SHOWNA);
+            // RedrawWindow(handle, None, None, RDW_INVALIDATE | RDW_UPDATENOW);
         }
 
         Ok(())
@@ -293,8 +309,12 @@ impl WindowHandler for PopupMenu {
         Ok(())
     }
 
+    fn on_resize(&self, width: u16, height: u16) -> Result<()> {
+        self.reset_graphics_resources()
+    }
+
     fn render(&self, handle: HWND) -> Result<()> {
-        let items = to_owned(self.items.clone())?;
+        self.reset_graphics_resources()?;
         let window = to_owned(self.window.clone())?;
         let target = window.target;
         let mut ps = PAINTSTRUCT::default();
@@ -306,30 +326,83 @@ impl WindowHandler for PopupMenu {
             target.BindDC(ps.hdc, &rc)?;
             target.BeginDraw();
 
-            {
-                let colors = self.colors.borrow();
-                let highlighted = self.highlighted_index.borrow().clone();
-                let brush = &self.brush;
-                target.Clear(Some(&colors.background));
+            draw(
+                target.clone(),
+                self.brush.borrow().clone().unwrap(),
+                self.colors.borrow().clone(),
+                to_owned(self.items.clone())?,
+                self.highlighted_index.borrow().clone(),
+            );
 
-                for (i, item) in items.iter().enumerate() {
-                    let rect = item.d2d_rect_f();
-
-                    if !item.separator {
-                        if highlighted == i {
-                            brush.SetColor(&colors.background_selected);
-                            target.FillRectangle(&rect, brush);
-                        }
-
-                        brush.SetColor(&colors.text);
-                    } else {
+            match target.EndDraw(None, None) {
+                Ok(_) => {},
+                Err(e) => {
+                    if e.code() == D2DERR_RECREATE_TARGET {
+                        self.reset_graphics_resources()?;
                     }
                 }
             }
 
-            target.EndDraw(None, None)?;
             EndPaint(handle, &ps);
             Ok(())
         }
     }
+}
+
+unsafe fn draw_text_item(
+    target: &ID2D1DCRenderTarget,
+    brush: &ID2D1SolidColorBrush,
+    item: &PopupMenuItem,
+) {
+    let layout = item.layout.clone().unwrap();
+    let mut origin = item.rect.origin;
+    origin.x += HPAD;
+    let height = item.rect.height;
+
+    let mut o = pt(origin.x as f32, origin.y as f32);
+    o.x += BULLET_COL_WIDTH as f32 + ICON_COL_WIDTH as f32;
+    o.y += vertical_center_text_layout(&layout, height);
+    target.DrawTextLayout(o, &layout, brush, D2D1_DRAW_TEXT_OPTIONS_NONE);
+}
+
+unsafe fn draw(
+    target: ID2D1DCRenderTarget,
+    brush: ID2D1SolidColorBrush,
+    colors: ColorScheme_F,
+    items: Vec<PopupMenuItem>,
+    highlight_idx: usize,
+) {
+    // brush.SetColor(&colors.accent);
+    // let x = D2D1_ELLIPSE { point: pt(500.0, 500.0), radiusX: 200.0, radiusY: 200.0 };
+    // target.DrawEllipse(&x, &brush, 5.0, None);
+    target.Clear(Some(&colors.accent));
+
+    for (i, item) in items.iter().enumerate() {
+        let rect = item.d2d_rect_f();
+
+        if !item.separator {
+            if highlight_idx == i {
+                brush.SetColor(&colors.background_selected);
+                target.FillRectangle(&rect, &brush);
+            }
+
+            brush.SetColor(&colors.text);
+            target.DrawLine(pt(0.0, 0.0), pt(20.0, 20.0), &brush, 1.0, None);
+            draw_text_item(&target, &brush, item);
+        } else {
+            let top = item.rect.top() as f32 + item.rect.height as f32 / 2.0;
+            let width = item.rect.width as f32;
+            target.DrawLine(pt(0.0, top), pt(width, top), &brush, 1.0, None);
+        }
+    }
+}
+
+fn pt(x: f32, y: f32) -> D2D_POINT_2F {
+    D2D_POINT_2F { x, y }
+}
+
+unsafe fn vertical_center_text_layout(layout: &IDWriteTextLayout, available_height: i32) -> f32 {
+    let mut metrics = DWRITE_TEXT_METRICS::default();
+    layout.GetMetrics(&mut metrics).ok();
+    (available_height as f32 - metrics.height) / 2.0
 }

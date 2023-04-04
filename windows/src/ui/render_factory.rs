@@ -104,7 +104,7 @@ impl RenderFactory {
 
     pub fn create_text_layout(
         &self,
-        value: &str,
+        value: String,
         format: IDWriteTextFormat,
         max_width: f32,
         max_height: f32,
