@@ -1,5 +1,4 @@
 use windows::Win32::Graphics::Direct2D::Common::D2D1_COLOR_F;
-use windows::UI::Color;
 
 #[derive(Debug)]
 pub enum SystemTheme {
@@ -7,18 +6,25 @@ pub enum SystemTheme {
     Dark,
 }
 
+pub struct Color {
+    r: u8,
+    g: u8,
+    b: u8,
+    a: u8,
+}
+
 pub const fn color(color: u32) -> Color {
-    let R = ((color >> 16) & 0xFF) as u8;
-    let G = ((color >> 8) & 0xFF) as u8;
-    let B = (color & 0xFF) as u8;
-    Color { R, G, B, A: 0 }
+    let r = ((color >> 16) & 0xFF) as u8;
+    let g = ((color >> 8) & 0xFF) as u8;
+    let b = (color & 0xFF) as u8;
+    Color { r, g, b, a: 0xFF }
 }
 
 pub fn color_f(color: &Color) -> D2D1_COLOR_F {
-    let r = color.R as f32 / 255.0;
-    let g = color.G as f32 / 255.0;
-    let b = color.B as f32 / 255.0;
-    let a = color.A as f32 / 255.0;
+    let r = color.r as f32 / 255.0;
+    let g = color.g as f32 / 255.0;
+    let b = color.b as f32 / 255.0;
+    let a = color.a as f32 / 255.0;
     D2D1_COLOR_F { r, g, b, a }
 }
 
