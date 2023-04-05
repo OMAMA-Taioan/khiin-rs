@@ -1,6 +1,5 @@
 use std::cell::Cell;
 use std::collections::HashMap;
-use std::pin::Pin;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::RwLock;
@@ -47,7 +46,7 @@ use windows::Win32::UI::WindowsAndMessaging::LR_DEFAULTCOLOR;
 use crate::dll::DllModule;
 use crate::geometry::Point;
 use crate::reg::guids::IID_KhiinTextService;
-use crate::ui::popup_menu::PopupMenu;
+use crate::ui::systray::SystrayMenu;
 use crate::ui::window::WindowHandler;
 use crate::ui::wndproc::Wndproc;
 use crate::winerr;
@@ -67,7 +66,7 @@ pub struct LangBarIndicator {
     sink_map: Arc<Mutex<HashMap<u32, ITfLangBarItemSink>>>,
     status: u32,
     added: Cell<bool>,
-    popup: Arc<PopupMenu>,
+    popup: Arc<SystrayMenu>,
 }
 
 impl LangBarIndicator {
@@ -81,7 +80,7 @@ impl LangBarIndicator {
             sink_map: Arc::new(Mutex::new(HashMap::new())),
             status: 0, // always 0
             added: Cell::new(false),
-            popup: PopupMenu::new(tip.clone())?,
+            popup: SystrayMenu::new(tip.clone())?,
         };
 
         let button: ITfLangBarItemButton = this.into();

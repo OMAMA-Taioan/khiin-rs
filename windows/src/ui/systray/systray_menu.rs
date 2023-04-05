@@ -57,7 +57,7 @@ use crate::ui::colors::COLOR_BLACK;
 use crate::ui::colors::COLOR_SCHEME_LIGHT;
 use crate::ui::dpi::dpi_aware;
 use crate::ui::dpi::Density;
-use crate::ui::popup_menu_item::PopupMenuItem;
+use crate::ui::systray::SystrayMenuItem;
 use crate::ui::window::WindowData;
 use crate::ui::window::WindowHandler;
 use crate::ui::wndproc::Wndproc;
@@ -90,19 +90,19 @@ fn work_area_bottom() -> i32 {
     }
 }
 
-fn get_menu_items() -> Vec<PopupMenuItem> {
+fn get_menu_items() -> Vec<SystrayMenuItem> {
     let mut ret = Vec::new();
 
-    ret.push(PopupMenuItem::button(
+    ret.push(SystrayMenuItem::button(
         "continuous",
         IDI_MODE_CONTINUOUS,
         true,
     ));
-    ret.push(PopupMenuItem::button("basic", IDI_MODE_BASIC, false));
-    ret.push(PopupMenuItem::button("manual", IDI_MODE_PRO, false));
-    ret.push(PopupMenuItem::button("direct", IDI_MODE_ALPHA, false));
-    ret.push(PopupMenuItem::sep());
-    ret.push(PopupMenuItem::button("settings", IDI_SETTINGS, false));
+    ret.push(SystrayMenuItem::button("basic", IDI_MODE_BASIC, false));
+    ret.push(SystrayMenuItem::button("manual", IDI_MODE_PRO, false));
+    ret.push(SystrayMenuItem::button("direct", IDI_MODE_ALPHA, false));
+    ret.push(SystrayMenuItem::sep());
+    ret.push(SystrayMenuItem::button("settings", IDI_SETTINGS, false));
 
     ret
 }
@@ -114,17 +114,17 @@ where
     Ok(rc.try_borrow().map_err(|_| Error::from(E_FAIL))?.clone())
 }
 
-pub struct PopupMenu {
+pub struct SystrayMenu {
     tip: ITfTextInputProcessor,
     brush: RefCell<Option<ID2D1SolidColorBrush>>,
     textformat: RefCell<Option<IDWriteTextFormat>>,
     window: Rc<RefCell<WindowData>>,
     colors: RefCell<ColorScheme_F>,
-    items: Rc<RefCell<Vec<PopupMenuItem>>>,
+    items: Rc<RefCell<Vec<SystrayMenuItem>>>,
     highlighted_index: RefCell<usize>,
 }
 
-impl PopupMenu {
+impl SystrayMenu {
     pub fn new(tip: ITfTextInputProcessor) -> Result<Arc<Self>> {
         let service = tip.as_impl();
         let factory = service.render_factory.clone();
@@ -262,8 +262,8 @@ impl PopupMenu {
     }
 }
 
-impl Wndproc<PopupMenu> for PopupMenu {}
-impl WindowHandler for PopupMenu {
+impl Wndproc<SystrayMenu> for SystrayMenu {}
+impl WindowHandler for SystrayMenu {
     const WINDOW_CLASS_NAME: &'static str = "PopupMenuWindow";
 
     fn window_data(&self) -> Rc<RefCell<WindowData>> {
@@ -352,7 +352,7 @@ impl WindowHandler for PopupMenu {
 unsafe fn draw_text_item(
     target: &ID2D1DCRenderTarget,
     brush: &ID2D1SolidColorBrush,
-    item: &PopupMenuItem,
+    item: &SystrayMenuItem,
 ) {
     let layout = item.layout.clone().unwrap();
     let mut origin = item.rect.origin;
@@ -369,7 +369,7 @@ unsafe fn draw(
     target: ID2D1DCRenderTarget,
     brush: ID2D1SolidColorBrush,
     colors: ColorScheme_F,
-    items: Vec<PopupMenuItem>,
+    items: Vec<SystrayMenuItem>,
     highlight_idx: usize,
 ) {
     target.Clear(Some(&colors.background));

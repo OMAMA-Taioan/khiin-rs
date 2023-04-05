@@ -55,7 +55,7 @@ use crate::tip::lang_bar_indicator::LangBarIndicator;
 use crate::tip::preserved_key_mgr::PreservedKeyMgr;
 use crate::tip::sink_mgr::SinkMgr;
 use crate::tip::thread_mgr_event_sink::ThreadMgrEventSink;
-use crate::ui::popup_menu::PopupMenu;
+use crate::ui::systray::SystrayMenu;
 use crate::ui::render_factory::RenderFactory;
 use crate::ui::wndproc::Wndproc;
 use crate::utils::arc_lock::ArcLock;
@@ -258,7 +258,7 @@ impl TextService {
     fn activate(&self) -> Result<()> {
         set_locale("en");
         DllModule::global().add_ref();
-        PopupMenu::register_class(DllModule::global().module);
+        SystrayMenu::register_class(DllModule::global().module);
         self.init_engine()?;
         self.init_lang_bar_indicator()?;
         self.init_threadmgr_event_sink()?;
@@ -287,7 +287,7 @@ impl TextService {
         self.deinit_threadmgr_event_sink().ok();
         self.deinit_lang_bar_indicator().ok();
         self.deinit_engine().ok();
-        PopupMenu::unregister_class(DllModule::global().module);
+        SystrayMenu::unregister_class(DllModule::global().module);
         DllModule::global().release();
         Ok(())
     }

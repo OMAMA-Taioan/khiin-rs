@@ -5,7 +5,7 @@ use windows::Win32::Graphics::{
 use crate::geometry::Rect;
 
 #[derive(Default, Clone)]
-pub struct PopupMenuItem {
+pub struct SystrayMenuItem {
     pub separator: bool,
     pub checked: bool,
     pub icon_rid: u32,
@@ -14,7 +14,7 @@ pub struct PopupMenuItem {
     pub layout: Option<IDWriteTextLayout>,
 }
 
-impl PopupMenuItem {
+impl SystrayMenuItem {
     pub fn button(string_key: &str, icon_rid: u32, checked: bool) -> Self {
         Self {
             separator: false,

@@ -1,4 +1,4 @@
-struct PopupMenuMetrics {
+pub struct SystrayMenuMetrics {
     y_adjust: f32,
     bullet_col: f32,
     icon_col: f32,
@@ -10,9 +10,9 @@ struct PopupMenuMetrics {
     icon_size: f32,
 }
 
-impl PopupMenuMetrics {
+impl SystrayMenuMetrics {
     fn new(scale: f32) -> Self {
-        PopupMenuMetrics {
+        SystrayMenuMetrics {
             y_adjust: 50.0 * scale,
             bullet_col: 24.0 * scale,
             icon_col: 32.0 * scale,
