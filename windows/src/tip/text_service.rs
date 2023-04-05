@@ -5,14 +5,11 @@ use std::sync::mpsc::channel;
 use std::sync::Arc;
 use std::sync::RwLock;
 
-use khiin::Engine;
-use khiin_protos::command::Command;
-use khiin_protos::config::AppConfig;
-use khiin_protos::config::BoolValue;
 use protobuf::MessageField;
 use windows::core::implement;
 use windows::core::AsImpl;
 use windows::core::ComInterface;
+use windows::core::Error;
 use windows::core::IUnknown;
 use windows::core::Result;
 use windows::core::GUID;
@@ -38,6 +35,11 @@ use windows::Win32::UI::TextServices::ITfUIElement;
 use windows::Win32::UI::TextServices::GUID_COMPARTMENT_KEYBOARD_DISABLED;
 use windows::Win32::UI::TextServices::GUID_COMPARTMENT_KEYBOARD_OPENCLOSE;
 
+use khiin::Engine;
+use khiin_protos::command::Command;
+use khiin_protos::config::AppConfig;
+use khiin_protos::config::BoolValue;
+
 use crate::dll::DllModule;
 use crate::locales::set_locale;
 use crate::reg::guids::GUID_CONFIG_CHANGED_COMPARTMENT;
@@ -48,6 +50,7 @@ use crate::reg::guids::GUID_RESET_USERDATA_COMPARTMENT;
 use crate::tip::candidate_list_ui::CandidateListUI;
 use crate::tip::compartment::Compartment;
 use crate::tip::composition_mgr::CompositionMgr;
+use crate::tip::composition_utils::text_position;
 use crate::tip::display_attributes::DisplayAttributes;
 use crate::tip::engine_mgr::EngineMgr;
 use crate::tip::key_event_sink::KeyEventSink;
@@ -55,11 +58,12 @@ use crate::tip::lang_bar_indicator::LangBarIndicator;
 use crate::tip::preserved_key_mgr::PreservedKeyMgr;
 use crate::tip::sink_mgr::SinkMgr;
 use crate::tip::thread_mgr_event_sink::ThreadMgrEventSink;
-use crate::ui::systray::SystrayMenu;
+use crate::tip::TfEditCookie;
 use crate::ui::render_factory::RenderFactory;
+use crate::ui::systray::SystrayMenu;
 use crate::ui::wndproc::Wndproc;
-use crate::utils::ArcLock;
 use crate::utils::co_create_inproc;
+use crate::utils::ArcLock;
 use crate::winerr;
 
 const TF_CLIENTID_NULL: u32 = 0;
@@ -124,6 +128,9 @@ pub struct TextService {
 
 // Public portion
 impl TextService {
+    pub const IID: GUID =
+        GUID::from_u128(0x829893f6_728d_11ec_8c6e_e0d46491b35a);
+
     pub fn new() -> Result<Self> {
         Ok(Self {
             this: RefCell::new(None),
@@ -238,18 +245,38 @@ impl TextService {
         self.candidate_list_ui.borrow().clone().unwrap().cast()
     }
 
-    pub fn notify_command(
+    pub fn handle_composition(
         &self,
-        ec: u32,
+        ec: TfEditCookie,
         context: ITfContext,
         command: Arc<Command>,
     ) -> Result<()> {
-        if let Ok(mut mgr) = self.composition_mgr.write() {
-            let sink: ITfCompositionSink = self.this().cast()?;
-            return mgr.notify_command(ec, context, sink, command);
-        }
+        let mut comp_mgr = self
+            .composition_mgr
+            .write()
+            .map_err(|_| Error::from(E_FAIL))?;
 
-        Ok(())
+        let sink: ITfCompositionSink = self.this().cast()?;
+        comp_mgr.notify_command(ec, context, sink, command)
+    }
+
+    pub fn handle_candidates(
+        &self,
+        ec: TfEditCookie,
+        context: ITfContext,
+        command: Arc<Command>,
+    ) -> Result<()> {
+        let caret = command.response.preedit.caret;
+        let rect = text_position(ec, context.clone(), caret)?;
+        let cand_ui = self
+            .candidate_list_ui
+            .try_borrow()
+            .map_err(|_| Error::from(E_FAIL))?
+            .clone()
+            .ok_or(Error::from(E_FAIL))?;
+
+        let cand_ui = cand_ui.as_impl();
+        cand_ui.notify_command(context, command, rect)
     }
 }
 
@@ -314,7 +341,7 @@ impl TextService {
         sinkmgr: &RefCell<SinkMgr<ITfCompartmentEventSink>>,
     ) -> Result<()> {
         if let Ok(mut comp) = compartment.write() {
-            comp.init_thread(self.threadmgr(), self.clientid()?, guid);
+            comp.init_thread(self.threadmgr(), self.clientid()?, guid)?;
             let mut sinkmgr = sinkmgr.borrow_mut();
             let punk: IUnknown = comp.compartment()?.cast()?;
             let this: ITfCompartmentEventSink = self.this().cast()?;

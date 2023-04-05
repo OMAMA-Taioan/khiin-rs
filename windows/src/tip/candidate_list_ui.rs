@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use khiin_protos::command::CandidateList;
+use khiin_protos::command::EditState::ES_COMPOSING;
 use windows::core::implement;
 use windows::core::AsImpl;
 use windows::core::ComInterface;
@@ -12,6 +14,7 @@ use windows::Win32::UI::TextServices::ITfCandidateListUIElement;
 use windows::Win32::UI::TextServices::ITfCandidateListUIElementBehavior;
 use windows::Win32::UI::TextServices::ITfCandidateListUIElementBehavior_Impl;
 use windows::Win32::UI::TextServices::ITfCandidateListUIElement_Impl;
+use windows::Win32::UI::TextServices::ITfContext;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 use windows::Win32::UI::TextServices::ITfUIElementMgr;
 // use windows::Win32::UI::TextServices::ITfIntegratableCandidateListUIElement;
@@ -20,7 +23,11 @@ use windows::Win32::UI::TextServices::ITfDocumentMgr;
 use windows::Win32::UI::TextServices::ITfUIElement;
 use windows::Win32::UI::TextServices::ITfUIElement_Impl;
 
+use khiin_protos::command::Command;
+
+use crate::geometry::Rect;
 use crate::ui::candidates::CandidateWindow;
+use crate::ui::candidates::Pager;
 use crate::utils::ArcLock;
 
 #[implement(
@@ -33,6 +40,7 @@ pub struct CandidateListUI {
     tip: ITfTextInputProcessor,
     element_id: ArcLock<u32>,
     popup: Arc<CandidateWindow>,
+    pager: Arc<Pager>,
 }
 
 impl CandidateListUI {
@@ -41,7 +49,27 @@ impl CandidateListUI {
             tip: tip.clone(),
             element_id: ArcLock::new(0),
             popup: Arc::new(CandidateWindow::new(tip)?),
+            pager: Arc::new(Pager::new()),
         })
+    }
+
+    pub fn notify_command(
+        &self,
+        context: ITfContext,
+        command: Arc<Command>,
+        rect: Rect<i32>,
+    ) -> Result<()> {
+        let res = &command.response;
+        let edit_state = res.edit_state.enum_value_or_default();
+        let focused = res.candidate_list.focused;
+
+        if edit_state == ES_COMPOSING {
+            self.pager.set_candidate_list(command)?;
+        } else {
+            self.pager.set_focus(focused)?;
+        }
+
+        Ok(())
     }
 
     fn ui_elem_mgr(&self) -> Result<ITfUIElementMgr> {

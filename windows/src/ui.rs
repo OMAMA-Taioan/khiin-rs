@@ -1,7 +1,6 @@
-use windows::Win32::{
-    Foundation::{HWND, RECT},
-    UI::WindowsAndMessaging::GetClientRect,
-};
+use windows::Win32::Foundation::HWND;
+use windows::Win32::Foundation::RECT;
+use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
 
 use crate::geometry::{Point, Rect};
 

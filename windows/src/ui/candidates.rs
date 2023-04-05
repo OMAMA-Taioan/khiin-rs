@@ -1,5 +1,8 @@
 pub mod candidate_window;
+pub mod pager;
+
 mod grid;
 mod metrics;
 
-pub(crate) use candidate_window::CandidateWindow;
+pub use candidate_window::CandidateWindow;
+pub use pager::Pager;
