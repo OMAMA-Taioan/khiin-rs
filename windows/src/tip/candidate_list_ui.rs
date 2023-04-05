@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use windows::Win32::Foundation::TRUE;
 use windows::core::implement;
 use windows::core::AsImpl;
 use windows::core::ComInterface;
@@ -8,6 +7,7 @@ use windows::core::Result;
 use windows::core::BSTR;
 use windows::core::GUID;
 use windows::Win32::Foundation::BOOL;
+use windows::Win32::Foundation::TRUE;
 use windows::Win32::UI::TextServices::ITfCandidateListUIElement;
 use windows::Win32::UI::TextServices::ITfCandidateListUIElementBehavior;
 use windows::Win32::UI::TextServices::ITfCandidateListUIElementBehavior_Impl;
@@ -21,7 +21,7 @@ use windows::Win32::UI::TextServices::ITfUIElement;
 use windows::Win32::UI::TextServices::ITfUIElement_Impl;
 
 use crate::ui::candidates::CandidateWindow;
-use crate::utils::arc_lock::ArcLock;
+use crate::utils::ArcLock;
 
 #[implement(
     ITfUIElement,
@@ -66,16 +66,12 @@ impl CandidateListUI {
 
     fn update_ui_elem(&self) -> Result<()> {
         let ui_elem_mgr = self.ui_elem_mgr()?;
-        unsafe {
-            ui_elem_mgr.UpdateUIElement(self.element_id.get()?)
-        }
+        unsafe { ui_elem_mgr.UpdateUIElement(self.element_id.get()?) }
     }
 
     fn end_ui_elem(&self) -> Result<()> {
         let ui_elem_mgr = self.ui_elem_mgr()?;
-        unsafe {
-            ui_elem_mgr.EndUIElement(self.element_id.get()?)
-        }
+        unsafe { ui_elem_mgr.EndUIElement(self.element_id.get()?) }
     }
 }
 

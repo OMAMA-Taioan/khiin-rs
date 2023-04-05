@@ -32,9 +32,9 @@ use windows::Win32::System::Com::CoCreateInstance;
 use windows::Win32::System::Com::CLSCTX_INPROC_SERVER;
 use windows::Win32::UI::WindowsAndMessaging::HICON;
 
-use crate::utils::pcwstr::ToPcwstr;
-use crate::utils::win::WinString;
-// use crate::utils::win::co_create_inproc;
+use crate::utils::ToPcwstr;
+use crate::utils::WinString;
+// use crate::utils::co_create_inproc;
 
 // static D2D1_FACTORY: Lazy<ID2D1Factory1> = Lazy::new(|| unsafe {
 //     D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, None).unwrap()

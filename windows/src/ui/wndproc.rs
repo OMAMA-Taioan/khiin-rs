@@ -42,7 +42,7 @@ use windows::Win32::UI::WindowsAndMessaging::WM_NCCREATE;
 use windows::Win32::UI::WindowsAndMessaging::WNDCLASSEXW;
 
 use crate::ui::window::WindowHandler;
-use crate::utils::pcwstr::ToPcwstr;
+use crate::utils::ToPcwstr;
 use crate::winerr;
 
 use super::dwm::set_rounded_corners;

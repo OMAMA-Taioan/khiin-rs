@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::mem::transmute;
 use std::rc::Rc;
 use std::sync::Arc;
+use windows::core::Error;
 use windows::core::Result;
 use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::E_NOTIMPL;
@@ -42,10 +43,10 @@ use crate::ui::dpi::dpi_aware;
 use crate::ui::dpi::Density;
 use crate::ui::dwm::set_rounded_corners;
 use crate::ui::render_factory::RenderFactory;
-use crate::utils::win::get_x_param;
-use crate::utils::win::get_y_param;
-use crate::utils::win::hi_word;
-use crate::utils::win::lo_word;
+use crate::utils::get_x_param;
+use crate::utils::get_y_param;
+use crate::utils::hi_word;
+use crate::utils::lo_word;
 use crate::winerr;
 
 // These were previously in GuiWindow class
@@ -108,7 +109,7 @@ pub trait WindowHandler {
                 let x = get_x_param(lparam);
                 let y = get_y_param(lparam);
                 self.on_mouse_move(handle, Point { x, y })
-            },
+            }
             WM_MOUSELEAVE => self.on_mouse_leave(),
             WM_LBUTTONDOWN => self.on_click(),
             WM_SHOWWINDOW => match wparam.0 {
@@ -121,6 +122,15 @@ pub trait WindowHandler {
             WM_WINDOWPOSCHANGING => self.on_monitor_change(handle),
             _ => winerr!(E_FAIL),
         }
+    }
+
+    fn reset_render_target(&self) -> Result<()> {
+        if let Ok(mut window) = self.window_data().try_borrow_mut() {
+            let target = window.factory.create_dc_render_target()?;
+            window.target = target.clone();
+        }
+
+        Ok(())
     }
 
     fn set_handle(&self, handle: Option<HWND>) -> Result<()>;

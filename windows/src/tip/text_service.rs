@@ -58,8 +58,8 @@ use crate::tip::thread_mgr_event_sink::ThreadMgrEventSink;
 use crate::ui::systray::SystrayMenu;
 use crate::ui::render_factory::RenderFactory;
 use crate::ui::wndproc::Wndproc;
-use crate::utils::arc_lock::ArcLock;
-use crate::utils::win::co_create_inproc;
+use crate::utils::ArcLock;
+use crate::utils::co_create_inproc;
 use crate::winerr;
 
 const TF_CLIENTID_NULL: u32 = 0;

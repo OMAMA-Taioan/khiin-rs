@@ -13,8 +13,8 @@ use windows::Win32::System::Registry::REG_OPTION_NON_VOLATILE;
 use windows::Win32::System::Registry::REG_SZ;
 
 use crate::check_win32error;
-use crate::utils::pcwstr::ToPcwstr;
-use crate::utils::win::WinString;
+use crate::utils::ToPcwstr;
+use crate::utils::WinString;
 
 pub trait Hkey {
     fn create_subkey(&self, subkey: &str) -> Result<HKEY>;

@@ -19,8 +19,8 @@ use windows::Win32::UI::TextServices::GUID_TFCAT_TIP_KEYBOARD;
 
 use crate::reg::guids::*;
 use crate::reg::hkey::Hkey;
-use crate::utils::win::co_create_inproc;
-use crate::utils::win::WinGuid;
+use crate::utils::co_create_inproc;
+use crate::utils::WinGuid;
 
 const SUPPORTED_CATEGORIES: &'static [GUID] = &[
     GUID_TFCAT_DISPLAYATTRIBUTEPROVIDER,

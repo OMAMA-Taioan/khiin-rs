@@ -1,11 +1,12 @@
 use log::warn;
 use once_cell::sync::OnceCell;
-use windows::Win32::Foundation::FALSE;
-use windows::Win32::Foundation::S_FALSE;
+
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use windows::core::ComInterface;
+use windows::Win32::Foundation::FALSE;
+use windows::Win32::Foundation::S_FALSE;
 
 use windows::core::Result;
 use windows::core::GUID;
@@ -32,8 +33,8 @@ use crate::reg::registrar::unregister_clsid;
 use crate::reg::registrar::unregister_profiles;
 use crate::reg::settings;
 use crate::tip::class_factory::KhiinClassFactory;
-use crate::utils::win::GetPath;
-use crate::utils::win::WinGuid;
+use crate::utils::GetPath;
+use crate::utils::WinGuid;
 
 // Normally leave this `false`, but due to the nature of some bugs
 // causing a cascade of DLL loads and crashes, it is sometimes very
@@ -55,11 +56,15 @@ fn can_attach() -> bool {
         return true;
     }
 
-    settings::can_attach_in_debug().map(|_| true).unwrap_or(false)
+    settings::can_attach_in_debug()
+        .map(|_| true)
+        .unwrap_or(false)
 }
 
 #[cfg(not(debug_assertions))]
-fn can_attach() -> bool { true }
+fn can_attach() -> bool {
+    true
+}
 
 #[derive(Debug)]
 pub struct DllModule {

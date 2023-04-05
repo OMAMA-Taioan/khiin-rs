@@ -4,9 +4,9 @@ use core::ffi::c_void;
 use core::option::Option;
 use log::debug;
 use log::warn;
+use windows::core::implement;
 use windows::core::AsImpl;
 use windows::core::ComInterface;
-use windows::core::implement;
 use windows::core::Error;
 use windows::core::IUnknown;
 use windows::core::Result;
@@ -18,9 +18,9 @@ use windows::Win32::System::Com::IClassFactory;
 use windows::Win32::System::Com::IClassFactory_Impl;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 
-use crate::tip::text_service::TextService;
-use crate::utils::win::WinGuid;
 use crate::dll::DllModule;
+use crate::tip::text_service::TextService;
+use crate::utils::WinGuid;
 
 #[implement(IClassFactory)]
 pub struct KhiinClassFactory;
@@ -61,8 +61,7 @@ impl IClassFactory_Impl for KhiinClassFactory {
             return Err(Error::from(E_NOINTERFACE));
         }
 
-        let text_service: ITfTextInputProcessor =
-            TextService::new()?.into();
+        let text_service: ITfTextInputProcessor = TextService::new()?.into();
 
         let it: &TextService = text_service.as_impl();
         it.set_this(text_service.clone());
@@ -79,7 +78,7 @@ impl IClassFactory_Impl for KhiinClassFactory {
             true => DllModule::global().add_ref(),
             false => DllModule::global().release(),
         };
-        
+
         Ok(())
     }
 }

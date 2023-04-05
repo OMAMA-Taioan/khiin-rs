@@ -3,9 +3,9 @@ use std::ffi::OsString;
 use std::os::windows::prelude::OsStringExt;
 
 use log::debug;
-use windows::Win32::Foundation::ERROR_FILE_NOT_FOUND;
 use windows::core::Result;
 use windows::Win32::Foundation::GetLastError;
+use windows::Win32::Foundation::ERROR_FILE_NOT_FOUND;
 use windows::Win32::Foundation::ERROR_SUCCESS;
 use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::System::Registry::RegDeleteValueW;
@@ -21,8 +21,8 @@ use windows::Win32::System::Registry::RRF_RT_REG_SZ;
 use crate::check_win32error;
 use crate::reg::hkey::Hkey;
 use crate::ui::colors::SystemTheme;
-use crate::utils::pcwstr::ToPcwstr;
-use crate::utils::win::WinString;
+use crate::utils::ToPcwstr;
+use crate::utils::WinString;
 use crate::winerr;
 
 static SETTINGS_REG_PATH: &str = "Software\\Khiin PJH\\Settings";
@@ -230,7 +230,7 @@ pub fn can_attach_in_debug() -> Result<()> {
             let value = 0u32.to_le_bytes();
             match RegSetValueExW(hkey, *name, 0, REG_DWORD, Some(&value)) {
                 ERROR_SUCCESS => Ok(()),
-                _ => winerr!(E_FAIL)
+                _ => winerr!(E_FAIL),
             }
         } else {
             winerr!(E_FAIL)

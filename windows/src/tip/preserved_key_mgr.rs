@@ -15,7 +15,7 @@ use windows::Win32::UI::TextServices::TF_PRESERVEDKEY;
 use crate::reg::guids::GUID_PRESERVED_KEY_FULL_WIDTH_SPACE;
 use crate::reg::guids::GUID_PRESERVED_KEY_ON_OFF;
 use crate::reg::guids::GUID_PRESERVED_KEY_SWITCH_MODE;
-use crate::utils::win::WinString;
+use crate::utils::WinString;
 
 static VK_BACKTICK: VIRTUAL_KEY = VK_OEM_3;
 

@@ -1,6 +1,6 @@
-use khiin_protos::command::{SegmentStatus, Preedit};
+use khiin_protos::command::{Preedit, SegmentStatus};
 
-use crate::utils::win::WinString;
+use crate::utils::WinString;
 
 pub struct SegmentData {
     pub start: u32,

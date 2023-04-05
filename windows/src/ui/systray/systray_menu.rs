@@ -5,7 +5,6 @@ use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::RwLock;
 
-use windows::Win32::Graphics::Direct2D::D2D1_BITMAP_INTERPOLATION_MODE;
 use windows::core::AsImpl;
 use windows::core::Error;
 use windows::core::Result;
@@ -13,10 +12,12 @@ use windows::Win32::Foundation::D2DERR_RECREATE_TARGET;
 use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::RECT;
+use windows::Win32::Graphics::Direct2D::Common::D2D1_COLOR_F;
 use windows::Win32::Graphics::Direct2D::Common::D2D_POINT_2F;
 use windows::Win32::Graphics::Direct2D::Common::D2D_RECT_F;
 use windows::Win32::Graphics::Direct2D::ID2D1DCRenderTarget;
 use windows::Win32::Graphics::Direct2D::ID2D1SolidColorBrush;
+use windows::Win32::Graphics::Direct2D::D2D1_BITMAP_INTERPOLATION_MODE;
 use windows::Win32::Graphics::Direct2D::D2D1_DRAW_TEXT_OPTIONS_NONE;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextFormat;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextLayout;
@@ -64,6 +65,7 @@ use crate::ui::systray::SystrayMenuItem;
 use crate::ui::window::WindowData;
 use crate::ui::window::WindowHandler;
 use crate::ui::wndproc::Wndproc;
+use crate::utils::CloneInner;
 
 static FONT_NAME: &str = "Microsoft JhengHei UI Regular";
 
@@ -111,18 +113,11 @@ fn get_menu_items() -> Vec<SystrayMenuItem> {
     ret
 }
 
-fn to_owned<T>(rc: Rc<RefCell<T>>) -> Result<T>
-where
-    T: Clone,
-{
-    Ok(rc.try_borrow().map_err(|_| Error::from(E_FAIL))?.clone())
-}
-
 pub struct SystrayMenu {
     tip: ITfTextInputProcessor,
-    brush: RefCell<Option<ID2D1SolidColorBrush>>,
-    textformat: RefCell<Option<IDWriteTextFormat>>,
     window: Rc<RefCell<WindowData>>,
+    brush: RefCell<ID2D1SolidColorBrush>,
+    textformat: RefCell<IDWriteTextFormat>,
     colors: RefCell<ColorScheme_F>,
     items: Rc<RefCell<Vec<SystrayMenuItem>>>,
     highlighted_index: RefCell<usize>,
@@ -133,16 +128,22 @@ impl SystrayMenu {
         let service = tip.as_impl();
         let factory = service.render_factory.clone();
         let window = WindowData::new(factory)?;
+        let color = D2D1_COLOR_F::default();
+        let brush =
+            unsafe { window.target.CreateSolidColorBrush(&color, None)? };
+        let textformat = window.factory.create_text_format(FONT_NAME, 16.0)?;
 
         let this = Arc::new(Self {
-            window: Rc::new(RefCell::new(window)),
             tip,
-            brush: RefCell::new(None),
-            textformat: RefCell::new(None),
+            window: Rc::new(RefCell::new(window)),
+            brush: RefCell::new(brush),
+            textformat: RefCell::new(textformat),
             colors: RefCell::new(COLOR_SCHEME_LIGHT.into()),
             items: Rc::new(RefCell::new(get_menu_items())),
             highlighted_index: RefCell::new(usize::MAX),
         });
+
+        this.reset_graphics_resources();
 
         Wndproc::create(
             this.clone(),
@@ -182,7 +183,7 @@ impl SystrayMenu {
             unsafe {
                 let layout = window.factory.create_text_layout(
                     text,
-                    self.textformat.borrow().clone().unwrap(),
+                    (*self.textformat.borrow()).clone(),
                     window.max_width as f32,
                     window.max_height as f32,
                 )?;
@@ -238,16 +239,17 @@ impl SystrayMenu {
     }
 
     fn reset_graphics_resources(&self) -> Result<()> {
-        if let Ok(mut window) = self.window.try_borrow_mut() {
-            let target = window.factory.create_dc_render_target()?;
-            window.target = target.clone();
-            let color = color_f(&COLOR_BLACK);
-            let brush = unsafe { target.CreateSolidColorBrush(&color, None)? };
-            self.brush.replace(Some(brush));
-            let textformat =
-                window.factory.create_text_format(FONT_NAME, 16.0)?;
-            self.textformat.replace(Some(textformat));
-        }
+        self.reset_render_target();
+        let window =
+            self.window.try_borrow().map_err(|_| Error::from(E_FAIL))?;
+
+        let color = color_f(&COLOR_BLACK);
+        let brush =
+            unsafe { window.target.CreateSolidColorBrush(&color, None)? };
+        self.brush.replace(brush);
+
+        let textformat = window.factory.create_text_format(FONT_NAME, 16.0)?;
+        self.textformat.replace(textformat);
 
         Ok(())
     }
@@ -294,7 +296,6 @@ impl WindowHandler for SystrayMenu {
     }
 
     fn show(&self, pt: Point<i32>) -> Result<()> {
-        self.reset_graphics_resources()?;
         self.set_origin(pt)?;
         let (x, y, w, h) = self.calculate_layout()?;
         let handle = self.handle()?;
@@ -344,8 +345,7 @@ impl WindowHandler for SystrayMenu {
     }
 
     fn render(&self, handle: HWND) -> Result<()> {
-        self.reset_graphics_resources()?;
-        let window = to_owned(self.window.clone())?;
+        let window = self.window.try_clone_inner()?;
         let factory = window.factory;
         let target = window.target;
         let mut ps = PAINTSTRUCT::default();
@@ -360,9 +360,9 @@ impl WindowHandler for SystrayMenu {
             draw(
                 factory,
                 target.clone(),
-                self.brush.borrow().clone().unwrap(),
-                self.colors.borrow().clone(),
-                to_owned(self.items.clone())?,
+                (*self.brush.borrow()).clone(),
+                (*self.colors.borrow()).clone(),
+                self.items.try_clone_inner()?,
                 self.highlighted_index.borrow().clone(),
             );
 
@@ -398,8 +398,7 @@ unsafe fn draw_icon(
 ) {
     let size = ICON_SIZE;
     let res = make_int_resource(icon_rid);
-    let hicon =
-        LoadIconW(DllModule::global().module, res);
+    let hicon = LoadIconW(DllModule::global().module, res);
     if hicon.is_err() {
         return;
     }

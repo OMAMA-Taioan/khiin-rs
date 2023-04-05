@@ -23,7 +23,7 @@ use windows::Win32::UI::TextServices::TF_ST_CORRECTION;
 
 use khiin_protos::command::Command;
 
-use crate::utils::wpreedit::ToWidePreedit;
+use crate::utils::ToWidePreedit;
 
 pub struct CompositionMgr {
     composition: Option<ITfComposition>,
@@ -158,7 +158,7 @@ impl CompositionMgr {
     fn cancel_composition(&mut self, ec: u32) -> Result<()> {
         match self.composition.clone() {
             Some(comp) => self.cleanup(ec, comp),
-            _ => Ok(())
+            _ => Ok(()),
         }
     }
 
