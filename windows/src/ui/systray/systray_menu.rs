@@ -7,9 +7,7 @@ use std::sync::RwLock;
 
 use windows::Win32::Foundation::D2DERR_RECREATE_TARGET;
 use windows::Win32::Graphics::Direct2D::Common::D2D_POINT_2F;
-use windows::Win32::Graphics::Direct2D::D2D1_DRAW_TEXT_OPTIONS;
 use windows::Win32::Graphics::Direct2D::D2D1_DRAW_TEXT_OPTIONS_NONE;
-use windows::Win32::Graphics::Direct2D::D2D1_ELLIPSE;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextLayout;
 use windows::Win32::Graphics::Gdi::RDW_INVALIDATE;
 use windows::Win32::Graphics::Gdi::RDW_UPDATENOW;
@@ -51,6 +49,7 @@ use crate::geometry::Point;
 use crate::geometry::Rect;
 use crate::locales::t;
 use crate::resource::*;
+use crate::ui::client_hit_test;
 use crate::ui::colors::color_f;
 use crate::ui::colors::ColorScheme_F;
 use crate::ui::colors::COLOR_BLACK;
@@ -62,7 +61,7 @@ use crate::ui::window::WindowData;
 use crate::ui::window::WindowHandler;
 use crate::ui::wndproc::Wndproc;
 
-static FONT_NAME: &str = "Arial";
+static FONT_NAME: &str = "Microsoft JhengHei UI Regular";
 
 const DW_STYLE: WINDOW_STYLE = WS_POPUP;
 
@@ -260,6 +259,31 @@ impl SystrayMenu {
 
         Ok(())
     }
+
+    fn hit_test(&self, handle: HWND, pt: Point<i32>) -> bool {
+        if !client_hit_test(handle, pt) {
+            *self.highlighted_index.borrow_mut() = usize::MAX;
+            return false;
+        }
+        let index = *self.highlighted_index.borrow();
+        let dpi = self.window_data().borrow().dpi;
+
+        if let Ok(items) = self.items.try_borrow() {
+            for (i, item) in items.iter().enumerate() {
+                let x_dp = pt.x.to_dp(dpi);
+                let y_dp = pt.y.to_dp(dpi);
+                let pt_dp = Point { x: x_dp, y: y_dp };
+                if item.rect.contains(pt_dp) {
+                    if index != i {
+                        *self.highlighted_index.borrow_mut() = i;
+                        return true
+                    }
+                }
+            }
+            *self.highlighted_index.borrow_mut() = usize::MAX;
+        }
+        false
+    }
 }
 
 impl Wndproc<SystrayMenu> for SystrayMenu {}
@@ -293,7 +317,6 @@ impl WindowHandler for SystrayMenu {
                 SWP_NOACTIVATE | SWP_NOZORDER,
             );
             ShowWindow(handle, SW_SHOWNA);
-            // RedrawWindow(handle, None, None, RDW_INVALIDATE | RDW_UPDATENOW);
         }
 
         Ok(())
@@ -309,8 +332,18 @@ impl WindowHandler for SystrayMenu {
         Ok(())
     }
 
-    fn on_resize(&self, width: u16, height: u16) -> Result<()> {
+    fn on_resize(&self, _width: u16, _height: u16) -> Result<()> {
         self.reset_graphics_resources()
+    }
+
+    fn on_mouse_move(&self, handle: HWND, pt: Point<i32>) -> Result<()> {
+        if self.hit_test(handle, pt) {
+            unsafe {
+                RedrawWindow(handle, None, None, RDW_INVALIDATE | RDW_UPDATENOW);
+            }
+        }
+
+        Ok(())
     }
 
     fn render(&self, handle: HWND) -> Result<()> {

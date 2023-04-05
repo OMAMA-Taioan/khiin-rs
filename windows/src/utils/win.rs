@@ -1,3 +1,4 @@
+use windows::Win32::Foundation::LPARAM;
 use windows::core::ComInterface;
 use windows::core::Error;
 use windows::core::PCWSTR;
@@ -91,18 +92,32 @@ impl WinString for String {
     }
 }
 
+#[inline]
 pub fn lo_word(value: u32) -> u16 {
     (value & 0xffff) as u16
 }
 
+#[inline]
 pub fn hi_word(value: u32) -> u16 {
     ((value >> 16) & 0xffff) as u16
 }
 
+#[inline]
 pub fn lo_byte(value: u16) -> u8 {
     (value & 0xff) as u8
 }
 
+#[inline]
 pub fn hi_byte(value: u16) -> u8 {
     ((value >> 8) & 0xff) as u8
+}
+
+#[inline]
+pub fn get_x_param(lparam: LPARAM) -> i32 {
+    lo_word(lparam.0 as u32) as i16 as i32 
+}
+
+#[inline]
+pub fn get_y_param(lparam: LPARAM) -> i32 {
+    hi_word(lparam.0 as u32) as i16 as i32 
 }

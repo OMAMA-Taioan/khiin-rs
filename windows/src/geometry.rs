@@ -6,7 +6,7 @@ use windows::Win32::Foundation::{POINT, RECT};
 #[derive(Copy, Clone, Default)]
 pub struct Point<T>
 where
-    T: Copy + Num + NumCast,
+    T: Copy + Num + NumCast + PartialOrd,
 {
     pub x: T,
     pub y: T,
@@ -14,7 +14,7 @@ where
 
 impl<T> From<POINT> for Point<T>
 where
-    T: Copy + Num + NumCast,
+    T: Copy + Num + NumCast + PartialOrd,
 {
     fn from(value: POINT) -> Self {
         Point {
@@ -26,7 +26,7 @@ where
 
 impl<T> From<&POINT> for Point<T>
 where
-    T: Copy + Num + NumCast,
+    T: Copy + Num + NumCast + PartialOrd,
 {
     fn from(value: &POINT) -> Self {
         Point {
@@ -38,7 +38,7 @@ where
 
 pub struct Size<T>
 where
-    T: Copy + Num + NumCast,
+    T: Copy + Num + NumCast + PartialOrd,
 {
     pub w: T,
     pub h: T,
@@ -47,7 +47,7 @@ where
 #[derive(Default, Clone)]
 pub struct Rect<T>
 where
-    T: Copy + Num + NumCast,
+    T: Copy + Num + NumCast + PartialOrd,
 {
     pub origin: Point<T>, // top left
     pub width: T,
@@ -56,7 +56,7 @@ where
 
 impl<T> Rect<T>
 where
-    T: Copy + Num + NumCast,
+    T: Copy + Num + NumCast + PartialOrd,
 {
     pub fn new(origin: Point<T>, width: T, height: T) -> Self {
         Rect {
@@ -94,6 +94,13 @@ where
             x: self.origin.x + self.width / (T::one() + T::one()),
             y: self.origin.y + self.height / (T::one() + T::one()),
         };
+    }
+
+    pub fn contains(&self, pt: Point<T>) -> bool {
+        pt.x > self.origin.x
+            && pt.y > self.origin.y
+            && pt.x < self.origin.x + self.width
+            && pt.y < self.origin.y + self.height
     }
 }
 

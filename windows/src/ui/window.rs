@@ -42,6 +42,8 @@ use crate::ui::dpi::dpi_aware;
 use crate::ui::dpi::Density;
 use crate::ui::dwm::set_rounded_corners;
 use crate::ui::render_factory::RenderFactory;
+use crate::utils::win::get_x_param;
+use crate::utils::win::get_y_param;
 use crate::utils::win::hi_word;
 use crate::utils::win::lo_word;
 use crate::winerr;
@@ -84,7 +86,11 @@ pub trait WindowHandler {
                 let rect: &RECT = unsafe { transmute(lparam) };
                 self.on_dpi_changed(handle, dpi, rect.into())
             }
-            WM_MOUSEMOVE => self.on_mouse_move(),
+            WM_MOUSEMOVE => {
+                let x = get_x_param(lparam);
+                let y = get_y_param(lparam);
+                self.on_mouse_move(handle, Point { x, y })
+            },
             WM_MOUSELEAVE => self.on_mouse_leave(),
             WM_LBUTTONDOWN => self.on_click(),
             WM_SHOWWINDOW => match wparam.0 {
@@ -217,7 +223,7 @@ pub trait WindowHandler {
         Ok(())
     }
 
-    fn on_mouse_move(&self) -> Result<()> {
+    fn on_mouse_move(&self, handle: HWND, pt: Point<i32>) -> Result<()> {
         winerr!(E_NOTIMPL)
     }
 
