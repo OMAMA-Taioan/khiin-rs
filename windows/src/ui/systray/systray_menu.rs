@@ -143,7 +143,7 @@ impl SystrayMenu {
             highlighted_index: RefCell::new(usize::MAX),
         });
 
-        this.reset_graphics_resources();
+        this.reset_graphics_resources()?;
 
         Wndproc::create(
             this.clone(),
