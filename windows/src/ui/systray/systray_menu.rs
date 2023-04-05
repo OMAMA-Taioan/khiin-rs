@@ -5,28 +5,33 @@ use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::RwLock;
 
-use windows::Win32::Foundation::D2DERR_RECREATE_TARGET;
-use windows::Win32::Graphics::Direct2D::Common::D2D_POINT_2F;
-use windows::Win32::Graphics::Direct2D::D2D1_DRAW_TEXT_OPTIONS_NONE;
-use windows::Win32::Graphics::DirectWrite::IDWriteTextLayout;
-use windows::Win32::Graphics::Gdi::RDW_INVALIDATE;
-use windows::Win32::Graphics::Gdi::RDW_UPDATENOW;
-use windows::Win32::Graphics::Gdi::RedrawWindow;
+use windows::Win32::Graphics::Direct2D::D2D1_BITMAP_INTERPOLATION_MODE;
 use windows::core::AsImpl;
 use windows::core::Error;
 use windows::core::Result;
+use windows::Win32::Foundation::D2DERR_RECREATE_TARGET;
 use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::RECT;
+use windows::Win32::Graphics::Direct2D::Common::D2D_POINT_2F;
+use windows::Win32::Graphics::Direct2D::Common::D2D_RECT_F;
 use windows::Win32::Graphics::Direct2D::ID2D1DCRenderTarget;
+use windows::Win32::Graphics::Direct2D::ID2D1Factory;
 use windows::Win32::Graphics::Direct2D::ID2D1SolidColorBrush;
+use windows::Win32::Graphics::Direct2D::D2D1_DRAW_TEXT_OPTIONS_NONE;
+use windows::Win32::Graphics::Direct2D::D2D1_ELLIPSE;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextFormat;
+use windows::Win32::Graphics::DirectWrite::IDWriteTextLayout;
 use windows::Win32::Graphics::DirectWrite::DWRITE_TEXT_METRICS;
 use windows::Win32::Graphics::Gdi::BeginPaint;
 use windows::Win32::Graphics::Gdi::EndPaint;
+use windows::Win32::Graphics::Gdi::RedrawWindow;
 use windows::Win32::Graphics::Gdi::PAINTSTRUCT;
+use windows::Win32::Graphics::Gdi::RDW_INVALIDATE;
+use windows::Win32::Graphics::Gdi::RDW_UPDATENOW;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
+use windows::Win32::UI::WindowsAndMessaging::LoadIconW;
 use windows::Win32::UI::WindowsAndMessaging::SetWindowPos;
 use windows::Win32::UI::WindowsAndMessaging::ShowWindow;
 use windows::Win32::UI::WindowsAndMessaging::SystemParametersInfoW;
@@ -56,6 +61,7 @@ use crate::ui::colors::COLOR_BLACK;
 use crate::ui::colors::COLOR_SCHEME_LIGHT;
 use crate::ui::dpi::dpi_aware;
 use crate::ui::dpi::Density;
+use crate::ui::render_factory::RenderFactory;
 use crate::ui::systray::SystrayMenuItem;
 use crate::ui::window::WindowData;
 use crate::ui::window::WindowHandler;
@@ -67,6 +73,7 @@ const DW_STYLE: WINDOW_STYLE = WS_POPUP;
 
 static BULLET_COL_WIDTH: i32 = 24;
 static ICON_COL_WIDTH: i32 = 32;
+static ICON_SIZE: i32 = 16;
 static ROW_HEIGHT: i32 = 34;
 static VPAD: i32 = 8;
 static HPAD: i32 = 16;
@@ -253,7 +260,8 @@ impl SystrayMenu {
             let color = color_f(&COLOR_BLACK);
             let brush = unsafe { target.CreateSolidColorBrush(&color, None)? };
             self.brush.replace(Some(brush));
-            let textformat = window.factory.create_text_format(FONT_NAME, 16.0)?;
+            let textformat =
+                window.factory.create_text_format(FONT_NAME, 16.0)?;
             self.textformat.replace(Some(textformat));
         }
 
@@ -276,7 +284,7 @@ impl SystrayMenu {
                 if item.rect.contains(pt_dp) {
                     if index != i {
                         *self.highlighted_index.borrow_mut() = i;
-                        return true
+                        return true;
                     }
                 }
             }
@@ -339,7 +347,12 @@ impl WindowHandler for SystrayMenu {
     fn on_mouse_move(&self, handle: HWND, pt: Point<i32>) -> Result<()> {
         if self.hit_test(handle, pt) {
             unsafe {
-                RedrawWindow(handle, None, None, RDW_INVALIDATE | RDW_UPDATENOW);
+                RedrawWindow(
+                    handle,
+                    None,
+                    None,
+                    RDW_INVALIDATE | RDW_UPDATENOW,
+                );
             }
         }
 
@@ -349,6 +362,7 @@ impl WindowHandler for SystrayMenu {
     fn render(&self, handle: HWND) -> Result<()> {
         self.reset_graphics_resources()?;
         let window = to_owned(self.window.clone())?;
+        let factory = window.factory;
         let target = window.target;
         let mut ps = PAINTSTRUCT::default();
         let mut rc = RECT::default();
@@ -360,6 +374,7 @@ impl WindowHandler for SystrayMenu {
             target.BeginDraw();
 
             draw(
+                factory,
                 target.clone(),
                 self.brush.borrow().clone().unwrap(),
                 self.colors.borrow().clone(),
@@ -368,7 +383,7 @@ impl WindowHandler for SystrayMenu {
             );
 
             match target.EndDraw(None, None) {
-                Ok(_) => {},
+                Ok(_) => {}
                 Err(e) => {
                     if e.code() == D2DERR_RECREATE_TARGET {
                         self.reset_graphics_resources()?;
@@ -382,7 +397,52 @@ impl WindowHandler for SystrayMenu {
     }
 }
 
+unsafe fn draw_bullet(
+    target: &ID2D1DCRenderTarget,
+    brush: &ID2D1SolidColorBrush,
+    rect: Rect<i32>,
+) {
+    let ellipse = rect.center().d2d1_circle(2.0);
+    target.FillEllipse(&ellipse, brush)
+}
+
+unsafe fn draw_icon(
+    factory: Arc<RenderFactory>,
+    target: &ID2D1DCRenderTarget,
+    rect: Rect<f32>,
+    icon_rid: u16,
+) {
+    let size = ICON_SIZE;
+    let res = make_int_resource(icon_rid);
+    let hicon =
+        LoadIconW(DllModule::global().module, res);
+    if hicon.is_err() {
+        return;
+    }
+    let bmp = factory.create_bitmap(target.clone(), hicon.unwrap());
+    if bmp.is_err() {
+        return;
+    }
+    let bmp = bmp.unwrap();
+    let left = rect.left() + (rect.width - size as f32) / 2.0;
+    let top = rect.top() + (rect.height - size as f32) / 2.0;
+    let dest_rect = D2D_RECT_F {
+        left,
+        top,
+        right: left + size as f32,
+        bottom: top + size as f32,
+    };
+    target.DrawBitmap(
+        &bmp,
+        Some(&dest_rect),
+        1.0,
+        D2D1_BITMAP_INTERPOLATION_MODE::default(),
+        None,
+    )
+}
+
 unsafe fn draw_text_item(
+    factory: Arc<RenderFactory>,
     target: &ID2D1DCRenderTarget,
     brush: &ID2D1SolidColorBrush,
     item: &SystrayMenuItem,
@@ -392,13 +452,24 @@ unsafe fn draw_text_item(
     origin.x += HPAD;
     let height = item.rect.height;
 
-    let mut o = pt(origin.x as f32, origin.y as f32);
+    if item.checked {
+        let rect = Rect::new(origin, BULLET_COL_WIDTH, height);
+        draw_bullet(target, brush, rect)
+    }
+
+    let mut o = origin;
+    o.x += BULLET_COL_WIDTH;
+    let rect = Rect::new(o, ICON_COL_WIDTH, height).to_float();
+    draw_icon(factory, target, rect, item.icon_rid);
+
+    let mut o = origin.d2d1_point();
     o.x += BULLET_COL_WIDTH as f32 + ICON_COL_WIDTH as f32;
     o.y += vertical_center_text_layout(&layout, height);
     target.DrawTextLayout(o, &layout, brush, D2D1_DRAW_TEXT_OPTIONS_NONE);
 }
 
 unsafe fn draw(
+    factory: Arc<RenderFactory>,
     target: ID2D1DCRenderTarget,
     brush: ID2D1SolidColorBrush,
     colors: ColorScheme_F,
@@ -417,7 +488,7 @@ unsafe fn draw(
             }
 
             brush.SetColor(&colors.text);
-            draw_text_item(&target, &brush, item);
+            draw_text_item(factory.clone(), &target, &brush, item);
         } else {
             let top = item.rect.top() as f32 + item.rect.height as f32 / 2.0;
             let width = item.rect.width as f32;
@@ -430,7 +501,10 @@ fn pt(x: f32, y: f32) -> D2D_POINT_2F {
     D2D_POINT_2F { x, y }
 }
 
-unsafe fn vertical_center_text_layout(layout: &IDWriteTextLayout, available_height: i32) -> f32 {
+unsafe fn vertical_center_text_layout(
+    layout: &IDWriteTextLayout,
+    available_height: i32,
+) -> f32 {
     let mut metrics = DWRITE_TEXT_METRICS::default();
     layout.GetMetrics(&mut metrics).ok();
     (available_height as f32 - metrics.height) / 2.0

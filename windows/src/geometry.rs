@@ -2,6 +2,8 @@ use num::cast::NumCast;
 use num::traits::AsPrimitive;
 use num::{Num, ToPrimitive};
 use windows::Win32::Foundation::{POINT, RECT};
+use windows::Win32::Graphics::Direct2D::Common::D2D_POINT_2F;
+use windows::Win32::Graphics::Direct2D::D2D1_ELLIPSE;
 
 #[derive(Copy, Clone, Default)]
 pub struct Point<T>
@@ -10,6 +12,39 @@ where
 {
     pub x: T,
     pub y: T,
+}
+
+impl<T> Point<T>
+where
+    T: Copy + Num + NumCast + PartialOrd,
+{
+    pub fn new(x: T, y: T) -> Self {
+        Self { x, y }
+    }
+}
+
+impl Point<i32> {
+    pub fn to_float(&self) -> Point<f32> {
+        Point::new(self.x as f32, self.y as f32)
+    }
+
+    pub fn d2d1_point(&self) -> D2D_POINT_2F {
+        D2D_POINT_2F {
+            x: self.x as f32,
+            y: self.y as f32,
+        }
+    }
+
+    pub fn d2d1_circle(&self, radius: f32) -> D2D1_ELLIPSE {
+        D2D1_ELLIPSE {
+            point: D2D_POINT_2F {
+                x: self.x as f32,
+                y: self.y as f32,
+            },
+            radiusX: radius,
+            radiusY: radius,
+        }
+    }
 }
 
 impl<T> From<POINT> for Point<T>
@@ -52,6 +87,12 @@ where
     pub origin: Point<T>, // top left
     pub width: T,
     pub height: T,
+}
+
+impl Rect<i32> {
+    pub fn to_float(&self) -> Rect<f32> {
+        Rect::new(self.origin.to_float(), self.width as f32, self.height as f32)
+    }
 }
 
 impl<T> Rect<T>

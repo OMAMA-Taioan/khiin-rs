@@ -1,6 +1,8 @@
+// use once_cell::sync::Lazy;
+
+use windows::core::Result;
 use windows::core::HSTRING;
 use windows::core::PCWSTR;
-use windows::core::Result;
 use windows::Win32::Graphics::Direct2D::Common::D2D1_ALPHA_MODE_IGNORE;
 use windows::Win32::Graphics::Direct2D::Common::D2D1_PIXEL_FORMAT;
 use windows::Win32::Graphics::Direct2D::D2D1CreateFactory;
@@ -32,6 +34,23 @@ use windows::Win32::UI::WindowsAndMessaging::HICON;
 
 use crate::utils::pcwstr::ToPcwstr;
 use crate::utils::win::WinString;
+// use crate::utils::win::co_create_inproc;
+
+// static D2D1_FACTORY: Lazy<ID2D1Factory1> = Lazy::new(|| unsafe {
+//     D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, None).unwrap()
+// });
+
+// static DWRITE_FACTORY: Lazy<IDWriteFactory3> = Lazy::new(|| unsafe {
+//     DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED).unwrap()
+// });
+
+// IWICImagingFactory does not implement Sync, otherwise we could just
+// use these statics...
+
+// static WIC_FACTORY: Lazy<IWICImagingFactory> = Lazy::new(|| unsafe {
+//     let wic = co_create_inproc(&CLSID_WICImagingFactory).unwrap();
+//     wic
+// });
 
 pub struct RenderFactory {
     d2d1_factory: ID2D1Factory1,

@@ -46,6 +46,8 @@ use windows::Win32::UI::WindowsAndMessaging::LR_DEFAULTCOLOR;
 use crate::dll::DllModule;
 use crate::geometry::Point;
 use crate::reg::guids::IID_KhiinTextService;
+use crate::resource::IDI_MODE_CONTINUOUS;
+use crate::resource::make_int_resource;
 use crate::ui::systray::SystrayMenu;
 use crate::ui::window::WindowHandler;
 use crate::ui::wndproc::Wndproc;
@@ -216,13 +218,11 @@ impl ITfLangBarItemButton_Impl for LangBarIndicator {
 
     fn GetIcon(&self) -> Result<HICON> {
         unsafe {
-            // Testing
-            let IDI_MODE_CONTINUOUS = 105;
-            let str = IDI_MODE_CONTINUOUS as *mut u16;
+            let res = make_int_resource(IDI_MODE_CONTINUOUS);
 
             let handle = LoadImageW(
                 DllModule::global().module,
-                PCWSTR(str),
+                res,
                 IMAGE_ICON,
                 0,
                 0,

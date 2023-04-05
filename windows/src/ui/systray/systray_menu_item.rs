@@ -8,14 +8,14 @@ use crate::geometry::Rect;
 pub struct SystrayMenuItem {
     pub separator: bool,
     pub checked: bool,
-    pub icon_rid: u32,
+    pub icon_rid: u16,
     pub string_key: String,
     pub rect: Rect<i32>,
     pub layout: Option<IDWriteTextLayout>,
 }
 
 impl SystrayMenuItem {
-    pub fn button(string_key: &str, icon_rid: u32, checked: bool) -> Self {
+    pub fn button(string_key: &str, icon_rid: u16, checked: bool) -> Self {
         Self {
             separator: false,
             checked,
