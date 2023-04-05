@@ -35,7 +35,6 @@ use windows::Win32::UI::TextServices::ITfUIElement;
 use windows::Win32::UI::TextServices::GUID_COMPARTMENT_KEYBOARD_DISABLED;
 use windows::Win32::UI::TextServices::GUID_COMPARTMENT_KEYBOARD_OPENCLOSE;
 
-use khiin::Engine;
 use khiin_protos::command::Command;
 use khiin_protos::config::AppConfig;
 use khiin_protos::config::BoolValue;
@@ -241,7 +240,7 @@ impl TextService {
         co_create_inproc(&CLSID_TF_CategoryMgr)
     }
 
-    pub fn ui_element(&self) -> Result<ITfUIElement> {
+    pub fn candidate_list_as_ui_element(&self) -> Result<ITfUIElement> {
         self.candidate_list_ui.borrow().clone().unwrap().cast()
     }
 

@@ -58,8 +58,8 @@ impl Metrics {
         let padding = PADDING.scale(s);
         let padding_sm = PADDING_SM.scale(s);
         let font_size_sm = FONT_SIZE_SM.scale(s);
-        let marker_w = 4.0;
-        let marker_h = BUBBLE_WIDTH;
+        let marker_w = BUBBLE_WIDTH;
+        let marker_h = BUBBLE_HEIGHT.scale(s);
         let row_height = font_size + padding;
 
         Self {

@@ -45,12 +45,16 @@ pub struct CandidateListUI {
 
 impl CandidateListUI {
     pub fn new(tip: ITfTextInputProcessor) -> Result<Self> {
-        Ok(Self {
+        let this = Self {
             tip: tip.clone(),
             element_id: ArcLock::new(0),
             popup: Arc::new(CandidateWindow::new(tip)?),
             pager: Arc::new(Pager::new()),
-        })
+        };
+
+        this.begin_ui_elem()?;
+
+        Ok(this)
     }
 
     pub fn notify_command(
@@ -69,6 +73,7 @@ impl CandidateListUI {
             self.pager.set_focus(focused)?;
         }
 
+        self.update_ui_elem()?;
         Ok(())
     }
 
@@ -80,15 +85,17 @@ impl CandidateListUI {
     fn begin_ui_elem(&self) -> Result<()> {
         let service = self.tip.as_impl();
         let ui_elem_mgr = self.ui_elem_mgr()?;
-        let ui_elem = service.ui_element()?;
-        let showable = Box::into_raw(Box::from(TRUE));
-        let elementid = Box::into_raw(Box::from(0u32));
+        let ui_elem = service.candidate_list_as_ui_element()?;
+        let mut showable = TRUE;
+        let mut elementid = 0u32;
 
         unsafe {
-            ui_elem_mgr.BeginUIElement(&ui_elem, showable, elementid)?;
-            let id = *elementid;
-            let _ = Box::from_raw(elementid);
-            self.element_id.set(id)
+            ui_elem_mgr.BeginUIElement(
+                &ui_elem,
+                &mut showable,
+                &mut elementid,
+            )?;
+            self.element_id.set(elementid)
         }
     }
 
