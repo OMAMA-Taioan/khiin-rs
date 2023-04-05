@@ -35,7 +35,7 @@ impl Range {
             s
         };
 
-        s * (self.max - self.min)
+        s * (self.max - self.min) + self.min
     }
 }
 
