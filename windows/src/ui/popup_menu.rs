@@ -49,6 +49,7 @@ use khiin_protos::config::AppConfig;
 use crate::dll::DllModule;
 use crate::geometry::Point;
 use crate::geometry::Rect;
+use crate::locales::t;
 use crate::resource::*;
 use crate::ui::colors::color_f;
 use crate::ui::colors::ColorScheme_F;
@@ -187,11 +188,10 @@ impl PopupMenu {
             if item.separator {
                 continue;
             }
+            let text = t(&item.string_key);
             unsafe {
-                let text = t!(&item.string_key[..]);
-                println!("{}", text);
                 let layout = window.factory.create_text_layout(
-                    "Just testing a string".to_string(),
+                    text,
                     self.textformat.borrow().clone().unwrap(),
                     window.max_width as f32,
                     window.max_height as f32,
@@ -372,10 +372,7 @@ unsafe fn draw(
     items: Vec<PopupMenuItem>,
     highlight_idx: usize,
 ) {
-    // brush.SetColor(&colors.accent);
-    // let x = D2D1_ELLIPSE { point: pt(500.0, 500.0), radiusX: 200.0, radiusY: 200.0 };
-    // target.DrawEllipse(&x, &brush, 5.0, None);
-    target.Clear(Some(&colors.accent));
+    target.Clear(Some(&colors.background));
 
     for (i, item) in items.iter().enumerate() {
         let rect = item.d2d_rect_f();
@@ -387,7 +384,6 @@ unsafe fn draw(
             }
 
             brush.SetColor(&colors.text);
-            target.DrawLine(pt(0.0, 0.0), pt(20.0, 20.0), &brush, 1.0, None);
             draw_text_item(&target, &brush, item);
         } else {
             let top = item.rect.top() as f32 + item.rect.height as f32 / 2.0;

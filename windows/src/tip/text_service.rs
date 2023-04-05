@@ -39,6 +39,7 @@ use windows::Win32::UI::TextServices::GUID_COMPARTMENT_KEYBOARD_DISABLED;
 use windows::Win32::UI::TextServices::GUID_COMPARTMENT_KEYBOARD_OPENCLOSE;
 
 use crate::dll::DllModule;
+use crate::locales::set_locale;
 use crate::reg::guids::GUID_CONFIG_CHANGED_COMPARTMENT;
 use crate::reg::guids::GUID_DISPLAY_ATTRIBUTE_CONVERTED;
 use crate::reg::guids::GUID_DISPLAY_ATTRIBUTE_FOCUSED;
@@ -255,6 +256,7 @@ impl TextService {
 // Private portion
 impl TextService {
     fn activate(&self) -> Result<()> {
+        set_locale("en");
         DllModule::global().add_ref();
         PopupMenu::register_class(DllModule::global().module);
         self.init_engine()?;
