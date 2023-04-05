@@ -5,13 +5,13 @@ use windows::Win32::{
 
 use crate::geometry::{Point, Rect};
 
+pub(crate) mod candidates;
 pub(crate) mod colors;
 pub(crate) mod render_factory;
 pub(crate) mod systray;
 pub(crate) mod window;
 pub(crate) mod wndproc;
 
-mod candidate_window;
 mod dpi;
 mod dwm;
 

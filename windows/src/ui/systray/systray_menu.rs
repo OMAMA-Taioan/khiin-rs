@@ -16,10 +16,8 @@ use windows::Win32::Foundation::RECT;
 use windows::Win32::Graphics::Direct2D::Common::D2D_POINT_2F;
 use windows::Win32::Graphics::Direct2D::Common::D2D_RECT_F;
 use windows::Win32::Graphics::Direct2D::ID2D1DCRenderTarget;
-use windows::Win32::Graphics::Direct2D::ID2D1Factory;
 use windows::Win32::Graphics::Direct2D::ID2D1SolidColorBrush;
 use windows::Win32::Graphics::Direct2D::D2D1_DRAW_TEXT_OPTIONS_NONE;
-use windows::Win32::Graphics::Direct2D::D2D1_ELLIPSE;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextFormat;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextLayout;
 use windows::Win32::Graphics::DirectWrite::DWRITE_TEXT_METRICS;
@@ -134,21 +132,7 @@ impl SystrayMenu {
     pub fn new(tip: ITfTextInputProcessor) -> Result<Arc<Self>> {
         let service = tip.as_impl();
         let factory = service.render_factory.clone();
-        let target = factory.create_dc_render_target()?;
-
-        let window = WindowData {
-            handle: None,
-            factory,
-            showing: false,
-            tracking_mouse: false,
-            max_width: 100,
-            max_height: 100,
-            dpi_parent: 96,
-            dpi: 96,
-            scale: 1.0,
-            origin: Point::default(),
-            target: target.clone(),
-        };
+        let window = WindowData::new(factory)?;
 
         let this = Arc::new(Self {
             window: Rc::new(RefCell::new(window)),

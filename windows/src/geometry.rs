@@ -1,6 +1,5 @@
 use num::cast::NumCast;
-use num::traits::AsPrimitive;
-use num::{Num, ToPrimitive};
+use num::{Num};
 use windows::Win32::Foundation::{POINT, RECT};
 use windows::Win32::Graphics::Direct2D::Common::D2D_POINT_2F;
 use windows::Win32::Graphics::Direct2D::D2D1_ELLIPSE;

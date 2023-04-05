@@ -4,14 +4,11 @@ use std::os::windows::prelude::OsStringExt;
 
 use log::debug;
 use windows::Win32::Foundation::ERROR_FILE_NOT_FOUND;
-use windows::Win32::System::Registry::RegEnumValueW;
 use windows::core::Result;
 use windows::Win32::Foundation::GetLastError;
 use windows::Win32::Foundation::ERROR_SUCCESS;
 use windows::Win32::Foundation::E_FAIL;
-use windows::Win32::System::Registry::RegDeleteValueA;
 use windows::Win32::System::Registry::RegDeleteValueW;
-use windows::Win32::System::Registry::RegGetValueA;
 use windows::Win32::System::Registry::RegGetValueW;
 use windows::Win32::System::Registry::RegSetValueExW;
 use windows::Win32::System::Registry::HKEY;

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use windows::Win32::Foundation::TRUE;
 use windows::core::implement;
 use windows::core::AsImpl;
@@ -18,6 +20,7 @@ use windows::Win32::UI::TextServices::ITfDocumentMgr;
 use windows::Win32::UI::TextServices::ITfUIElement;
 use windows::Win32::UI::TextServices::ITfUIElement_Impl;
 
+use crate::ui::candidates::CandidateWindow;
 use crate::utils::arc_lock::ArcLock;
 
 #[implement(
@@ -29,14 +32,16 @@ use crate::utils::arc_lock::ArcLock;
 pub struct CandidateListUI {
     tip: ITfTextInputProcessor,
     element_id: ArcLock<u32>,
+    popup: Arc<CandidateWindow>,
 }
 
 impl CandidateListUI {
-    pub fn new(tip: ITfTextInputProcessor) -> Self {
-        Self {
-            tip,
+    pub fn new(tip: ITfTextInputProcessor) -> Result<Self> {
+        Ok(Self {
+            tip: tip.clone(),
             element_id: ArcLock::new(0),
-        }
+            popup: Arc::new(CandidateWindow::new(tip)?),
+        })
     }
 
     fn ui_elem_mgr(&self) -> Result<ITfUIElementMgr> {

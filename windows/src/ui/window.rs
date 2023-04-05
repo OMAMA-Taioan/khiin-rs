@@ -65,6 +65,24 @@ pub struct WindowData {
     pub origin: Point<i32>,
 }
 
+impl WindowData {
+    pub fn new(factory: Arc<RenderFactory>) -> Result<Self> {
+        Ok(Self {
+            handle: None,
+            showing: false,
+            tracking_mouse: false,
+            max_width: 0,
+            max_height: 0,
+            dpi_parent: 0,
+            dpi: 0,
+            scale: 0.0,
+            origin: Point::default(),
+            target: factory.create_dc_render_target()?,
+            factory,
+        })
+    }
+}
+
 pub trait WindowHandler {
     const WINDOW_CLASS_NAME: &'static str;
 

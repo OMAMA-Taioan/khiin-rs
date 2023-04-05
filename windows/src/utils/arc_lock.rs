@@ -1,7 +1,6 @@
 use std::sync::Arc;
 use std::sync::RwLock;
 
-use windows::core::Error;
 use windows::core::Result;
 use windows::Win32::Foundation::E_FAIL;
 

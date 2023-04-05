@@ -1,9 +1,6 @@
-use std::cell::RefCell;
 use std::ffi::c_void;
-use std::rc::Weak;
 
 use windows::Win32::Foundation::E_FAIL;
-use windows::core::implement;
 use windows::core::ComInterface;
 use windows::core::IUnknown;
 use windows::core::Result;

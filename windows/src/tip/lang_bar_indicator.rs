@@ -82,7 +82,7 @@ impl LangBarIndicator {
             sink_map: Arc::new(Mutex::new(HashMap::new())),
             status: 0, // always 0
             added: Cell::new(false),
-            popup: SystrayMenu::new(tip.clone())?,
+            popup: SystrayMenu::new(tip)?,
         };
 
         let button: ITfLangBarItemButton = this.into();

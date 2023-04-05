@@ -498,7 +498,7 @@ impl TextService {
     // candidate ui
     fn init_candidate_ui(&self) -> Result<()> {
         self.candidate_list_ui
-            .replace(Some(CandidateListUI::new(self.this()).into()));
+            .replace(Some(CandidateListUI::new(self.this())?.into()));
         Ok(())
     }
 

@@ -1,9 +1,8 @@
 use windows::Win32::Foundation::LPARAM;
 use windows::core::ComInterface;
 use windows::core::Error;
-use windows::core::PCWSTR;
-use windows::core::Result;
 use windows::core::GUID;
+use windows::core::Result;
 use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HMODULE;
 use windows::Win32::Foundation::MAX_PATH;

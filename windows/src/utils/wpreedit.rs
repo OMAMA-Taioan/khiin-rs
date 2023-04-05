@@ -19,16 +19,15 @@ impl WPreedit {
         let caret = preedit.caret;
         let mut segments: Vec<SegmentData> = Vec::new();
         let mut display: Vec<u16> = Vec::new();
-        let mut idx: u32 = 0;
 
-        for segment in &preedit.segments {
+        for (idx, segment) in preedit.segments.iter().enumerate() {
             let wstring = segment.value.to_utf16();
             let size = wstring.len() as u32;
             display.extend(wstring);
 
             segments.push(SegmentData {
-                start: idx,
-                stop: idx + size,
+                start: idx as u32,
+                stop: idx as u32 + size,
                 status: segment.status.enum_value_or_default(),
             })
         }
