@@ -1,8 +1,7 @@
 use std::cmp::min;
 use std::sync::Arc;
-use std::{borrow::Borrow, cell::RefCell};
+use std::cell::RefCell;
 
-use num::Num;
 use windows::core::Result;
 
 use khiin_protos::command::Candidate;
@@ -20,7 +19,6 @@ pub struct Pager {
     pub focused_id: RefCell<i32>,
     pub focused_index: RefCell<usize>,
     pub focused_col: RefCell<usize>,
-    pub grid: RefCell<CandidateGrid>,
 }
 
 impl Pager {
@@ -34,7 +32,6 @@ impl Pager {
             focused_id: RefCell::new(0),
             focused_index: RefCell::new(0),
             focused_col: RefCell::new(0),
-            grid: RefCell::new(CandidateGrid::default()),
         }
     }
 
@@ -49,7 +46,12 @@ impl Pager {
         let mut start = self.start_index();
         let end = self.end_index();
         let mut col: Vec<Candidate> = Vec::new();
-        for (i, candidate) in candidates.iter().skip(start).take(end - start + 1).enumerate() {
+        for (i, candidate) in candidates
+            .iter()
+            .skip(start)
+            .take(end - start + 1)
+            .enumerate()
+        {
             if i == start + self.max_col_size() {
                 grid.push(col);
                 col = Vec::new();
