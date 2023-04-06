@@ -119,7 +119,7 @@ pub struct TextService {
     focused_attr_guidatom: ArcLock<u32>,
     lang_bar_indicator: RefCell<Option<ITfLangBarItemButton>>,
     preserved_key_mgr: RefCell<Option<PreservedKeyMgr>>,
-    candidate_list_ui: RefCell<Option<ITfCandidateListUIElement>>,
+    candidate_list_ui: RefCell<Option<ITfUIElement>>,
     composition_mgr: Arc<RwLock<CompositionMgr>>,
     pub render_factory: Arc<RenderFactory>,
 
@@ -242,10 +242,6 @@ impl TextService {
 
     pub fn categorymgr(&self) -> Result<ITfCategoryMgr> {
         co_create_inproc(&CLSID_TF_CategoryMgr)
-    }
-
-    pub fn candidate_list_as_ui_element(&self) -> Result<ITfUIElement> {
-        self.candidate_list_ui.borrow().clone().unwrap().cast()
     }
 
     pub fn handle_composition(
@@ -535,6 +531,11 @@ impl TextService {
     }
 
     fn deinit_candidate_ui(&self) -> Result<()> {
+        {
+            let cand_ui = (&*self.candidate_list_ui.borrow()).clone().unwrap();
+            let cand_ui = cand_ui.as_impl();
+            cand_ui.end_ui_elem()?;
+        }
         self.candidate_list_ui.replace(None);
         Ok(())
     }

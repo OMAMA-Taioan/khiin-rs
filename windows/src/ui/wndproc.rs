@@ -2,6 +2,8 @@ use std::ffi::c_void;
 use std::mem::size_of;
 use std::mem::transmute;
 use std::sync::Arc;
+use windows::Win32::Foundation::FALSE;
+use windows::Win32::UI::WindowsAndMessaging::IsWindow;
 use windows::core::Result;
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::BOOL;
@@ -142,14 +144,13 @@ where
                 Some(this_ptr as *mut c_void),
             );
 
-            this.set_handle(Some(handle))?;
-
             SetThreadDpiAwarenessContext(previous_dpi_awareness);
 
-            if this.handle().unwrap() == HWND::default() {
-                winerr!(E_FAIL)
-            } else {
+            if IsWindow(handle) != FALSE {
+                this.set_handle(Some(handle))?;
                 Ok(())
+            } else {
+                winerr!(E_FAIL)
             }
         }
     }

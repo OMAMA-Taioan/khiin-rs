@@ -46,17 +46,17 @@ pub struct CandidateListUI {
 }
 
 impl CandidateListUI {
-    pub fn new(tip: ITfTextInputProcessor) -> Result<Self> {
-        let this = Self {
+    pub fn new(tip: ITfTextInputProcessor) -> Result<ITfUIElement> {
+        let elem: ITfUIElement = Self {
             tip: tip.clone(),
             element_id: ArcLock::new(0),
             popup: Arc::new(CandidateWindow::new(tip)?),
             pager: Rc::new(RefCell::new(Pager::default())),
-        };
+        }.into();
 
-        this.begin_ui_elem()?;
-
-        Ok(this)
+        let this = elem.as_impl();
+        this.begin_ui_elem(elem.clone())?;
+        Ok(elem)
     }
 
     pub fn notify_command(
@@ -85,16 +85,14 @@ impl CandidateListUI {
         service.threadmgr().cast()
     }
 
-    fn begin_ui_elem(&self) -> Result<()> {
-        let service = self.tip.as_impl();
+    fn begin_ui_elem(&self, elem: ITfUIElement) -> Result<()> {
         let ui_elem_mgr = self.ui_elem_mgr()?;
-        let ui_elem = service.candidate_list_as_ui_element()?;
         let mut showable = TRUE;
         let mut elementid = 0u32;
 
         unsafe {
             ui_elem_mgr.BeginUIElement(
-                &ui_elem,
+                &elem,
                 &mut showable,
                 &mut elementid,
             )?;
@@ -107,7 +105,7 @@ impl CandidateListUI {
         unsafe { ui_elem_mgr.UpdateUIElement(self.element_id.get()?) }
     }
 
-    fn end_ui_elem(&self) -> Result<()> {
+    pub fn end_ui_elem(&self) -> Result<()> {
         let ui_elem_mgr = self.ui_elem_mgr()?;
         unsafe { ui_elem_mgr.EndUIElement(self.element_id.get()?) }
     }
