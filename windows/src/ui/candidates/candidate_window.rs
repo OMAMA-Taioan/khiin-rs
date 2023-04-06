@@ -145,30 +145,6 @@ impl CandidateWindow {
         Ok(WindowPosInfo { handle, left, top, width: w, height: h })
     }
 
-    // vars are:
-    // m_candidate_grid = page_data.candidates
-    // MinColWidth()
-    // row_padding
-
-    fn calculate_layout(&self) {
-        let CandidatePage {
-            display_mode,
-            focused_id,
-            focused_index,
-            focused_col,
-            quickselect_active,
-            candidates,
-        } = &*self.page_data.borrow();
-
-        if candidates.is_empty() {
-            return;
-        }
-
-        let n_cols = candidates.len();
-        let n_rows = candidates[0].len();
-        // let mut grid = CandidateLayout
-    }
-
     fn min_col_width(&self) -> i32 {
         match self.page_data.borrow().display_mode {
             DisplayMode::Grid => self.metrics.borrow().min_col_w_multi,
