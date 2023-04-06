@@ -3,6 +3,7 @@ use windows::Win32::Foundation::RECT;
 use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
 
 use crate::geometry::{Point, Rect};
+pub use render_factory::RenderFactory;
 
 pub(crate) mod candidates;
 pub(crate) mod colors;

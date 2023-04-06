@@ -15,11 +15,18 @@ use windows::Win32::Graphics::Gdi::PAINTSTRUCT;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
 
-use crate::ui::candidates::metrics::Metrics;
+use crate::geometry::Rect;
+use crate::geometry::Size;
+use crate::ui::candidates::CandidatePage;
+use crate::ui::candidates::Metrics;
+use crate::ui::dpi::dpi_aware;
+use crate::ui::dpi::Density;
 use crate::ui::window::WindowData;
 use crate::ui::window::WindowHandler;
 use crate::ui::wndproc::Wndproc;
 use crate::utils::CloneInner;
+
+use super::layout::CandidateLayout;
 
 static FONT_NAME: &str = "Arial";
 
@@ -31,6 +38,14 @@ pub enum DisplayMode {
     Grid,
 }
 
+pub struct WindowPosInfo {
+    handle: HWND,
+    left: i32,
+    top: i32,
+    width: i32,
+    height: i32,
+}
+
 pub struct CandidateWindow {
     tip: ITfTextInputProcessor,
     window: Rc<RefCell<WindowData>>,
@@ -38,16 +53,15 @@ pub struct CandidateWindow {
     textformat: RefCell<IDWriteTextFormat>,
     textformat_sm: RefCell<IDWriteTextFormat>,
     metrics: RefCell<Metrics>,
-    display_mode: RefCell<DisplayMode>,
-    focused_id: RefCell<usize>,
-    quickselect_col: RefCell<usize>,
-    quickselect_active: RefCell<bool>,
     mouse_focused_id: RefCell<usize>,
     tracking_mouse: RefCell<bool>,
+    page_data: Rc<RefCell<CandidatePage>>,
+    text_rect: RefCell<Rect<i32>>,
+    layout: RefCell<CandidateLayout>,
 }
 
 impl CandidateWindow {
-    pub(crate) fn new(tip: ITfTextInputProcessor) -> Result<Self> {
+    pub fn new(tip: ITfTextInputProcessor) -> Result<Self> {
         let service = tip.as_impl();
         let factory = service.render_factory.clone();
         let window = WindowData::new(factory)?;
@@ -69,13 +83,97 @@ impl CandidateWindow {
             textformat: RefCell::new(textformat),
             textformat_sm: RefCell::new(textformat_sm),
             metrics: RefCell::new(metrics),
-            display_mode: RefCell::new(DisplayMode::ShortColumn),
-            focused_id: RefCell::new(usize::MAX),
-            quickselect_col: RefCell::new(0),
-            quickselect_active: RefCell::new(false),
             mouse_focused_id: RefCell::new(usize::MAX),
             tracking_mouse: RefCell::new(false),
+            page_data: Rc::new(RefCell::new(CandidatePage::default())),
+            text_rect: RefCell::new(Rect::default()),
+            layout: RefCell::new(CandidateLayout::default()),
         })
+    }
+
+    pub fn update(
+        &self,
+        page: CandidatePage,
+        text_rect: Rect<i32>,
+    ) -> Result<WindowPosInfo> {
+        self.page_data.replace(page);
+        self.text_rect.replace(text_rect);
+
+        let max_size = Size {
+            w: self.window.borrow().max_width,
+            h: self.window.borrow().max_height,
+        };
+
+        let padding = self.metrics.borrow().padding as i32;
+
+        let layout = CandidateLayout::new(
+            self.window.borrow().factory.clone(),
+            self.textformat.borrow().clone(),
+            &(*self.page_data.borrow()).candidates,
+            self.min_col_width(),
+            padding,
+            self.metrics.borrow().qs_col_w,
+            max_size,
+        )?;
+
+        let Size { mut w, mut h } = layout.grid.grid_size();
+        let row_height = layout.grid.row_height();
+        let mut left = text_rect.left() - self.metrics.borrow().qs_col_w;
+        let mut top = text_rect.bottom();
+
+        if dpi_aware() {
+            let dpi = self.window.borrow().dpi;
+            w = w.to_px(dpi);
+            h = h.to_px(dpi);
+        }
+
+        if left + w > max_size.w {
+            left = max_size.w - w;
+        }
+        if top + h > max_size.h {
+            top = text_rect.top() - h;
+        }
+        if left < 0 {
+            left = padding;
+        }
+        if top < 0 {
+            top = padding;
+        }
+
+        let handle = self.window.borrow().handle.unwrap();
+
+        Ok(WindowPosInfo { handle, left, top, width: w, height: h })
+    }
+
+    // vars are:
+    // m_candidate_grid = page_data.candidates
+    // MinColWidth()
+    // row_padding
+
+    fn calculate_layout(&self) {
+        let CandidatePage {
+            display_mode,
+            focused_id,
+            focused_index,
+            focused_col,
+            quickselect_active,
+            candidates,
+        } = &*self.page_data.borrow();
+
+        if candidates.is_empty() {
+            return;
+        }
+
+        let n_cols = candidates.len();
+        let n_rows = candidates[0].len();
+        // let mut grid = CandidateLayout
+    }
+
+    fn min_col_width(&self) -> i32 {
+        match self.page_data.borrow().display_mode {
+            DisplayMode::Grid => self.metrics.borrow().min_col_w_multi,
+            _ => self.metrics.borrow().min_col_w_single,
+        }
     }
 }
 

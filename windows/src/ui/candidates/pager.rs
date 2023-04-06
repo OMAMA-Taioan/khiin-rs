@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::cmp::min;
+use std::rc::Rc;
 use std::sync::Arc;
 
 use khiin_protos::command::EditState;
@@ -14,7 +15,7 @@ static SHORT_COL_SIZE: usize = 5;
 static LONG_COL_SIZE: usize = 10;
 static NUM_GRID_COLS: usize = 4;
 
-type CandidateGrid = Vec<Vec<Candidate>>;
+pub type CandidateCols = Vec<Vec<Rc<Candidate>>>;
 
 #[derive(Default)]
 pub struct CandidatePage {
@@ -23,7 +24,7 @@ pub struct CandidatePage {
     pub focused_index: usize,
     pub focused_col: usize,
     pub quickselect_active: bool,
-    pub candidates: CandidateGrid,
+    pub candidates: CandidateCols,
 }
 
 #[derive(Default)]
@@ -51,7 +52,7 @@ impl Pager {
     }
 
     pub fn get_page(&self) -> CandidatePage {
-        let mut grid: Vec<Vec<Candidate>> = Vec::new();
+        let mut grid: Vec<Vec<Rc<Candidate>>> = Vec::new();
 
         if self.num_candidates == 0 {
             return CandidatePage::default();
@@ -60,7 +61,7 @@ impl Pager {
         let candidates = self.candidates();
         let mut start = self.start_index();
         let end = self.end_index();
-        let mut col: Vec<Candidate> = Vec::new();
+        let mut col: Vec<Rc<Candidate>> = Vec::new();
         for (i, candidate) in candidates
             .iter()
             .skip(start)
@@ -73,7 +74,7 @@ impl Pager {
                 start = i
             }
 
-            col.push(candidate.clone())
+            col.push(candidate.clone().into())
         }
         grid.push(col);
 

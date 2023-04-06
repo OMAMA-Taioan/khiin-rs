@@ -182,7 +182,7 @@ impl SystrayMenu {
             let text = t(&item.string_key);
             unsafe {
                 let layout = window.factory.create_text_layout(
-                    text,
+                    &text[..],
                     (*self.textformat.borrow()).clone(),
                     window.max_width as f32,
                     window.max_height as f32,

@@ -70,6 +70,7 @@ where
     }
 }
 
+#[derive(Default, Clone, Copy)]
 pub struct Size<T>
 where
     T: Copy + Num + NumCast + PartialOrd,
@@ -78,7 +79,7 @@ where
     pub h: T,
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Copy)]
 pub struct Rect<T>
 where
     T: Copy + Num + NumCast + PartialOrd,

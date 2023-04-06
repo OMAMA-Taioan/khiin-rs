@@ -73,9 +73,7 @@ impl CandidateListUI {
         } else {
             self.pager.borrow().set_focus(focused_id)?;
         }
-
-        
-
+        self.popup.update(self.pager.borrow().get_page(), rect)?;
         self.update_ui_elem()?;
         Ok(())
     }
