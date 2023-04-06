@@ -321,14 +321,14 @@ impl TextService {
     }
 
     fn init_engine(&self) -> Result<()> {
-        if let Ok(mut engine) = self.engine.write() {
+        if let Ok(engine) = self.engine.write() {
             engine.init(self.this())?;
         }
         Ok(())
     }
 
     fn deinit_engine(&self) -> Result<()> {
-        if let Ok(mut engine) = self.engine.write() {
+        if let Ok(engine) = self.engine.write() {
             engine.deinit();
         }
         Ok(())
@@ -526,7 +526,7 @@ impl TextService {
     // candidate ui
     fn init_candidate_ui(&self) -> Result<()> {
         self.candidate_list_ui
-            .replace(Some(CandidateListUI::new(self.this())?.into()));
+            .replace(Some(CandidateListUI::new(self.this())?));
         Ok(())
     }
 

@@ -2,7 +2,6 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::Arc;
 
-use khiin_protos::command::CandidateList;
 use khiin_protos::command::EditState::ES_COMPOSING;
 use windows::core::implement;
 use windows::core::AsImpl;
@@ -65,16 +64,17 @@ impl CandidateListUI {
         command: Arc<Command>,
         rect: Rect<i32>,
     ) -> Result<()> {
-        self.pager.replace(Pager::new(command.clone()));
         let res = &command.response;
         let edit_state = res.edit_state.enum_value_or_default();
-        let focused = res.candidate_list.focused;
-
+        let focused_id = res.candidate_list.focused;
+        
         if edit_state == ES_COMPOSING {
-            // self.pager.set_candidate_list(command)?;
+            self.pager.replace(Pager::new(command.clone()));
         } else {
-            // self.pager.set_focus(focused)?;
+            self.pager.borrow().set_focus(focused_id)?;
         }
+
+        
 
         self.update_ui_elem()?;
         Ok(())

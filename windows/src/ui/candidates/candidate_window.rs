@@ -23,7 +23,7 @@ use crate::utils::CloneInner;
 
 static FONT_NAME: &str = "Arial";
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub enum DisplayMode {
     #[default]
     ShortColumn,

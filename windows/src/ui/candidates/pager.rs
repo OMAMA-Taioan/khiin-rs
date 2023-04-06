@@ -1,7 +1,8 @@
+use std::cell::RefCell;
 use std::cmp::min;
 use std::sync::Arc;
-use std::cell::RefCell;
 
+use khiin_protos::command::EditState;
 use windows::core::Result;
 
 use khiin_protos::command::Candidate;
@@ -9,7 +10,21 @@ use khiin_protos::command::Command;
 
 use super::candidate_window::DisplayMode;
 
+static SHORT_COL_SIZE: usize = 5;
+static LONG_COL_SIZE: usize = 10;
+static NUM_GRID_COLS: usize = 4;
+
 type CandidateGrid = Vec<Vec<Candidate>>;
+
+#[derive(Default)]
+pub struct CandidatePage {
+    pub display_mode: DisplayMode,
+    pub focused_id: i32,
+    pub focused_index: usize,
+    pub focused_col: usize,
+    pub quickselect_active: bool,
+    pub candidates: CandidateGrid,
+}
 
 #[derive(Default)]
 pub struct Pager {
@@ -35,11 +50,11 @@ impl Pager {
         }
     }
 
-    pub fn get_page(&self) -> CandidateGrid {
+    pub fn get_page(&self) -> CandidatePage {
         let mut grid: Vec<Vec<Candidate>> = Vec::new();
 
         if self.num_candidates == 0 {
-            return grid;
+            return CandidatePage::default();
         }
 
         let candidates = self.candidates();
@@ -61,10 +76,35 @@ impl Pager {
             col.push(candidate.clone())
         }
         grid.push(col);
-        grid
+
+        let quickselect_active =
+            self.command.response.edit_state.enum_value_or_default()
+                == EditState::ES_SELECTING;
+
+        CandidatePage {
+            display_mode: self.display_mode.borrow().clone(),
+            focused_id: self.focused_id.borrow().clone(),
+            focused_index: self.focused_index(),
+            focused_col: self.focused_col(),
+            quickselect_active,
+            candidates: grid,
+        }
     }
 
-    pub fn set_focus(&self, index: i32) -> Result<()> {
+    pub fn set_focus(&self, focused_id: i32) -> Result<()> {
+        self.focused_id.replace(focused_id);
+
+        for (i, candidate) in self.candidates().iter().enumerate() {
+            if candidate.id as i32 == focused_id {
+                self.focused_index.replace(i);
+                break;
+            }
+        }
+
+        if self.focused_index() >= SHORT_COL_SIZE {
+            self.display_mode.replace(DisplayMode::LongColumn);
+        }
+
         Ok(())
     }
 }
@@ -79,6 +119,10 @@ impl Pager {
         self.focused_index.borrow().clone()
     }
 
+    fn focused_col(&self) -> usize {
+        self.focused_col.borrow().clone()
+    }
+
     fn candidate_id_at_index(&self, idx: usize) -> Option<i32> {
         if 0 <= idx && idx < self.num_candidates {
             Some(self.candidates().get(idx)?.id)
@@ -89,16 +133,15 @@ impl Pager {
 
     fn max_cols_per_page(&self) -> usize {
         match &*self.display_mode.borrow() {
-            DisplayMode::Grid => 4,
+            DisplayMode::Grid => NUM_GRID_COLS,
             _ => 1,
         }
     }
 
     fn max_col_size(&self) -> usize {
         match &*self.display_mode.borrow() {
-            DisplayMode::ShortColumn => 5,
-            DisplayMode::LongColumn => 10,
-            DisplayMode::Grid => 10,
+            DisplayMode::ShortColumn => SHORT_COL_SIZE,
+            _ => LONG_COL_SIZE,
         }
     }
 
