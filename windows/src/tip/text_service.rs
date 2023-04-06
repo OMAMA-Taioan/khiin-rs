@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::cell::RefMut;
 use std::rc::Rc;
+use std::sync::mpsc::Receiver;
 use std::sync::mpsc::channel;
 use std::sync::Arc;
 use std::sync::RwLock;
@@ -58,6 +59,7 @@ use crate::tip::preserved_key_mgr::PreservedKeyMgr;
 use crate::tip::sink_mgr::SinkMgr;
 use crate::tip::thread_mgr_event_sink::ThreadMgrEventSink;
 use crate::tip::TfEditCookie;
+use crate::ui::candidates::CandidateWindow;
 use crate::ui::render_factory::RenderFactory;
 use crate::ui::systray::SystrayMenu;
 use crate::ui::wndproc::Wndproc;
@@ -123,6 +125,7 @@ pub struct TextService {
 
     // Data
     engine: Arc<RwLock<EngineMgr>>,
+    rx: RefCell<Option<Receiver<Command>>>,
 }
 
 // Public portion
@@ -177,6 +180,7 @@ impl TextService {
             composition_mgr: Arc::new(RwLock::new(CompositionMgr::new()?)),
             render_factory: Arc::new(RenderFactory::new()?),
             engine: Arc::new(RwLock::new(EngineMgr::new()?)),
+            rx: RefCell::new(None),
         })
     }
 
@@ -282,8 +286,9 @@ impl TextService {
 // Private portion
 impl TextService {
     fn activate(&self) -> Result<()> {
-        set_locale("en");
         DllModule::global().add_ref();
+        set_locale("en");
+        CandidateWindow::register_class(DllModule::global().module);
         SystrayMenu::register_class(DllModule::global().module);
         self.init_engine()?;
         self.init_lang_bar_indicator()?;
@@ -314,13 +319,14 @@ impl TextService {
         self.deinit_lang_bar_indicator().ok();
         self.deinit_engine().ok();
         SystrayMenu::unregister_class(DllModule::global().module);
+        CandidateWindow::unregister_class(DllModule::global().module);
         DllModule::global().release();
         Ok(())
     }
 
     fn init_engine(&self) -> Result<()> {
         if let Ok(mut engine) = self.engine.write() {
-            engine.init(self.this());
+            engine.init(self.this())?;
         }
         Ok(())
     }
@@ -597,15 +603,11 @@ impl ITfCompositionSink_Impl for TextService {
 
 impl ITfTextInputProcessor_Impl for TextService {
     fn Activate(&self, ptim: Option<&ITfThreadMgr>, tid: u32) -> Result<()> {
-        if self.ActivateEx(ptim, tid, 0).is_err() {
-            self.deactivate()
-        } else {
-            Ok(())
-        }
+        self.ActivateEx(ptim, tid, 0)
     }
 
     fn Deactivate(&self) -> Result<()> {
-        self.deactivate()?;
+        self.deactivate().ok();
         Ok(())
     }
 }
@@ -628,9 +630,11 @@ impl ITfTextInputProcessorEx_Impl for TextService {
 
         match ptim {
             Some(threadmgr) => {
-                let threadmgr = threadmgr.clone();
-                self.threadmgr.replace(Some(threadmgr));
-                self.activate()
+                self.threadmgr.replace(Some(threadmgr.clone()));
+                if self.activate().is_err() {
+                    self.deactivate()?;
+                }
+                Ok(())
             }
             None => Ok(()),
         }

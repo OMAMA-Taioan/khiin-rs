@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+use std::rc::Rc;
 use std::sync::Arc;
 
 use khiin_protos::command::CandidateList;
@@ -40,7 +42,7 @@ pub struct CandidateListUI {
     tip: ITfTextInputProcessor,
     element_id: ArcLock<u32>,
     popup: Arc<CandidateWindow>,
-    pager: Arc<Pager>,
+    pager: Rc<RefCell<Pager>>,
 }
 
 impl CandidateListUI {
@@ -49,7 +51,7 @@ impl CandidateListUI {
             tip: tip.clone(),
             element_id: ArcLock::new(0),
             popup: Arc::new(CandidateWindow::new(tip)?),
-            pager: Arc::new(Pager::new()),
+            pager: Rc::new(RefCell::new(Pager::default())),
         };
 
         this.begin_ui_elem()?;
@@ -63,14 +65,15 @@ impl CandidateListUI {
         command: Arc<Command>,
         rect: Rect<i32>,
     ) -> Result<()> {
+        self.pager.replace(Pager::new(command.clone()));
         let res = &command.response;
         let edit_state = res.edit_state.enum_value_or_default();
         let focused = res.candidate_list.focused;
 
         if edit_state == ES_COMPOSING {
-            self.pager.set_candidate_list(command)?;
+            // self.pager.set_candidate_list(command)?;
         } else {
-            self.pager.set_focus(focused)?;
+            // self.pager.set_focus(focused)?;
         }
 
         self.update_ui_elem()?;
