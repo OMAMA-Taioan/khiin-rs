@@ -1,5 +1,7 @@
 use std::cell::RefCell;
 use std::cell::RefMut;
+use std::collections::HashMap;
+use std::hash::Hash;
 use std::rc::Rc;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
@@ -15,6 +17,7 @@ use windows::core::IUnknown;
 use windows::core::Result;
 use windows::core::GUID;
 use windows::Win32::Foundation::E_FAIL;
+use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::TextServices::CLSID_TF_CategoryMgr;
 use windows::Win32::UI::TextServices::ITfCandidateListUIElement;
 use windows::Win32::UI::TextServices::ITfCategoryMgr;
@@ -35,12 +38,15 @@ use windows::Win32::UI::TextServices::ITfThreadMgrEventSink;
 use windows::Win32::UI::TextServices::ITfUIElement;
 use windows::Win32::UI::TextServices::GUID_COMPARTMENT_KEYBOARD_DISABLED;
 use windows::Win32::UI::TextServices::GUID_COMPARTMENT_KEYBOARD_OPENCLOSE;
+use windows::Win32::UI::WindowsAndMessaging::DestroyWindow;
 
 use khiin_protos::command::Command;
 use khiin_protos::config::AppConfig;
 use khiin_protos::config::BoolValue;
 
 use crate::dll::DllModule;
+use crate::engine::AsyncEngine;
+use crate::engine::MessageHandler;
 use crate::locales::set_locale;
 use crate::reg::guids::GUID_CONFIG_CHANGED_COMPARTMENT;
 use crate::reg::guids::GUID_DISPLAY_ATTRIBUTE_CONVERTED;
@@ -66,6 +72,8 @@ use crate::ui::wndproc::Wndproc;
 use crate::utils::co_create_inproc;
 use crate::utils::ArcLock;
 use crate::winerr;
+
+use super::edit_session::open_edit_session;
 
 const TF_CLIENTID_NULL: u32 = 0;
 const TF_INVALID_GUIDATOM: u32 = 0;
@@ -125,7 +133,14 @@ pub struct TextService {
 
     // Data
     engine: Arc<RwLock<EngineMgr>>,
-    rx: RefCell<Option<Receiver<Command>>>,
+    async_engine: RefCell<Option<AsyncEngine>>,
+    message_handler: RefCell<Option<HWND>>,
+    context_cache: Rc<RefCell<HashMap<u32, Rc<Context>>>>,
+}
+
+pub struct Context {
+    pub id: u32,
+    pub context: ITfContext,
 }
 
 // Public portion
@@ -180,7 +195,9 @@ impl TextService {
             composition_mgr: Arc::new(RwLock::new(CompositionMgr::new()?)),
             render_factory: Arc::new(RenderFactory::new()?),
             engine: Arc::new(RwLock::new(EngineMgr::new()?)),
-            rx: RefCell::new(None),
+            message_handler: RefCell::new(None),
+            async_engine: RefCell::new(None),
+            context_cache: Rc::new(RefCell::new(HashMap::new())),
         })
     }
 
@@ -292,6 +309,44 @@ impl TextService {
         // TODO
         Ok(())
     }
+
+    pub fn send_command(
+        &self,
+        context: ITfContext,
+        command: Command,
+    ) -> Result<()> {
+        let id = command.id;
+        self.context_cache
+            .borrow_mut()
+            .insert(id, Rc::new(Context { id, context }));
+
+        if let Some(x) = self.async_engine.borrow().as_ref() {
+            let tx = x.sender();
+            tx.send(command).map_err(|_| Error::from(E_FAIL))
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn handle_command(&self, command: Arc<Command>) -> Result<()> {
+        let context = self
+            .context_cache
+            .borrow_mut()
+            .remove(&command.id)
+            .ok_or(Error::from(E_FAIL))?
+            .context
+            .clone();
+
+        open_edit_session(self.clientid.get()?, context.clone(), |ec| {
+            self.handle_composition(ec, context.clone(), command.clone())
+        })?;
+
+        open_edit_session(self.clientid.get()?, context.clone(), |ec| {
+            self.handle_candidates(ec, context.clone(), command.clone())
+        })?;
+
+        Ok(())
+    }
 }
 
 // Private portion
@@ -299,6 +354,7 @@ impl TextService {
     fn activate(&self) -> Result<()> {
         DllModule::global().add_ref();
         set_locale("en");
+        self.init_message_handler()?;
         CandidateWindow::register_class(DllModule::global().module);
         SystrayMenu::register_class(DllModule::global().module);
         self.init_engine()?;
@@ -330,9 +386,31 @@ impl TextService {
         self.deinit_threadmgr_event_sink().ok();
         self.deinit_lang_bar_indicator().ok();
         self.deinit_engine().ok();
+        self.deinit_message_handler().ok();
         SystrayMenu::unregister_class(DllModule::global().module);
         CandidateWindow::unregister_class(DllModule::global().module);
         DllModule::global().release();
+        Ok(())
+    }
+
+    fn init_message_handler(&self) -> Result<()> {
+        let handler = Arc::new(MessageHandler::new(self.this()));
+        let handle =
+            MessageHandler::create(handler, DllModule::global().module)?;
+        let async_engine = AsyncEngine::run(handle)?;
+        self.message_handler.replace(Some(handle));
+        self.async_engine.replace(Some(async_engine));
+        Ok(())
+    }
+
+    fn deinit_message_handler(&self) -> Result<()> {
+        let handle = self.message_handler.borrow().clone().unwrap();
+        unsafe {
+            DestroyWindow(handle);
+            MessageHandler::unregister_class(DllModule::global().module);
+        }
+        let async_engine = self.async_engine.replace(None);
+        async_engine.unwrap().shutdown()?;
         Ok(())
     }
 

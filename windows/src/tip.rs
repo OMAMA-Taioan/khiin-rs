@@ -10,7 +10,6 @@ mod edit_session;
 mod engine_mgr;
 mod key_event;
 mod key_event_sink;
-mod key_handlers;
 mod lang_bar_indicator;
 mod preserved_key_mgr;
 mod sink_mgr;

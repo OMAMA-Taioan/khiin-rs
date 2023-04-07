@@ -9,4 +9,6 @@ publish = false
 crate-type = ["lib"]
 
 [dependencies]
+protobuf = "3.2.0"
 khiin-protos = { path = "../protos" }
+anyhow = "1.0.70"

@@ -7,6 +7,7 @@
 
 mod config;
 mod dll;
+mod engine;
 mod geometry;
 mod locales;
 mod reg;

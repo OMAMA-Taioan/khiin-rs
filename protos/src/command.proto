@@ -61,6 +61,7 @@ enum CommandType {
     CMD_TEST_SEND_KEY = 12;
     CMD_LIST_EMOJIS = 13;
     CMD_RESET_USER_DATA = 14;
+    CMD_SHUTDOWN = 15;
 }
 
 // Message sent from app to engine
@@ -168,6 +169,7 @@ message Response {
 // A full command bundle, passed between app and engine
 // during each edit session
 message Command {
-    Request request = 1;
-    Response response = 2;
+    uint32 id = 1;
+    Request request = 2;
+    Response response = 3;
 }

@@ -20,6 +20,11 @@ use windows::Win32::UI::TextServices::ITfThreadMgr;
 use windows::Win32::UI::WindowsAndMessaging::WM_KEYDOWN;
 use windows::Win32::UI::WindowsAndMessaging::WM_KEYUP;
 
+use khiin_protos::command::Command;
+use khiin_protos::command::CommandType;
+use khiin_protos::command::KeyEvent as KhiEvent;
+use khiin_protos::command::Request;
+
 use crate::reg::guids::GUID_PRESERVED_KEY_FULL_WIDTH_SPACE;
 use crate::reg::guids::GUID_PRESERVED_KEY_ON_OFF;
 use crate::reg::guids::GUID_PRESERVED_KEY_SWITCH_MODE;
@@ -27,7 +32,28 @@ use crate::tip::key_event::KeyEvent;
 use crate::tip::text_service::TextService;
 
 // use super::engine_mgr;
-use super::key_handlers::handle_key;
+
+pub fn translate_key_event(input: KeyEvent) -> KhiEvent {
+    let mut proto = KhiEvent::new();
+    proto.key_code = input.keycode as i32;
+    proto
+}
+
+pub fn handle_key(
+    tip: ITfTextInputProcessor,
+    context: ITfContext,
+    key_event: KeyEvent,
+) -> Result<()> {
+    let khi = translate_key_event(key_event);
+    let mut req = Request::new();
+    req.type_ = CommandType::CMD_SEND_KEY.into();
+    req.key_event = Some(khi).into();
+    let mut cmd = Command::new();
+    cmd.request = Some(req).into();
+    cmd.id = rand::random::<u32>();
+
+    tip.as_impl().send_command(context, cmd)
+}
 
 #[implement(ITfKeyEventSink)]
 pub struct KeyEventSink {
@@ -37,10 +63,7 @@ pub struct KeyEventSink {
 }
 
 impl KeyEventSink {
-    pub fn new(
-        tip: ITfTextInputProcessor,
-        threadmgr: ITfThreadMgr,
-    ) -> Self {
+    pub fn new(tip: ITfTextInputProcessor, threadmgr: ITfThreadMgr) -> Self {
         KeyEventSink {
             tip,
             threadmgr,
@@ -50,8 +73,7 @@ impl KeyEventSink {
 
     pub fn advise(&self) -> Result<()> {
         let sink: ITfKeyEventSink =
-            KeyEventSink::new(self.tip.clone(), self.threadmgr.clone())
-                .into();
+            KeyEventSink::new(self.tip.clone(), self.threadmgr.clone()).into();
         let keystroke_mgr: ITfKeystrokeMgr = self.threadmgr.cast()?;
         let service: &TextService = self.tip.as_impl();
 
