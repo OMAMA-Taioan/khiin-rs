@@ -119,13 +119,11 @@ impl KeyEventSink {
 
         // TODO: check for candidate UI priority keys
 
-        if let Ok(engine) = service.engine().read() {
-            match engine.on_test_key(&key_event) {
-                true => Ok(TRUE),
-                false => Ok(FALSE),
-            }
-        } else {
+        // TODO: check other keys, etc.
+        if key_event.ascii == 0 {
             Ok(FALSE)
+        } else {
+            Ok(TRUE)
         }
     }
 

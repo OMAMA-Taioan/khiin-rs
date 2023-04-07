@@ -58,7 +58,6 @@ use crate::tip::compartment::Compartment;
 use crate::tip::composition_mgr::CompositionMgr;
 use crate::tip::composition_utils::text_position;
 use crate::tip::display_attributes::DisplayAttributes;
-use crate::tip::engine_mgr::EngineMgr;
 use crate::tip::key_event_sink::KeyEventSink;
 use crate::tip::lang_bar_indicator::LangBarIndicator;
 use crate::tip::preserved_key_mgr::PreservedKeyMgr;
@@ -132,7 +131,6 @@ pub struct TextService {
     pub render_factory: Arc<RenderFactory>,
 
     // Data
-    engine: Arc<RwLock<EngineMgr>>,
     async_engine: RefCell<Option<AsyncEngine>>,
     message_handler: RefCell<Option<HWND>>,
     context_cache: Rc<RefCell<HashMap<u32, Rc<Context>>>>,
@@ -194,7 +192,6 @@ impl TextService {
             candidate_list_ui: RefCell::new(None),
             composition_mgr: Arc::new(RwLock::new(CompositionMgr::new()?)),
             render_factory: Arc::new(RenderFactory::new()?),
-            engine: Arc::new(RwLock::new(EngineMgr::new()?)),
             message_handler: RefCell::new(None),
             async_engine: RefCell::new(None),
             context_cache: Rc::new(RefCell::new(HashMap::new())),
@@ -239,10 +236,6 @@ impl TextService {
 
     pub fn toggle_enabled(&self) -> Result<()> {
         Ok(())
-    }
-
-    pub fn engine(&self) -> Arc<RwLock<EngineMgr>> {
-        self.engine.clone()
     }
 
     pub fn set_this(&self, this: ITfTextInputProcessor) {
@@ -357,7 +350,6 @@ impl TextService {
         self.init_message_handler()?;
         CandidateWindow::register_class(DllModule::global().module);
         SystrayMenu::register_class(DllModule::global().module);
-        self.init_engine()?;
         self.init_lang_bar_indicator()?;
         self.init_threadmgr_event_sink()?;
         self.init_candidate_ui()?;
@@ -385,7 +377,6 @@ impl TextService {
         self.deinit_candidate_ui().ok();
         self.deinit_threadmgr_event_sink().ok();
         self.deinit_lang_bar_indicator().ok();
-        self.deinit_engine().ok();
         self.deinit_message_handler().ok();
         SystrayMenu::unregister_class(DllModule::global().module);
         CandidateWindow::unregister_class(DllModule::global().module);
@@ -411,20 +402,6 @@ impl TextService {
         }
         let async_engine = self.async_engine.replace(None);
         async_engine.unwrap().shutdown()?;
-        Ok(())
-    }
-
-    fn init_engine(&self) -> Result<()> {
-        if let Ok(engine) = self.engine.write() {
-            engine.init(self.this())?;
-        }
-        Ok(())
-    }
-
-    fn deinit_engine(&self) -> Result<()> {
-        if let Ok(engine) = self.engine.write() {
-            engine.deinit();
-        }
         Ok(())
     }
 
@@ -693,10 +670,11 @@ impl ITfCompositionSink_Impl for TextService {
         ecwrite: u32,
         composition: Option<&ITfComposition>,
     ) -> Result<()> {
-        self.engine()
-            .try_read()
-            .map_err(|_| Error::from(E_FAIL))?
-            .reset()?;
+        // TODO: send command
+        // self.engine()
+        //     .try_read()
+        //     .map_err(|_| Error::from(E_FAIL))?
+        //     .reset()?;
         if let Some(comp) = composition {
             unsafe {
                 comp.EndComposition(ecwrite)?;
