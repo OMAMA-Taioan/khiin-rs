@@ -14,7 +14,6 @@ use khiin_protos::command::Command;
 
 use crate::tip::edit_session::CallbackEditSession;
 use crate::tip::key_event::KeyEvent;
-use crate::winerr;
 
 fn handle_composition(
     tip: ITfTextInputProcessor,
@@ -51,7 +50,7 @@ fn handle_candidates(
     let session: ITfEditSession =
         CallbackEditSession::new(|ec| -> Result<()> {
             let service = tip.as_impl();
-            service.handle_composition(ec, context.clone(), command.clone())
+            service.handle_candidates(ec, context.clone(), command.clone())
         })
         .into();
 

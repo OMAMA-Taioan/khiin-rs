@@ -1,9 +1,13 @@
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::sync::Arc;
 
+use once_cell::sync::Lazy;
 use windows::core::AsImpl;
+use windows::core::Error;
 use windows::core::Result;
 use windows::Win32::Foundation::D2DERR_RECREATE_TARGET;
+use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::RECT;
 use windows::Win32::Graphics::Direct2D::Common::D2D1_COLOR_F;
@@ -14,7 +18,20 @@ use windows::Win32::Graphics::Gdi::EndPaint;
 use windows::Win32::Graphics::Gdi::PAINTSTRUCT;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
+use windows::Win32::UI::WindowsAndMessaging::SetWindowPos;
+use windows::Win32::UI::WindowsAndMessaging::ShowWindow;
+use windows::Win32::UI::WindowsAndMessaging::SWP_NOACTIVATE;
+use windows::Win32::UI::WindowsAndMessaging::SWP_NOZORDER;
+use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNA;
+use windows::Win32::UI::WindowsAndMessaging::WINDOW_EX_STYLE;
+use windows::Win32::UI::WindowsAndMessaging::WINDOW_STYLE;
+use windows::Win32::UI::WindowsAndMessaging::WS_BORDER;
+use windows::Win32::UI::WindowsAndMessaging::WS_EX_NOACTIVATE;
+use windows::Win32::UI::WindowsAndMessaging::WS_EX_TOOLWINDOW;
+use windows::Win32::UI::WindowsAndMessaging::WS_EX_TOPMOST;
+use windows::Win32::UI::WindowsAndMessaging::WS_POPUP;
 
+use crate::dll::DllModule;
 use crate::geometry::Rect;
 use crate::geometry::Size;
 use crate::ui::candidates::CandidatePage;
@@ -29,6 +46,9 @@ use crate::utils::CloneInner;
 use super::layout::CandidateLayout;
 
 static FONT_NAME: &str = "Arial";
+const DW_STYLE: Lazy<WINDOW_STYLE> = Lazy::new(|| WS_BORDER | WS_POPUP);
+const DW_EX_STYLE: Lazy<WINDOW_EX_STYLE> =
+    Lazy::new(|| WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE);
 
 #[derive(Default, Clone)]
 pub enum DisplayMode {
@@ -39,7 +59,6 @@ pub enum DisplayMode {
 }
 
 pub struct WindowPosInfo {
-    handle: HWND,
     left: i32,
     top: i32,
     width: i32,
@@ -61,7 +80,7 @@ pub struct CandidateWindow {
 }
 
 impl CandidateWindow {
-    pub fn new(tip: ITfTextInputProcessor) -> Result<Self> {
+    pub fn new(tip: ITfTextInputProcessor) -> Result<Arc<Self>> {
         let service = tip.as_impl();
         let factory = service.render_factory.clone();
         let window = WindowData::new(factory)?;
@@ -76,7 +95,7 @@ impl CandidateWindow {
             .factory
             .create_text_format(FONT_NAME, metrics.font_size_sm)?;
 
-        Ok(Self {
+        let this = Arc::new(Self {
             tip,
             window: Rc::new(RefCell::new(window)),
             brush: RefCell::new(brush),
@@ -88,10 +107,58 @@ impl CandidateWindow {
             page_data: Rc::new(RefCell::new(CandidatePage::default())),
             text_rect: RefCell::new(Rect::default()),
             layout: RefCell::new(CandidateLayout::default()),
-        })
+        });
+
+        Wndproc::create(
+            this.clone(),
+            DllModule::global().module,
+            "",
+            DW_STYLE.0,
+            DW_EX_STYLE.0,
+        )?;
+
+        Ok(this)
     }
 
-    pub fn update(
+    pub fn is_showing(&self) -> Result<bool> {
+        Ok(self
+            .window
+            .try_borrow()
+            .map_err(|_| Error::from(E_FAIL))?
+            .showing)
+    }
+
+    pub fn show(
+        &self,
+        page: CandidatePage,
+        text_rect: Rect<i32>,
+    ) -> Result<()> {
+        let pos = self.calculate_layout(page, text_rect)?;
+        let handle = self.handle()?;
+
+        unsafe {
+            SetWindowPos(
+                handle,
+                HWND::default(),
+                pos.left,
+                pos.top,
+                pos.width,
+                pos.height,
+                SWP_NOACTIVATE | SWP_NOZORDER,
+            );
+            ShowWindow(handle, SW_SHOWNA);
+        }
+
+        let mut window = self
+            .window
+            .try_borrow_mut()
+            .map_err(|_| Error::from(E_FAIL))?;
+        window.showing = true;
+
+        Ok(())
+    }
+
+    pub fn calculate_layout(
         &self,
         page: CandidatePage,
         text_rect: Rect<i32>,
@@ -116,8 +183,8 @@ impl CandidateWindow {
             max_size,
         )?;
 
+        self.set_row_height(layout.grid.row_height() as f32)?;
         let Size { mut w, mut h } = layout.grid.grid_size();
-        let row_height = layout.grid.row_height();
         let mut left = text_rect.left() - self.metrics.borrow().qs_col_w;
         let mut top = text_rect.bottom();
 
@@ -140,9 +207,12 @@ impl CandidateWindow {
             top = padding;
         }
 
-        let handle = self.window.borrow().handle.unwrap();
-
-        Ok(WindowPosInfo { handle, left, top, width: w, height: h })
+        Ok(WindowPosInfo {
+            left,
+            top,
+            width: w,
+            height: h,
+        })
     }
 
     fn min_col_width(&self) -> i32 {
@@ -150,6 +220,15 @@ impl CandidateWindow {
             DisplayMode::Grid => self.metrics.borrow().min_col_w_multi,
             _ => self.metrics.borrow().min_col_w_single,
         }
+    }
+
+    fn set_row_height(&self, row_height: f32) -> Result<()> {
+        self.metrics
+            .try_borrow_mut()
+            .map_err(|_| Error::from(E_FAIL))?
+            .row_height = row_height;
+
+        Ok(())
     }
 }
 

@@ -87,7 +87,7 @@ unsafe fn composition_view(
     let mut idx: usize = 0;
 
     loop {
-        vec.reserve(1);
+        vec.push(None);
         let mut fetched = 0u32;
         enum_comp.Next(vec.as_mut_slice(), &mut fetched)?;
 

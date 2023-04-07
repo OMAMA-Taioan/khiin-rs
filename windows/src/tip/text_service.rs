@@ -1,8 +1,8 @@
 use std::cell::RefCell;
 use std::cell::RefMut;
 use std::rc::Rc;
-use std::sync::mpsc::Receiver;
 use std::sync::mpsc::channel;
+use std::sync::mpsc::Receiver;
 use std::sync::Arc;
 use std::sync::RwLock;
 
@@ -244,6 +244,11 @@ impl TextService {
         co_create_inproc(&CLSID_TF_CategoryMgr)
     }
 
+    pub fn reset(&self) -> Result<()> {
+        // TODO
+        Ok(())
+    }
+
     pub fn handle_composition(
         &self,
         ec: TfEditCookie,
@@ -257,6 +262,11 @@ impl TextService {
 
         let sink: ITfCompositionSink = self.this().cast()?;
         comp_mgr.notify_command(ec, context, sink, command)
+    }
+
+    pub fn commit_composition(&self) -> Result<()> {
+        // TODO
+        Ok(())
     }
 
     pub fn handle_candidates(
@@ -276,6 +286,11 @@ impl TextService {
 
         let cand_ui = cand_ui.as_impl();
         cand_ui.notify_command(context, command, rect)
+    }
+
+    pub fn on_candidate_selected(&self, id: u32) -> Result<()> {
+        // TODO
+        Ok(())
     }
 }
 
@@ -303,6 +318,7 @@ impl TextService {
 
     fn deactivate(&self) -> Result<()> {
         self.set_enabled(false).ok();
+        self.deinit_composition_mgr().ok();
         self.deinit_display_attributes().ok();
         self.deinit_key_event_sink().ok();
         self.deinit_preserved_key_mgr().ok();
@@ -534,7 +550,7 @@ impl TextService {
         {
             let cand_ui = (&*self.candidate_list_ui.borrow()).clone().unwrap();
             let cand_ui = cand_ui.as_impl();
-            cand_ui.end_ui_elem()?;
+            cand_ui.shutdown()?;
         }
         self.candidate_list_ui.replace(None);
         Ok(())
@@ -558,6 +574,13 @@ impl TextService {
 
     fn deinit_display_attributes(&self) -> Result<()> {
         Ok(())
+    }
+
+    fn deinit_composition_mgr(&self) -> Result<()> {
+        self.composition_mgr
+            .try_read()
+            .map_err(|_| Error::from(E_FAIL))?
+            .reset()
     }
 }
 //+---------------------------------------------------------------------------
@@ -590,8 +613,21 @@ impl ITfCompositionSink_Impl for TextService {
     fn OnCompositionTerminated(
         &self,
         ecwrite: u32,
-        pcomposition: Option<&ITfComposition>,
+        composition: Option<&ITfComposition>,
     ) -> Result<()> {
+        self.engine()
+            .try_read()
+            .map_err(|_| Error::from(E_FAIL))?
+            .reset()?;
+        if let Some(comp) = composition {
+            unsafe {
+                comp.EndComposition(ecwrite)?;
+            }
+            self.composition_mgr
+                .try_read()
+                .map_err(|_| Error::from(E_FAIL))?
+                .cancel_composition(ecwrite)?;
+        }
         Ok(())
     }
 }

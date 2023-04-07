@@ -161,10 +161,6 @@ pub trait WindowHandler {
         }
     }
 
-    fn show(&self, _pt: Point<i32>) -> Result<()> {
-        winerr!(E_NOTIMPL)
-    }
-
     fn on_show_window(&self) -> Result<()> {
         winerr!(E_NOTIMPL)
     }

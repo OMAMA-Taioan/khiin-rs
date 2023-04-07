@@ -108,6 +108,24 @@ impl Pager {
 
         Ok(())
     }
+
+    pub fn candidate_count(&self) -> usize {
+        self.num_candidates
+    }
+
+    pub fn page_count(&self) -> usize {
+        let n = self.num_candidates;
+        let p = self.max_page_size();
+        (n + p - 1) / p
+    }
+    
+    pub fn max_page_size(&self) -> usize {
+        self.max_cols_per_page() * self.max_col_size()
+    }
+
+    pub fn current_page(&self) -> usize {
+        self.focused_index().div_euclid(self.max_page_size())
+    }
 }
 
 // internal helpers
@@ -146,10 +164,6 @@ impl Pager {
         }
     }
 
-    fn current_page(&self) -> usize {
-        self.focused_index().div_euclid(self.max_page_size())
-    }
-
     fn current_col(&self) -> usize {
         self.focused_index().div_euclid(self.max_col_size())
     }
@@ -169,9 +183,5 @@ impl Pager {
             self.num_candidates,
             self.max_page_size() * (self.current_page() + 1),
         )
-    }
-
-    fn max_page_size(&self) -> usize {
-        self.max_cols_per_page() * self.max_col_size()
     }
 }

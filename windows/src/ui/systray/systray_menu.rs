@@ -5,6 +5,7 @@ use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::RwLock;
 
+use once_cell::sync::Lazy;
 use windows::core::AsImpl;
 use windows::core::Error;
 use windows::core::Result;
@@ -70,6 +71,8 @@ use crate::utils::CloneInner;
 static FONT_NAME: &str = "Microsoft JhengHei UI Regular";
 
 const DW_STYLE: WINDOW_STYLE = WS_POPUP;
+static DW_EX_STYLE: Lazy<WINDOW_EX_STYLE> =
+    Lazy::new(|| WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE);
 
 static BULLET_COL_WIDTH: i32 = 24;
 static ICON_COL_WIDTH: i32 = 32;
@@ -77,10 +80,6 @@ static ICON_SIZE: i32 = 16;
 static ROW_HEIGHT: i32 = 34;
 static VPAD: i32 = 8;
 static HPAD: i32 = 16;
-
-fn window_ex_style() -> WINDOW_EX_STYLE {
-    WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE
-}
 
 fn work_area_bottom() -> i32 {
     unsafe {
@@ -150,7 +149,7 @@ impl SystrayMenu {
             DllModule::global().module,
             "",
             DW_STYLE.0,
-            window_ex_style().0,
+            DW_EX_STYLE.0,
         )?;
 
         Ok(this)
@@ -160,6 +159,32 @@ impl SystrayMenu {
         &self,
         config: Arc<RwLock<AppConfig>>,
     ) -> Result<()> {
+        Ok(())
+    }
+
+    pub fn show(&self, pt: Point<i32>) -> Result<()> {
+        self.set_origin(pt)?;
+        let (x, y, w, h) = self.calculate_layout()?;
+        let handle = self.handle()?;
+        unsafe {
+            SetWindowPos(
+                handle,
+                HWND::default(),
+                x as i32,
+                y as i32,
+                w as i32,
+                h as i32,
+                SWP_NOACTIVATE | SWP_NOZORDER,
+            );
+            ShowWindow(handle, SW_SHOWNA);
+        }
+
+        let mut window = self
+            .window
+            .try_borrow_mut()
+            .map_err(|_| Error::from(E_FAIL))?;
+        window.showing = true;
+
         Ok(())
     }
 
@@ -292,26 +317,6 @@ impl WindowHandler for SystrayMenu {
         if let Ok(mut window) = self.window.try_borrow_mut() {
             window.handle = handle;
         }
-        Ok(())
-    }
-
-    fn show(&self, pt: Point<i32>) -> Result<()> {
-        self.set_origin(pt)?;
-        let (x, y, w, h) = self.calculate_layout()?;
-        let handle = self.handle()?;
-        unsafe {
-            SetWindowPos(
-                handle,
-                HWND::default(),
-                x as i32,
-                y as i32,
-                w as i32,
-                h as i32,
-                SWP_NOACTIVATE | SWP_NOZORDER,
-            );
-            ShowWindow(handle, SW_SHOWNA);
-        }
-
         Ok(())
     }
 

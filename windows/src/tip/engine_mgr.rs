@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::sync::Arc;
 
+use khiin_protos::command::EditState;
 use windows::core::Result;
 use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
@@ -43,6 +44,7 @@ pub fn get_mock_command(key_event: WinKeyEvent) -> Command {
     pe.segments.push(seg);
 
     let mut res = Response::new();
+    res.edit_state = EditState::ES_COMPOSING.into();
     res.preedit = Some(pe).into();
     res.candidate_list = Some(cl).into();
 
@@ -85,6 +87,11 @@ impl EngineMgr {
 
     pub fn deinit(&self) {
         // TODO
+    }
+
+    pub fn reset(&self) -> Result<()> {
+        // TODO
+        Ok(())
     }
 
     pub fn on_test_key(&self, key_event: &WinKeyEvent) -> bool {

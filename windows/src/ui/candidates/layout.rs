@@ -2,6 +2,8 @@ use std::cmp::max;
 use std::rc::Rc;
 use std::sync::Arc;
 
+use windows::Win32::Foundation::E_FAIL;
+use windows::core::Error;
 use windows::core::Result;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextFormat;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextLayout;
@@ -119,7 +121,8 @@ impl CandidateLayout {
         max_size: Size<i32>,
     ) -> Result<Self> {
         let n_cols = cols.len();
-        let n_rows = cols[0].len();
+        debug_assert!(n_cols > 0);
+        let n_rows = cols.get(0).ok_or(Error::from(E_FAIL))?.len();
         let mut grid = Grid::new(n_rows, n_cols, min_col_width, row_padding);
         let mut items = Vec::new();
 
