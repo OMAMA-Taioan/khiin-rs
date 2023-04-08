@@ -18,7 +18,7 @@ serde = { version = "1.0.159", features = ["derive"] }
 toml = "0.7.3"
 rand = "0.8.5"
 khiin = { path = "../../khiin" }
-khiin-protos = { path = "../../protos" }
+khiin_protos = { path = "../../protos" }
 
 [dependencies.windows]
 version = "0.48.0"

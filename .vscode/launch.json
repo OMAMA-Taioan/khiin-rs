@@ -9,6 +9,13 @@
             "type": "cppvsdbg",
             "request": "attach",
             "processId": "${command:pickProcess}"
+        },
+        {
+            "name": "Win Settings",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceRoot}/target/debug/khiin_settings.exe",
+            "cwd": "${workspaceRoot}"
         }
     ]
 }

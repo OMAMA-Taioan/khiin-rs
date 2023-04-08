@@ -1,5 +1,5 @@
 [package]
-name = "khiin-protos"
+name = "khiin_protos"
 version = "0.1.0"
 edition = "2021"
 authors = ["Ko An Iong <aiongtaigi@gmail.com"]
