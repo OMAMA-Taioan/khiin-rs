@@ -63,6 +63,7 @@ use crate::ui::dpi::dpi_aware;
 use crate::ui::dpi::Density;
 use crate::ui::render_factory::RenderFactory;
 use crate::ui::systray::SystrayMenuItem;
+use crate::ui::vcenter_textlayout;
 use crate::ui::window::WindowData;
 use crate::ui::window::WindowHandler;
 use crate::ui::wndproc::Wndproc;
@@ -264,7 +265,7 @@ impl SystrayMenu {
     }
 
     fn reset_graphics_resources(&self) -> Result<()> {
-        self.reset_render_target();
+        self.reset_render_target()?;
         let window =
             self.window.try_borrow().map_err(|_| Error::from(E_FAIL))?;
 
@@ -452,7 +453,7 @@ unsafe fn draw_text_item(
 
     let mut o = origin.d2d1_point();
     o.x += BULLET_COL_WIDTH as f32 + ICON_COL_WIDTH as f32;
-    o.y += vertical_center_text_layout(&layout, height);
+    o.y += vcenter_textlayout(&layout, height as f32);
     target.DrawTextLayout(o, &layout, brush, D2D1_DRAW_TEXT_OPTIONS_NONE);
 }
 
@@ -487,13 +488,4 @@ unsafe fn draw(
 
 fn pt(x: f32, y: f32) -> D2D_POINT_2F {
     D2D_POINT_2F { x, y }
-}
-
-unsafe fn vertical_center_text_layout(
-    layout: &IDWriteTextLayout,
-    available_height: i32,
-) -> f32 {
-    let mut metrics = DWRITE_TEXT_METRICS::default();
-    layout.GetMetrics(&mut metrics).ok();
-    (available_height as f32 - metrics.height) / 2.0
 }

@@ -1,8 +1,11 @@
 use num::cast::NumCast;
-use num::{Num};
-use windows::Win32::Foundation::{POINT, RECT};
+use num::Num;
+use windows::Win32::Foundation::POINT;
+use windows::Win32::Foundation::RECT;
 use windows::Win32::Graphics::Direct2D::Common::D2D_POINT_2F;
+use windows::Win32::Graphics::Direct2D::Common::D2D_RECT_F;
 use windows::Win32::Graphics::Direct2D::D2D1_ELLIPSE;
+use windows::Win32::Graphics::Direct2D::D2D1_ROUNDED_RECT;
 
 #[derive(Copy, Clone, Default)]
 pub struct Point<T>
@@ -91,7 +94,30 @@ where
 
 impl Rect<i32> {
     pub fn to_float(&self) -> Rect<f32> {
-        Rect::new(self.origin.to_float(), self.width as f32, self.height as f32)
+        Rect::new(
+            self.origin.to_float(),
+            self.width as f32,
+            self.height as f32,
+        )
+    }
+}
+
+impl Rect<f32> {
+    pub fn to_d2d1(&self) -> D2D_RECT_F {
+        D2D_RECT_F {
+            left: self.left(),
+            top: self.top(),
+            right: self.right(),
+            bottom: self.bottom(),
+        }
+    }
+
+    pub fn to_d2d1_rounded(&self, radius: f32) -> D2D1_ROUNDED_RECT {
+        D2D1_ROUNDED_RECT {
+            rect: self.to_d2d1(),
+            radiusX: radius,
+            radiusY: radius,
+        }
     }
 }
 

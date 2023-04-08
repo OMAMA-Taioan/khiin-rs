@@ -1,8 +1,12 @@
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::RECT;
+use windows::Win32::Graphics::DirectWrite::IDWriteTextLayout;
+use windows::Win32::Graphics::DirectWrite::DWRITE_TEXT_METRICS;
 use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
 
-use crate::geometry::{Point, Rect};
+use crate::geometry::Point;
+use crate::geometry::Rect;
+
 pub use render_factory::RenderFactory;
 
 pub(crate) mod candidates;
@@ -22,4 +26,13 @@ pub fn client_hit_test(handle: HWND, pt: Point<i32>) -> bool {
     }
     let rect: Rect<i32> = (&rect).into();
     rect.contains(pt)
+}
+
+pub unsafe fn vcenter_textlayout(
+    layout: &IDWriteTextLayout,
+    available_height: f32,
+) -> f32 {
+    let mut metrics = DWRITE_TEXT_METRICS::default();
+    layout.GetMetrics(&mut metrics).ok();
+    (available_height - metrics.height) / 2.0
 }
