@@ -1,10 +1,6 @@
 use std::cell::RefCell;
-use std::cell::RefMut;
 use std::collections::HashMap;
-use std::hash::Hash;
 use std::rc::Rc;
-use std::sync::mpsc::channel;
-use std::sync::mpsc::Receiver;
 use std::sync::Arc;
 use std::sync::RwLock;
 
@@ -19,7 +15,6 @@ use windows::core::GUID;
 use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::TextServices::CLSID_TF_CategoryMgr;
-use windows::Win32::UI::TextServices::ITfCandidateListUIElement;
 use windows::Win32::UI::TextServices::ITfCategoryMgr;
 use windows::Win32::UI::TextServices::ITfCompartmentEventSink;
 use windows::Win32::UI::TextServices::ITfCompartmentEventSink_Impl;

@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::cmp::min;
+use std::ops::Div;
 use std::rc::Rc;
 use std::sync::Arc;
 
@@ -34,7 +35,6 @@ pub struct Pager {
     pub display_mode: RefCell<DisplayMode>,
     pub focused_id: RefCell<i32>,
     pub focused_index: RefCell<usize>,
-    pub focused_col: RefCell<usize>,
 }
 
 impl Pager {
@@ -47,7 +47,6 @@ impl Pager {
             display_mode: RefCell::new(DisplayMode::default()),
             focused_id: RefCell::new(0),
             focused_index: RefCell::new(0),
-            focused_col: RefCell::new(0),
         }
     }
 
@@ -126,20 +125,18 @@ impl Pager {
     pub fn current_page(&self) -> usize {
         self.focused_index().div_euclid(self.max_page_size())
     }
-}
 
-// internal helpers
-impl Pager {
+    pub fn focused_col(&self) -> usize {
+        (self.focused_index() - self.start_index()) / self.max_col_size()
+    }
+
+    // internal helpers
     fn candidates(&self) -> &Vec<Candidate> {
         &self.command.response.candidate_list.candidates
     }
 
     fn focused_index(&self) -> usize {
-        self.focused_index.borrow().clone()
-    }
-
-    fn focused_col(&self) -> usize {
-        self.focused_col.borrow().clone()
+        *self.focused_index.borrow()
     }
 
     fn candidate_id_at_index(&self, idx: usize) -> Option<i32> {

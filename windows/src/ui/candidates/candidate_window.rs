@@ -2,7 +2,9 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::Arc;
 
+use khiin_protos::command::Candidate;
 use once_cell::sync::Lazy;
+use windows::Win32::Graphics::DirectWrite::IDWriteTextLayout;
 use windows::core::AsImpl;
 use windows::core::Error;
 use windows::core::Result;
@@ -11,6 +13,7 @@ use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::RECT;
 use windows::Win32::Graphics::Direct2D::Common::D2D1_COLOR_F;
+use windows::Win32::Graphics::Direct2D::ID2D1DCRenderTarget;
 use windows::Win32::Graphics::Direct2D::ID2D1SolidColorBrush;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextFormat;
 use windows::Win32::Graphics::Gdi::BeginPaint;
@@ -32,15 +35,19 @@ use windows::Win32::UI::WindowsAndMessaging::WS_EX_TOPMOST;
 use windows::Win32::UI::WindowsAndMessaging::WS_POPUP;
 
 use crate::dll::DllModule;
+use crate::geometry::Point;
 use crate::geometry::Rect;
 use crate::geometry::Size;
 use crate::ui::candidates::CandidatePage;
 use crate::ui::candidates::Metrics;
+use crate::ui::colors::COLOR_SCHEME_LIGHT;
+use crate::ui::colors::ColorScheme_F;
 use crate::ui::dpi::dpi_aware;
 use crate::ui::dpi::Density;
 use crate::ui::window::WindowData;
 use crate::ui::window::WindowHandler;
 use crate::ui::wndproc::Wndproc;
+use crate::ui::RenderFactory;
 use crate::utils::CloneInner;
 
 use super::layout::CandidateLayout;
@@ -72,11 +79,12 @@ pub struct CandidateWindow {
     textformat: RefCell<IDWriteTextFormat>,
     textformat_sm: RefCell<IDWriteTextFormat>,
     metrics: RefCell<Metrics>,
-    mouse_focused_id: RefCell<usize>,
+    mouse_focused_id: RefCell<u32>,
     tracking_mouse: RefCell<bool>,
     page_data: Rc<RefCell<CandidatePage>>,
     text_rect: RefCell<Rect<i32>>,
     layout: RefCell<CandidateLayout>,
+    colors: RefCell<ColorScheme_F>,
 }
 
 impl CandidateWindow {
@@ -102,11 +110,12 @@ impl CandidateWindow {
             textformat: RefCell::new(textformat),
             textformat_sm: RefCell::new(textformat_sm),
             metrics: RefCell::new(metrics),
-            mouse_focused_id: RefCell::new(usize::MAX),
+            mouse_focused_id: RefCell::new(u32::MAX),
             tracking_mouse: RefCell::new(false),
             page_data: Rc::new(RefCell::new(CandidatePage::default())),
             text_rect: RefCell::new(Rect::default()),
             layout: RefCell::new(CandidateLayout::default()),
+            colors: RefCell::new(COLOR_SCHEME_LIGHT.into()),
         });
 
         Wndproc::create(
@@ -134,6 +143,7 @@ impl CandidateWindow {
         text_rect: Rect<i32>,
     ) -> Result<()> {
         let pos = self.calculate_layout(page, text_rect)?;
+        self.page_data.replace(page);
         let handle = self.handle()?;
 
         unsafe {
@@ -207,6 +217,8 @@ impl CandidateWindow {
             top = padding;
         }
 
+        self.layout.replace(layout);
+
         Ok(WindowPosInfo {
             left,
             top,
@@ -260,14 +272,15 @@ impl WindowHandler for CandidateWindow {
             target.BindDC(ps.hdc, &rc)?;
             target.BeginDraw();
 
-            // draw(
-            // factory,
-            // target.clone(),
-            // (*self.brush.borrow()).clone(),
-            // (*self.colors.borrow()).clone(),
-            // try_clone_inner(self.items)?;
-            // (*self.highlighted_index.borrow()).clone(),
-            // );
+            draw(
+                factory,
+                target.clone(),
+                (*self.brush.borrow()).clone(),
+                (*self.colors.borrow()).clone(),
+                &*self.page_data.borrow(),
+                &*self.layout.borrow(),
+                *self.mouse_focused_id.borrow(),
+            );
 
             match target.EndDraw(None, None) {
                 Ok(_) => {}
@@ -280,6 +293,67 @@ impl WindowHandler for CandidateWindow {
 
             EndPaint(handle, &ps);
             Ok(())
+        }
+    }
+}
+
+unsafe fn draw_focused_bg(rect: Rect<f32>) {
+
+}
+
+unsafe fn draw_focused_bubble(origin: Point<f32>) {
+
+}
+
+unsafe fn draw_focused(rect: Rect<f32>) {
+
+}
+
+unsafe fn draw_mouse_focused(rect: Rect<f32>) {
+
+}
+
+unsafe fn draw_quick_select(label: String, origin: Point<f32>) {
+
+}
+
+unsafe fn draw_candidate(
+    cand: Rc<Candidate>,
+    layout: IDWriteTextLayout,
+    origin: Point<f32>,
+) {
+    
+}
+
+unsafe fn draw(
+    factory: Arc<RenderFactory>,
+    target: ID2D1DCRenderTarget,
+    brush: ID2D1SolidColorBrush,
+    colors: ColorScheme_F,
+    page: &CandidatePage,
+    cand_layout: &CandidateLayout,
+    mouse_focused_id: u32,
+) {
+    let grid = &cand_layout.grid;
+    let qs_label = 1;
+    for (col_idx, col) in cand_layout.items.iter().enumerate() {
+        for (row_idx, row) in col.iter().enumerate() {
+            let cand = row.0.clone();
+            let text_layout = row.1.clone();
+
+            let rect = grid.cell_rect(row_idx, col_idx).to_float();
+            
+            if cand.id == page.focused_id {
+                draw_focused(rect);
+            } else if cand.id == mouse_focused_id as i32 {
+                draw_mouse_focused(rect)
+            }
+
+            if col_idx == page.focused_col {
+                draw_quick_select(qs_label.to_string(), rect.origin);
+            }
+
+            draw_candidate(cand, text_layout, rect.origin);
         }
     }
 }
