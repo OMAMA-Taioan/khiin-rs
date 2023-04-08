@@ -6,7 +6,7 @@ fn main() {
     #[cfg(debug_assertions)]
     copy_database("khiin.db");
 
-    embed_resource::compile("../res/ime.rc", embed_resource::NONE);
+    embed_resource::compile("ime.rc", embed_resource::NONE);
 }
 
 #[allow(unused)]

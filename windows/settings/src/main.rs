@@ -123,13 +123,9 @@ fn run() -> Result<isize> {
             phpage: psp_vec.as_mut_ptr(),
         },
         pfnCallback: Some(propsheet_cb),
-        Anonymous4: PROPSHEETHEADERW_V2_3 {
-            pszbmWatermark: PCWSTR::null(),
-        },
+        Anonymous4: PROPSHEETHEADERW_V2_3::default(),
         hplWatermark: HPALETTE(0),
-        Anonymous5: PROPSHEETHEADERW_V2_4 {
-            hbmHeader: HBITMAP(0),
-        },
+        Anonymous5: PROPSHEETHEADERW_V2_4::default(),
     };
 
     let pid = unsafe { PropertySheetW(&mut psh) };

@@ -27,6 +27,7 @@
 #define IDS_OPEN_SETTINGS               1004
 
 // Settings EXE
+#define ID_SETTINGS_MANIFEST            2
 #define IDD_ABOUTTAB                    2000
 #define IDS_LIGHT_THEME                 2001
 #define IDS_DARK_THEME                  2002
