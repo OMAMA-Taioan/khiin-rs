@@ -5,13 +5,14 @@
 // temporary
 // #![allow(unused)]
 
+pub mod resource;
+pub mod utils;
+
 mod config;
 mod dll;
 mod engine;
 mod geometry;
 mod locales;
 mod reg;
-mod resource;
 mod tip;
 mod ui;
-mod utils;

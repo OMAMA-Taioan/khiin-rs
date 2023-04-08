@@ -1,5 +1,5 @@
 [package]
-name = "khiin-windows"
+name = "khiin_windows"
 version = "0.1.0"
 edition = "2021"
 authors = ["Ko An Iong <aiongtaigi@gmail.com"]
@@ -7,7 +7,7 @@ publish = false
 build = "build.rs"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "lib"]
 
 [dependencies]
 log = "0.4.17"
@@ -17,8 +17,8 @@ num = "0.4.0"
 serde = { version = "1.0.159", features = ["derive"] }
 toml = "0.7.3"
 rand = "0.8.5"
-khiin = { path = "../khiin" }
-khiin-protos = { path = "../protos" }
+khiin = { path = "../../khiin" }
+khiin-protos = { path = "../../protos" }
 
 [dependencies.windows]
 version = "0.48.0"
@@ -51,4 +51,4 @@ features = [
 ]
 
 [build-dependencies]
-embed-resource = "2.0"
+embed-resource = "2.1.1"

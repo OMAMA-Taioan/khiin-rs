@@ -3,5 +3,6 @@
 members = [
     "khiin",
     "protos",
-    "windows",
+    "windows/ime",
+    "windows/settings"
 ]

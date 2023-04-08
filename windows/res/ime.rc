@@ -1,0 +1,20 @@
+#pragma code_page(65001)
+#include "resource.h"
+
+IDM_MANIFEST            RT_MANIFEST             "../res/dpi.manifest"
+IDI_MAINICON            ICON                    "../res/mainicon.ico"
+IDI_MODE_ALPHA          ICON                    "../res/mode-alpha.ico"
+IDI_MODE_ALPHA_W        ICON                    "../res/mode-alpha-white.ico"
+IDI_MODE_CONTINUOUS     ICON                    "../res/mode-cont.ico"
+IDI_MODE_CONTINUOUS_W   ICON                    "../res/mode-cont-white.ico"
+IDI_MODE_PRO            ICON                    "../res/mode-pro.ico"
+IDI_MODE_PRO_W          ICON                    "../res/mode-pro-white.ico"
+IDI_MODE_BASIC          ICON                    "../res/mode-basic.ico"
+IDI_MODE_BASIC_W        ICON                    "../res/mode-basic-white.ico"
+IDI_SETTINGS            ICON                    "../res/cog.ico"
+IDI_SETTINGS_W          ICON                    "../res/cog-white.ico"
+
+STRINGTABLE
+BEGIN
+    IDS_TEXT_SERVICE_DISPLAY_NAME "起引 Khíín Phah Jī Hoat"
+END
