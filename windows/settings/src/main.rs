@@ -4,30 +4,20 @@
 
 mod propsheet;
 mod propsheetpage;
+mod style_page;
+mod windowsx;
+mod winuser;
 
-use std::cell::RefCell;
 use std::rc::Rc;
 
 use khiin_windows::resource::*;
 
 use windows::core::Result;
 use windows::core::PCWSTR;
-use windows::Win32::Foundation::HWND;
 use windows::Win32::System::LibraryLoader::GetModuleHandleW;
 
 use crate::propsheet::PropSheet;
-use crate::propsheetpage::PageHandler;
-
-#[derive(Default)]
-struct StylePage {
-    handle: RefCell<HWND>,
-}
-
-impl PageHandler for StylePage {
-    fn set_handle(&self, handle: HWND) {
-        self.handle.replace(handle);
-    }
-}
+use crate::style_page::StylePage;
 
 fn run() -> Result<isize> {
     let module = unsafe { GetModuleHandleW(PCWSTR::null())? };

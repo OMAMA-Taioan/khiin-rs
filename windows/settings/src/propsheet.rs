@@ -1,22 +1,10 @@
 use std::mem::transmute;
 use std::rc::Rc;
 
-use khiin_windows::resource::IDI_MAINICON;
 use khiin_windows::resource::make_int_resource;
+use khiin_windows::resource::IDI_MAINICON;
 use khiin_windows::utils::pcwstr::ToPcwstr;
-use windows::Win32::Graphics::Gdi::HPALETTE;
-use windows::Win32::UI::Controls::PROPSHEETHEADERW_V2;
-use windows::Win32::UI::Controls::PROPSHEETHEADERW_V2_0;
-use windows::Win32::UI::Controls::PROPSHEETHEADERW_V2_1;
-use windows::Win32::UI::Controls::PROPSHEETHEADERW_V2_2;
-use windows::Win32::UI::Controls::PROPSHEETHEADERW_V2_3;
-use windows::Win32::UI::Controls::PROPSHEETHEADERW_V2_4;
-use windows::Win32::UI::Controls::PSH_NOCONTEXTHELP;
-use windows::Win32::UI::Controls::PSH_USECALLBACK;
-use windows::Win32::UI::Controls::PSH_USEICONID;
-use windows::Win32::UI::Controls::PropertySheetW;
-use windows::Win32::UI::WindowsAndMessaging::HWND_DESKTOP;
-use windows::Win32::UI::WindowsAndMessaging::WM_INITDIALOG;
+
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::FALSE;
 use windows::Win32::Foundation::HANDLE;
@@ -26,13 +14,24 @@ use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::LRESULT;
 use windows::Win32::Foundation::WPARAM;
 use windows::Win32::Graphics::Gdi::HBITMAP;
+use windows::Win32::Graphics::Gdi::HPALETTE;
 use windows::Win32::UI::Controls::CreatePropertySheetPageW;
 use windows::Win32::UI::Controls::InitCommonControls;
+use windows::Win32::UI::Controls::PropertySheetW;
 use windows::Win32::UI::Controls::HPROPSHEETPAGE;
+use windows::Win32::UI::Controls::PROPSHEETHEADERW_V2;
+use windows::Win32::UI::Controls::PROPSHEETHEADERW_V2_0;
+use windows::Win32::UI::Controls::PROPSHEETHEADERW_V2_1;
+use windows::Win32::UI::Controls::PROPSHEETHEADERW_V2_2;
+use windows::Win32::UI::Controls::PROPSHEETHEADERW_V2_3;
+use windows::Win32::UI::Controls::PROPSHEETHEADERW_V2_4;
 use windows::Win32::UI::Controls::PROPSHEETPAGEW;
 use windows::Win32::UI::Controls::PROPSHEETPAGEW_0;
 use windows::Win32::UI::Controls::PROPSHEETPAGEW_1;
 use windows::Win32::UI::Controls::PROPSHEETPAGEW_2;
+use windows::Win32::UI::Controls::PSH_NOCONTEXTHELP;
+use windows::Win32::UI::Controls::PSH_USECALLBACK;
+use windows::Win32::UI::Controls::PSH_USEICONID;
 use windows::Win32::UI::Controls::PSP_USETITLE;
 use windows::Win32::UI::WindowsAndMessaging::GetSystemMenu;
 use windows::Win32::UI::WindowsAndMessaging::GetWindowLongPtrW;
@@ -43,25 +42,19 @@ use windows::Win32::UI::WindowsAndMessaging::SetWindowLongW;
 use windows::Win32::UI::WindowsAndMessaging::DLGPROC;
 use windows::Win32::UI::WindowsAndMessaging::GWL_STYLE;
 use windows::Win32::UI::WindowsAndMessaging::HICON;
+use windows::Win32::UI::WindowsAndMessaging::HWND_DESKTOP;
 use windows::Win32::UI::WindowsAndMessaging::MF_BYPOSITION;
 use windows::Win32::UI::WindowsAndMessaging::MF_STRING;
 use windows::Win32::UI::WindowsAndMessaging::SC_MINIMIZE;
-use windows::Win32::UI::WindowsAndMessaging::WINDOW_LONG_PTR_INDEX as WLPI;
+use windows::Win32::UI::WindowsAndMessaging::WINDOW_LONG_PTR_INDEX;
+use windows::Win32::UI::WindowsAndMessaging::WM_INITDIALOG;
 use windows::Win32::UI::WindowsAndMessaging::WS_MINIMIZEBOX;
 
 use crate::propsheetpage::PageHandler;
 use crate::propsheetpage::PropSheetPage;
+use crate::winuser::*;
 
-static DWLP_MSGRESULT: i32 = 0;
-static DWLP_DLGPROC: i32 =
-    DWLP_MSGRESULT + std::mem::size_of::<LRESULT>() as i32;
-static DWLP_USER: WLPI =
-    WLPI(DWLP_DLGPROC + std::mem::size_of::<DLGPROC>() as i32);
-
-const ID_APPLY_NOW: u32 = 0x3021;
-const PCSB_INITIALIZED: u32 = 1;
-const PCSB_PRECREATE: u32 = 2;
-const PSCB_BUTTONPRESSED: u32 = 3;
+static mut INITIALIZED: bool = false;
 
 pub struct PropSheet {
     module: HMODULE,
@@ -159,17 +152,23 @@ impl PropSheet {
                 let psp: &PropSheetPage = unsafe { transmute(lparam) };
                 psp.handler.set_handle(handle);
                 unsafe {
-                    SetWindowLongPtrW(handle, DWLP_USER, transmute(lparam))
+                    SetWindowLongPtrW(handle, DWLP_USER, transmute(lparam));
+                    INITIALIZED = true;
                 };
-                0
+                psp.handler.on_message(message, wparam, lparam)
             }
             _ => {
-                let userdata = unsafe { GetWindowLongPtrW(handle, DWLP_USER) };
-                let this =
-                    std::ptr::NonNull::<PropSheetPage>::new(userdata as _);
-                this.map_or(0, |mut t| unsafe {
-                    t.as_mut().handler.on_message(message, wparam, lparam)
-                })
+                if unsafe { !INITIALIZED } {
+                    0
+                } else {
+                    let userdata =
+                        unsafe { GetWindowLongPtrW(handle, DWLP_USER) };
+                    let this =
+                        std::ptr::NonNull::<PropSheetPage>::new(userdata as _);
+                    this.map_or(0, |mut t| unsafe {
+                        t.as_mut().handler.on_message(message, wparam, lparam)
+                    })
+                }
             }
         }
     }

@@ -4,6 +4,8 @@ use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::WPARAM;
 use windows::Win32::UI::Controls::PROPSHEETPAGEW;
+use windows::Win32::UI::WindowsAndMessaging::GetDlgItem;
+use windows::Win32::UI::WindowsAndMessaging::WM_INITDIALOG;
 
 // cf Appending additional payload to a PROPSHEETPAGE structure
 // https://devblogs.microsoft.com/oldnewthing/20211124-00/?p=105961
@@ -14,7 +16,15 @@ pub struct PropSheetPage {
 }
 
 pub trait PageHandler {
+    fn handle(&self) -> HWND;
+
     fn set_handle(&self, handle: HWND);
+
+    fn item(&self, rid: u16) -> HWND {
+        unsafe { GetDlgItem(self.handle(), rid as i32) }
+    }
+
+    fn initialize(&self) -> isize;
 
     fn on_message(
         &self,
@@ -22,7 +32,10 @@ pub trait PageHandler {
         wparam: WPARAM,
         lparam: LPARAM,
     ) -> isize {
-        0
+        match message {
+            WM_INITDIALOG => self.initialize(),
+            _ => 0
+        }
     }
 }
 
