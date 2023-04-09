@@ -1,8 +1,21 @@
 use std::mem::transmute;
 use std::rc::Rc;
 
+use khiin_windows::resource::IDI_MAINICON;
 use khiin_windows::resource::make_int_resource;
 use khiin_windows::utils::pcwstr::ToPcwstr;
+use windows::Win32::Graphics::Gdi::HPALETTE;
+use windows::Win32::UI::Controls::PROPSHEETHEADERW_V2;
+use windows::Win32::UI::Controls::PROPSHEETHEADERW_V2_0;
+use windows::Win32::UI::Controls::PROPSHEETHEADERW_V2_1;
+use windows::Win32::UI::Controls::PROPSHEETHEADERW_V2_2;
+use windows::Win32::UI::Controls::PROPSHEETHEADERW_V2_3;
+use windows::Win32::UI::Controls::PROPSHEETHEADERW_V2_4;
+use windows::Win32::UI::Controls::PSH_NOCONTEXTHELP;
+use windows::Win32::UI::Controls::PSH_USECALLBACK;
+use windows::Win32::UI::Controls::PSH_USEICONID;
+use windows::Win32::UI::Controls::PropertySheetW;
+use windows::Win32::UI::WindowsAndMessaging::HWND_DESKTOP;
 use windows::Win32::UI::WindowsAndMessaging::WM_INITDIALOG;
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::FALSE;
@@ -36,7 +49,7 @@ use windows::Win32::UI::WindowsAndMessaging::SC_MINIMIZE;
 use windows::Win32::UI::WindowsAndMessaging::WINDOW_LONG_PTR_INDEX as WLPI;
 use windows::Win32::UI::WindowsAndMessaging::WS_MINIMIZEBOX;
 
-use crate::propsheetpage::Handler;
+use crate::propsheetpage::PageHandler;
 use crate::propsheetpage::PropSheetPage;
 
 static DWLP_MSGRESULT: i32 = 0;
@@ -50,45 +63,61 @@ const PCSB_INITIALIZED: u32 = 1;
 const PCSB_PRECREATE: u32 = 2;
 const PSCB_BUTTONPRESSED: u32 = 3;
 
-pub trait Propsheet<T: Handler> {
-    extern "system" fn dlgproc(
-        handle: HWND,
-        message: u32,
-        wparam: WPARAM,
-        lparam: LPARAM,
-    ) -> isize {
-        match message {
-            WM_INITDIALOG => {
-                let psp: &PropSheetPage<T> = unsafe { transmute(lparam) };
-                psp.handler.set_handle(handle);
-                unsafe {
-                    SetWindowLongPtrW(handle, DWLP_USER, transmute(lparam))
-                };
-                0
-            }
-            _ => {
-                let userdata = unsafe { GetWindowLongPtrW(handle, DWLP_USER) };
-                let this =
-                    std::ptr::NonNull::<PropSheetPage<T>>::new(userdata as _);
-                this.map_or(0, |mut t| unsafe {
-                    t.as_mut().handler.on_message(message, wparam, lparam)
-                })
-            }
+pub struct PropSheet {
+    module: HMODULE,
+    pages: Vec<PropSheetPage>,
+    psp_handles: Vec<HPROPSHEETPAGE>,
+}
+
+impl PropSheet {
+    pub fn new(module: HMODULE) -> Self {
+        Self {
+            module,
+            pages: Vec::new(),
+            psp_handles: Vec::new(),
         }
     }
 
-    fn create_page(
-        module: HMODULE,
+    pub fn run(&mut self) -> isize {
+        let mut psh = PROPSHEETHEADERW_V2 {
+            dwSize: std::mem::size_of::<PROPSHEETHEADERW_V2>() as u32,
+            dwFlags: PSH_NOCONTEXTHELP | PSH_USECALLBACK | PSH_USEICONID,
+            hwndParent: HWND_DESKTOP,
+            hInstance: self.module,
+            Anonymous1: PROPSHEETHEADERW_V2_0 {
+                pszIcon: make_int_resource(IDI_MAINICON),
+            },
+            pszCaption: PCWSTR::null(),
+            nPages: 1,
+            Anonymous2: PROPSHEETHEADERW_V2_1 { nStartPage: 0 },
+            Anonymous3: PROPSHEETHEADERW_V2_2 {
+                phpage: self.psp_handles.as_mut_ptr(),
+            },
+            pfnCallback: Some(propsheet_cb),
+            Anonymous4: PROPSHEETHEADERW_V2_3 {
+                pszbmWatermark: PCWSTR::null(),
+            },
+            hplWatermark: HPALETTE(0),
+            Anonymous5: PROPSHEETHEADERW_V2_4 {
+                pszbmHeader: PCWSTR::null(),
+            },
+        };
+
+        unsafe { PropertySheetW(&mut psh) }
+    }
+
+    pub fn add_page(
+        &mut self,
         template_id: u16,
-        handler: Rc<T>,
+        handler: Rc<dyn PageHandler>,
     ) -> HPROPSHEETPAGE {
         let title = "Styles";
         let p_title = title.to_pcwstr();
 
         let page = PROPSHEETPAGEW {
-            dwSize: std::mem::size_of::<PropSheetPage<T>>() as u32,
+            dwSize: std::mem::size_of::<PropSheetPage>() as u32,
             dwFlags: PSP_USETITLE,
-            hInstance: module,
+            hInstance: self.module,
             Anonymous1: PROPSHEETPAGEW_0 {
                 pszTemplate: make_int_resource(template_id),
             },
@@ -113,7 +142,36 @@ pub trait Propsheet<T: Handler> {
 
         let hpsp = unsafe { CreatePropertySheetPageW(page.as_winapi()) };
 
+        self.pages.push(page);
+        self.psp_handles.push(hpsp);
+
         hpsp
+    }
+
+    extern "system" fn dlgproc(
+        handle: HWND,
+        message: u32,
+        wparam: WPARAM,
+        lparam: LPARAM,
+    ) -> isize {
+        match message {
+            WM_INITDIALOG => {
+                let psp: &PropSheetPage = unsafe { transmute(lparam) };
+                psp.handler.set_handle(handle);
+                unsafe {
+                    SetWindowLongPtrW(handle, DWLP_USER, transmute(lparam))
+                };
+                0
+            }
+            _ => {
+                let userdata = unsafe { GetWindowLongPtrW(handle, DWLP_USER) };
+                let this =
+                    std::ptr::NonNull::<PropSheetPage>::new(userdata as _);
+                this.map_or(0, |mut t| unsafe {
+                    t.as_mut().handler.on_message(message, wparam, lparam)
+                })
+            }
+        }
     }
 }
 
