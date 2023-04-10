@@ -40,3 +40,9 @@ impl ToPcwstr for &str {
         }
     }
 }
+
+impl ToPcwstr for String {
+    fn to_pcwstr(&self) -> Pcwstr {
+        self.as_str().to_pcwstr()
+    }
+}

@@ -39,6 +39,7 @@ use windows::Win32::UI::WindowsAndMessaging::GetWindowLongW;
 use windows::Win32::UI::WindowsAndMessaging::InsertMenuW;
 use windows::Win32::UI::WindowsAndMessaging::SetWindowLongPtrW;
 use windows::Win32::UI::WindowsAndMessaging::SetWindowLongW;
+use windows::Win32::UI::WindowsAndMessaging::SetWindowTextW;
 use windows::Win32::UI::WindowsAndMessaging::DLGPROC;
 use windows::Win32::UI::WindowsAndMessaging::GWL_STYLE;
 use windows::Win32::UI::WindowsAndMessaging::HICON;
@@ -50,11 +51,25 @@ use windows::Win32::UI::WindowsAndMessaging::WINDOW_LONG_PTR_INDEX;
 use windows::Win32::UI::WindowsAndMessaging::WM_INITDIALOG;
 use windows::Win32::UI::WindowsAndMessaging::WS_MINIMIZEBOX;
 
+use crate::locales::t;
 use crate::propsheetpage::PageHandler;
 use crate::propsheetpage::PropSheetPage;
 use crate::winuser::*;
 
 static mut INITIALIZED: bool = false;
+
+pub trait Hwnd {
+    fn set_text(&self, rid: u16);
+}
+
+impl Hwnd for HWND {
+    fn set_text(&self, rid: u16) {
+        let text = t(rid).to_pcwstr();
+        unsafe {
+            SetWindowTextW(*self, *text);
+        }
+    }
+}
 
 pub struct PropSheet {
     module: HMODULE,

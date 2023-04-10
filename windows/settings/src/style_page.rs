@@ -1,16 +1,13 @@
 use std::cell::RefCell;
 
-use khiin_windows::resource::*;
 use khiin_windows::utils::pcwstr::ToPcwstr;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::WindowsAndMessaging::{GetParent, SetWindowTextW};
 
-use crate::windowsx::*;
+use crate::locales::t;
 use crate::propsheetpage::PageHandler;
-
-static TITLE: &str = "起引拍字法 Khíín Settings";
-static S1: &str = "Hello";
-static S2: &str = "World";
+use crate::resource::*;
+use crate::windowsx::*;
 
 #[derive(Default)]
 pub struct StylePage {
@@ -28,20 +25,25 @@ impl PageHandler for StylePage {
 
     fn initialize(&self) -> isize {
         let hwnd = unsafe { GetParent(self.handle()) };
-        let title_p = TITLE.to_pcwstr();
-        unsafe { SetWindowTextW(hwnd, *title_p); }
+        let title = t(IDS_WINDOW_CAPTION).to_pcwstr();
+        unsafe {
+            SetWindowTextW(hwnd, *title);
+        }
 
-        let hwndCtl = self.item(IDC_COMBOBOX_THEME_COLOR);
-        ComboBox_ResetContent(hwndCtl);
-        ComboBox_AddString(hwndCtl, S1);
-        ComboBox_AddString(hwndCtl, S2);
-        ComboBox_SetCurSel(hwndCtl, 0);
+        let ctl = self.item(IDL_COLOR);
+        Static_SetText(ctl, &t(IDL_COLOR));
 
-        let hwndCtl = self.item(IDC_DISPLAY_LANGUAGE);
-        ComboBox_ResetContent(hwndCtl);
-        ComboBox_AddString(hwndCtl, S1);
-        ComboBox_AddString(hwndCtl, S2);
-        ComboBox_SetCurSel(hwndCtl, 0);
+        let ctl = self.item(IDC_COMBOBOX_THEME_COLOR);
+        ComboBox_ResetContent(ctl);
+        ComboBox_AddString(ctl, &t(IDS_LIGHT_THEME));
+        ComboBox_AddString(ctl, &t(IDS_DARK_THEME));
+        ComboBox_SetCurSel(ctl, 0);
+
+        let ctl = self.item(IDC_DISPLAY_LANGUAGE);
+        ComboBox_ResetContent(ctl);
+        ComboBox_AddString(ctl, &t(IDS_DISPLAY_LANGUAGE_EN));
+        ComboBox_AddString(ctl, &t(IDS_DISPLAY_LANGUAGE_HANLO));
+        ComboBox_SetCurSel(ctl, 0);
         0
     }
 }

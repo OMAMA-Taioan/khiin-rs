@@ -8,6 +8,7 @@ use windows::Win32::UI::WindowsAndMessaging::CB_ADDSTRING;
 use windows::Win32::UI::WindowsAndMessaging::CB_SETCURSEL;
 use windows::Win32::UI::WindowsAndMessaging::SendMessageW;
 use windows::Win32::UI::WindowsAndMessaging::CB_RESETCONTENT;
+use windows::Win32::UI::WindowsAndMessaging::SetWindowTextW;
 
 // These are some functions (actually macros) defined in windowsx.h
 // ported here for better usability, since they are not included
@@ -37,5 +38,13 @@ pub fn ComboBox_AddString(hwndCtl: HWND, string: &str) {
 pub fn ComboBox_SetCurSel(hwndCtl: HWND, index: usize) {
     unsafe {
         SendMessageW(hwndCtl, CB_SETCURSEL, WPARAM(index), LPARAM(0));
+    }
+}
+
+#[inline]
+pub fn Static_SetText(hwndCtl: HWND, string: &str) {
+    let pcwstr = string.to_pcwstr();
+    unsafe {
+        SetWindowTextW(hwndCtl, *pcwstr);
     }
 }
