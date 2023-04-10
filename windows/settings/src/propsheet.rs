@@ -11,7 +11,6 @@ use windows::Win32::Foundation::HANDLE;
 use windows::Win32::Foundation::HMODULE;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::LPARAM;
-use windows::Win32::Foundation::LRESULT;
 use windows::Win32::Foundation::WPARAM;
 use windows::Win32::Graphics::Gdi::HBITMAP;
 use windows::Win32::Graphics::Gdi::HPALETTE;
@@ -39,37 +38,21 @@ use windows::Win32::UI::WindowsAndMessaging::GetWindowLongW;
 use windows::Win32::UI::WindowsAndMessaging::InsertMenuW;
 use windows::Win32::UI::WindowsAndMessaging::SetWindowLongPtrW;
 use windows::Win32::UI::WindowsAndMessaging::SetWindowLongW;
-use windows::Win32::UI::WindowsAndMessaging::SetWindowTextW;
-use windows::Win32::UI::WindowsAndMessaging::DLGPROC;
 use windows::Win32::UI::WindowsAndMessaging::GWL_STYLE;
 use windows::Win32::UI::WindowsAndMessaging::HICON;
 use windows::Win32::UI::WindowsAndMessaging::HWND_DESKTOP;
 use windows::Win32::UI::WindowsAndMessaging::MF_BYPOSITION;
 use windows::Win32::UI::WindowsAndMessaging::MF_STRING;
 use windows::Win32::UI::WindowsAndMessaging::SC_MINIMIZE;
-use windows::Win32::UI::WindowsAndMessaging::WINDOW_LONG_PTR_INDEX;
 use windows::Win32::UI::WindowsAndMessaging::WM_INITDIALOG;
 use windows::Win32::UI::WindowsAndMessaging::WS_MINIMIZEBOX;
 
 use crate::locales::t;
-use crate::propsheetpage::PageHandler;
-use crate::propsheetpage::PropSheetPage;
+use crate::pages::PageHandler;
+use crate::pages::PropSheetPage;
 use crate::winuser::*;
 
 static mut INITIALIZED: bool = false;
-
-pub trait Hwnd {
-    fn set_text(&self, rid: u16);
-}
-
-impl Hwnd for HWND {
-    fn set_text(&self, rid: u16) {
-        let text = t(rid).to_pcwstr();
-        unsafe {
-            SetWindowTextW(*self, *text);
-        }
-    }
-}
 
 pub struct PropSheet {
     module: HMODULE,
@@ -96,7 +79,7 @@ impl PropSheet {
                 pszIcon: make_int_resource(IDI_MAINICON),
             },
             pszCaption: PCWSTR::null(),
-            nPages: 1,
+            nPages: self.psp_handles.len() as u32,
             Anonymous2: PROPSHEETHEADERW_V2_1 { nStartPage: 0 },
             Anonymous3: PROPSHEETHEADERW_V2_2 {
                 phpage: self.psp_handles.as_mut_ptr(),
@@ -119,8 +102,7 @@ impl PropSheet {
         template_id: u16,
         handler: Rc<dyn PageHandler>,
     ) -> HPROPSHEETPAGE {
-        let title = "Styles";
-        let p_title = title.to_pcwstr();
+        let p_title = t(template_id).to_pcwstr();
 
         let page = PROPSHEETPAGEW {
             dwSize: std::mem::size_of::<PropSheetPage>() as u32,
