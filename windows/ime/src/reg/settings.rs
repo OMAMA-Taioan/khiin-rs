@@ -238,7 +238,7 @@ pub fn can_attach_in_debug() -> Result<()> {
     }
 }
 
-#[cfg(debug_assertions)]
+#[cfg(test)]
 mod tests {
     use std::ffi::OsString;
 
