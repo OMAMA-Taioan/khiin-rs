@@ -64,7 +64,10 @@ static TRANSLATIONS_EN: Lazy<HashMap<u16, &'static str>> = Lazy::new(|| {
         IDL_RESET_USERDATA_BTN_DONE =>    "Cleared!",
         IDL_EDIT_USERDICT =>              "Custom dictionary:\n\n • One entry per line.\n • Format as <input output> (space between).\n • Input must be letters or numbers.\n • Output can be any words or symbols.",
         IDC_EDIT_USEDICT_BTN =>           "Open File",
+
         IDD_ABOUTTAB =>                   "About",
+        IDL_KHIIN_VERSION =>              "Khíín PJH v0.1.0",
+        IDL_KHIIN_COPYRIGHT =>            "Released under the MIT license",
     )
 });
 
@@ -121,6 +124,8 @@ static TRANSLATIONS_OAN: Lazy<HashMap<u16, &'static str>> = Lazy::new(|| {
         IDL_EDIT_USERDICT =>              "使用者 ka-kī ê 資料庫",
         IDC_EDIT_USEDICT_BTN =>           "編輯",
         IDD_ABOUTTAB =>                   "起引",
+        IDL_KHIIN_VERSION =>              "起引打字法 v0.1.0",
+        IDL_KHIIN_COPYRIGHT =>            "Released under the MIT license",
     )
 });
 

@@ -90,5 +90,9 @@
 #define IDL_RESET_USERDATA_BTN_DONE     2059
 #define IDL_EDIT_USERDICT               2060
 #define IDC_EDIT_USEDICT_BTN            2061
+#define IDL_KHIIN_VERSION               2062
+#define IDL_KHIIN_COPYRIGHT             2063
+
+
 
 #define IDC_STATIC                        -1

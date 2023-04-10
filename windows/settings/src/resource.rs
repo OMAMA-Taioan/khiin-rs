@@ -61,3 +61,5 @@ pub static IDC_RESET_USERDATA_BTN: u16 =          2058;
 pub static IDL_RESET_USERDATA_BTN_DONE: u16 =     2059;
 pub static IDL_EDIT_USERDICT: u16 =               2060;
 pub static IDC_EDIT_USEDICT_BTN: u16 =            2061;
+pub static IDL_KHIIN_VERSION: u16 =               2062;
+pub static IDL_KHIIN_COPYRIGHT: u16 =             2063;
