@@ -1,26 +1,38 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
+use qp_trie::{wrapper::BString, Trie};
 
-static BIG: f32 = 1e10;
+use super::database::Input;
+
+static BIG: f64 = 1e10;
 
 pub struct Segmenter {
     max_word_length: usize,
-    cost_map: HashMap<String, f32>,
+    cost_map: HashMap<String, f64>,
 }
 
 impl Segmenter {
-    pub fn new(words_by_frequency: Vec<String>) -> Result<Self> {
+    pub fn new(words_by_frequency: Vec<Input>) -> Result<Self> {
         let mut max_word_length = 0;
         let mut cost_map = HashMap::new();
-        let log_size = (words_by_frequency.len() as f32).ln();
 
-        for (i, word) in words_by_frequency.into_iter().enumerate() {
-            max_word_length =
-                std::cmp::max(max_word_length, word.chars().count());
+        for word in words_by_frequency.into_iter() {
+            if cost_map.contains_key(&word.key_sequence) {
+                continue;
+            }
 
-            let cost = (i + 1) as f32 * log_size;
-            cost_map.insert(word, cost);
+            let word_len = word.key_sequence.chars().count();
+            max_word_length = std::cmp::max(max_word_length, word_len);
+
+            let p = if word.p <= 0.0 {
+                1e-5 / 10f64.powf(word_len as f64)
+            } else {
+                word.p
+            };
+
+            let cost = (1.0 / p).ln();
+            cost_map.insert(word.key_sequence, cost);
         }
 
         Ok(Segmenter {
@@ -36,15 +48,15 @@ impl Segmenter {
 
 fn split_words(
     input: &str,
-    cost_map: &HashMap<String, f32>,
+    cost_map: &HashMap<String, f64>,
     max_word_len: usize,
 ) -> Vec<String> {
     let len = input.chars().count();
-    let mut costs: Vec<(f32, i32)> = Vec::new();
+    let mut costs: Vec<(f64, i32)> = Vec::new();
     costs.push((0.0, -1));
 
     #[allow(unused_assignments)]
-    let mut curr_cost = 0.0f32;
+    let mut curr_cost = 0.0f64;
 
     for i in 1..len + 1 {
         let mut min_cost = costs[i - 1].0 + BIG;
@@ -53,9 +65,13 @@ fn split_words(
         for j in i.saturating_sub(max_word_len)..i {
             let chunk = &input[j..i];
 
+            // println!("chunk: {}", chunk);
+
             if !cost_map.contains_key(chunk) {
                 continue;
             }
+
+            // println!("chunk cost: {}", cost_map.get(chunk).unwrap());
 
             curr_cost = costs[j].0 + cost_map.get(chunk).unwrap();
             if curr_cost <= min_cost {
@@ -103,7 +119,7 @@ mod tests {
     #[test]
     fn it_works() {
         let input = "goabehchiahpng";
-        let cost_map: HashMap<String, f32> = collection!(
+        let cost_map: HashMap<String, f64> = collection!(
             "goa".into() => 10.0,
             "beh".into() => 20.0,
             "chiah".into() => 30.0,
@@ -148,13 +164,18 @@ mod tests {
             "ng",
         ]
         .iter()
-        .map(|s| s.to_string())
+        .map(|s| Input {
+            id: 0,
+            key_sequence: s.to_string(),
+            p: 0.01,
+        })
         .collect();
         let segmenter =
             Segmenter::new(words).expect("Could not build segmenter");
         let result = segmenter
             .split("goamchaiujoachelanghamgoaukangkhoanesengtiong")
             .expect("Could not segment text");
+        println!("{}", result.join(" "));
         assert_eq!(result.len(), 12);
     }
 }

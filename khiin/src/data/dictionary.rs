@@ -30,12 +30,7 @@ impl Dictionary {
             word_trie.insert_str(&word.key_sequence, word.id);
         }
 
-        let mut with_toneless = BTreeSet::new();
-        for word in inputs.into_iter() {
-            with_toneless.insert(word.key_sequence);
-        }
-
-        let segmenter = Segmenter::new(with_toneless)?;
+        let segmenter = Segmenter::new(inputs)?;
 
         Ok(Self {
             word_trie,
@@ -111,7 +106,20 @@ mod tests {
             kesisimchongbapihlaikoesineiesithekuibinlongsibaksaikapphinn\
             kouchebengbengsitikoesinchinchengsiutiohchintoaethongkhou";
         let result = dict.segment(input).expect("Could not segment text");
-        println!("{}", result.join(" "));
         assert!(result.len() > 20);
+        assert_eq!(result.join(" ").as_str(),
+            "gou tui tiunn kin ku ka siok the kiong e chuliau chite siaulianke \
+             si sim chong ba pih lai koe sin e i e sithe kui bin long si \
+             baksai kap phinn kou che bengbeng si ti koe sin chincheng siutioh \
+             chin toa e thong khou");
+        
+        for _ in 0..1000 {
+            let result = dict.segment(input).expect("Could not segment text");
+            assert_eq!(result.join(" ").as_str(),
+            "gou tui tiunn kin ku ka siok the kiong e chuliau chite siaulianke \
+             si sim chong ba pih lai koe sin e i e sithe kui bin long si \
+             baksai kap phinn kou che bengbeng si ti koe sin chincheng siutioh \
+             chin toa e thong khou");
+        }
     }
 }
