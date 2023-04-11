@@ -46,11 +46,11 @@ pub fn handle_key(
 ) -> Result<()> {
     let khi = translate_key_event(key_event);
     let mut req = Request::new();
+    req.id = rand::random::<u32>();
     req.type_ = CommandType::CMD_SEND_KEY.into();
     req.key_event = Some(khi).into();
     let mut cmd = Command::new();
     cmd.request = Some(req).into();
-    cmd.id = rand::random::<u32>();
 
     tip.as_impl().send_command(context, cmd)
 }

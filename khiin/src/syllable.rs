@@ -11,6 +11,7 @@ static TONE_CHAR_MAP: Lazy<HashMap<Tone, char>> = Lazy::new(|| {
         Tone::T2 => '\u{0301}',
         Tone::T3 => '\u{0300}',
         Tone::T5 => '\u{0302}',
+        Tone::T6 => '\u{030C}',
         Tone::T7 => '\u{0304}',
         Tone::T8 => '\u{030D}',
         Tone::T9 => '\u{0306}',
@@ -96,10 +97,11 @@ impl Syllable {
             return Self::default();
         }
 
-        let last = ascii.chars().last().unwrap();
+        let mut raw_body = ascii.to_string();
+        let last = raw_body.chars().last().unwrap();
+        
         if let Some(index) = NUMERIC_TONE_CHARS.iter().position(|&c| c == last)
         {
-            let mut raw_body = ascii.to_string();
             raw_body.pop();
             let tone: Tone = (index as i32).into();
             return Self {
@@ -110,7 +112,7 @@ impl Syllable {
         }
 
         Self {
-            raw_body: ascii.to_string(),
+            raw_body,
             tone: Tone::None,
             khin: false,
         }
@@ -155,6 +157,11 @@ mod tests {
     fn it_parses_nasal_n() {
         assert_eq!(Syllable::new("ann3").compose(), "àⁿ");
         assert_eq!(Syllable::new("hahnn9").compose(), "hăhⁿ");
+    }
+
+    #[test]
+    fn it_works_for_uppercase() {
+        assert_eq!(Syllable::new("OAN5").compose(), "OÂN");
     }
 
     #[test]

@@ -1,6 +1,7 @@
-use anyhow::{Result, Error};
-use khiin_protos::command::*;
+use anyhow::Error;
+use anyhow::Result;
 use khiin_protos::command::preedit::*;
+use khiin_protos::command::*;
 use protobuf::Message;
 
 pub struct Engine;
@@ -40,9 +41,93 @@ impl Engine {
 
     pub fn send_command_bytes(&self, bytes: &[u8]) -> Result<Vec<u8>> {
         let mut cmd = Command::parse_from_bytes(bytes)?;
-        get_mock_command(&mut cmd);
-        cmd.write_to_bytes().map_err(|_| Error::msg("Failed to write protobuf bytes"))
+        let req = cmd.request.clone().unwrap();
+
+        let res = match req.type_.enum_value_or_default() {
+            CommandType::CMD_UNSPECIFIED => todo!(),
+            CommandType::CMD_SEND_KEY => self.on_send_key(req),
+            CommandType::CMD_REVERT => self.on_revert(req),
+            CommandType::CMD_RESET => self.on_reset(req),
+            CommandType::CMD_COMMIT => self.on_commit(req),
+            CommandType::CMD_SELECT_CANDIDATE => self.on_select_candidate(req),
+            CommandType::CMD_FOCUS_CANDIDATE => self.on_focus_candidate(req),
+            CommandType::CMD_SWITCH_INPUT_MODE => {
+                self.on_switch_input_mode(req)
+            }
+            CommandType::CMD_PLACE_CURSOR => self.on_place_cursor(req),
+            CommandType::CMD_DISABLE => self.on_disable(req),
+            CommandType::CMD_ENABLE => self.on_enable(req),
+            CommandType::CMD_SET_CONFIG => self.on_set_config(req),
+            CommandType::CMD_TEST_SEND_KEY => self.on_test_send_key(req),
+            CommandType::CMD_LIST_EMOJIS => self.on_list_emojis(req),
+            CommandType::CMD_RESET_USER_DATA => self.on_reset_user_data(req),
+            CommandType::CMD_SHUTDOWN => self.on_shutdown(req),
+        };
+        cmd.response = Some(res).into();
+        cmd.write_to_bytes()
+            .map_err(|_| Error::msg("Failed to write protobuf bytes"))
     }
+
+    fn on_send_key(&self, req: Request) -> Response {
+        Response::default()
+    }
+
+    fn on_revert(&self, req: Request) -> Response {
+        Response::default()
+    }
+
+    fn on_reset(&self, req: Request) -> Response {
+        Response::default()
+    }
+
+    fn on_commit(&self, req: Request) -> Response {
+        Response::default()
+    }
+
+    fn on_select_candidate(&self, req: Request) -> Response {
+        Response::default()
+    }
+
+    fn on_focus_candidate(&self, req: Request) -> Response {
+        Response::default()
+    }
+
+    fn on_switch_input_mode(&self, req: Request) -> Response {
+        Response::default()
+    }
+
+    fn on_place_cursor(&self, req: Request) -> Response {
+        Response::default()
+    }
+
+    fn on_disable(&self, req: Request) -> Response {
+        Response::default()
+    }
+
+    fn on_enable(&self, req: Request) -> Response {
+        Response::default()
+    }
+
+    fn on_set_config(&self, req: Request) -> Response {
+        Response::default()
+    }
+
+    fn on_test_send_key(&self, req: Request) -> Response {
+        Response::default()
+    }
+
+    fn on_list_emojis(&self, req: Request) -> Response {
+        Response::default()
+    }
+
+    fn on_reset_user_data(&self, req: Request) -> Response {
+        Response::default()
+    }
+
+    fn on_shutdown(&self, req: Request) -> Response {
+        Response::default()
+    }
+
 }
 
 #[cfg(test)]

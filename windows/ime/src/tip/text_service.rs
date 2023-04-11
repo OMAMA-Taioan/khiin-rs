@@ -303,7 +303,7 @@ impl TextService {
         context: ITfContext,
         command: Command,
     ) -> Result<()> {
-        let id = command.id;
+        let id = command.request.id;
         self.context_cache
             .borrow_mut()
             .insert(id, Rc::new(Context { id, context }));
@@ -320,7 +320,7 @@ impl TextService {
         let context = self
             .context_cache
             .borrow_mut()
-            .remove(&command.id)
+            .remove(&command.request.id)
             .ok_or(Error::from(E_FAIL))?
             .context
             .clone();

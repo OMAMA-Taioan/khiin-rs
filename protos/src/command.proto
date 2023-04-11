@@ -66,18 +66,20 @@ enum CommandType {
 
 // Message sent from app to engine
 message Request {
-    CommandType type = 1;
+    uint32 id = 1;
 
-    KeyEvent key_event = 2;
+    CommandType type = 2;
+
+    KeyEvent key_event = 3;
 
     // ID or index position of the candidate focused or selected by the user
-    int32 candidate_id = 3;
+    int32 candidate_id = 4;
 
     // Used if the user taps/clicks somewhere, otherwise arrow keys are sent
     // and the engine figures out its own cursor position
-    int32 cursor_position = 4;
+    int32 cursor_position = 5;
 
-    AppConfig config = 5;
+    AppConfig config = 6;
 }
 
 enum SegmentStatus {
@@ -169,7 +171,6 @@ message Response {
 // A full command bundle, passed between app and engine
 // during each edit session
 message Command {
-    uint32 id = 1;
     Request request = 2;
     Response response = 3;
 }
