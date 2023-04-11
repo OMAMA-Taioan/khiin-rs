@@ -1,6 +1,7 @@
 pub mod engine;
 
-mod buffer;
+pub(crate) mod buffer;
+pub(crate) mod config;
 mod macros;
 mod syllable;
 

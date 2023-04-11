@@ -33,7 +33,7 @@ impl EngineCoordinator {
         }
     }
 
-    fn send_command(&self, cmd: Command) -> Result<Command> {
+    fn send_command(&mut self, cmd: Command) -> Result<Command> {
         let bytes = cmd.write_to_bytes().map_err(|_| Error::from(E_FAIL))?;
         let cmd = self
             .engine
@@ -56,7 +56,7 @@ impl AsyncEngine {
             if engine.is_err() {
                 return;
             }
-            let engine = engine.unwrap();
+            let mut engine = engine.unwrap();
 
             loop {
                 match rx.recv() {
