@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use anyhow::anyhow;
 use anyhow::Error;
 use anyhow::Result;
@@ -7,17 +9,27 @@ use protobuf::Message;
 
 use crate::buffer::BufferMgr;
 use crate::config::EngineCfg;
+use crate::db::database::Database;
 
 pub struct Engine {
-    engine_cfg: EngineCfg,
+    db: Database,
+    cfg: EngineCfg,
     buffer_mgr: BufferMgr,
 }
 
 impl Engine {
-    pub fn new() -> Option<Engine> {
+    pub fn new(filename: &str) -> Option<Engine> {
+        let path = PathBuf::from(filename);
+        if !path.exists() {
+            return None;
+        }
+
+        let db = Database::new(&path).ok()?;
+
         Some(Engine {
+            db,
             buffer_mgr: BufferMgr::new(),
-            engine_cfg: EngineCfg::new(),
+            cfg: EngineCfg::new(),
         })
     }
 
@@ -64,7 +76,7 @@ impl Engine {
         match req.key_event.special_key.enum_value_or_default() {
             SpecialKey::SK_NONE => {
                 if let Some(ch) = ascii_char_from_i32(req.key_event.key_code) {
-                    self.buffer_mgr.insert(ch, self.engine_cfg.input_mode())?;
+                    self.buffer_mgr.insert(ch, self.cfg.input_mode())?;
                 }
             }
             SpecialKey::SK_SPACE => {}
@@ -184,10 +196,13 @@ fn get_mock_command(cmd: &mut Command) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tests::*;
 
     #[test]
     fn it_works() {
-        let engine = Engine::new();
+        let path = debug_db_path();
+        let filename = path.as_os_str().to_str().unwrap();
+        let engine = Engine::new(filename);
         assert!(engine.is_some());
     }
 }

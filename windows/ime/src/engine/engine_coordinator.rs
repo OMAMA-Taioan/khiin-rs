@@ -26,7 +26,7 @@ struct EngineCoordinator {
 
 impl EngineCoordinator {
     fn new() -> Result<Self> {
-        if let Some(engine) = khiin::Engine::new() {
+        if let Some(engine) = khiin::Engine::new("test") {
             Ok(Self { engine })
         } else {
             winerr!(E_FAIL)
