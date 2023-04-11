@@ -9,10 +9,13 @@ use protobuf::Message;
 
 use crate::buffer::BufferMgr;
 use crate::config::EngineCfg;
+use crate::config::engine_cfg::InputType;
 use crate::data::database::Database;
+use crate::data::dictionary::Dictionary;
 
 pub struct Engine {
     db: Database,
+    dict: Dictionary,
     cfg: EngineCfg,
     buffer_mgr: BufferMgr,
 }
@@ -25,9 +28,11 @@ impl Engine {
         }
 
         let db = Database::new(&path).ok()?;
+        let dict = Dictionary::new(&db, InputType::Numeric).ok()?;
 
         Some(Engine {
             db,
+            dict,
             buffer_mgr: BufferMgr::new(),
             cfg: EngineCfg::new(),
         })

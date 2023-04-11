@@ -7,6 +7,17 @@ use rusqlite::OpenFlags;
 
 use crate::config::engine_cfg::InputType;
 
+pub struct Input {
+    pub id: u32,
+    pub key_sequence: String,
+}
+
+impl Input {
+    pub fn new(id: u32, key_sequence: String) -> Self {
+        Self { id, key_sequence }
+    }
+}
+
 pub struct Database {
     conn: Connection,
 }
@@ -25,18 +36,19 @@ impl Database {
     pub fn all_words_by_freq(
         &self,
         input_type: InputType,
-    ) -> Result<Vec<String>> {
+    ) -> Result<Vec<Input>> {
         let table = match input_type {
             InputType::Numeric => "input_numeric",
             InputType::Telex => "input_telex",
         };
-        let sql = format!("SELECT key_sequence FROM {} ORDER BY input_id ASC", table);
+        let sql = format!("SELECT input_id, key_sequence FROM {} ORDER BY input_id ASC", table);
 
         let mut result = Vec::new();
         let mut stmt = self.conn.prepare(&sql)?;
         let mut rows = stmt.query([])?;
         while let Some(row) = rows.next()? {
-            result.push(row.get("key_sequence")?);
+            let input = Input::new(row.get("input_id")?, row.get("key_sequence")?);
+            result.push(input);
         }
         Ok(result)
     }
@@ -67,9 +79,9 @@ mod tests {
         assert!(res.is_ok());
         let res = res.unwrap();
         assert!(res.len() > 100);
-        let r0 = res[0].as_str();
-        let r1 = res[1].as_str();
-        let r2 = res[2].as_str();
+        let r0 = res[0].key_sequence.as_str();
+        let r1 = res[1].key_sequence.as_str();
+        let r2 = res[2].key_sequence.as_str();
         assert_eq!(r0, "e5");
         assert_eq!(r1, "goa2");
         assert_eq!(r2, "li2");
