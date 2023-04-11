@@ -9,7 +9,7 @@ use protobuf::Message;
 
 use crate::buffer::BufferMgr;
 use crate::config::EngineCfg;
-use crate::db::database::Database;
+use crate::data::database::Database;
 
 pub struct Engine {
     db: Database,

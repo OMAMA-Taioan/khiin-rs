@@ -1,8 +1,9 @@
+use std::fmt::format;
 use std::path::PathBuf;
 
 use anyhow::Result;
-use rusqlite::OpenFlags;
 use rusqlite::Connection;
+use rusqlite::OpenFlags;
 
 use crate::config::engine_cfg::InputType;
 
@@ -25,13 +26,17 @@ impl Database {
         &self,
         input_type: InputType,
     ) -> Result<Vec<String>> {
+        let table = match input_type {
+            InputType::Numeric => "input_numeric",
+            InputType::Telex => "input_telex",
+        };
+        let sql = format!("SELECT key_sequence FROM {} ORDER BY input_id ASC", table);
+
         let mut result = Vec::new();
-        let mut stmt = self
-            .conn
-            .prepare("SELECT input FROM frequency ORDER BY freq DESC")?;
+        let mut stmt = self.conn.prepare(&sql)?;
         let mut rows = stmt.query([])?;
         while let Some(row) = rows.next()? {
-            result.push(row.get(0)?);
+            result.push(row.get("key_sequence")?);
         }
         Ok(result)
     }
@@ -65,8 +70,8 @@ mod tests {
         let r0 = res[0].as_str();
         let r1 = res[1].as_str();
         let r2 = res[2].as_str();
-        assert_eq!(r0, "ê");
-        assert_eq!(r1, "góa");
-        assert_eq!(r2, "lí");
+        assert_eq!(r0, "e5");
+        assert_eq!(r1, "goa2");
+        assert_eq!(r2, "li2");
     }
 }

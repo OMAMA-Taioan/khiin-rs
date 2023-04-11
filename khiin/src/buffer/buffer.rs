@@ -1,15 +1,15 @@
 use super::BufferElement;
-use super::Insertable;
 
 #[derive(Default)]
 pub(crate) struct Buffer {
-    elems: Vec<BufferElement>,
+    elems: Vec<Box<dyn BufferElement>>,
 }
 
 impl Buffer {
     pub fn composition(&self) -> String {
         self.elems.iter().fold(String::default(), |mut acc, elem| {
-            acc.push_str(elem.raw());
+
+            acc.push_str(elem.raw_text());
             acc
         })
     }
@@ -17,6 +17,7 @@ impl Buffer {
 
 #[cfg(test)]
 mod tests {
+    use crate::buffer::StringElem;
     use super::*;
 
     #[test]
@@ -28,7 +29,8 @@ mod tests {
     #[test]
     fn foo() {
         let mut buf = Buffer::default();
-        buf.elems.push("ho".into());
+        let el = Box::new(StringElem::from("ho"));
+        buf.elems.push(el);
         assert_eq!(buf.composition().as_str(), "ho");
     }
 }

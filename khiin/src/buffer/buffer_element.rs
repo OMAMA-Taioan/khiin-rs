@@ -1,56 +1,72 @@
-pub(crate) enum BufferElement {
-    Plaintext(String),
-}
+use super::StringElem;
+use super::TaiText;
 
-impl From<&str> for BufferElement {
-    fn from(value: &str) -> Self {
-        BufferElement::Plaintext(value.to_owned())
-    }
-}
-
-pub(crate) trait Insertable {
+pub trait BufferElement {
+    fn raw_text(&self) -> &str;
+    
     fn raw_char_count(&self) -> usize;
+    
+    fn raw_caret_from(&self, caret: usize) -> usize;
+
+    fn composed_text(&self) -> &str;
+    
     fn composed_char_count(&self) -> usize;
-    fn insert_at(&mut self, idx: usize, ch: char);
-    fn raw(&self) -> &str;
+
+    fn caret_from(&self, raw_caret: usize) -> usize;
+
+    fn converted(&self) -> &str;
+
+    fn is_converted(&self) -> bool;
+
+    fn is_selected(&self) -> bool;
+
+    fn set_khin(&self);
+
+    fn candidate(&self) -> Option<&str>;
+
+    fn insert(&mut self, idx: usize, ch: char);
+
+    fn erase(&mut self, idx: usize);
 }
 
-impl Insertable for BufferElement {
-    fn raw_char_count(&self) -> usize {
-        match self {
-            BufferElement::Plaintext(str) => str.raw_char_count(),
-        }
-    }
 
-    fn composed_char_count(&self) -> usize {
-        todo!()
-    }
+// pub(crate) enum BufferElement {
+//     Plaintext(StringElem),
+//     Conversion(TaiText),
+// }
 
-    fn insert_at(&mut self, idx: usize, ch: char) {
-        todo!()
-    }
+// impl From<&str> for BufferElement {
+//     fn from(value: &str) -> Self {
+//         BufferElement::Plaintext(value.into())
+//     }
+// }
 
-    fn raw(&self) -> &str {
-        match self {
-            BufferElement::Plaintext(str) => str.as_str(),
-        }
-    }
-}
+// impl Insertable for BufferElement {
+//     fn raw_char_count(&self) -> usize {
+//         match self {
+//             BufferElement::Plaintext(elem) => elem.raw_char_count(),
+//             BufferElement::Conversion(elem) => elem.raw_char_count(),
+//         }
+//     }
 
-impl Insertable for String {
-    fn raw_char_count(&self) -> usize {
-        self.chars().count()
-    }
+//     fn composed_char_count(&self) -> usize {
+//         match self {
+//             BufferElement::Plaintext(elem) => elem.composed_char_count(),
+//             BufferElement::Conversion(elem) => elem.composed_char_count(),
+//         }
+//     }
 
-    fn composed_char_count(&self) -> usize {
-        self.chars().count()
-    }
+//     fn insert_at(&mut self, idx: usize, ch: char) {
+//         match self {
+//             BufferElement::Plaintext(elem) => elem.insert_at(idx, ch),
+//             BufferElement::Conversion(elem) => elem.insert_at(idx, ch),
+//         }
+//     }
 
-    fn insert_at(&mut self, idx: usize, ch: char) {
-        self.insert(idx, ch);
-    }
-
-    fn raw(&self) -> &str {
-        self.as_str()
-    }
-}
+//     fn raw(&self) -> &str {
+//         match self {
+//             BufferElement::Plaintext(elem) => elem.as_str(),
+//             BufferElement::Conversion(elem) => elem.raw(),
+//         }
+//     }
+// }
