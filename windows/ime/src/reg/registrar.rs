@@ -43,7 +43,7 @@ const APARTMENT: &str = "Apartment";
 pub fn register_clsid(module_path: &str) -> Result<()> {
     // Create the CLSID\{KhiinClassFactoryGuid} registry key
     let guid = IID_KhiinTextService.to_string()?;
-    let subkey = CLSID.to_owned() + &guid;
+    let subkey = CLSID.to_owned() + guid.as_str();
     let clsid_hkey = HKEY_CLASSES_ROOT.create_subkey(&subkey)?;
 
     // Set the name of the IME
@@ -67,7 +67,7 @@ pub fn register_clsid(module_path: &str) -> Result<()> {
 pub fn unregister_clsid() -> Result<()> {
     // Delete the CLSID\{KhiinClassFactoryGuid} registry key
     let guid = IID_KhiinTextService.to_string()?;
-    let subkey = CLSID.to_owned() + &guid;
+    let subkey: String = CLSID.to_owned() + guid.as_str();
     HKEY_CLASSES_ROOT.delete_tree(&subkey)?;
 
     Ok(())

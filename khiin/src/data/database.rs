@@ -10,11 +10,12 @@ use crate::config::engine_cfg::InputType;
 pub struct Input {
     pub id: u32,
     pub key_sequence: String,
+    pub p: f64,
 }
 
 impl Input {
-    pub fn new(id: u32, key_sequence: String) -> Self {
-        Self { id, key_sequence }
+    pub fn new(id: u32, key_sequence: String, p: f64) -> Self {
+        Self { id, key_sequence, p }
     }
 }
 
@@ -37,17 +38,17 @@ impl Database {
         &self,
         input_type: InputType,
     ) -> Result<Vec<Input>> {
-        let table = match input_type {
-            InputType::Numeric => "input_numeric",
-            InputType::Telex => "input_telex",
+        let input_col = match input_type {
+            InputType::Numeric => "numeric",
+            InputType::Telex => "telex",
         };
-        let sql = format!("SELECT input_id, key_sequence FROM {} ORDER BY input_id ASC", table);
+        let sql = format!("SELECT input_id, {}, p FROM input_sequences ORDER BY p DESC", input_col);
 
         let mut result = Vec::new();
         let mut stmt = self.conn.prepare(&sql)?;
         let mut rows = stmt.query([])?;
         while let Some(row) = rows.next()? {
-            let input = Input::new(row.get("input_id")?, row.get("key_sequence")?);
+            let input = Input::new(row.get("input_id")?, row.get(input_col)?, row.get("p")?);
             result.push(input);
         }
         Ok(result)
@@ -83,7 +84,7 @@ mod tests {
         let r1 = res[1].key_sequence.as_str();
         let r2 = res[2].key_sequence.as_str();
         assert_eq!(r0, "e5");
-        assert_eq!(r1, "goa2");
-        assert_eq!(r2, "li2");
+        assert_eq!(r1, "e");
+        assert_eq!(r2, "goa2");
     }
 }

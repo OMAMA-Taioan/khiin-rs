@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+use std::collections::HashMap;
 use std::collections::HashSet;
 
 use anyhow::Result;
@@ -7,21 +9,38 @@ use qp_trie::Trie;
 use crate::config::engine_cfg::InputType;
 
 use super::database::Database;
+use super::segmenter::Segmenter;
 
 pub struct Dictionary {
     word_trie: Trie<BString, u32>,
+    segmenter: Segmenter,
+}
+
+fn strip_trailing_digits(string: &str) -> String {
+    string.trim_end_matches(|ch: char| ch.is_ascii_digit()).to_string()
 }
 
 impl Dictionary {
     pub fn new(db: &Database, input_type: InputType) -> Result<Self> {
-        let words = db.all_words_by_freq(input_type)?;
+        let inputs = db.all_words_by_freq(input_type)?;
 
-        let mut trie = Trie::new();
-        for word in words.iter() {
-            trie.insert_str(&word.key_sequence, word.id);
+        let mut word_trie = Trie::new();
+
+        for word in inputs.iter() {
+            word_trie.insert_str(&word.key_sequence, word.id);
         }
 
-        Ok(Self { word_trie: trie })
+        let mut with_toneless = BTreeSet::new();
+        for word in inputs.into_iter() {
+            with_toneless.insert(word.key_sequence);
+        }
+
+        let segmenter = Segmenter::new(with_toneless)?;
+
+        Ok(Self {
+            word_trie,
+            segmenter,
+        })
     }
 
     pub fn find_words_by_prefix(&self, query: &str) -> Vec<u32> {
@@ -33,6 +52,10 @@ impl Dictionary {
         let mut v: Vec<u32> = result.iter().map(|&ea| ea).collect();
         v.sort_unstable();
         v
+    }
+
+    pub fn segment(&self, query: &str) -> Result<Vec<String>> {
+        self.segmenter.split(query)
     }
 }
 
@@ -69,5 +92,26 @@ mod tests {
         assert!(ids.len() > 0);
         let ids = dict.find_words_by_prefix("a");
         assert!(ids.len() > 0);
+    }
+
+    #[test]
+    fn it_segments_words() {
+        let dict = setup();
+        let result =
+            dict.segment("lihopengan").expect("Could not segment text");
+        assert!(result.len() == 2);
+        assert_eq!(result[0].as_str(), "liho");
+        assert_eq!(result[1].as_str(), "pengan");
+    }
+
+    #[test]
+    fn it_segments_long_sentences() {
+        let dict = setup();
+        let input = "goutuitiunnkinkukasiokthekiongechuliauchitesiaulian\
+            kesisimchongbapihlaikoesineiesithekuibinlongsibaksaikapphinn\
+            kouchebengbengsitikoesinchinchengsiutiohchintoaethongkhou";
+        let result = dict.segment(input).expect("Could not segment text");
+        println!("{}", result.join(" "));
+        assert!(result.len() > 20);
     }
 }

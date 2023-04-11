@@ -5,6 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Build khiin.db",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/data",
+            "program": "${workspaceFolder}/data/src/sql_gen.py",
+            "console": "integratedTerminal",
+            "args": ["-f", "data/frequency.csv", "-c", "data/conversions_all.csv", "-s", "data/syllables.txt", "-t", "-y", "data/symbols.tsv", "-e", "data/emoji.csv", "-o", "out/khiin_db.sql", "-d", "../resources/khiin.db"]
+        },
+        {
             "name": "(Windows) Attach",
             "type": "cppvsdbg",
             "request": "attach",

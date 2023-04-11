@@ -79,10 +79,12 @@ def always_same(n, val):
 
 def to_input_sequences(word: str) -> list[str]:
     syls = re.compile('[ -]').split(word)
+    n_syls = len(syls)
     strip_tones = True # len(syls) > 1
     syls = list(map(poj_to_khiin, syls, always_same(len(syls), strip_tones)))
     numeric_syls = [x[0] for x in syls]
     telex_syls = [x[1] for x in syls]
     numeric = [''.join(ea) for ea in list(itertools.product(*numeric_syls))]
     telex = [''.join(ea) for ea in list(itertools.product(*telex_syls))]
-    return list(zip(numeric, telex))
+    syl_count = [n_syls] * len(numeric)
+    return list(zip(numeric, telex, syl_count))

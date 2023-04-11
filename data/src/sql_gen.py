@@ -172,14 +172,18 @@ def find_common_inputs(freq, conv):
     return [freq, conv]
 
 def get_input_sequences(freq):
+    total_count = sum(x['freq'] for x in freq)
     input_seqs = []
     for row in freq:
         row_seqs = to_input_sequences(row['input'])
-        for pair in row_seqs:
+        n_syls = len(row_seqs)
+        for (numeric, telex, n_syls) in row_seqs:
             input_seqs.append({
                 'input': row['input'],
-                'numeric': pair[0],
-                'telex': pair[1]
+                'numeric': numeric,
+                'telex': telex,
+                'n_syls': n_syls,
+                'p': row['freq'] / total_count
             })
     return input_seqs
 
@@ -201,11 +205,11 @@ def get_extra_syllables(syls, freq, conv):
 ##############################################################################
 
 def init_db_sql():
-    return """DROP TABLE IF EXISTS "metadata";
+    return """\
+DROP TABLE IF EXISTS "metadata";
 DROP TABLE IF EXISTS "conversions";
 DROP TABLE IF EXISTS "frequency";
-DROP TABLE IF EXISTS "input_numeric";
-DROP TABLE IF EXISTS "input_telex";
+DROP TABLE IF EXISTS "input_sequences";
 DROP TABLE IF EXISTS "syllables";
 DROP INDEX IF EXISTS "unigram_freq_gram_idx";
 DROP TABLE IF EXISTS "unigram_freq";
@@ -218,11 +222,11 @@ CREATE TABLE IF NOT EXISTS "metadata" (
 );
 
 CREATE TABLE IF NOT EXISTS "frequency" (
-	"id"        INTEGER PRIMARY KEY,
+    "id"        INTEGER PRIMARY KEY,
     "input"     TEXT NOT NULL,
-	"freq"      INTEGER,
-	"chhan_id"  INTEGER,
-	UNIQUE("input")
+    "freq"      INTEGER,
+    "chhan_id"  INTEGER,
+    UNIQUE("input")
 );
 
 CREATE TABLE IF NOT EXISTS "conversions" (
@@ -235,17 +239,13 @@ CREATE TABLE IF NOT EXISTS "conversions" (
     FOREIGN KEY("input_id") REFERENCES "frequency"("id")
 );
 
-CREATE TABLE IF NOT EXISTS "input_numeric" (
+CREATE TABLE IF NOT EXISTS "input_sequences" (
     "input_id"      INTEGER,
-    "key_sequence"  TEXT NOT NULL,
-    UNIQUE("input_id","key_sequence"),
-    FOREIGN KEY("input_id") REFERENCES "frequency"("id")
-);
-
-CREATE TABLE IF NOT EXISTS "input_telex" (
-    "input_id"      INTEGER,
-    "key_sequence"  TEXT NOT NULL,
-    UNIQUE("input_id","key_sequence"),
+    "numeric"       TEXT NOT NULL,
+    "telex"         TEXT NOT NULL,
+    "n_syls"        INTEGER,
+    "p"             REAL,
+    UNIQUE("input_id","numeric"),
     FOREIGN KEY("input_id") REFERENCES "frequency"("id")
 );
 
@@ -266,20 +266,20 @@ CREATE TABLE IF NOT EXISTS "bigram_freq" (
 );
 
 CREATE INDEX "conversions_input_id_covering_index" ON "conversions" (
-	"input_id",
+    "input_id",
     "output",
     "weight",
     "category",
     "annotation"
 );
 
-CREATE INDEX "input_numeric_covering_index" ON "input_numeric" (
-    "key_sequence",
+CREATE INDEX "input_numeric_covering_index" ON "input_sequences" (
+    "numeric",
     "input_id"
 );
 
-CREATE INDEX "input_telex_covering_index" ON "input_telex" (
-    "key_sequence",
+CREATE INDEX "input_telex_covering_index" ON "input_sequences" (
+    "telex",
     "input_id"
 );
 
@@ -292,9 +292,10 @@ CREATE INDEX "bigram_gram_index" ON "bigram_freq" (
     "lgram"
 );
 
-DROP VIEW IF EXISTS "lookup_numeric";
-CREATE VIEW "lookup_numeric" (
-    key_sequence,
+DROP VIEW IF EXISTS "input_view";
+CREATE VIEW "input_view" (
+    numeric,
+    telex,
     input,
     input_id,
     output,
@@ -302,36 +303,16 @@ CREATE VIEW "lookup_numeric" (
     category,
     annotation
 ) as SELECT
-    n.key_sequence,
+    n.numeric,
+    n.telex,
     f.input,
     n.input_id,
     c.output,
     c.weight,
     c.category,
     c.annotation
-FROM input_numeric AS n
+FROM input_sequences AS n
 JOIN frequency AS f ON f.id = n.input_id
-JOIN conversions AS c ON f.id = c.input_id;
-
-DROP VIEW IF EXISTS "lookup_telex";
-CREATE VIEW "lookup_telex" (
-    key_sequence,
-    input,
-    input_id,
-    output,
-    weight,
-    category,
-    annotation
-) as SELECT
-    t.key_sequence,
-    f.input,
-    t.input_id,
-    c.output,
-    c.weight,
-    c.category,
-    c.annotation
-FROM input_telex AS t
-JOIN frequency AS f ON f.id = t.input_id
 JOIN conversions AS c ON f.id = c.input_id;
 
 DROP VIEW IF EXISTS "ngrams";
@@ -362,23 +343,19 @@ def frequency_sql(data):
     return sql
 
 def conversion_row_sql(row):
-    return f'INSERT INTO "conversions" ("input_id", "output", "weight") SELECT "id", "{row["output"]}", {row["weight"]} FROM "frequency" WHERE "input"="{row["input"]}";'
+    return f"""INSERT INTO "conversions" ("input_id", "output", "weight") SELECT "id", "{row["output"]}", {row["weight"]} FROM "frequency" WHERE "input"="{row["input"]}";"""
 
 def conversion_sql(data):
     values = [conversion_row_sql(row) for row in data]
     sql = '\n'.join(values) + '\n'
     return sql
 
-def telex_input_row_sql(row):
-    return f'INSERT INTO "input_telex" ("input_id", "key_sequence") SELECT "id", "{row["telex"]}" FROM "frequency" WHERE "input"="{row["input"]}";'
-
 def numeric_input_row_sql(row):
-    return f'INSERT INTO "input_numeric" ("input_id", "key_sequence") SELECT "id", "{row["numeric"]}" FROM "frequency" WHERE "input"="{row["input"]}";'
+    return f"""INSERT INTO "input_sequences" ("input_id", "numeric", "telex", "n_syls", "p") SELECT "id", "{row["numeric"]}", "{row["telex"]}", "{row["n_syls"]}", "{row["p"]}" FROM "frequency" WHERE "input"="{row["input"]}";"""
 
 def input_sql(data):
     numeric = [numeric_input_row_sql(row) for row in data]
-    telex = [telex_input_row_sql(row) for row in data]
-    sql = '\n'.join(numeric) + '\n' + '\n'.join(telex) + '\n'
+    sql = '\n'.join(numeric) + '\n'
     return sql
 
 def syls_sql(data):
@@ -388,7 +365,7 @@ def syls_sql(data):
     return sql
 
 def build_sql(freq, conv, inputs, syls):
-    sql = """
+    sql = """\
 PRAGMA journal_mode = OFF;
 PRAGMA cache_size = 7500000;
 PRAGMA synchronous = OFF;
@@ -400,7 +377,7 @@ BEGIN TRANSACTION;
     sql += conversion_sql(conv)
     sql += input_sql(inputs)
     sql += syls_sql(syls) if (len(syls) > 0) else ""
-    sql += """
+    sql += """\
 COMMIT;
 PRAGMA journal_mode = WAL;
 PRAGMA cache_size = -2000;
@@ -420,16 +397,16 @@ def write_sql(sql_file, sql):
 ##############################################################################
 
 def build_symbols_table(db_cur, symbol_tsv):
-    db_cur.executescript("""
-    DROP TABLE IF EXISTS "symbols";
-    CREATE TABLE "symbols" (
-        "id"           INTEGER PRIMARY KEY,
-        "input"        TEXT NOT NULL,
-        "output"       TEXT NOT NULL,
-        "category"     INTEGER,
-        "annotation"   TEXT
-    );
-    """)
+    db_cur.executescript("""\
+DROP TABLE IF EXISTS "symbols";
+CREATE TABLE "symbols" (
+    "id"           INTEGER PRIMARY KEY,
+    "input"        TEXT NOT NULL,
+    "output"       TEXT NOT NULL,
+    "category"     INTEGER,
+    "annotation"   TEXT
+);
+""")
     dat = []
     with open(symbol_tsv, 'r') as f:
         rows = csv.DictReader(f, delimiter='\t')
@@ -437,16 +414,16 @@ def build_symbols_table(db_cur, symbol_tsv):
     db_cur.executemany('INSERT INTO "symbols" ("input", "output", "category") VALUES (?, ?, ?);', dat)
 
 def build_emoji_table(db_cur, emoji_csv):
-    db_cur.executescript("""
-    DROP TABLE IF EXISTS "emoji";
-    CREATE TABLE "emoji" (
-        id INTEGER PRIMARY KEY,
-        emoji TEXT NOT NULL,
-        short_name TEXT NOT NULL,
-        category INTEGER NOT NULL,
-        code TEXT NOT NULL
-    );
-    """)
+    db_cur.executescript("""\
+DROP TABLE IF EXISTS "emoji";
+CREATE TABLE "emoji" (
+    id INTEGER PRIMARY KEY,
+    emoji TEXT NOT NULL,
+    short_name TEXT NOT NULL,
+    category INTEGER NOT NULL,
+    code TEXT NOT NULL
+);
+""")
     dat = []
     with open(emoji_csv, 'r') as f:
         rows = csv.DictReader(f)
