@@ -1,11 +1,12 @@
 use anyhow::{Result, anyhow};
 
-use crate::config::engine_cfg::InputMode;
+use crate::{config::engine_cfg::InputMode, input::tokenize};
 
 use super::Buffer;
 
 pub struct BufferMgr {
     buffer: Buffer,
+    mock_buffer: String,
     char_caret: usize,
 }
 
@@ -13,6 +14,7 @@ impl BufferMgr {
     pub fn new() -> Self {
         Self {
             buffer: Buffer::default(),
+            mock_buffer: String::new(),
             char_caret: 0,
         }
     }
@@ -26,8 +28,8 @@ impl BufferMgr {
     }
 
     fn insert_continuous(&mut self, ch: char) -> Result<()> {
-        let composition = self.buffer.composition();
-
+        self.mock_buffer.push(ch);
+        tokenize(&self.mock_buffer);
         Ok(())
     }
 
