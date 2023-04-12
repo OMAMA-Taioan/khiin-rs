@@ -1,6 +1,9 @@
-use anyhow::{Result, anyhow};
+use anyhow::anyhow;
+use anyhow::Result;
 
-use crate::{config::engine_cfg::InputMode, input::tokenize};
+use crate::config::engine_cfg::InputMode;
+use crate::data::dictionary::Dictionary;
+use crate::input::tokenize;
 
 use super::Buffer;
 
@@ -19,17 +22,22 @@ impl BufferMgr {
         }
     }
 
-    pub fn insert(&mut self, ch: char, mode: InputMode) -> Result<()> {
+    pub fn insert(
+        &mut self,
+        dict: &Dictionary,
+        ch: char,
+        mode: InputMode,
+    ) -> Result<()> {
         match mode {
-            InputMode::Continuous => self.insert_continuous(ch),
+            InputMode::Continuous => self.insert_continuous(dict, ch),
             InputMode::SingleWord => self.insert_single_word(ch),
             InputMode::Manual => self.insert_manual(ch),
         }
     }
 
-    fn insert_continuous(&mut self, ch: char) -> Result<()> {
+    fn insert_continuous(&mut self, dict: &Dictionary, ch: char) -> Result<()> {
         self.mock_buffer.push(ch);
-        tokenize(&self.mock_buffer);
+        tokenize(dict, &self.mock_buffer);
         Ok(())
     }
 

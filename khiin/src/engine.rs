@@ -3,13 +3,15 @@ use std::path::PathBuf;
 use anyhow::anyhow;
 use anyhow::Error;
 use anyhow::Result;
-use khiin_protos::command::preedit::*;
-use khiin_protos::command::*;
+
 use protobuf::Message;
 
+use khiin_protos::command::preedit::*;
+use khiin_protos::command::*;
+
 use crate::buffer::BufferMgr;
-use crate::config::EngineCfg;
 use crate::config::engine_cfg::InputType;
+use crate::config::EngineCfg;
 use crate::data::database::Database;
 use crate::data::dictionary::Dictionary;
 
@@ -45,7 +47,7 @@ impl Engine {
         let res = match req.type_.enum_value_or_default() {
             CommandType::CMD_UNSPECIFIED => {
                 Err(anyhow!("Command not specified"))
-            }
+            },
             CommandType::CMD_SEND_KEY => self.on_send_key(req),
             CommandType::CMD_REVERT => self.on_revert(req),
             CommandType::CMD_RESET => self.on_reset(req),
@@ -54,7 +56,7 @@ impl Engine {
             CommandType::CMD_FOCUS_CANDIDATE => self.on_focus_candidate(req),
             CommandType::CMD_SWITCH_INPUT_MODE => {
                 self.on_switch_input_mode(req)
-            }
+            },
             CommandType::CMD_PLACE_CURSOR => self.on_place_cursor(req),
             CommandType::CMD_DISABLE => self.on_disable(req),
             CommandType::CMD_ENABLE => self.on_enable(req),
@@ -80,24 +82,29 @@ impl Engine {
     fn on_send_key(&mut self, req: Request) -> Result<Response> {
         match req.key_event.special_key.enum_value_or_default() {
             SpecialKey::SK_NONE => {
-                if let Some(ch) = ascii_char_from_i32(req.key_event.key_code) {
-                    self.buffer_mgr.insert(ch, self.cfg.input_mode())?;
+                let ch = ascii_char_from_i32(req.key_event.key_code);
+                if let Some(ch) = ch {
+                    self.buffer_mgr.insert(
+                        &self.dict,
+                        ch,
+                        self.cfg.input_mode(),
+                    )?;
                 }
-            }
-            SpecialKey::SK_SPACE => {}
-            SpecialKey::SK_ENTER => {}
-            SpecialKey::SK_ESC => {}
-            SpecialKey::SK_BACKSPACE => {}
-            SpecialKey::SK_TAB => {}
-            SpecialKey::SK_LEFT => {}
-            SpecialKey::SK_UP => {}
-            SpecialKey::SK_RIGHT => {}
-            SpecialKey::SK_DOWN => {}
-            SpecialKey::SK_PGUP => {}
-            SpecialKey::SK_PGDN => {}
-            SpecialKey::SK_HOME => {}
-            SpecialKey::SK_END => {}
-            SpecialKey::SK_DEL => {}
+            },
+            SpecialKey::SK_SPACE => {},
+            SpecialKey::SK_ENTER => {},
+            SpecialKey::SK_ESC => {},
+            SpecialKey::SK_BACKSPACE => {},
+            SpecialKey::SK_TAB => {},
+            SpecialKey::SK_LEFT => {},
+            SpecialKey::SK_UP => {},
+            SpecialKey::SK_RIGHT => {},
+            SpecialKey::SK_DOWN => {},
+            SpecialKey::SK_PGUP => {},
+            SpecialKey::SK_PGDN => {},
+            SpecialKey::SK_HOME => {},
+            SpecialKey::SK_END => {},
+            SpecialKey::SK_DEL => {},
         };
 
         Ok(Response::default())

@@ -1,3 +1,5 @@
+use crate::data::dictionary::Dictionary;
+
 pub enum TokenType {
     Unknown,
     Hyphens,
@@ -11,14 +13,21 @@ pub struct TokenOffset {
     size: usize,
 }
 
-pub fn tokenize(raw_buffer: &str) -> Vec<TokenOffset> {
-
-
+pub fn tokenize(dict: &Dictionary, raw_buffer: &str) -> Vec<TokenOffset> {
     Vec::new()
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::data::dictionary::Dictionary;
+    use crate::tests::get_dict;
+
+    use super::tokenize;
+
     #[test]
-    fn it_finds_a_word() {}
+    fn it_finds_a_word() {
+        let dict = get_dict();
+        let result = tokenize(&dict, "ho2");
+        assert_eq!(result.len(), 1);
+    }
 }
