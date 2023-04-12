@@ -8,53 +8,9 @@ import sqlite3
 import sys
 from typing import List, Tuple
 
-from tables import Conversion, Frequency, SqlInputSeq
+from tables import *
 
 locale.setlocale(locale.LC_ALL, '')
-
-# SQL Tables
-FREQ = "frequency"
-FREQ_INPUT = "input"
-F_FREQ = "count"
-FREQ_CHID = "chhan_id"
-
-CONV = "conversions"
-CONV_INID = "input_id"
-CONV_OUT = "output"
-CONV_WT = "weight"
-CONV_CAT = "category"
-CONV_ANNO = "annotation"
-
-INP = "input_sequences"
-INP_INID = "input_id"
-INP_NUM = "numeric"
-INP_TEL = "telex"
-INP_N = "n_syls"
-INP_P = "p"
-
-META = "metadata"
-META_KEY = "key"
-META_VAL = "value"
-
-UGRAM = "unigram_freq"
-UGRAM_GRAM = "gram"
-UGRAM_N = "count"
-
-BGRAM = "bigram_freq"
-BGRAM_L = "lgram"
-BGRAM_R = "rgram"
-BGRAM_N = "count"
-
-# SQL Views
-CL = "conversion_lookups"
-CL_NUM = "numeric"
-CL_TEL = "telex"
-CL_INP = "input"
-CL_INID = "input_id"
-CL_OUT = "output"
-CL_WT = "weight"
-CL_CAT = "category"
-CL_ANNO = "annotation"
 
 spinner = itertools.cycle(['-', '/', '|', '\\'])
 
@@ -65,12 +21,6 @@ def show_progress():
     sys.stdout.flush()
     sys.stdout.write('\b')
     return 0
-
-##############################################################################
-#
-# Data validation and collection
-#
-##############################################################################
 
 
 def get_unique(dataset, field_name: str) -> List[str]:
@@ -125,6 +75,7 @@ def get_extra_syllables(syls, freq, conv):
             ret.add(lomaji.normalize_loji(syl, True))
     return sorted(list(ret), key=csv.syls_sort_key)
 
+
 ##############################################################################
 #
 # SQL builder functions
@@ -132,126 +83,124 @@ def get_extra_syllables(syls, freq, conv):
 ##############################################################################
 
 
-def init_db_sql():
-    return dedent(f"""\
-        DROP TABLE IF EXISTS "metadata";
-        DROP TABLE IF EXISTS "conversions";
-        DROP TABLE IF EXISTS "frequency";
-        DROP TABLE IF EXISTS "input_sequences";
-        DROP TABLE IF EXISTS "syllables";
-        DROP INDEX IF EXISTS "unigram_freq_gram_idx";
-        DROP TABLE IF EXISTS "unigram_freq";
-        DROP INDEX IF EXISTS "bigram_freq_gram_index";
-        DROP TABLE IF EXISTS "bigram_freq";
+SQL_HEADER = f"""\
+pragma journal_mode = OFF;
+pragma cache_size = 7500000;
+pragma synchronous = OFF;
+pragma temp_store = 2;
+begin transaction;
+"""
 
-        CREATE TABLE IF NOT EXISTS "metadata" (
-            "key"	TEXT,
-            "value"	INTEGER
-        );
+SQL_FOOTER = """\
+commit;
+pragma journal_mode = WAL;
+pragma cache_size = -2000;
+pragma synchronous = NORMAL;
+pragma temp_store = 0;
+"""
 
-        {Frequency.create_statement()}
-        {Conversion.create_statement()}
-        {SqlInputSeq.create_statement()}
+INIT_DB_SQL = f"""
+drop table if exists "{T_METADATA}";
+drop table if exists "{T_CONV}";
+drop table if exists "{T_FREQ}";
+drop table if exists "{T_KEYSEQ}";
+drop table if exists "{T_SYL}";
+drop table if exists "{T_UGRAM}";
+drop table if exists "{T_BGRAM}";
 
-        CREATE TABLE IF NOT EXISTS "syllables" (
-            "input"   TEXT NOT NULL UNIQUE
-        );
+create table if not exists "{T_METADATA}" (
+    "key"	text,
+    "value"	integer
+);
 
-        CREATE TABLE IF NOT EXISTS "unigram_freq" (
-            "gram"	TEXT NOT NULL UNIQUE,
-            "n"	INTEGER NOT NULL
-        );
+{Frequency.create_statement()}
+{Conversion.create_statement()}
+{SqlInputSeq.create_statement()}
 
-        CREATE TABLE IF NOT EXISTS "bigram_freq" (
-            "lgram"	TEXT,
-            "rgram"	TEXT,
-            "n"	INTEGER NOT NULL,
-            UNIQUE("lgram","rgram")
-        );
+create table if not exists "{T_SYL}" (
+    "input"   text not null unique
+);
 
-        CREATE INDEX "conversions_input_id_covering_index" ON "conversions" (
-            "input_id",
-            "output",
-            "weight",
-            "category",
-            "annotation"
-        );
+create table if not exists "{T_UGRAM}" (
+    "gram"	text not null unique,
+    "n"	integer not null
+);
 
-        CREATE INDEX "input_numeric_covering_index" ON "input_sequences" (
-            "numeric",
-            "input_id"
-        );
+create table if not exists "{T_BGRAM}" (
+    "lgram"	text,
+    "rgram"	text,
+    "n"	integer not null,
+    unique("lgram","rgram")
+);
 
-        CREATE INDEX "input_telex_covering_index" ON "input_sequences" (
-            "telex",
-            "input_id"
-        );
+create index "conversions_input_id_covering_index" on "{T_CONV}" (
+    "input_id",
+    "output",
+    "weight",
+    "category",
+    "annotation"
+);
 
-        CREATE INDEX "unigram_gram_index" ON "unigram_freq" (
-            "gram"
-        );
+create index "input_numeric_covering_index" on "{T_KEYSEQ}" (
+    "numeric",
+    "input_id"
+);
 
-        CREATE INDEX "bigram_gram_index" ON "bigram_freq" (
-            "rgram",
-            "lgram"
-        );
+create index "input_telex_covering_index" on "{T_KEYSEQ}" (
+    "telex",
+    "input_id"
+);
 
-        DROP VIEW IF EXISTS "input_view";
-        CREATE VIEW "input_view" (
-            numeric,
-            telex,
-            input,
-            input_id,
-            output,
-            weight,
-            category,
-            annotation
-        ) as SELECT
-            n.numeric,
-            n.telex,
-            f.input,
-            n.input_id,
-            c.output,
-            c.weight,
-            c.category,
-            c.annotation
-        FROM input_sequences AS n
-        JOIN frequency AS f ON f.id = n.input_id
-        JOIN conversions AS c ON f.id = c.input_id;
+create index "unigram_gram_index" on "{T_UGRAM}" (
+    "gram"
+);
 
-        DROP VIEW IF EXISTS "ngrams";
-        CREATE VIEW "ngrams" (
-            lgram,
-            rgram,
-            rgram_count,
-            bigram_count
-        ) AS SELECT
-            b.lgram,
-            u.gram,
-            u.n AS unigram_count,
-            b.n AS bigram_count
-        FROM unigram_freq AS u
-        LEFT JOIN bigram_freq AS b ON u.gram = b.rgram;
-        """)
+create index "bigram_gram_index" on "{T_BGRAM}" (
+    "rgram",
+    "lgram"
+);
 
+drop view if exists "{V_LOOKUP}";
+create view "{V_LOOKUP}" (
+    "numeric",
+    "telex",
+    "input",
+    "input_id",
+    "output",
+    "weight",
+    "category",
+    "annotation"
+) as select
+    "n"."numeric",
+    "n"."telex",
+    "f"."input",
+    "n"."input_id",
+    "c"."output",
+    "c"."weight",
+    "c"."category",
+    "c"."annotation"
+from "{T_KEYSEQ}" as "n"
+join "{T_FREQ}" as "f" on "f"."id" = "n"."input_id"
+join "{T_CONV}" as "c" on "f"."id" = "c"."input_id";
 
-def inout_lookup_sql(row: SqlInputSeq):
-    return dedent(f"""\
-        INSERT INTO "input_sequences" \
-        ("input_id", "numeric", "telex", "n_syls", "p") \
-        SELECT \
-        "id", "{row.numeric}", "{row.telex}", "{row.n_syls}", "{row.p}" \
-        FROM "frequency" WHERE "input"="{row.input}";""")
-
-
-def input_sql(data: List[SqlInputSeq]) -> str:
-    insert_list = [inout_lookup_sql(row) for row in data]
-    sql = '\n'.join(insert_list) + '\n'
-    return sql
+drop view if exists "{V_GRAMS}";
+create view "{V_GRAMS}" (
+    "lgram",
+    "rgram",
+    "rgram_count",
+    "bigram_count"
+) as select
+    "b"."lgram",
+    "u"."gram",
+    "u"."n" as "unigram_count",
+    "b"."n" as "bigram_count"
+from "{T_UGRAM}" as "u"
+left join "{T_BGRAM}" as "b" on "u"."gram" = "b"."rgram";
+"""
 
 
 def syls_sql(data: List[str]):
-    sql = 'INSERT INTO "syllables" ("input") VALUES\n'
+    sql = f'insert into "{T_SYL}" ("input") values\n'
     values = ',\n'.join([f'("{syl}")' for syl in data])
     sql += values + ';\n'
     return sql
@@ -262,32 +211,14 @@ def build_sql(
         conv: List[Conversion],
         inputs: List[SqlInputSeq],
         syls: List[str]):
-    sql = dedent("""\
-            PRAGMA journal_mode = OFF;
-            PRAGMA cache_size = 7500000;
-            PRAGMA synchronous = OFF;
-            PRAGMA temp_store = 2;
-            BEGIN TRANSACTION;
-            """)
 
-    sql += init_db_sql()
-
+    sql = SQL_HEADER
+    sql += INIT_DB_SQL
     sql += Frequency.insert_statement(freq)
-
     sql += Conversion.insert_statement(conv)
-
-    sql += input_sql(inputs)
-
+    sql += SqlInputSeq.insert_statement(inputs)
     sql += syls_sql(syls) if (len(syls) > 0) else ""
-
-    sql += dedent("""\
-            COMMIT;
-            PRAGMA journal_mode = WAL;
-            PRAGMA cache_size = -2000;
-            PRAGMA synchronous = NORMAL;
-            PRAGMA temp_store = 0;
-            """)
-
+    sql += SQL_FOOTER
     return sql
 
 
@@ -295,51 +226,45 @@ def write_sql(sql_file, sql):
     with open(sql_file, 'w', encoding='utf-8') as f:
         f.write(sql)
 
-##############################################################################
-#
-# SQLite DB builder
-#
-##############################################################################
-
 
 def build_symbols_table(db_cur, symbol_tsv):
-    db_cur.executescript(dedent("""\
-        DROP TABLE IF EXISTS "symbols";
-        CREATE TABLE "symbols" (
-            "id"           INTEGER PRIMARY KEY,
-            "input"        TEXT NOT NULL,
-            "output"       TEXT NOT NULL,
-            "category"     INTEGER,
-            "annotation"   TEXT
+    db_cur.executescript(dedent(f"""\
+        drop table if exists "{T_SYM}";
+        create table "{T_SYM}" (
+            "id"           integer primary key,
+            "input"        text not null,
+            "output"       text not null,
+            "category"     integer,
+            "annotation"   text
         );
         """))
     dat = csv.parse_symbols_tsv(symbol_tsv)
     tuples = list(map(lambda row: (row.input, row.output, row.category), dat))
-    db_cur.executemany(dedent("""\
-        INSERT INTO "symbols" \
+    db_cur.executemany(dedent(f"""\
+        insert into "{T_SYM}" \
         ("input", "output", "category") \
-        VALUES (?, ?, ?);"""),
+        values (?, ?, ?);"""),
                        tuples)
 
 
 def build_emoji_table(db_cur, emoji_csv):
-    db_cur.executescript(dedent("""\
-        DROP TABLE IF EXISTS "emoji";
-        CREATE TABLE "emoji" (
-            id INTEGER PRIMARY KEY,
-            emoji TEXT NOT NULL,
-            short_name TEXT NOT NULL,
-            category INTEGER NOT NULL,
-            code TEXT NOT NULL
+    db_cur.executescript(dedent(f"""\
+        drop table if exists "{T_EMO}";
+        create table "{T_EMO}" (
+            "id"           integer primary key,
+            "emoji"        text not null,
+            "short_name"   text not null,
+            "category"     integer not null,
+            "code"         text not null
         );
         """))
     dat = csv.parse_emoji_csv(emoji_csv)
     tuples = list(map(lambda row: (row.id, row.emoji,
                   row.short_name, row.category, row.code), dat))
-    db_cur.executemany(dedent("""\
-        INSERT INTO "emoji" \
+    db_cur.executemany(dedent(f"""\
+        insert into "{T_EMO}" \
         ("id", "emoji", "short_name", "category", "code") \
-        VALUES (?, ?, ?, ?, ?);"""),
+        values (?, ?, ?, ?, ?);"""),
                        tuples)
 
 
@@ -459,6 +384,6 @@ if __name__ == "__main__":
                         syls_csv, symbol_file, emoji_file)
 
     print(f"""Output written to {sql_file}:
- - {len(freq_dat)} inputs ("frequency" table)
- - {len(conv_dat)} tokens ("conversion" table)
- - {len(syls_csv)} syllables ("syllables" table)""")
+ - {len(freq_dat)} inputs ("{T_FREQ}" table)
+ - {len(conv_dat)} tokens ("{T_CONV}" table)
+ - {len(syls_csv)} syllables ("{T_SYL}" table)""")

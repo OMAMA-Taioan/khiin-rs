@@ -1,7 +1,24 @@
+import re
 from textwrap import dedent
 from typing import List
 
 import lomaji
+
+T_FREQ = "frequency"
+T_CONV = "conversions"
+T_KEYSEQ = "key_sequences"
+T_METADATA = "metadata"
+T_SYL = "syllables"
+T_SYM = "symbols"
+T_EMO = "emoji"
+T_UGRAM = "unigram_freq"
+T_BGRAM = "bigram_freq"
+V_LOOKUP = "conversion_lookups"
+V_GRAMS = "ngrams"
+
+
+def collapse(text: str) -> str:
+    return re.sub(r'\s+', ' ', text)
 
 
 class Frequency:
@@ -22,24 +39,25 @@ class Frequency:
 
     @staticmethod
     def create_statement():
-        return dedent("""\
-            CREATE TABLE IF NOT EXISTS "frequency" (
-                "id"        INTEGER PRIMARY KEY,
-                "input"     TEXT NOT NULL,
-                "freq"      INTEGER,
-                "chhan_id"  INTEGER,
-                UNIQUE("input")
+        return dedent(f"""\
+            create table if not exists "{T_FREQ}" (
+                "id"        integer primary key,
+                "input"     text not null,
+                "freq"      integer,
+                "chhan_id"  integer,
+                unique("input")
             );""")
 
     @staticmethod
     def insert_statement(rows: List['Frequency']):
-        sql = 'INSERT INTO "frequency" ("input", "freq", "chhan_id") VALUES\n'
+        sql = dedent(f"""insert into "{T_FREQ}" \
+                     ("input", "freq", "chhan_id") values\n""")
         values = [row.to_tuple() for row in rows]
         sql += ',\n'.join(values) + ';\n'
         return sql
 
     def to_tuple(self):
-        return f'("{self.input}", "{self.freq}", "{self.chhan_id}")'
+        return f"('{self.input}', {self.freq}, {self.chhan_id})"
 
 
 class Conversion:
@@ -69,15 +87,15 @@ class Conversion:
 
     @staticmethod
     def create_statement():
-        return dedent("""
-            CREATE TABLE IF NOT EXISTS "conversions" (
-                "input_id"     INTEGER,
-                "output"       TEXT NOT NULL,
-                "weight"       INTEGER,
-                "category"     INTEGER,
-                "annotation"   TEXT,
-                UNIQUE("input_id","output"),
-                FOREIGN KEY("input_id") REFERENCES "frequency"("id")
+        return dedent(f"""
+            create table if not exists "{T_CONV}" (
+                "input_id"     integer,
+                "output"       text not null,
+                "weight"       integer,
+                "category"     integer,
+                "annotation"   text,
+                unique("input_id", "output"),
+                foreign key("input_id") references "{T_FREQ}"("id")
             );""")
 
     @staticmethod
@@ -87,10 +105,12 @@ class Conversion:
         return sql
 
     def insert_sql(self):
-        return dedent(f"""\
-            INSERT INTO "conversions" ("input_id", "output", "weight") \
-            SELECT "id", "{self.output}", {self.weight} \
-            FROM "frequency" WHERE "input"="{self.input}";""")
+        return collapse(f"""\
+            insert into "{T_CONV}" \
+            ("input_id", "output", "weight") \
+            select "f"."id", '{self.output}', {self.weight} \
+            from "{T_FREQ}" as "f" \
+            where f.input='{self.input}';""")
 
 
 class SqlInputSeq:
@@ -104,29 +124,34 @@ class SqlInputSeq:
 
     @staticmethod
     def create_statement():
-        return dedent("""
-            CREATE TABLE IF NOT EXISTS "input_sequences" (
-                "input_id"      INTEGER,
-                "numeric"       TEXT NOT NULL,
-                "telex"         TEXT NOT NULL,
-                "n_syls"        INTEGER,
-                "p"             REAL,
-                UNIQUE("input_id","numeric"),
-                FOREIGN KEY("input_id") REFERENCES "frequency"("id")
+        return dedent(f"""
+            create table if not exists "{T_KEYSEQ}" (
+                "input_id"      integer,
+                "numeric"       text not null,
+                "telex"         text not null,
+                "n_syls"        integer,
+                "p"             real,
+                unique("input_id", "numeric"),
+                foreign key("input_id") references "{T_FREQ}"("id")
             );""")
 
     def insert_row(self):
-        return dedent(f"""\
-            INSERT INTO "input_sequences"
-                ("input_id", "numeric", "telex", "n_syls", "p") \
-            SELECT \
-                "id",\
-                "{self.numeric}",\
-                "{self.telex}",\
-                "{self.n_syls}",\
-                "{self.p}"\
-            FROM "frequency"\
-            WHERE "input"="{self.input}";""")
+        return collapse(f"""\
+        insert into "{T_KEYSEQ}" \
+        ("input_id", "numeric", "telex", "n_syls", "p") \
+        select \
+        "f"."id", \
+        '{self.numeric}', \
+        '{self.telex}', \
+        {self.n_syls}, \
+        {self.p} \
+        from "{T_FREQ}" as "f" \
+        where "f"."input"='{self.input}';""")
+
+    def insert_statement(rows: List['SqlInputSeq']) -> str:
+        insert_list = [row.insert_row() for row in rows]
+        sql = '\n'.join(insert_list) + '\n'
+        return sql
 
 
 class Symbols:
