@@ -1,35 +1,21 @@
-use std::collections::BTreeSet;
-use std::collections::HashMap;
-use std::collections::HashSet;
-
 use anyhow::Result;
-use qp_trie::wrapper::BString;
-use qp_trie::Trie;
 
 use crate::config::engine_cfg::InputType;
 
 use super::database::Database;
 use super::segmenter::Segmenter;
+use super::trie::Trie;
 
 pub struct Dictionary {
-    word_trie: Trie<BString, u32>,
+    word_trie: Trie,
     segmenter: Segmenter,
-}
-
-fn strip_trailing_digits(string: &str) -> String {
-    string.trim_end_matches(|ch: char| ch.is_ascii_digit()).to_string()
 }
 
 impl Dictionary {
     pub fn new(db: &Database, input_type: InputType) -> Result<Self> {
         let inputs = db.all_words_by_freq(input_type)?;
 
-        let mut word_trie = Trie::new();
-
-        for word in inputs.iter() {
-            word_trie.insert_str(&word.key_sequence, word.id);
-        }
-
+        let word_trie = Trie::new(&inputs)?;
         let segmenter = Segmenter::new(inputs)?;
 
         Ok(Self {
@@ -39,14 +25,7 @@ impl Dictionary {
     }
 
     pub fn find_words_by_prefix(&self, query: &str) -> Vec<u32> {
-        let mut result = HashSet::new();
-        let bstr = BString::from(query);
-        for (_, v) in self.word_trie.iter_prefix(&bstr) {
-            result.insert(v.clone());
-        }
-        let mut v: Vec<u32> = result.iter().map(|&ea| ea).collect();
-        v.sort_unstable();
-        v
+        self.word_trie.find_words_by_prefix(query)
     }
 
     pub fn segment(&self, query: &str) -> Result<Vec<String>> {

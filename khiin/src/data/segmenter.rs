@@ -177,5 +177,10 @@ mod tests {
             .expect("Could not segment text");
         println!("{}", result.join(" "));
         assert_eq!(result.len(), 12);
+        let result = segmenter
+            .split("goa2mchaiu7joa7che7lang5ham5goa2ukangkhoan2esengtiong")
+            .expect("Could not segment text");
+        println!("{}", result.join(" "));
+        assert_eq!(result.len(), 12);
     }
 }
