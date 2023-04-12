@@ -723,7 +723,7 @@ impl ITfTextInputProcessorEx_Impl for TextService {
                     self.deactivate()?;
                 }
                 Ok(())
-            }
+            },
             None => Ok(()),
         }
     }
