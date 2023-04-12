@@ -113,13 +113,14 @@ mod tests {
              baksai kap phinn kou che bengbeng si ti koe sin chincheng siutioh \
              chin toa e thong khou");
         
-        for _ in 0..1000 {
-            let result = dict.segment(input).expect("Could not segment text");
-            assert_eq!(result.join(" ").as_str(),
-            "gou tui tiunn kin ku ka siok the kiong e chuliau chite siaulianke \
-             si sim chong ba pih lai koe sin e i e sithe kui bin long si \
-             baksai kap phinn kou che bengbeng si ti koe sin chincheng siutioh \
-             chin toa e thong khou");
-        }
+        // Best time: 1.75 seconds
+        // for _ in 0..1000 {
+        //     let result = dict.segment(input).expect("Could not segment text");
+        //     assert_eq!(result.join(" ").as_str(),
+        //     "gou tui tiunn kin ku ka siok the kiong e chuliau chite siaulianke \
+        //      si sim chong ba pih lai koe sin e i e sithe kui bin long si \
+        //      baksai kap phinn kou che bengbeng si ti koe sin chincheng siutioh \
+        //      chin toa e thong khou");
+        // }
     }
 }

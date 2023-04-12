@@ -1,6 +1,15 @@
+use enum_dispatch::enum_dispatch;
+
 use super::StringElem;
 use super::TaiText;
 
+#[enum_dispatch(BufferElement)]
+pub enum BufferElementEnum {
+    StringElem,
+    TaiText,
+}
+
+#[enum_dispatch]
 pub trait BufferElement {
     fn raw_text(&self) -> &str;
     
@@ -28,45 +37,3 @@ pub trait BufferElement {
 
     fn erase(&mut self, idx: usize);
 }
-
-
-// pub(crate) enum BufferElement {
-//     Plaintext(StringElem),
-//     Conversion(TaiText),
-// }
-
-// impl From<&str> for BufferElement {
-//     fn from(value: &str) -> Self {
-//         BufferElement::Plaintext(value.into())
-//     }
-// }
-
-// impl Insertable for BufferElement {
-//     fn raw_char_count(&self) -> usize {
-//         match self {
-//             BufferElement::Plaintext(elem) => elem.raw_char_count(),
-//             BufferElement::Conversion(elem) => elem.raw_char_count(),
-//         }
-//     }
-
-//     fn composed_char_count(&self) -> usize {
-//         match self {
-//             BufferElement::Plaintext(elem) => elem.composed_char_count(),
-//             BufferElement::Conversion(elem) => elem.composed_char_count(),
-//         }
-//     }
-
-//     fn insert_at(&mut self, idx: usize, ch: char) {
-//         match self {
-//             BufferElement::Plaintext(elem) => elem.insert_at(idx, ch),
-//             BufferElement::Conversion(elem) => elem.insert_at(idx, ch),
-//         }
-//     }
-
-//     fn raw(&self) -> &str {
-//         match self {
-//             BufferElement::Plaintext(elem) => elem.as_str(),
-//             BufferElement::Conversion(elem) => elem.raw(),
-//         }
-//     }
-// }

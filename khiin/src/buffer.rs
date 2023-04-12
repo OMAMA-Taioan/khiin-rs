@@ -1,7 +1,6 @@
 pub(crate) mod buffer;
 pub(crate) mod buffer_element;
 pub(crate) mod buffer_mgr;
-pub(crate) mod insertable;
 pub(crate) mod string_elem;
 pub(crate) mod tai_text;
 

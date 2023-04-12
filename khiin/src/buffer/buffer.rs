@@ -1,14 +1,13 @@
-use super::BufferElement;
+use super::{BufferElement, buffer_element::BufferElementEnum};
 
 #[derive(Default)]
 pub(crate) struct Buffer {
-    elems: Vec<Box<dyn BufferElement>>,
+    elems: Vec<BufferElementEnum>,
 }
 
 impl Buffer {
     pub fn composition(&self) -> String {
         self.elems.iter().fold(String::default(), |mut acc, elem| {
-
             acc.push_str(elem.raw_text());
             acc
         })
@@ -29,8 +28,8 @@ mod tests {
     #[test]
     fn foo() {
         let mut buf = Buffer::default();
-        let el = Box::new(StringElem::from("ho"));
-        buf.elems.push(el);
+        let el = StringElem::from("ho");
+        buf.elems.push(el.into());
         assert_eq!(buf.composition().as_str(), "ho");
     }
 }
