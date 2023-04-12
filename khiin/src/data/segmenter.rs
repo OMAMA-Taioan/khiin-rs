@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use qp_trie::{wrapper::BString, Trie};
 
 use super::database::Input;
 
@@ -44,6 +43,34 @@ impl Segmenter {
     pub fn split(&self, input: &str) -> Result<Vec<String>> {
         Ok(split_words(input, &self.cost_map, self.max_word_length))
     }
+}
+
+pub fn can_split<T>(is_word: T, query: &str) -> bool
+where
+    T: Fn(&str) -> bool,
+{
+    let size = query.chars().count();
+    let mut splits_at = vec![false; size + 1];
+    let mut split_indices = vec![-1];
+
+    for i in 0..size {
+        for j in split_indices.iter().rev() {
+            let start = (j + 1) as usize;
+            let end = i + 1;
+            let substr = &query[start..end];
+
+            // println!("Checking substr: {}", substr);
+
+            if is_word(&substr) {
+                // println!("Ok!");
+                splits_at[i] = true;
+                split_indices.push(i as i32);
+                break;
+            }
+        }
+    }
+
+    false
 }
 
 fn split_words(
@@ -182,5 +209,14 @@ mod tests {
             .expect("Could not segment text");
         println!("{}", result.join(" "));
         assert_eq!(result.len(), 12);
+    }
+
+    #[test]
+    fn it_can_test_splittable() {
+        let v = vec!["hello", "world"];
+        let is_word = |s: &str| v.contains(&s);
+        let query = "helloworld";
+        let result = can_split(is_word, query);
+        assert_eq!(result, false);
     }
 }
