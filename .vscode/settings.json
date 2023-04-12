@@ -1,28 +1,7 @@
 {
-    "editor.tokenColorCustomizations": {
-        "textMateRules": [
-            {
-                "scope": "googletest.failed",
-                "settings": {
-                    "foreground": "#f00"
-                }
-            },
-            {
-                "scope": "googletest.passed",
-                "settings": {
-                    "foreground": "#0f0"
-                }
-            },
-            {
-                "scope": "googletest.run",
-                "settings": {
-                    "foreground": "#0f0"
-                }
-            }
-        ]
-    },
     "python.linting.pycodestyleEnabled": true,
     "python.linting.enabled": true,
     "python.formatting.provider": "autopep8",
-    "python.formatting.autopep8Args": ["--max-line-length", "79", "--experimental"]
+    "python.formatting.autopep8Args": ["--max-line-length", "79", "--experimental"],
+    "rust-analyzer.rustfmt.extraArgs": [ "+nightly" ]
 }
