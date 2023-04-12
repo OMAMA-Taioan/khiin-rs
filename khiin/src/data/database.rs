@@ -15,13 +15,29 @@ pub struct Input {
 
 impl Input {
     pub fn new(id: u32, key_sequence: String, p: f64) -> Self {
-        Self { id, key_sequence, p }
+        Self {
+            id,
+            key_sequence,
+            p,
+        }
     }
 }
 
 pub struct Database {
     conn: Connection,
 }
+
+static T_FREQ: &str = "frequency";
+static T_CONV: &str = "conversions";
+static T_KEYSEQ: &str = "key_sequences";
+static T_METADATA: &str = "metadata";
+static T_SYL: &str = "syllables";
+static T_SYM: &str = "symbols";
+static T_EMO: &str = "emoji";
+static T_UGRAM: &str = "unigram_freq";
+static T_BGRAM: &str = "bigram_freq";
+static V_LOOKUP: &str = "conversion_lookups";
+static V_GRAMS: &str = "ngrams";
 
 impl Database {
     pub fn new(file: &PathBuf) -> Result<Self> {
@@ -42,13 +58,27 @@ impl Database {
             InputType::Numeric => "numeric",
             InputType::Telex => "telex",
         };
-        let sql = format!("SELECT input_id, {}, p FROM input_sequences ORDER BY p DESC", input_col);
+        let sql = format!(r#"
+            select
+                "input_id",
+                "{column}",
+                "p"
+            from
+                "{table}"
+            order by "p" desc"#,
+            column = input_col,
+            table = T_KEYSEQ
+        );
 
         let mut result = Vec::new();
         let mut stmt = self.conn.prepare(&sql)?;
         let mut rows = stmt.query([])?;
         while let Some(row) = rows.next()? {
-            let input = Input::new(row.get("input_id")?, row.get(input_col)?, row.get("p")?);
+            let input = Input::new(
+                row.get("input_id")?,
+                row.get(input_col)?,
+                row.get("p")?,
+            );
             result.push(input);
         }
         Ok(result)
