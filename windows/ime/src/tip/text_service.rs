@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::RwLock;
@@ -14,6 +15,8 @@ use windows::core::Result;
 use windows::core::GUID;
 use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HWND;
+use windows::Win32::Foundation::MAX_PATH;
+use windows::Win32::System::LibraryLoader::GetModuleFileNameW;
 use windows::Win32::UI::TextServices::CLSID_TF_CategoryMgr;
 use windows::Win32::UI::TextServices::ITfCategoryMgr;
 use windows::Win32::UI::TextServices::ITfCompartmentEventSink;
@@ -65,6 +68,7 @@ use crate::ui::systray::SystrayMenu;
 use crate::ui::wndproc::Wndproc;
 use crate::utils::co_create_inproc;
 use crate::utils::ArcLock;
+use crate::utils::GetPath;
 use crate::winerr;
 
 use super::edit_session::open_edit_session;
@@ -342,7 +346,7 @@ impl TextService {
     fn activate(&self) -> Result<()> {
         DllModule::global().add_ref();
         set_locale("en");
-        self.init_message_handler()?;
+        self.init_engine()?;
         CandidateWindow::register_class(DllModule::global().module);
         SystrayMenu::register_class(DllModule::global().module);
         self.init_lang_bar_indicator()?;
@@ -372,24 +376,30 @@ impl TextService {
         self.deinit_candidate_ui().ok();
         self.deinit_threadmgr_event_sink().ok();
         self.deinit_lang_bar_indicator().ok();
-        self.deinit_message_handler().ok();
+        self.deinit_engine().ok();
         SystrayMenu::unregister_class(DllModule::global().module);
         CandidateWindow::unregister_class(DllModule::global().module);
         DllModule::global().release();
         Ok(())
     }
 
-    fn init_message_handler(&self) -> Result<()> {
+    fn init_engine(&self) -> Result<()> {
+        let filename = PathBuf::from(DllModule::global().module.get_path()?);
+        let mut dbfile =
+            filename.parent().ok_or(Error::from(E_FAIL))?.to_path_buf();
+        dbfile.push("khiin.db");
+        let dbfile = dbfile.to_string_lossy().to_string();
+
         let handler = Arc::new(MessageHandler::new(self.this()));
         let handle =
             MessageHandler::create(handler, DllModule::global().module)?;
-        let async_engine = AsyncEngine::run(handle)?;
+        let async_engine = AsyncEngine::run(dbfile, handle)?;
         self.message_handler.replace(Some(handle));
         self.async_engine.replace(Some(async_engine));
         Ok(())
     }
 
-    fn deinit_message_handler(&self) -> Result<()> {
+    fn deinit_engine(&self) -> Result<()> {
         let handle = self.message_handler.borrow().clone().unwrap();
         unsafe {
             DestroyWindow(handle);

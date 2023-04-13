@@ -198,8 +198,8 @@ mod tests {
 
     use crate::collection;
 
-    use super::*;
     use super::Segmenter as S;
+    use super::*;
 
     #[test]
     fn it_works() {

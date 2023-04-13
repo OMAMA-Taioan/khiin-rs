@@ -3,7 +3,6 @@ use std::mem::size_of;
 use std::mem::transmute;
 use std::sync::Arc;
 
-use windows::Win32::UI::WindowsAndMessaging::WM_USER;
 use windows::core::AsImpl;
 use windows::core::Result;
 use windows::core::PCWSTR;
@@ -35,6 +34,7 @@ use windows::Win32::UI::WindowsAndMessaging::HWND_MESSAGE;
 use windows::Win32::UI::WindowsAndMessaging::WINDOW_EX_STYLE;
 use windows::Win32::UI::WindowsAndMessaging::WINDOW_STYLE;
 use windows::Win32::UI::WindowsAndMessaging::WM_NCCREATE;
+use windows::Win32::UI::WindowsAndMessaging::WM_USER;
 use windows::Win32::UI::WindowsAndMessaging::WNDCLASSEXW;
 use windows::Win32::UI::WindowsAndMessaging::WNDCLASS_STYLES;
 
@@ -68,7 +68,7 @@ impl MessageHandler {
                     unsafe { Arc::from_raw(transmute(lparam)) };
                 self.tip.as_impl().handle_command(cmd)?;
                 Ok(())
-            }
+            },
             _ => winerr!(E_FAIL),
         }
     }
@@ -174,9 +174,7 @@ impl MessageHandler {
             let userdata = GetWindowLongPtrW(handle, GWLP_USERDATA);
             let this = std::ptr::NonNull::<Self>::new(userdata as _);
             let handled = this.map_or(false, |mut s| {
-                s.as_mut()
-                    .on_message(message, wparam, lparam)
-                    .is_ok()
+                s.as_mut().on_message(message, wparam, lparam).is_ok()
             });
             if handled {
                 LRESULT::default()

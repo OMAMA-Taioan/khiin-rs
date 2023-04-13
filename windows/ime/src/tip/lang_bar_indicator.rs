@@ -46,8 +46,8 @@ use windows::Win32::UI::WindowsAndMessaging::LR_DEFAULTCOLOR;
 use crate::dll::DllModule;
 use crate::geometry::Point;
 use crate::reg::guids::IID_KhiinTextService;
-use crate::resource::IDI_MODE_CONTINUOUS;
 use crate::resource::make_int_resource;
+use crate::resource::IDI_MODE_CONTINUOUS;
 use crate::ui::systray::SystrayMenu;
 use crate::ui::window::WindowHandler;
 use crate::ui::wndproc::Wndproc;
@@ -154,7 +154,7 @@ impl ITfSource_Impl for LangBarIndicator {
         }
 
         let sink: ITfLangBarItemSink = punk.unwrap().clone().cast()?;
-        
+
         if let Ok(mut map) = self.sink_map.lock() {
             let cookie = map.keys().max().unwrap_or(&0) + 1;
             match map.insert(cookie, sink) {

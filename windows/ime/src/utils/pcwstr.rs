@@ -27,7 +27,7 @@ impl ToPcwstr for &str {
             return Pcwstr {
                 text: PCWSTR::null(),
                 _container: Vec::new(),
-            }
+            };
         }
 
         // do not drop when scope ends, by moving it into struct

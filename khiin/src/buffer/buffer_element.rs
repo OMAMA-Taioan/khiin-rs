@@ -12,13 +12,13 @@ pub enum BufferElementEnum {
 #[enum_dispatch]
 pub trait BufferElement {
     fn raw_text(&self) -> &str;
-    
+
     fn raw_char_count(&self) -> usize;
-    
+
     fn raw_caret_from(&self, caret: usize) -> usize;
 
     fn composed_text(&self) -> &str;
-    
+
     fn composed_char_count(&self) -> usize;
 
     fn caret_from(&self, raw_caret: usize) -> usize;

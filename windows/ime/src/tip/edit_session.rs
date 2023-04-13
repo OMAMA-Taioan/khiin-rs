@@ -1,10 +1,10 @@
-use windows::Win32::UI::TextServices::ITfContext;
-use windows::Win32::UI::TextServices::TF_ES_READWRITE;
-use windows::Win32::UI::TextServices::TF_ES_SYNC;
 use windows::core::implement;
 use windows::core::Result;
+use windows::Win32::UI::TextServices::ITfContext;
 use windows::Win32::UI::TextServices::ITfEditSession;
 use windows::Win32::UI::TextServices::ITfEditSession_Impl;
+use windows::Win32::UI::TextServices::TF_ES_READWRITE;
+use windows::Win32::UI::TextServices::TF_ES_SYNC;
 
 pub type TfEditCookie = u32;
 
@@ -17,10 +17,7 @@ where
     CB: Fn(u32) -> Result<()>,
 {
     let session: ITfEditSession =
-        CallbackEditSession::new(|ec| -> Result<()> {
-            cb(ec)
-        })
-        .into();
+        CallbackEditSession::new(|ec| -> Result<()> { cb(ec) }).into();
 
     let result = unsafe {
         context.RequestEditSession(

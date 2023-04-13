@@ -111,7 +111,7 @@ pub extern "system" fn DllMain(
                 module,
             };
             DLL_INSTANCE.set(dll_module).unwrap();
-        }
+        },
         DLL_PROCESS_DETACH => (),
         _ => (),
     }

@@ -17,7 +17,9 @@ pub fn convert_all(
 
     for section in sections {
         match section.ty {
-            SectionType::Unknown => todo!(),
+            SectionType::Unknown => {
+                // TODO
+            },
             SectionType::Hyphens => todo!(),
             SectionType::Punct => todo!(),
             SectionType::Splittable => {

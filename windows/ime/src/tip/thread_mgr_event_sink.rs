@@ -6,7 +6,6 @@ use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 use windows::Win32::UI::TextServices::ITfThreadMgrEventSink;
 use windows::Win32::UI::TextServices::ITfThreadMgrEventSink_Impl;
 
-
 #[implement(ITfThreadMgrEventSink)]
 pub struct ThreadMgrEventSink {
     _service: ITfTextInputProcessor,
@@ -14,9 +13,7 @@ pub struct ThreadMgrEventSink {
 
 impl ThreadMgrEventSink {
     pub fn new(service: ITfTextInputProcessor) -> Self {
-        Self {
-            _service: service,
-        }
+        Self { _service: service }
     }
 }
 
@@ -25,7 +22,10 @@ impl ITfThreadMgrEventSink_Impl for ThreadMgrEventSink {
         Ok(())
     }
 
-    fn OnUninitDocumentMgr(&self, _pdim: Option<&ITfDocumentMgr>) -> Result<()> {
+    fn OnUninitDocumentMgr(
+        &self,
+        _pdim: Option<&ITfDocumentMgr>,
+    ) -> Result<()> {
         Ok(())
     }
 

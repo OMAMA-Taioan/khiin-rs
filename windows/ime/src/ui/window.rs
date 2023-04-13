@@ -104,12 +104,12 @@ pub trait WindowHandler {
                 let dpi = hi_word(wparam.0 as u32);
                 let rect: &RECT = unsafe { transmute(lparam) };
                 self.on_dpi_changed(handle, dpi, rect.into())
-            }
+            },
             WM_MOUSEMOVE => {
                 let x = get_x_param(lparam);
                 let y = get_y_param(lparam);
                 self.on_mouse_move(handle, Point { x, y })
-            }
+            },
             WM_MOUSELEAVE => self.on_mouse_leave(),
             WM_LBUTTONDOWN => self.on_click(),
             WM_SHOWWINDOW => match wparam.0 {

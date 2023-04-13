@@ -22,7 +22,7 @@ impl PageHandler for AboutPage {
 
     fn initialize(&self) -> isize {
         self.set_labels(vec![IDL_KHIIN_VERSION, IDL_KHIIN_COPYRIGHT]);
-        
+
         0
     }
 }

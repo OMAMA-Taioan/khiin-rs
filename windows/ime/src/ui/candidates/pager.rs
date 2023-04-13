@@ -117,7 +117,7 @@ impl Pager {
         let p = self.max_page_size();
         (n + p - 1) / p
     }
-    
+
     pub fn max_page_size(&self) -> usize {
         self.max_cols_per_page() * self.max_col_size()
     }

@@ -25,8 +25,8 @@ struct EngineCoordinator {
 }
 
 impl EngineCoordinator {
-    fn new() -> Result<Self> {
-        if let Some(engine) = khiin::Engine::new("test") {
+    fn new(db_path: String) -> Result<Self> {
+        if let Some(engine) = khiin::Engine::new(&db_path) {
             Ok(Self { engine })
         } else {
             winerr!(E_FAIL)
@@ -49,10 +49,10 @@ pub struct AsyncEngine {
 }
 
 impl AsyncEngine {
-    pub fn run(callback_handle: HWND) -> Result<Self> {
+    pub fn run(db_path: String, callback_handle: HWND) -> Result<Self> {
         let (tx, rx) = channel::<Command>();
         let thread = std::thread::spawn(move || {
-            let engine = EngineCoordinator::new();
+            let engine = EngineCoordinator::new(db_path);
             if engine.is_err() {
                 return;
             }
@@ -85,10 +85,10 @@ impl AsyncEngine {
                                 lparam,
                             );
                         }
-                    }
+                    },
                     Err(_) => {
                         break;
-                    }
+                    },
                 }
             }
         });

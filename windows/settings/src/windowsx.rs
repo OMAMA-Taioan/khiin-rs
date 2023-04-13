@@ -4,11 +4,11 @@ use khiin_windows::utils::pcwstr::ToPcwstr;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::WPARAM;
-use windows::Win32::UI::WindowsAndMessaging::CB_ADDSTRING;
-use windows::Win32::UI::WindowsAndMessaging::CB_SETCURSEL;
 use windows::Win32::UI::WindowsAndMessaging::SendMessageW;
-use windows::Win32::UI::WindowsAndMessaging::CB_RESETCONTENT;
 use windows::Win32::UI::WindowsAndMessaging::SetWindowTextW;
+use windows::Win32::UI::WindowsAndMessaging::CB_ADDSTRING;
+use windows::Win32::UI::WindowsAndMessaging::CB_RESETCONTENT;
+use windows::Win32::UI::WindowsAndMessaging::CB_SETCURSEL;
 
 // These are some functions (actually macros) defined in windowsx.h
 // ported here for better usability, since they are not included

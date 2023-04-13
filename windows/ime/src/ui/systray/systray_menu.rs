@@ -373,12 +373,12 @@ impl WindowHandler for SystrayMenu {
             );
 
             match target.EndDraw(None, None) {
-                Ok(_) => {}
+                Ok(_) => {},
                 Err(e) => {
                     if e.code() == D2DERR_RECREATE_TARGET {
                         self.reset_graphics_resources()?;
                     }
-                }
+                },
             }
 
             EndPaint(handle, &ps);

@@ -153,7 +153,7 @@ impl PropSheet {
                     INITIALIZED = true;
                 };
                 psp.handler.on_message(message, wparam, lparam)
-            }
+            },
             _ => {
                 if unsafe { !INITIALIZED } {
                     0
@@ -166,7 +166,7 @@ impl PropSheet {
                         t.as_mut().handler.on_message(message, wparam, lparam)
                     })
                 }
-            }
+            },
         }
     }
 }
@@ -194,11 +194,11 @@ pub unsafe extern "system" fn propsheet_cb(
                 *newitem,
             );
             0
-        }
+        },
         PCSB_PRECREATE => {
             InitCommonControls();
             0
-        }
+        },
         _ => 0,
     }
 }

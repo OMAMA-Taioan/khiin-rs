@@ -1,4 +1,4 @@
-use super::{BufferElement, buffer_element::BufferElementEnum};
+use super::{buffer_element::BufferElementEnum, BufferElement};
 
 #[derive(Default)]
 pub(crate) struct Buffer {
@@ -16,8 +16,8 @@ impl Buffer {
 
 #[cfg(test)]
 mod tests {
-    use crate::buffer::StringElem;
     use super::*;
+    use crate::buffer::StringElem;
 
     #[test]
     fn it_works() {

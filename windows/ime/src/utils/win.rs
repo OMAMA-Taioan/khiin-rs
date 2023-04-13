@@ -1,10 +1,10 @@
-use windows::Win32::Foundation::LPARAM;
 use windows::core::ComInterface;
 use windows::core::Error;
-use windows::core::GUID;
 use windows::core::Result;
+use windows::core::GUID;
 use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HMODULE;
+use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::MAX_PATH;
 use windows::Win32::System::Com::CoCreateInstance;
 use windows::Win32::System::Com::StringFromGUID2;
@@ -113,10 +113,10 @@ pub fn hi_byte(value: u16) -> u8 {
 
 #[inline]
 pub fn get_x_param(lparam: LPARAM) -> i32 {
-    lo_word(lparam.0 as u32) as i16 as i32 
+    lo_word(lparam.0 as u32) as i16 as i32
 }
 
 #[inline]
 pub fn get_y_param(lparam: LPARAM) -> i32 {
-    hi_word(lparam.0 as u32) as i16 as i32 
+    hi_word(lparam.0 as u32) as i16 as i32
 }

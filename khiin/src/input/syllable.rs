@@ -6,7 +6,7 @@ use unicode_normalization::UnicodeNormalization;
 
 use crate::collection;
 
-use super::lomaji::{get_tone_position, tone_to_char, tone_char_to_index};
+use super::lomaji::{get_tone_position, tone_char_to_index, tone_to_char};
 use super::Tone;
 
 #[derive(Default)]
@@ -43,7 +43,7 @@ impl From<&str> for Syllable {
 
         let mut raw_body = ascii.to_string();
         let last = raw_body.chars().last().unwrap();
-        
+
         if let Some(index) = tone_char_to_index(last) {
             raw_body.pop();
             let tone: Tone = (index as i32).into();

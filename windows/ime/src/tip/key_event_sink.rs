@@ -151,7 +151,7 @@ impl KeyEventSink {
                     Ok(_) => Ok(TRUE),
                     Err(_) => Ok(FALSE),
                 }
-            }
+            },
             _ => Ok(FALSE),
         }
     }
@@ -202,7 +202,7 @@ impl ITfKeyEventSink_Impl for KeyEventSink {
             Some(context) => {
                 let key_event = KeyEvent::new(WM_KEYDOWN, wparam, lparam);
                 self.test_key_down(context.clone(), &key_event)
-            }
+            },
             None => Ok(FALSE),
         }
     }
@@ -217,7 +217,7 @@ impl ITfKeyEventSink_Impl for KeyEventSink {
             Some(context) => {
                 let key_event = KeyEvent::new(WM_KEYUP, wparam, lparam);
                 self.test_key_up(context, key_event)
-            }
+            },
             None => Ok(FALSE),
         }
     }
@@ -232,7 +232,7 @@ impl ITfKeyEventSink_Impl for KeyEventSink {
             Some(context) => {
                 let key_event = KeyEvent::new(WM_KEYDOWN, wparam, lparam);
                 self.key_down(context.clone(), key_event)
-            }
+            },
             None => Ok(FALSE),
         }
     }
@@ -247,7 +247,7 @@ impl ITfKeyEventSink_Impl for KeyEventSink {
             Some(context) => {
                 let key_event = KeyEvent::new(WM_KEYUP, wparam, lparam);
                 self.key_up(context, key_event)
-            }
+            },
             None => Ok(FALSE),
         }
     }

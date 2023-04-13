@@ -6,8 +6,8 @@ use windows::Win32::Foundation::E_FAIL;
 
 use crate::winerr;
 
-#[derive (Default)]
-pub struct ArcLock<T : Copy> {
+#[derive(Default)]
+pub struct ArcLock<T: Copy> {
     value: Arc<RwLock<T>>,
 }
 
@@ -17,11 +17,11 @@ impl<T: Copy> ArcLock<T> {
             value: Arc::new(RwLock::new(value)),
         }
     }
-    
+
     pub fn get(&self) -> Result<T> {
         match self.value.read() {
             Ok(guard) => Ok(*guard),
-            Err(_) => winerr!(E_FAIL)
+            Err(_) => winerr!(E_FAIL),
         }
     }
 
@@ -29,9 +29,9 @@ impl<T: Copy> ArcLock<T> {
         match self.value.write() {
             Ok(mut guard) => {
                 *guard = value;
-                return Ok(())
+                return Ok(());
             },
-            Err(_) => winerr!(E_FAIL)
+            Err(_) => winerr!(E_FAIL),
         }
     }
 }

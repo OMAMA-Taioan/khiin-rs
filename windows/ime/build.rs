@@ -13,7 +13,6 @@ fn main() {
 fn copy_database(filename: &str) {
     let src_path = Path::new("../../resources").join(filename);
     let dest_path = Path::new("../../target/debug").join(filename);
-    fs::copy(src_path, dest_path).expect(
-        "Failed to copy file, is khiin.db in the res directory?",
-    );
+    fs::copy(src_path, dest_path)
+        .expect("Failed to copy file, is khiin.db in the res directory?");
 }

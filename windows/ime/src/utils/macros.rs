@@ -1,10 +1,8 @@
 #[macro_export]
 macro_rules! winerr {
-    ($s:ident) => {
-        {
-            Err(windows::core::Error::from($s))
-        }
-    };
+    ($s:ident) => {{
+        Err(windows::core::Error::from($s))
+    }};
 }
 
 #[macro_export]

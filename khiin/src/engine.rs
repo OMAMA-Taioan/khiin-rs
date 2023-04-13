@@ -116,7 +116,10 @@ impl Engine {
             SpecialKey::SK_DEL => {},
         };
 
-        Ok(Response::default())
+        let mut command = Command::default();
+        get_mock_command(&mut command);
+        let response = command.response.clone().unwrap();
+        Ok(response)
     }
 
     fn on_revert(&self, req: Request) -> Result<Response> {

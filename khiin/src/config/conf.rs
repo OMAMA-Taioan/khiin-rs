@@ -17,7 +17,6 @@ pub struct Config {
     input_type: InputType,
 }
 
-
 impl Config {
     pub fn new() -> Self {
         Self {

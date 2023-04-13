@@ -171,7 +171,7 @@ impl CompositionMgr {
     pub fn cancel_composition(&self, ec: u32) -> Result<()> {
         match self.composition() {
             Ok(comp) => self.cleanup(ec, comp),
-            _ => Ok(())
+            _ => Ok(()),
         }
     }
 

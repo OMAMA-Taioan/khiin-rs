@@ -2,9 +2,9 @@ use std::cmp::max;
 use std::rc::Rc;
 use std::sync::Arc;
 
-use windows::Win32::Foundation::E_FAIL;
 use windows::core::Error;
 use windows::core::Result;
+use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextFormat;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextLayout;
 use windows::Win32::Graphics::DirectWrite::DWRITE_TEXT_METRICS;

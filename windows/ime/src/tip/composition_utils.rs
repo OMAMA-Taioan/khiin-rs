@@ -1,23 +1,23 @@
+use windows::core::ComInterface;
+use windows::core::Error;
+use windows::core::Result;
 use windows::Win32::Foundation::BOOL;
+use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::FALSE;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::RECT;
 use windows::Win32::UI::Input::KeyboardAndMouse::GetFocus;
+use windows::Win32::UI::TextServices::IEnumITfCompositionView;
+use windows::Win32::UI::TextServices::ITfCompositionView;
+use windows::Win32::UI::TextServices::ITfContext;
+use windows::Win32::UI::TextServices::ITfContextComposition;
 use windows::Win32::UI::TextServices::ITfContextView;
+use windows::Win32::UI::TextServices::ITfRange;
 use windows::Win32::UI::TextServices::TF_ANCHOR_START;
 use windows::Win32::UI::TextServices::TF_DEFAULT_SELECTION;
 use windows::Win32::UI::TextServices::TF_SELECTION;
 use windows::Win32::UI::TextServices::TF_ST_CORRECTION;
 use windows::Win32::UI::WindowsAndMessaging::GetWindowRect;
-use windows::core::ComInterface;
-use windows::core::Error;
-use windows::core::Result;
-use windows::Win32::Foundation::E_FAIL;
-use windows::Win32::UI::TextServices::IEnumITfCompositionView;
-use windows::Win32::UI::TextServices::ITfCompositionView;
-use windows::Win32::UI::TextServices::ITfContext;
-use windows::Win32::UI::TextServices::ITfContextComposition;
-use windows::Win32::UI::TextServices::ITfRange;
 
 use crate::geometry::Rect;
 use crate::utils::WinString;
@@ -107,13 +107,21 @@ unsafe fn composition_view(
     }
 }
 
-unsafe fn default_selection_range(ec: u32, context: ITfContext) -> Result<ITfRange> {
+unsafe fn default_selection_range(
+    ec: u32,
+    context: ITfContext,
+) -> Result<ITfRange> {
     let mut vec: Vec<TF_SELECTION> = Vec::new();
     let mut selection = TF_SELECTION::default();
     let mut fetched = 0u32;
     // TODO https://github.com/microsoft/windows-rs/issues/2429
     context.GetSelection(ec, u32::MAX, &mut vec, &mut fetched)?;
-    vec.get(0).ok_or(Error::from(E_FAIL))?.range.as_ref().unwrap().Clone()
+    vec.get(0)
+        .ok_or(Error::from(E_FAIL))?
+        .range
+        .as_ref()
+        .unwrap()
+        .Clone()
 }
 
 unsafe fn parent_window_origin(view: ITfContextView) -> Result<RECT> {
@@ -125,7 +133,12 @@ unsafe fn parent_window_origin(view: ITfContextView) -> Result<RECT> {
     let found = GetWindowRect(handle, &mut rect);
 
     Ok(if found.0 != 0 {
-        RECT { left: rect.left, top: rect.top, right: rect.left + 1, bottom: rect.top + 1 }
+        RECT {
+            left: rect.left,
+            top: rect.top,
+            right: rect.left + 1,
+            bottom: rect.top + 1,
+        }
     } else {
         rect
     })
