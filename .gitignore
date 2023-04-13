@@ -249,5 +249,6 @@ pyrightconfig.json
 data/out
 
 # SQLite
+resources/khiin.db
 *.db-shm
 *.db-wal
