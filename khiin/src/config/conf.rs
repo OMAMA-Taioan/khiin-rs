@@ -11,14 +11,14 @@ pub enum InputType {
     Telex,
 }
 
-pub struct EngineCfg {
+pub struct Config {
     enabled: bool,
     input_mode: InputMode,
     input_type: InputType,
 }
 
 
-impl EngineCfg {
+impl Config {
     pub fn new() -> Self {
         Self {
             enabled: false,
@@ -29,5 +29,9 @@ impl EngineCfg {
 
     pub fn input_mode(&self) -> InputMode {
         self.input_mode
+    }
+
+    pub fn input_type(&self) -> InputType {
+        self.input_type
     }
 }

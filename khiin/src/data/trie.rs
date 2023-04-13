@@ -30,4 +30,8 @@ impl Trie {
         v.sort_unstable();
         v
     }
+
+    pub fn contains(&self, query: &str) -> bool {
+        self.qp_trie.contains_key_str(query)
+    }
 }

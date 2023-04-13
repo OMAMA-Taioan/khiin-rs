@@ -1,10 +1,10 @@
 use anyhow::Result;
 
-use crate::config::engine_cfg::InputType;
+use crate::config::InputType;
 
-use super::database::Database;
-use super::segmenter::Segmenter;
-use super::trie::Trie;
+use crate::data::Database;
+use crate::data::Segmenter;
+use crate::data::Trie;
 
 pub struct Dictionary {
     word_trie: Trie,
@@ -29,7 +29,20 @@ impl Dictionary {
     }
 
     pub fn segment(&self, query: &str) -> Result<Vec<String>> {
-        self.segmenter.split(query)
+        self.segmenter.segment(query)
+    }
+
+    pub fn can_segment(&self, query: &str) -> bool {
+        if !query.is_ascii() {
+            return false;
+        }
+        let is_word = |s: &str| *&self.word_trie.contains(&s);
+        Segmenter::can_segment(is_word, query)
+    }
+
+    pub fn can_segment_max(&self, query: &str) -> usize {
+        let is_word = |s: &str| *&self.word_trie.contains(&s);
+        Segmenter::can_segment_max(is_word, query)
     }
 }
 
@@ -91,7 +104,7 @@ mod tests {
              si sim chong ba pih lai koe sin e i e sithe kui bin long si \
              baksai kap phinn kou che bengbeng si ti koe sin chincheng siutioh \
              chin toa e thong khou");
-        
+
         // Best time: 1.75 seconds
         // for _ in 0..1000 {
         //     let result = dict.segment(input).expect("Could not segment text");

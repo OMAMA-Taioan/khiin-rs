@@ -5,7 +5,9 @@ use anyhow::Result;
 use rusqlite::Connection;
 use rusqlite::OpenFlags;
 
-use crate::config::engine_cfg::InputType;
+use crate::config::InputType;
+
+use super::conversion::Conversion;
 
 pub struct Input {
     pub id: u32,
@@ -39,6 +41,13 @@ static T_BGRAM: &str = "bigram_freq";
 static V_LOOKUP: &str = "conversion_lookups";
 static V_GRAMS: &str = "ngrams";
 
+fn input_column(input_type: InputType) -> &'static str {
+    match input_type {
+        InputType::Numeric => "numeric",
+        InputType::Telex => "telex",
+    }
+}
+
 impl Database {
     pub fn new(file: &PathBuf) -> Result<Self> {
         let mut mem_conn = Connection::open_in_memory_with_flags(
@@ -54,11 +63,9 @@ impl Database {
         &self,
         input_type: InputType,
     ) -> Result<Vec<Input>> {
-        let input_col = match input_type {
-            InputType::Numeric => "numeric",
-            InputType::Telex => "telex",
-        };
-        let sql = format!(r#"
+        let input_col = input_column(input_type);
+        let sql = format!(
+            r#"
             select
                 "input_id",
                 "{column}",
@@ -80,6 +87,38 @@ impl Database {
                 row.get("p")?,
             );
             result.push(input);
+        }
+        Ok(result)
+    }
+
+    pub fn find_conversions(
+        &self,
+        input_type: InputType,
+        query: &str,
+    ) -> Result<Vec<Conversion>> {
+        let input_col = input_column(input_type);
+        let sql = format!(
+            r#"
+            select *
+            from "{table}"
+            where "{column}" = :query"#,
+            table = V_LOOKUP,
+            column = input_col,
+        );
+
+        let mut result = Vec::new();
+        let mut stmt = self.conn.prepare(&sql)?;
+        let mut rows = stmt.query(&[(":query", query)])?;
+        while let Some(row) = rows.next()? {
+            result.push(Conversion {
+                key_sequence: row.get(input_col)?,
+                input: row.get("input")?,
+                input_id: row.get("input_id")?,
+                output: row.get("output")?,
+                weight: row.get("weight")?,
+                category: row.get("category")?,
+                annotation: row.get("annotation")?,
+            });
         }
         Ok(result)
     }
@@ -116,5 +155,16 @@ mod tests {
         assert_eq!(r0, "e5");
         assert_eq!(r1, "e");
         assert_eq!(r2, "goa2");
+    }
+
+    #[test]
+    fn it_finds_conversions() {
+        let db = get_db();
+        let res = db.find_conversions(InputType::Numeric, "ho2").unwrap();
+        assert!(res.len() >= 2);
+        assert!(res.iter().any(|row| row.output == "好"));
+        assert!(res.iter().any(|row| row.output == "hó"));
+        assert!(res[0].annotation.is_none());
+        assert!(res[0].category.is_none());
     }
 }

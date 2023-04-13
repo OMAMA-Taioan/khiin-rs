@@ -1,3 +1,5 @@
-pub mod engine_cfg;
+pub mod conf;
 
-pub(crate) use engine_cfg::EngineCfg;
+pub(crate) use conf::Config;
+pub(crate) use conf::InputMode;
+pub(crate) use conf::InputType;

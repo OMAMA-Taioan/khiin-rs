@@ -10,15 +10,15 @@ use khiin_protos::command::preedit::*;
 use khiin_protos::command::*;
 
 use crate::buffer::BufferMgr;
-use crate::config::engine_cfg::InputType;
-use crate::config::EngineCfg;
+use crate::config::Config;
+use crate::config::InputType;
 use crate::data::database::Database;
 use crate::data::dictionary::Dictionary;
 
 pub struct Engine {
     db: Database,
     dict: Dictionary,
-    cfg: EngineCfg,
+    conf: Config,
     buffer_mgr: BufferMgr,
 }
 
@@ -36,8 +36,20 @@ impl Engine {
             db,
             dict,
             buffer_mgr: BufferMgr::new(),
-            cfg: EngineCfg::new(),
+            conf: Config::new(),
         })
+    }
+
+    pub fn db(&self) -> &Database {
+        &self.db
+    }
+
+    pub fn dict(&self) -> &Dictionary {
+        &self.dict
+    }
+
+    pub fn conf(&self) -> &Config {
+        &self.conf
     }
 
     pub fn send_command_bytes(&mut self, bytes: &[u8]) -> Result<Vec<u8>> {
@@ -84,11 +96,8 @@ impl Engine {
             SpecialKey::SK_NONE => {
                 let ch = ascii_char_from_i32(req.key_event.key_code);
                 if let Some(ch) = ch {
-                    self.buffer_mgr.insert(
-                        &self.dict,
-                        ch,
-                        self.cfg.input_mode(),
-                    )?;
+                    self.buffer_mgr
+                        .insert(&self.db, &self.dict, &self.conf, ch)?;
                 }
             },
             SpecialKey::SK_SPACE => {},

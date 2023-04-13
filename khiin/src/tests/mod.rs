@@ -2,9 +2,9 @@
 
 use std::path::PathBuf;
 
-use crate::config::engine_cfg::InputType;
-use crate::data::database::Database;
-use crate::data::dictionary::Dictionary;
+use crate::config::InputType;
+use crate::data::Database;
+use crate::data::Dictionary;
 
 pub fn debug_db_path() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))

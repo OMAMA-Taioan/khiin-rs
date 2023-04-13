@@ -1,8 +1,11 @@
 use std::collections::HashMap;
 
+use anyhow::anyhow;
 use anyhow::Result;
+use bit_vec::BitVec;
 
 use super::database::Input;
+use super::trie::Trie;
 
 static BIG: f64 = 1e10;
 
@@ -40,21 +43,61 @@ impl Segmenter {
         })
     }
 
-    pub fn split(&self, input: &str) -> Result<Vec<String>> {
-        Ok(split_words(input, &self.cost_map, self.max_word_length))
+    pub fn segment(&self, input: &str) -> Result<Vec<String>> {
+        Ok(segment_min_cost(
+            input,
+            &self.cost_map,
+            self.max_word_length,
+        ))
+    }
+
+    pub fn can_segment<T>(is_word: T, query: &str) -> bool
+    where
+        T: Fn(&str) -> bool,
+    {
+        let splits = lsegment(is_word, query);
+        splits.get(query.chars().count() - 1).unwrap_or(false)
+    }
+
+    pub fn can_segment_max<T>(is_word: T, query: &str) -> usize
+    where
+        T: Fn(&str) -> bool,
+    {
+        let splits = lsegment(is_word, query);
+
+        for (i, b) in splits.iter().rev().enumerate() {
+            if b {
+                return splits.len() - i;
+            }
+        }
+
+        0
     }
 }
 
-pub fn can_split<T>(is_word: T, query: &str) -> bool
+/// A dynamic programming algorithm to test if a query string can be split into
+/// words.
+///
+/// - The outer loop iterates the string from left to right, where `i` marks the
+///   end index of substrings to be tested during the inner loop.
+/// - The inner loop iterates start indices using the `split_indices` array,
+///   which contains the index of the last char of each word found.
+///
+/// In the initial case, the `split_index` is given as -1, which can be thought
+/// of as the end of the "previous" word. When a word is found, the index of the
+/// last char in the word is added to `split_indices`, so that for each `j` in
+/// split_indices`, `j + 1` marks the starting index of substrings to test.
+fn lsegment<T>(is_word: T, query: &str) -> BitVec
 where
     T: Fn(&str) -> bool,
 {
     let size = query.chars().count();
-    let mut splits_at = vec![false; size + 1];
+
+    let mut splits_at = BitVec::from_elem(size + 1, false); // vec![false; size + 1];
     let mut split_indices = vec![-1];
 
     for i in 0..size {
-        for j in split_indices.iter().rev() {
+        for j in split_indices.iter() {
             let start = (j + 1) as usize;
             let end = i + 1;
             let substr = &query[start..end];
@@ -63,17 +106,31 @@ where
 
             if is_word(&substr) {
                 // println!("Ok!");
-                splits_at[i] = true;
+                splits_at.set(i, true);
                 split_indices.push(i as i32);
                 break;
             }
         }
     }
 
-    false
+    splits_at
 }
 
-fn split_words(
+/// A dynamic programming algorithm to split a string based on a simple
+/// least-cost model. This functions in nearly the same way as `can_split`, but
+/// rather than simply detecting whether or not a split is possible, it
+/// associates a cost with each word found and chooses the split pattern with
+/// the minimum cost as the result.
+///
+/// It would be good to experiment with different models for calculating the
+/// cost, or to improve our corpus for better results. The current model uses:
+///
+/// ```
+/// cost =  ln (1 / 𝓟)
+/// ```
+/// where `𝓟` is the number of occurrences of a word in the corpus divided by
+/// the total number of words in the corpus. This seems to give decent results.
+fn segment_min_cost(
     input: &str,
     cost_map: &HashMap<String, f64>,
     max_word_len: usize,
@@ -142,6 +199,7 @@ mod tests {
     use crate::collection;
 
     use super::*;
+    use super::Segmenter as S;
 
     #[test]
     fn it_works() {
@@ -153,7 +211,7 @@ mod tests {
             "png".into() => 40.0,
         );
         let max_word_len = 5;
-        let result = split_words(input, &cost_map, max_word_len);
+        let result = segment_min_cost(input, &cost_map, max_word_len);
         assert_eq!(result.len(), 4);
     }
 
@@ -200,23 +258,30 @@ mod tests {
         let segmenter =
             Segmenter::new(words).expect("Could not build segmenter");
         let result = segmenter
-            .split("goamchaiujoachelanghamgoaukangkhoanesengtiong")
+            .segment("goamchaiujoachelanghamgoaukangkhoanesengtiong")
             .expect("Could not segment text");
         println!("{}", result.join(" "));
         assert_eq!(result.len(), 12);
         let result = segmenter
-            .split("goa2mchaiu7joa7che7lang5ham5goa2ukangkhoan2esengtiong")
+            .segment("goa2mchaiu7joa7che7lang5ham5goa2ukangkhoan2esengtiong")
             .expect("Could not segment text");
         println!("{}", result.join(" "));
         assert_eq!(result.len(), 12);
     }
 
     #[test]
-    fn it_can_test_splittable() {
+    fn it_finds_segmentation_indices() {
         let v = vec!["hello", "world"];
         let is_word = |s: &str| v.contains(&s);
-        let query = "helloworld";
-        let result = can_split(is_word, query);
-        assert_eq!(result, false);
+        let result = lsegment(is_word, "helloworld");
+        assert_eq!(result.get(4).unwrap(), true);
+        assert_eq!(result.get(9).unwrap(), true);
+
+        assert_eq!(S::can_segment(is_word, "helloworld"), true);
+        assert_eq!(S::can_segment(is_word, "helloworldo"), false);
+
+        assert_eq!(S::can_segment_max(is_word, "helloworld"), 10);
+        assert_eq!(S::can_segment_max(is_word, "helloworldo"), 10);
+        assert_eq!(S::can_segment_max(is_word, "helloworldhello"), 15);
     }
 }
