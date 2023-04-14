@@ -35,7 +35,7 @@ use crate::tip::text_service::TextService;
 
 pub fn translate_key_event(input: KeyEvent) -> KhiEvent {
     let mut proto = KhiEvent::new();
-    proto.key_code = input.keycode as i32;
+    proto.key_code = input.ascii as i32;
     proto
 }
 

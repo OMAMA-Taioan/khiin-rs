@@ -7,6 +7,8 @@ use windows::Win32::UI::Input::KeyboardAndMouse::VK_CONTROL;
 use crate::utils::hi_word;
 use crate::utils::lo_byte;
 
+const VK_CTRL: usize = VK_CONTROL.0 as usize;
+
 pub struct KeyEvent {
     pub message: u32,
     pub ascii: u8,
@@ -29,10 +31,9 @@ impl KeyEvent {
 
         let scancode = lo_byte(hi_word(lparam.0 as u32));
 
-        let vk_ctrl_idx = VK_CONTROL.0 as usize;
-        let vk_ctrl_tmp = event.keystate[vk_ctrl_idx];
+        let vk_ctrl_tmp = event.keystate[VK_CTRL];
         let mut char = [0u16; 2];
-        event.keystate[vk_ctrl_idx] = 0;
+        event.keystate[VK_CTRL] = 0;
 
         let result = unsafe {
             ToAscii(
@@ -43,12 +44,12 @@ impl KeyEvent {
                 0,
             )
         };
-
-        event.keystate[vk_ctrl_idx] = vk_ctrl_tmp;
-
+        
         if result == 1 {
             event.ascii = char[0] as u8;
         }
+        
+        event.keystate[VK_CTRL] = vk_ctrl_tmp;
 
         event
     }
