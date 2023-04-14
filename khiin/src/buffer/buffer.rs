@@ -2,13 +2,17 @@ use super::buffer_element::BufferElementEnum;
 use super::BufferElement;
 
 #[derive(Default)]
-pub(crate) struct Buffer {
+pub struct Buffer {
     elems: Vec<BufferElementEnum>,
 }
 
 impl Buffer {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub fn iter(&self) -> BufferIter<'_> {
+        BufferIter { elems: &self.elems, index: 0 }
     }
 
     pub fn push(&mut self, elem: BufferElementEnum) {
@@ -20,6 +24,25 @@ impl Buffer {
             acc.push_str(elem.raw_text());
             acc
         })
+    }
+}
+
+pub struct BufferIter<'a> {
+    elems: &'a Vec<BufferElementEnum>,
+    index: usize,
+}
+
+impl<'a> Iterator for BufferIter<'a> {
+    type Item = &'a BufferElementEnum;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index < self.elems.len() {
+            let elem = &self.elems[self.index];
+            self.index += 1;
+            Some(elem)
+        } else {
+            None
+        }
     }
 }
 

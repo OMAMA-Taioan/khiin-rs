@@ -50,8 +50,8 @@ impl BufferElement for StringElem {
         caret
     }
 
-    fn composed_text(&self) -> &str {
-        &self.value
+    fn composed_text(&self) -> String {
+        self.value.clone()
     }
 
     fn caret_from(&self, raw_caret: usize) -> usize {

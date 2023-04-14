@@ -1,12 +1,12 @@
 use enum_dispatch::enum_dispatch;
 
 use super::StringElem;
-use super::TaiText;
+use super::KhiinElem;
 
 #[enum_dispatch(BufferElement)]
 pub enum BufferElementEnum {
     StringElem,
-    TaiText,
+    KhiinElem,
 }
 
 #[enum_dispatch]
@@ -19,7 +19,7 @@ pub trait BufferElement {
 
     fn raw_caret_from(&self, caret: usize) -> usize;
 
-    fn composed_text(&self) -> &str;
+    fn composed_text(&self) -> String;
 
     fn composed_char_count(&self) -> usize;
 

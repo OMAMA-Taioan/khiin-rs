@@ -116,9 +116,20 @@ impl Engine {
             SpecialKey::SK_DEL => {},
         };
 
-        let mut command = Command::default();
-        get_mock_command(&mut command);
-        let response = command.response.clone().unwrap();
+        let mut response = Response::default();
+        response.preedit = Some(self.buffer_mgr.build_preedit()).into();
+        response.edit_state = self.buffer_mgr.edit_state().into();
+
+        // TODO: replace mock with actual candidates
+        let mut cand = Candidate::new();
+        cand.id = 1;
+        cand.value = "起引".to_owned();
+        cand.key = "khiin".to_owned();
+        let mut cl = CandidateList::new();
+        cl.candidates = Vec::new();
+        cl.candidates.push(cand);
+        response.candidate_list = Some(cl).into();
+
         Ok(response)
     }
 
@@ -189,34 +200,6 @@ fn ascii_char_from_i32(ch: i32) -> Option<char> {
     None
 }
 
-fn get_mock_command(cmd: &mut Command) {
-    let mut cand = Candidate::new();
-    cand.id = 1;
-    cand.value = "起引".to_owned();
-    cand.key = "khiin".to_owned();
-
-    let mut cl = CandidateList::new();
-    cl.candidates = Vec::new();
-    cl.candidates.push(cand);
-
-    let mut seg = Segment::new();
-    seg.value = "khiin".to_owned();
-    seg.status = SegmentStatus::SS_COMPOSING.into();
-
-    let mut pe = Preedit::new();
-    pe.caret = 0;
-    pe.focused_caret = 0;
-    pe.segments = Vec::new();
-    pe.segments.push(seg);
-
-    let mut res = Response::new();
-    res.edit_state = EditState::ES_COMPOSING.into();
-    res.preedit = Some(pe).into();
-    res.candidate_list = Some(cl).into();
-
-    cmd.response = Some(res).into();
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -224,9 +207,22 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let path = debug_db_path();
-        let filename = path.as_os_str().to_str().unwrap();
-        let engine = Engine::new(filename);
+        let engine = get_engine();
         assert!(engine.is_some());
+    }
+
+    #[test]
+    fn it_handles_send_key_commands() -> Result<()> {
+        let mut engine = get_engine().unwrap();
+        let req = mock_send_key_request('a');
+        let res = engine.on_send_key(req)?;
+        let s = &res.preedit.segments;
+        assert_eq!(s.len(), 1);
+        assert_eq!(
+            s[0].status.enum_value_or_default(),
+            SegmentStatus::SS_COMPOSING
+        );
+        assert_eq!(s[0].value, "a".to_string());
+        Ok(())
     }
 }

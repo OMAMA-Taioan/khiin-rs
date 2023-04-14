@@ -1,7 +1,7 @@
 use anyhow::Result;
 
 use crate::buffer::Buffer;
-use crate::buffer::TaiText;
+use crate::buffer::KhiinElem;
 use crate::config::Config;
 use crate::data::Database;
 use crate::data::Dictionary;
@@ -9,14 +9,15 @@ use crate::input::parser::SectionType;
 
 use super::parse_input;
 
-pub fn convert_all(
+pub(crate) fn convert_all(
     db: &Database,
     dict: &Dictionary,
     cfg: &Config,
     raw_buffer: &str,
-) -> Result<()> {
+) -> Result<(Buffer, Vec<Buffer>)> {
     let sections = parse_input(dict, raw_buffer);
-    let mut buf = Buffer::new();
+    let mut composition = Buffer::new();
+    let mut candidates = Vec::new();
 
     for section in sections {
         match section.ty {
@@ -30,13 +31,15 @@ pub fn convert_all(
                 for word in words {
                     let conversions =
                         db.find_conversions(cfg.input_type(), word.as_str())?;
-                    let tai_text =
-                        TaiText::from_conversion(raw_buffer, &conversions[0])?;
-                    buf.push(tai_text.into());
+                    let tai_text = KhiinElem::from_conversion(
+                        raw_buffer,
+                        &conversions[0],
+                    )?;
+                    composition.push(tai_text.into());
                 }
             },
         }
     }
 
-    Ok(())
+    Ok((composition, candidates))
 }

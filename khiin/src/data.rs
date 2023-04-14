@@ -1,10 +1,10 @@
-pub mod database;
-pub mod dictionary;
-pub mod models;
-pub mod segmenter;
-pub mod trie;
+pub(crate) mod database;
+pub(crate) mod dictionary;
+pub(crate) mod models;
+pub(crate) mod segmenter;
+pub(crate) mod trie;
 
-pub use database::Database;
-pub use dictionary::Dictionary;
-pub use segmenter::Segmenter;
-pub use trie::Trie;
+pub(crate) use database::Database;
+pub(crate) use dictionary::Dictionary;
+pub(crate) use segmenter::Segmenter;
+pub(crate) use trie::Trie;

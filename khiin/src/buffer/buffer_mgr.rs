@@ -1,5 +1,9 @@
 use anyhow::anyhow;
 use anyhow::Result;
+use khiin_protos::command::EditState;
+use khiin_protos::command::Preedit;
+use khiin_protos::command::SegmentStatus;
+use khiin_protos::command::preedit::Segment;
 
 use crate::config::Config;
 use crate::config::InputMode;
@@ -10,20 +14,40 @@ use crate::input::parse_input;
 use crate::Engine;
 
 use super::Buffer;
+use super::BufferElement;
 
 pub struct BufferMgr {
-    buffer: Buffer,
-    mock_buffer: String,
+    composition: Buffer,
+    candidates: Vec<Buffer>,
+    edit_state: EditState,
     char_caret: usize,
 }
 
 impl BufferMgr {
     pub fn new() -> Self {
         Self {
-            buffer: Buffer::default(),
-            mock_buffer: String::new(),
+            composition: Buffer::default(),
+            candidates: Vec::new(),
+            edit_state: EditState::ES_EMPTY,
             char_caret: 0,
         }
+    }
+
+    pub fn build_preedit(&self) -> Preedit {
+        let mut preedit = Preedit::default();
+
+        for elem in self.composition.iter() {
+            let mut segment = Segment::default();
+            segment.value = elem.composed_text().into();
+            segment.status = SegmentStatus::SS_COMPOSING.into();
+            preedit.segments.push(segment);
+        }
+
+        preedit
+    }
+
+    pub fn edit_state(&self) -> EditState {
+        self.edit_state
     }
 
     pub fn insert(
@@ -33,6 +57,8 @@ impl BufferMgr {
         conf: &Config,
         ch: char,
     ) -> Result<()> {
+        self.edit_state = EditState::ES_COMPOSING;
+
         match conf.input_mode() {
             InputMode::Continuous => self.insert_continuous(db, dict, conf, ch),
             InputMode::SingleWord => self.insert_single_word(ch),
@@ -47,9 +73,12 @@ impl BufferMgr {
         conf: &Config,
         ch: char,
     ) -> Result<()> {
-        self.mock_buffer.push(ch);
-        assert!(self.mock_buffer.is_ascii());
-        convert_all(db, dict, conf, &self.mock_buffer)?;
+        let mut composition = self.composition.composition();
+        composition.push(ch);
+        assert!(composition.is_ascii());
+        let (comp, cand) = convert_all(db, dict, conf, &composition)?;
+        self.composition = comp;
+        self.candidates = cand;
         Ok(())
     }
 

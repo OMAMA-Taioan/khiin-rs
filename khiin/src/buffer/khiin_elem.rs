@@ -9,8 +9,8 @@ use super::BufferElement;
 
 const SYL_SEPS: [char; 2] = ['-', ' '];
 
-pub struct TaiText {
-    elems: Vec<Syllable>,
+pub struct KhiinElem {
+    value: Vec<Syllable>,
 }
 
 fn get_first_syllable(target: &str) -> &str {
@@ -22,7 +22,7 @@ fn get_first_syllable(target: &str) -> &str {
     target
 }
 
-impl TaiText {
+impl KhiinElem {
     pub fn from_conversion(raw_input: &str, conv: &Conversion) -> Result<Self> {
         let mut elems = Vec::new();
         let target = conv.input.as_str();
@@ -40,18 +40,18 @@ impl TaiText {
         if elems.is_empty() {
             Err(anyhow!("Unable make an element from conversion"))
         } else {
-            Ok(Self { elems })
+            Ok(Self { value: elems })
         }
     }
 }
 
-impl BufferElement for TaiText {
+impl BufferElement for KhiinElem {
     fn raw_text(&self) -> &str {
         todo!()
     }
 
     fn raw_len(&self) -> usize {
-        self.elems.iter().map(|s| s.raw_input.len()).sum()
+        self.value.iter().map(|s| s.raw_input.len()).sum()
     }
 
     fn raw_char_count(&self) -> usize {
@@ -62,8 +62,8 @@ impl BufferElement for TaiText {
         todo!()
     }
 
-    fn composed_text(&self) -> &str {
-        todo!()
+    fn composed_text(&self) -> String {
+        self.value.iter().map(|s| s.compose()).collect()
     }
 
     fn composed_char_count(&self) -> usize {
@@ -124,10 +124,10 @@ mod test {
     #[test]
     fn it_builds_from_conversion_alignment() {
         let c = mock_conversion("hó bô");
-        let tt = TaiText::from_conversion("hobo", &c).unwrap();
-        assert_eq!(tt.elems.len(), 2);
+        let tt = KhiinElem::from_conversion("hobo", &c).unwrap();
+        assert_eq!(tt.value.len(), 2);
         assert_eq!(
-            tt.elems[0],
+            tt.value[0],
             Syllable {
                 raw_input: String::from("ho"),
                 raw_body: String::from("ho"),
@@ -136,7 +136,7 @@ mod test {
             }
         );
         assert_eq!(
-            tt.elems[1],
+            tt.value[1],
             Syllable {
                 raw_input: String::from("bo"),
                 raw_body: String::from("bo"),
