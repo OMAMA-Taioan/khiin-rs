@@ -1,6 +1,6 @@
-pub mod conversion;
 pub mod database;
 pub mod dictionary;
+pub mod models;
 pub mod segmenter;
 pub mod trie;
 

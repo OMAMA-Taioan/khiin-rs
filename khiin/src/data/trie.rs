@@ -4,14 +4,14 @@ use anyhow::Result;
 use qp_trie::wrapper::BString;
 use qp_trie::Trie as QpTrie;
 
-use super::database::Input;
+use super::models::KeySequence;
 
 pub struct Trie {
     qp_trie: QpTrie<BString, u32>,
 }
 
 impl Trie {
-    pub fn new(inputs: &Vec<Input>) -> Result<Self> {
+    pub fn new(inputs: &Vec<KeySequence>) -> Result<Self> {
         let mut qp_trie = QpTrie::new();
 
         for word in inputs.iter() {

@@ -7,23 +7,8 @@ use rusqlite::OpenFlags;
 
 use crate::config::InputType;
 
-use super::conversion::Conversion;
-
-pub struct Input {
-    pub id: u32,
-    pub key_sequence: String,
-    pub p: f64,
-}
-
-impl Input {
-    pub fn new(id: u32, key_sequence: String, p: f64) -> Self {
-        Self {
-            id,
-            key_sequence,
-            p,
-        }
-    }
-}
+use super::models::Conversion;
+use super::models::KeySequence;
 
 pub struct Database {
     conn: Connection,
@@ -62,7 +47,7 @@ impl Database {
     pub fn all_words_by_freq(
         &self,
         input_type: InputType,
-    ) -> Result<Vec<Input>> {
+    ) -> Result<Vec<KeySequence>> {
         let input_col = input_column(input_type);
         let sql = format!(
             r#"
@@ -81,11 +66,11 @@ impl Database {
         let mut stmt = self.conn.prepare(&sql)?;
         let mut rows = stmt.query([])?;
         while let Some(row) = rows.next()? {
-            let input = Input::new(
-                row.get("input_id")?,
-                row.get(input_col)?,
-                row.get("p")?,
-            );
+            let input = KeySequence {
+                id: row.get("input_id")?,
+                key_sequence: row.get(input_col)?,
+                p: row.get("p")?,
+            };
             result.push(input);
         }
         Ok(result)

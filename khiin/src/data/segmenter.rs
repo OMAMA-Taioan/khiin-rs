@@ -4,7 +4,7 @@ use anyhow::anyhow;
 use anyhow::Result;
 use bit_vec::BitVec;
 
-use super::database::Input;
+use super::models::KeySequence;
 use super::trie::Trie;
 
 static BIG: f64 = 1e10;
@@ -15,7 +15,7 @@ pub struct Segmenter {
 }
 
 impl Segmenter {
-    pub fn new(words_by_frequency: Vec<Input>) -> Result<Self> {
+    pub fn new(words_by_frequency: Vec<KeySequence>) -> Result<Self> {
         let mut max_word_length = 0;
         let mut cost_map = HashMap::new();
 
@@ -93,7 +93,7 @@ where
 {
     let size = query.chars().count();
 
-    let mut splits_at = BitVec::from_elem(size + 1, false); // vec![false; size + 1];
+    let mut splits_at = BitVec::from_elem(size + 1, false);
     let mut split_indices = vec![-1];
 
     for i in 0..size {
@@ -103,7 +103,6 @@ where
             let substr = &query[start..end];
 
             // println!("Checking substr: {}", substr);
-
             if is_word(&substr) {
                 // println!("Ok!");
                 splits_at.set(i, true);
@@ -249,7 +248,7 @@ mod tests {
             "ng",
         ]
         .iter()
-        .map(|s| Input {
+        .map(|s| KeySequence {
             id: 0,
             key_sequence: s.to_string(),
             p: 0.01,

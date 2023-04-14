@@ -1,9 +1,35 @@
-use crate::input::Syllable;
+use crate::data::models::Conversion;
+use crate::input::{Syllable, Tone};
 
 use super::BufferElement;
 
+const SYL_SEPS: [char; 2] = ['-', ' '];
+
 pub struct TaiText {
     elems: Vec<Syllable>,
+}
+
+fn get_first_syllable(target: &str) -> &str {
+    for (i, c) in target.char_indices() {
+        if SYL_SEPS.contains(&c) {
+            return &target[..i];
+        }
+    }
+    target
+}
+
+impl TaiText {
+    pub fn from_conversion(raw_input: &str, conv: Conversion) -> Self {
+        // let syls = Vec::new();
+        let target = conv.input.as_str();
+
+        for target_syl in target.split(&SYL_SEPS) {
+            let s = Syllable::from_composed(target_syl);
+            
+        }
+
+        todo!()
+    }
 }
 
 impl BufferElement for TaiText {

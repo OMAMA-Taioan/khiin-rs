@@ -1,5 +1,5 @@
 #[repr(i32)]
-#[derive(Default, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Tone {
     #[default]
     None = 0,

@@ -7,3 +7,9 @@ pub struct Conversion {
     pub category: Option<i32>,
     pub annotation: Option<String>,
 }
+
+pub struct KeySequence {
+    pub id: u32,
+    pub key_sequence: String,
+    pub p: f64,
+}

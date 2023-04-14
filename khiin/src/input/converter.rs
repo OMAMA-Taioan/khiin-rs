@@ -25,8 +25,11 @@ pub fn convert_all(
             SectionType::Splittable => {
                 let words = dict.segment(section.text)?;
                 for word in words {
-                    let candidates =
+                    let conversions =
                         db.find_conversions(cfg.input_type(), raw_buffer)?;
+                    
+                    
+
                 }
             },
         }
