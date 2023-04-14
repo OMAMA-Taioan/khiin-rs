@@ -43,6 +43,7 @@ impl BufferMgr {
             preedit.segments.push(segment);
         }
 
+        preedit.caret = self.char_caret as i32;
         preedit
     }
 
@@ -75,6 +76,7 @@ impl BufferMgr {
     ) -> Result<()> {
         let mut composition = self.composition.composition();
         composition.push(ch);
+        self.char_caret += 1;
         assert!(composition.is_ascii());
         let (comp, cand) = convert_all(db, dict, conf, &composition)?;
         self.composition = comp;
