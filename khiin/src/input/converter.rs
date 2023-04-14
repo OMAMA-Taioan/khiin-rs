@@ -1,5 +1,7 @@
 use anyhow::Result;
 
+use crate::buffer::Buffer;
+use crate::buffer::TaiText;
 use crate::config::Config;
 use crate::data::Database;
 use crate::data::Dictionary;
@@ -14,6 +16,7 @@ pub fn convert_all(
     raw_buffer: &str,
 ) -> Result<()> {
     let sections = parse_input(dict, raw_buffer);
+    let mut buf = Buffer::new();
 
     for section in sections {
         match section.ty {
@@ -26,10 +29,10 @@ pub fn convert_all(
                 let words = dict.segment(section.text)?;
                 for word in words {
                     let conversions =
-                        db.find_conversions(cfg.input_type(), raw_buffer)?;
-                    
-                    
-
+                        db.find_conversions(cfg.input_type(), word.as_str())?;
+                    let tai_text =
+                        TaiText::from_conversion(raw_buffer, &conversions[0])?;
+                    buf.push(tai_text.into());
                 }
             },
         }

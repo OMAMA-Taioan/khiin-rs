@@ -7,6 +7,14 @@ pub(crate) struct Buffer {
 }
 
 impl Buffer {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn push(&mut self, elem: BufferElementEnum) {
+        self.elems.push(elem)
+    }
+
     pub fn composition(&self) -> String {
         self.elems.iter().fold(String::default(), |mut acc, elem| {
             acc.push_str(elem.raw_text());

@@ -13,6 +13,8 @@ pub enum BufferElementEnum {
 pub trait BufferElement {
     fn raw_text(&self) -> &str;
 
+    fn raw_len(&self) -> usize;
+
     fn raw_char_count(&self) -> usize;
 
     fn raw_caret_from(&self, caret: usize) -> usize;

@@ -31,6 +31,20 @@ static CHAR_TONE_MAP: Lazy<HashMap<char, Tone>> = Lazy::new(|| {
     )
 });
 
+static DIGIT_TONE_MAP: Lazy<HashMap<char, Tone>> = Lazy::new(|| {
+    collection!(
+        '1' => Tone::T1,
+        '2' => Tone::T2,
+        '3' => Tone::T3,
+        '4' => Tone::T4,
+        '5' => Tone::T5,
+        '6' => Tone::T6,
+        '7' => Tone::T7,
+        '8' => Tone::T8,
+        '9' => Tone::T9,
+    )
+});
+
 static TONE_LETTER_PATTERNS: Lazy<Vec<(Regex, usize)>> = Lazy::new(|| {
     vec![
         (Regex::new("(?i)o[ae][ptkhmn]").unwrap(), 1),
@@ -52,6 +66,10 @@ static TELEX_TONE_CHARS: [char; 10] =
 
 pub fn tone_to_char(tone: &Tone) -> Option<char> {
     TONE_CHAR_MAP.get(tone).map(|&c| c)
+}
+
+pub fn key_to_tone(ch: char) -> Tone {
+    *DIGIT_TONE_MAP.get(&ch).unwrap_or(&Tone::None)
 }
 
 pub fn get_tone_position(syllable: &str) -> Option<usize> {

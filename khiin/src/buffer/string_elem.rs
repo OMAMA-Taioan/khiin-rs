@@ -87,6 +87,10 @@ impl BufferElement for StringElem {
         let end = self.value.char_indices().nth(idx + 1).unwrap().0;
         self.value.replace_range(start..end, "");
     }
+
+    fn raw_len(&self) -> usize {
+        self.len()
+    }
 }
 
 #[cfg(test)]
