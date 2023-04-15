@@ -11,7 +11,7 @@ pub enum BufferElementEnum {
 
 #[enum_dispatch]
 pub trait BufferElement {
-    fn raw_text(&self) -> &str;
+    fn raw_text(&self) -> String;
 
     fn raw_len(&self) -> usize;
 
@@ -25,7 +25,7 @@ pub trait BufferElement {
 
     fn caret_from(&self, raw_caret: usize) -> usize;
 
-    fn converted(&self) -> &str;
+    fn converted(&self) -> String;
 
     fn is_converted(&self) -> bool;
 

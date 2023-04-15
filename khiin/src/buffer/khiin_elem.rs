@@ -1,5 +1,5 @@
-use anyhow::Result;
 use anyhow::anyhow;
+use anyhow::Result;
 
 use crate::data::models::Conversion;
 use crate::input::Syllable;
@@ -11,6 +11,9 @@ const SYL_SEPS: [char; 2] = ['-', ' '];
 
 pub struct KhiinElem {
     value: Vec<Syllable>,
+    candidate: Option<Conversion>,
+    converted: bool,
+    selected: bool,
 }
 
 fn get_first_syllable(target: &str) -> &str {
@@ -40,14 +43,22 @@ impl KhiinElem {
         if elems.is_empty() {
             Err(anyhow!("Unable make an element from conversion"))
         } else {
-            Ok(Self { value: elems })
+            Ok(Self {
+                value: elems,
+                candidate: Some(conv.clone()),
+                converted: false,
+                selected: false,
+            })
         }
     }
 }
 
 impl BufferElement for KhiinElem {
-    fn raw_text(&self) -> &str {
-        todo!()
+    fn raw_text(&self) -> String {
+        self.value.iter().fold(String::default(), |mut acc, elem| {
+            acc.push_str(elem.raw_input.as_str());
+            acc
+        })
     }
 
     fn raw_len(&self) -> usize {
@@ -74,7 +85,7 @@ impl BufferElement for KhiinElem {
         todo!()
     }
 
-    fn converted(&self) -> &str {
+    fn converted(&self) -> String {
         todo!()
     }
 
@@ -105,9 +116,9 @@ impl BufferElement for KhiinElem {
 
 #[cfg(test)]
 mod test {
+    use super::*;
     use crate::data::models::Conversion;
     use crate::input::*;
-    use super::*;
 
     fn mock_conversion(input: &str) -> Conversion {
         Conversion {

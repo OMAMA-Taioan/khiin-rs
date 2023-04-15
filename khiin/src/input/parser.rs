@@ -12,7 +12,7 @@ pub enum SectionType {
 
 pub struct Section<'a> {
     pub ty: SectionType,
-    pub text: &'a str,
+    pub raw_buffer: &'a str,
 }
 
 struct Offset {
@@ -28,7 +28,7 @@ impl Offset {
 
     pub fn as_slice_of<'a>(&self, raw_buffer: &'a str) -> Section<'a> {
         let text = &raw_buffer[self.start..self.end];
-        Section { ty: self.ty, text }
+        Section { ty: self.ty, raw_buffer: text }
     }
 }
 
@@ -102,7 +102,7 @@ mod tests {
         let result = parse_input(&dict, "ho2");
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].ty, SectionType::Splittable);
-        assert_eq!(result[0].text, "ho2");
+        assert_eq!(result[0].raw_buffer, "ho2");
     }
 
     #[test]
@@ -111,12 +111,12 @@ mod tests {
         let result = parse_input(&dict, "zzz");
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].ty, SectionType::Unknown);
-        assert_eq!(result[0].text, "zzz");
+        assert_eq!(result[0].raw_buffer, "zzz");
 
         let result = parse_input(&dict, "平安");
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].ty, SectionType::Unknown);
-        assert_eq!(result[0].text, "平安");
+        assert_eq!(result[0].raw_buffer, "平安");
     }
 
     #[test]
@@ -125,8 +125,8 @@ mod tests {
         let result = parse_input(&dict, "zzzho2bo5");
         assert_eq!(result.len(), 2);
         assert_eq!(result[0].ty, SectionType::Unknown);
-        assert_eq!(result[0].text, "zzz");
+        assert_eq!(result[0].raw_buffer, "zzz");
         assert_eq!(result[1].ty, SectionType::Splittable);
-        assert_eq!(result[1].text, "ho2bo5");
+        assert_eq!(result[1].raw_buffer, "ho2bo5");
     }
 }

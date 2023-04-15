@@ -12,18 +12,40 @@ impl Buffer {
     }
 
     pub fn iter(&self) -> BufferIter<'_> {
-        BufferIter { elems: &self.elems, index: 0 }
+        BufferIter {
+            elems: &self.elems,
+            index: 0,
+        }
     }
 
     pub fn push(&mut self, elem: BufferElementEnum) {
         self.elems.push(elem)
     }
 
-    pub fn composition(&self) -> String {
+    pub fn raw_text(&self) -> String {
         self.elems.iter().fold(String::default(), |mut acc, elem| {
-            acc.push_str(elem.raw_text());
+            acc.push_str(elem.raw_text().as_str());
             acc
         })
+    }
+
+    pub fn raw_char_count(&self) -> usize {
+        self.elems
+            .iter()
+            .fold(0, |acc, elem| acc + elem.raw_char_count())
+    }
+
+    pub fn composed_text(&self) -> String {
+        self.elems.iter().fold(String::default(), |mut acc, elem| {
+            acc.push_str(&elem.composed_text());
+            acc
+        })
+    }
+
+    pub fn composed_char_count(&self) -> usize {
+        self.elems
+            .iter()
+            .fold(0, |acc, elem| acc + elem.composed_char_count())
     }
 }
 
@@ -62,6 +84,6 @@ mod tests {
         let mut buf = Buffer::default();
         let el = StringElem::from("ho");
         buf.elems.push(el.into());
-        assert_eq!(buf.composition().as_str(), "ho");
+        assert_eq!(buf.raw_text().as_str(), "ho");
     }
 }

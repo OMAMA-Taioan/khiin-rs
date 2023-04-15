@@ -74,7 +74,7 @@ impl BufferMgr {
         conf: &Config,
         ch: char,
     ) -> Result<()> {
-        let mut composition = self.composition.composition();
+        let mut composition = self.composition.raw_text();
         composition.push(ch);
         self.char_caret += 1;
         assert!(composition.is_ascii());
@@ -95,11 +95,25 @@ impl BufferMgr {
 
 #[cfg(test)]
 mod tests {
+    use crate::tests::*;
     use super::*;
+
+    fn setup() -> (Database, Dictionary, Config, BufferMgr) {
+        (get_db(), get_dict(), get_conf(), BufferMgr::new())
+    }
 
     #[test]
     fn it_works() {
         let buf = BufferMgr::new();
         assert_eq!(buf.char_caret, 0);
+    }
+
+    #[test]
+    fn it_inserts_chars_continuous_mode() -> Result<()> {
+        let (db, dict, conf, mut buf) = setup();
+        buf.insert_continuous(&db, &dict, &conf, 'a')?;
+        assert_eq!(buf.composition.raw_text().as_str(), "a");
+        assert_eq!(buf.composition.composed_text().as_str(), "a");
+        Ok(())
     }
 }

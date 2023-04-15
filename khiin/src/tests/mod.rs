@@ -4,6 +4,7 @@ pub(crate) mod mock_protos;
 
 use std::path::PathBuf;
 
+use crate::config::Config;
 use crate::config::InputType;
 use crate::data::Database;
 use crate::data::Dictionary;
@@ -36,4 +37,8 @@ pub fn get_db() -> Database {
 pub fn get_dict() -> Dictionary {
     let db = get_db();
     Dictionary::new(&db, InputType::Numeric).expect("Could not load dictionary")
+}
+
+pub fn get_conf() -> Config {
+    Config::new()
 }

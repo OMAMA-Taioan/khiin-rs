@@ -42,8 +42,8 @@ impl BufferElement for StringElem {
         self.chars().count()
     }
 
-    fn raw_text(&self) -> &str {
-        &self.value
+    fn raw_text(&self) -> String {
+        self.value.clone()
     }
 
     fn raw_caret_from(&self, caret: usize) -> usize {
@@ -58,8 +58,8 @@ impl BufferElement for StringElem {
         raw_caret
     }
 
-    fn converted(&self) -> &str {
-        &self.value
+    fn converted(&self) -> String {
+        self.value.clone()
     }
 
     fn is_converted(&self) -> bool {

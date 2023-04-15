@@ -1,3 +1,4 @@
+#[derive(Debug, Clone)]
 pub struct Conversion {
     pub key_sequence: String,
     pub input: String,
@@ -8,6 +9,7 @@ pub struct Conversion {
     pub annotation: Option<String>,
 }
 
+#[derive(Debug, Clone)]
 pub struct KeySequence {
     pub id: u32,
     pub key_sequence: String,

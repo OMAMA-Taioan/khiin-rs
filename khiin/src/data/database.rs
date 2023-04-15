@@ -1,9 +1,12 @@
 use std::fmt::format;
 use std::path::PathBuf;
 
+use anyhow::Error;
 use anyhow::Result;
+use anyhow::anyhow;
 use rusqlite::Connection;
 use rusqlite::OpenFlags;
+use rusqlite::Row;
 
 use crate::config::InputType;
 
@@ -80,33 +83,62 @@ impl Database {
         &self,
         input_type: InputType,
         query: &str,
+        limit: Option<usize>,
     ) -> Result<Vec<Conversion>> {
         let input_col = input_column(input_type);
-        let sql = format!(
+        let mut sql = format!(
             r#"
-            select *
-            from "{table}"
-            where "{column}" = :query"#,
+            select
+                c.*
+            from
+                {table} c
+                left join bigram_freq b on
+                    b.lgram = ? and c.output = b.rgram
+                left join unigram_freq u on
+                    c.output = u.gram
+            where
+                c."{column}" = :query
+            order by
+                b.n desc,
+                u.n desc,
+                c.weight desc
+            "#,
             table = V_LOOKUP,
             column = input_col,
         );
 
-        let mut result = Vec::new();
-        let mut stmt = self.conn.prepare(&sql)?;
-        let mut rows = stmt.query(&[(":query", query)])?;
-        while let Some(row) = rows.next()? {
-            result.push(Conversion {
-                key_sequence: row.get(input_col)?,
-                input: row.get("input")?,
-                input_id: row.get("input_id")?,
-                output: row.get("output")?,
-                weight: row.get("weight")?,
-                category: row.get("category")?,
-                annotation: row.get("annotation")?,
-            });
+        match limit {
+            Some(n) => sql += &format!(" limit {}", n),
+            None => {},
         }
+
+        let mut stmt = self.conn.prepare(&sql)?;
+        let rows = stmt.query_map(&[(":query", query)], |row| {
+            get_conversion_row(row, input_col)
+        })?;
+
+        let mut result = Vec::new();
+        for row in rows {
+            result.push(row?);
+        }
+
         Ok(result)
     }
+}
+
+fn get_conversion_row(
+    row: &Row,
+    input_col: &str,
+) -> rusqlite::Result<Conversion> {
+    Ok(Conversion {
+        key_sequence: row.get(input_col)?,
+        input: row.get("input")?,
+        input_id: row.get("input_id")?,
+        output: row.get("output")?,
+        weight: row.get("weight")?,
+        category: row.get("category")?,
+        annotation: row.get("annotation")?,
+    })
 }
 
 #[cfg(test)]
@@ -145,7 +177,7 @@ mod tests {
     #[test]
     fn it_finds_conversions() {
         let db = get_db();
-        let res = db.find_conversions(InputType::Numeric, "ho2").unwrap();
+        let res = db.find_conversions(InputType::Numeric, "ho2", None).unwrap();
         assert!(res.len() >= 2);
         assert!(res.iter().any(|row| row.output == "好"));
         assert!(res.iter().any(|row| row.output == "hó"));
