@@ -119,17 +119,7 @@ impl Engine {
         let mut response = Response::default();
         response.preedit = Some(self.buffer_mgr.build_preedit()).into();
         response.edit_state = self.buffer_mgr.edit_state().into();
-
-        // TODO: replace mock with actual candidates
-        let mut cand = Candidate::new();
-        cand.id = 1;
-        cand.value = "起引".to_owned();
-        cand.key = "khiin".to_owned();
-        let mut cl = CandidateList::new();
-        cl.candidates = Vec::new();
-        cl.candidates.push(cand);
-        response.candidate_list = Some(cl).into();
-
+        response.candidate_list = Some(self.buffer_mgr.get_candidates()).into();
         Ok(response)
     }
 

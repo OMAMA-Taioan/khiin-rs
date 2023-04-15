@@ -14,7 +14,7 @@ use super::lomaji::tone_char_to_index;
 use super::lomaji::tone_to_char;
 use super::Tone;
 
-#[derive(Default, Debug, PartialEq)]
+#[derive(Default, Debug, PartialEq, Clone)]
 pub struct Syllable {
     pub raw_input: String,
     pub raw_body: String,

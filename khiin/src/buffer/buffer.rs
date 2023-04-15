@@ -1,7 +1,7 @@
 use super::buffer_element::BufferElementEnum;
 use super::BufferElement;
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct Buffer {
     elems: Vec<BufferElementEnum>,
 }
@@ -35,9 +35,14 @@ impl Buffer {
             .fold(0, |acc, elem| acc + elem.raw_char_count())
     }
 
-    pub fn composed_text(&self) -> String {
+    pub fn display_text(&self) -> String {
         self.elems.iter().fold(String::default(), |mut acc, elem| {
-            acc.push_str(&elem.composed_text());
+            if elem.is_converted() {
+                acc.push_str(&elem.converted_text());
+            } else {
+                acc.push_str(&elem.composed_text());
+            }
+
             acc
         })
     }
@@ -46,6 +51,12 @@ impl Buffer {
         self.elems
             .iter()
             .fold(0, |acc, elem| acc + elem.composed_char_count())
+    }
+
+    pub fn set_converted(&mut self, converted: bool) {
+        for elem in self.elems.iter_mut() {
+            elem.set_converted(converted);
+        }
     }
 }
 

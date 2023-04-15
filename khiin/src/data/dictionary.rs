@@ -41,6 +41,10 @@ impl Dictionary {
     }
 
     pub fn can_segment_max(&self, query: &str) -> usize {
+        if !query.is_ascii() {
+            return 0;
+        }
+        
         let is_word = |s: &str| *&self.word_trie.contains(&s);
         Segmenter::can_segment_max(is_word, query)
     }

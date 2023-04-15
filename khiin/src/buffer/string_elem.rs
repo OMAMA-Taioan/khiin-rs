@@ -1,4 +1,7 @@
-use std::ops::{Deref, DerefMut};
+use std::ops::Deref;
+use std::ops::DerefMut;
+
+use crate::data::models::Conversion;
 
 use super::BufferElement;
 
@@ -58,7 +61,7 @@ impl BufferElement for StringElem {
         raw_caret
     }
 
-    fn converted(&self) -> String {
+    fn converted_text(&self) -> String {
         self.value.clone()
     }
 
@@ -74,7 +77,7 @@ impl BufferElement for StringElem {
         // noop
     }
 
-    fn candidate(&self) -> Option<&str> {
+    fn candidate(&self) -> Option<Conversion> {
         None
     }
 
@@ -90,6 +93,10 @@ impl BufferElement for StringElem {
 
     fn raw_len(&self) -> usize {
         self.len()
+    }
+
+    fn set_converted(&mut self, converted: bool) {
+        self.converted = converted;
     }
 }
 

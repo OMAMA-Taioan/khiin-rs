@@ -9,7 +9,7 @@ use super::BufferElement;
 
 const SYL_SEPS: [char; 2] = ['-', ' '];
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct KhiinElem {
     value: Vec<Syllable>,
     candidate: Option<Conversion>,
@@ -86,12 +86,20 @@ impl BufferElement for KhiinElem {
         todo!()
     }
 
-    fn converted(&self) -> String {
-        todo!()
+    fn converted_text(&self) -> String {
+        if let Some(conv) = &self.candidate {
+            conv.output.clone()
+        } else {
+            self.composed_text()
+        }
+    }
+
+    fn set_converted(&mut self, converted: bool) {
+        self.converted = converted;
     }
 
     fn is_converted(&self) -> bool {
-        todo!()
+        self.converted
     }
 
     fn is_selected(&self) -> bool {
@@ -102,7 +110,7 @@ impl BufferElement for KhiinElem {
         todo!()
     }
 
-    fn candidate(&self) -> Option<&str> {
+    fn candidate(&self) -> Option<Conversion> {
         todo!()
     }
 

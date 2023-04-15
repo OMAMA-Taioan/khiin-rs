@@ -10,7 +10,7 @@ use crate::input::parser::SectionType;
 
 use super::parse_input;
 
-pub(crate) fn find_conversion_candidates(
+pub(crate) fn get_candidates(
     db: &Database,
     dict: &Dictionary,
     cfg: &Config,
@@ -28,15 +28,15 @@ pub(crate) fn convert_all(
     let sections = parse_input(dict, raw_buffer);
     let mut composition = Buffer::new();
 
-    for section in sections {
-        match section.ty {
-            SectionType::Unknown => {
-                composition.push(StringElem::from(section.raw_buffer).into());
+    for (ty, section) in sections {
+        match ty {
+            SectionType::Plaintext => {
+                composition.push(StringElem::from(section).into());
             },
             SectionType::Hyphens => todo!(),
             SectionType::Punct => todo!(),
             SectionType::Splittable => {
-                let words = dict.segment(section.raw_buffer)?;
+                let words = dict.segment(section)?;
                 for word in words {
                     let conversions = db.find_conversions(
                         cfg.input_type(),

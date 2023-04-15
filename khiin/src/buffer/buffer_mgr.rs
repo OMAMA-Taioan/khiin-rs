@@ -1,21 +1,21 @@
 use anyhow::anyhow;
 use anyhow::Result;
+
+use khiin_protos::command::Candidate;
+use khiin_protos::command::CandidateList;
 use khiin_protos::command::preedit::Segment;
 use khiin_protos::command::EditState;
 use khiin_protos::command::Preedit;
 use khiin_protos::command::SegmentStatus;
 
+use crate::buffer::Buffer;
+use crate::buffer::BufferElement;
 use crate::config::Config;
 use crate::config::InputMode;
 use crate::data::Database;
 use crate::data::Dictionary;
 use crate::input::converter::convert_all;
-use crate::input::converter::find_conversion_candidates;
-use crate::input::parse_input;
-use crate::Engine;
-
-use super::Buffer;
-use super::BufferElement;
+use crate::input::converter::get_candidates;
 
 pub struct BufferMgr {
     composition: Buffer,
@@ -46,6 +46,23 @@ impl BufferMgr {
 
         preedit.caret = self.char_caret as i32;
         preedit
+    }
+
+    pub fn get_candidates(&self) -> CandidateList {
+        let mut list = CandidateList::default();
+
+        if self.edit_state == EditState::ES_CONVERTED {
+            return list;
+        }
+
+        for (i, c) in self.candidates.iter().enumerate() {
+            let mut cand = Candidate::default();
+            cand.value = c.display_text();
+            cand.id = (i + 1) as i32;
+            list.candidates.push(cand);
+        }
+
+        list
     }
 
     pub fn edit_state(&self) -> EditState {
@@ -80,8 +97,10 @@ impl BufferMgr {
         self.char_caret += 1;
         assert!(composition.is_ascii());
         self.composition = convert_all(db, dict, conf, &composition)?;
-        self.candidates =
-            find_conversion_candidates(db, dict, conf, &composition)?;
+        self.candidates = get_candidates(db, dict, conf, &composition)?;
+        let mut first = self.composition.clone();
+        first.set_converted(true);
+        self.candidates.insert(0, first);
         Ok(())
     }
 
@@ -97,6 +116,7 @@ impl BufferMgr {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::input::unicode::*;
     use crate::tests::*;
 
     fn setup() -> (Database, Dictionary, Config, BufferMgr) {
@@ -114,7 +134,9 @@ mod tests {
         let (db, dict, conf, mut buf) = setup();
         buf.insert_continuous(&db, &dict, &conf, 'a')?;
         assert_eq!(buf.composition.raw_text().as_str(), "a");
-        assert_eq!(buf.composition.composed_text().as_str(), "a");
+        assert_eq!(buf.composition.display_text().as_str(), "a");
+        assert!(buf.candidates.len() > 0);
+        assert!(contains_hanji(&buf.candidates[0].display_text()));
         Ok(())
     }
 }
