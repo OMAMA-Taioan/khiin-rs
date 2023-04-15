@@ -1,10 +1,11 @@
-use khiin_protos::command::{Preedit, SegmentStatus};
+use khiin_protos::command::Preedit;
+use khiin_protos::command::SegmentStatus;
 
 use crate::utils::WinString;
 
 pub struct SegmentData {
-    pub start: u32,
-    pub stop: u32,
+    pub start: i32,
+    pub stop: i32,
     pub status: SegmentStatus,
 }
 
@@ -17,20 +18,20 @@ pub struct WPreedit {
 impl WPreedit {
     pub fn new(preedit: &Preedit) -> Self {
         let caret = preedit.caret;
-        let mut segments: Vec<SegmentData> = Vec::new();
-        let mut display: Vec<u16> = Vec::new();
 
-        for (idx, segment) in preedit.segments.iter().enumerate() {
-            let wstring = segment.value.to_utf16();
-            let size = wstring.len() as u32;
-            display.extend(wstring);
-
-            segments.push(SegmentData {
-                start: idx as u32,
-                stop: idx as u32 + size,
-                status: segment.status.enum_value_or_default(),
-            })
-        }
+        let (segments, display): (Vec<SegmentData>, Vec<Vec<u16>>) =
+            preedit.segments.iter().enumerate().map(|(i, s)| {
+                let wstring: Vec<u16> = s.value.encode_utf16().collect();
+                let size = wstring.len() as i32;
+                let seg_data = SegmentData {
+                    start: i as i32,
+                    stop: i as i32 + size,
+                    status: s.status.enum_value_or_default(),
+                };
+                (seg_data, wstring)
+            }).unzip();
+        
+        let display: Vec<u16> = display.into_iter().flatten().collect();
 
         Self {
             caret,

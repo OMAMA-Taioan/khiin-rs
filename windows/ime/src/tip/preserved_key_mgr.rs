@@ -69,7 +69,7 @@ impl PreservedKeyMgr {
     fn preserve_key(&self, pk: PreservedKey) -> Result<()> {
         let service = self.tip.as_impl();
         let desc: &str = &pk.desc;
-        let pchdesc = desc.to_utf16();
+        let pchdesc = desc.to_utf16_nul();
         unsafe {
             self.keystroke_mgr()?.PreserveKey(
                 service.clientid()?,

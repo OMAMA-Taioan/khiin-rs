@@ -210,11 +210,13 @@ pub trait WindowHandler {
         }
     }
 
-    fn set_dpi(&self, dpi: u16) -> Result<()> {
+    fn set_dpi(&self, handle: HWND, dpi: u16) -> Result<()> {
         if let Ok(mut window) = self.window_data().try_borrow_mut() {
             unsafe {
                 window.target.SetDpi(dpi as f32, dpi as f32);
             }
+            window.dpi = dpi as u32;
+            window.dpi_parent = unsafe { GetDpiForWindow(GetParent(handle)) };
             window.scale =
                 window.dpi_parent as f32 / USER_DEFAULT_SCREEN_DPI as f32;
         }
@@ -227,7 +229,7 @@ pub trait WindowHandler {
         dpi: u16,
         new_size: Rect<i32>,
     ) -> Result<()> {
-        self.set_dpi(dpi)?;
+        self.set_dpi(handle, dpi)?;
         let Rect {
             origin: Point { x, y },
             width: w,

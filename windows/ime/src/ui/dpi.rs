@@ -40,20 +40,20 @@ pub trait Density {
 
 impl Density for i32 {
     fn to_dp(&self, dpi: u32) -> i32 {
-        unsafe { MulDiv(*self, dpi as i32, DEFAULT_DPI) }
-    }
-
-    fn to_px(&self, dpi: u32) -> i32 {
         unsafe { MulDiv(*self, DEFAULT_DPI, dpi as i32) }
+    }
+    
+    fn to_px(&self, dpi: u32) -> i32 {
+        unsafe { MulDiv(*self, dpi as i32, DEFAULT_DPI) }
     }
 }
 
 impl Density for u32 {
     fn to_dp(&self, dpi: u32) -> i32 {
-        unsafe { MulDiv(*self as i32, dpi as i32, DEFAULT_DPI) }
-    }
-
-    fn to_px(&self, dpi: u32) -> i32 {
         unsafe { MulDiv(*self as i32, DEFAULT_DPI, dpi as i32) }
+    }
+    
+    fn to_px(&self, dpi: u32) -> i32 {
+        unsafe { MulDiv(*self as i32, dpi as i32, DEFAULT_DPI) }
     }
 }

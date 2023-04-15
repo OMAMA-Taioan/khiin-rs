@@ -6,7 +6,6 @@ use anyhow::Result;
 
 use protobuf::Message;
 
-use khiin_protos::command::preedit::*;
 use khiin_protos::command::*;
 
 use crate::buffer::BufferMgr;
@@ -213,6 +212,20 @@ mod tests {
             SegmentStatus::SS_COMPOSING
         );
         assert_eq!(s[0].value, "a".to_string());
+        Ok(())
+    }
+
+    #[test]
+    fn it_does_stuff() -> Result<()> {
+        let mut engine = get_engine().unwrap();
+        engine.on_send_key(mock_send_key_request('a'))?;
+        engine.on_send_key(mock_send_key_request('a'))?;
+        engine.on_send_key(mock_send_key_request('a'))?;
+        engine.on_send_key(mock_send_key_request('a'))?;
+        engine.on_send_key(mock_send_key_request('a'))?;
+        engine.on_send_key(mock_send_key_request('a'))?;
+        let res = engine.on_send_key(mock_send_key_request('a'))?;
+        println!("{:#?}", res);
         Ok(())
     }
 }

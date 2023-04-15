@@ -5,6 +5,7 @@ use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::RwLock;
 
+use khiin_protos::command::SegmentStatus;
 use protobuf::MessageField;
 use windows::core::implement;
 use windows::core::AsImpl;
@@ -15,9 +16,8 @@ use windows::core::Result;
 use windows::core::GUID;
 use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HWND;
-use windows::Win32::Foundation::MAX_PATH;
-use windows::Win32::System::LibraryLoader::GetModuleFileNameW;
 use windows::Win32::UI::TextServices::CLSID_TF_CategoryMgr;
+use windows::Win32::UI::TextServices::IEnumTfDisplayAttributeInfo;
 use windows::Win32::UI::TextServices::ITfCategoryMgr;
 use windows::Win32::UI::TextServices::ITfCompartmentEventSink;
 use windows::Win32::UI::TextServices::ITfCompartmentEventSink_Impl;
@@ -25,6 +25,9 @@ use windows::Win32::UI::TextServices::ITfComposition;
 use windows::Win32::UI::TextServices::ITfCompositionSink;
 use windows::Win32::UI::TextServices::ITfCompositionSink_Impl;
 use windows::Win32::UI::TextServices::ITfContext;
+use windows::Win32::UI::TextServices::ITfDisplayAttributeInfo;
+use windows::Win32::UI::TextServices::ITfDisplayAttributeProvider;
+use windows::Win32::UI::TextServices::ITfDisplayAttributeProvider_Impl;
 use windows::Win32::UI::TextServices::ITfKeyEventSink;
 use windows::Win32::UI::TextServices::ITfLangBarItemButton;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
@@ -73,14 +76,15 @@ use crate::winerr;
 
 use super::edit_session::open_edit_session;
 
-const TF_CLIENTID_NULL: u32 = 0;
-const TF_INVALID_GUIDATOM: u32 = 0;
+pub const TF_CLIENTID_NULL: u32 = 0;
+pub const TF_INVALID_GUIDATOM: u32 = 0;
 
 #[implement(
     ITfTextInputProcessorEx,
     ITfTextInputProcessor,
     ITfCompartmentEventSink,
-    ITfCompositionSink
+    ITfCompositionSink,
+    ITfDisplayAttributeProvider
 )]
 pub struct TextService {
     // After the TextService is pinned in COM (by going `.into()`
@@ -119,7 +123,8 @@ pub struct TextService {
     kbd_disabled_sinkmgr: RefCell<SinkMgr<ITfCompartmentEventSink>>,
 
     // UI elements
-    disp_attrs: DisplayAttributes,
+    enum_disp_attr_info: IEnumTfDisplayAttributeInfo,
+    disp_attrs: RefCell<HashMap<SegmentStatus, u32>>,
     input_attr_guidatom: ArcLock<u32>,
     converted_attr_guidatom: ArcLock<u32>,
     focused_attr_guidatom: ArcLock<u32>,
@@ -132,13 +137,15 @@ pub struct TextService {
     // Data
     async_engine: RefCell<Option<AsyncEngine>>,
     message_handler: RefCell<Option<HWND>>,
-    context_cache: Rc<RefCell<HashMap<u32, Rc<Context>>>>,
+    context_cache: Rc<RefCell<HashMap<u32, ITfContext>>>,
 }
 
 pub struct Context {
     pub id: u32,
     pub context: ITfContext,
 }
+
+static mut OOPS: u32 = 0;
 
 // Public portion
 impl TextService {
@@ -183,7 +190,8 @@ impl TextService {
             >::new()),
 
             preserved_key_mgr: RefCell::new(None),
-            disp_attrs: DisplayAttributes::new(),
+            enum_disp_attr_info: DisplayAttributes::new().into(),
+            disp_attrs: RefCell::new(HashMap::new()),
             input_attr_guidatom: ArcLock::new(TF_INVALID_GUIDATOM),
             converted_attr_guidatom: ArcLock::new(TF_INVALID_GUIDATOM),
             focused_attr_guidatom: ArcLock::new(TF_INVALID_GUIDATOM),
@@ -195,10 +203,6 @@ impl TextService {
             async_engine: RefCell::new(None),
             context_cache: Rc::new(RefCell::new(HashMap::new())),
         })
-    }
-
-    pub fn disp_attrs(&self) -> &DisplayAttributes {
-        &self.disp_attrs
     }
 
     pub fn clientid(&self) -> Result<u32> {
@@ -270,7 +274,8 @@ impl TextService {
             .map_err(|_| Error::from(E_FAIL))?;
 
         let sink: ITfCompositionSink = self.this().cast()?;
-        comp_mgr.notify_command(ec, context, sink, command)
+        let attr_atoms = &*self.disp_attrs.borrow();
+        comp_mgr.notify_command(ec, context, sink, command, attr_atoms)
     }
 
     pub fn commit_composition(&self) -> Result<()> {
@@ -284,8 +289,16 @@ impl TextService {
         context: ITfContext,
         command: Arc<Command>,
     ) -> Result<()> {
-        let caret = command.response.preedit.caret;
-        let rect = text_position(ec, context.clone(), caret)?;
+        unsafe {
+            OOPS += 1;
+        }
+
+        if unsafe { OOPS } > 5 {
+            println!("Its broken");
+        }
+
+        let focused_caret = command.response.preedit.focused_caret;
+        let rect = text_position(ec, context.clone(), focused_caret)?;
         let cand_ui = self
             .candidate_list_ui
             .try_borrow()
@@ -308,9 +321,7 @@ impl TextService {
         command: Command,
     ) -> Result<()> {
         let id = command.request.id;
-        self.context_cache
-            .borrow_mut()
-            .insert(id, Rc::new(Context { id, context }));
+        self.context_cache.borrow_mut().insert(id, context.clone());
 
         if let Some(x) = self.async_engine.borrow().as_ref() {
             let tx = x.sender();
@@ -326,7 +337,6 @@ impl TextService {
             .borrow_mut()
             .remove(&command.request.id)
             .ok_or(Error::from(E_FAIL))?
-            .context
             .clone();
 
         open_edit_session(self.clientid.get()?, context.clone(), |ec| {
@@ -618,21 +628,29 @@ impl TextService {
 
     // display attributes (underlines)
     fn init_display_attributes(&self) -> Result<()> {
-        let categorymgr = self.categorymgr()?;
         unsafe {
-            self.input_attr_guidatom.set(
-                categorymgr.RegisterGUID(&GUID_DISPLAY_ATTRIBUTE_INPUT)?,
-            )?;
-            self.converted_attr_guidatom.set(
-                categorymgr.RegisterGUID(&GUID_DISPLAY_ATTRIBUTE_CONVERTED)?,
-            )?;
-            self.focused_attr_guidatom.set(
-                categorymgr.RegisterGUID(&GUID_DISPLAY_ATTRIBUTE_FOCUSED)?,
-            )
+            let categorymgr = self.categorymgr()?;
+
+            let input_attr =
+                categorymgr.RegisterGUID(&GUID_DISPLAY_ATTRIBUTE_INPUT)?;
+            let converted_attr =
+                categorymgr.RegisterGUID(&GUID_DISPLAY_ATTRIBUTE_CONVERTED)?;
+            let focused_attr =
+                categorymgr.RegisterGUID(&GUID_DISPLAY_ATTRIBUTE_FOCUSED)?;
+
+            let mut map = HashMap::new();
+            map.insert(SegmentStatus::SS_COMPOSING, input_attr);
+            map.insert(SegmentStatus::SS_FOCUSED, focused_attr);
+            map.insert(SegmentStatus::SS_CONVERTED, converted_attr);
+            map.insert(SegmentStatus::SS_UNMARKED, TF_INVALID_GUIDATOM);
+            self.disp_attrs.replace(map);
         }
+
+        Ok(())
     }
 
     fn deinit_display_attributes(&self) -> Result<()> {
+        self.disp_attrs.replace(HashMap::new());
         Ok(())
     }
 
@@ -643,6 +661,32 @@ impl TextService {
             .reset()
     }
 }
+
+//+---------------------------------------------------------------------------
+//
+// ITfDisplayAttributeProvider
+//
+//----------------------------------------------------------------------------
+
+impl ITfDisplayAttributeProvider_Impl for TextService {
+    fn EnumDisplayAttributeInfo(&self) -> Result<IEnumTfDisplayAttributeInfo> {
+        Ok(self.enum_disp_attr_info.clone())
+    }
+
+    fn GetDisplayAttributeInfo(
+        &self,
+        guid: *const GUID,
+    ) -> Result<ITfDisplayAttributeInfo> {
+        let guid = unsafe { *guid };
+        let disp_attrs = self.enum_disp_attr_info.as_impl();
+
+        match disp_attrs.by_guid(guid) {
+            Some(attr) => Ok(attr.into()),
+            None => Err(Error::from(E_FAIL)),
+        }
+    }
+}
+
 //+---------------------------------------------------------------------------
 //
 // ITfCompartmentEventSink

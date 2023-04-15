@@ -15,7 +15,10 @@ use windows::Win32::Graphics::Direct2D::ID2D1SolidColorBrush;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextFormat;
 use windows::Win32::Graphics::Gdi::BeginPaint;
 use windows::Win32::Graphics::Gdi::EndPaint;
+use windows::Win32::Graphics::Gdi::RedrawWindow;
 use windows::Win32::Graphics::Gdi::PAINTSTRUCT;
+use windows::Win32::Graphics::Gdi::RDW_INVALIDATE;
+use windows::Win32::Graphics::Gdi::RDW_UPDATENOW;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
 use windows::Win32::UI::WindowsAndMessaging::SetWindowPos;
@@ -151,15 +154,33 @@ impl CandidateWindow {
                 pos.height,
                 SWP_NOACTIVATE | SWP_NOZORDER,
             );
-            ShowWindow(handle, SW_SHOWNA);
         }
 
+        if !self.is_showing()? {
+            unsafe {
+                ShowWindow(handle, SW_SHOWNA);
+            }
+            self.set_showing()?;
+        } else {
+            unsafe {
+                RedrawWindow(
+                    handle,
+                    None,
+                    None,
+                    RDW_INVALIDATE | RDW_UPDATENOW,
+                );
+            }
+        }
+
+        Ok(())
+    }
+
+    fn set_showing(&self) -> Result<()> {
         let mut window = self
             .window
             .try_borrow_mut()
             .map_err(|_| Error::from(E_FAIL))?;
         window.showing = true;
-
         Ok(())
     }
 

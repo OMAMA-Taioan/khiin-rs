@@ -106,14 +106,14 @@ impl CandidateListUI {
         } else {
             self.pager
                 .try_borrow()
-                .map_err(|_| Error::from(Error::from(E_FAIL)))?
+                .map_err(|_| Error::from(E_FAIL))?
                 .set_focus(focused_id)?;
         }
 
         self.popup.show(
             self.pager
                 .try_borrow()
-                .map_err(|_| Error::from(Error::from(E_FAIL)))?
+                .map_err(|_| Error::from(E_FAIL))?
                 .get_page(),
             rect,
         )?;

@@ -128,7 +128,7 @@ impl RenderFactory {
         max_width: f32,
         max_height: f32,
     ) -> Result<IDWriteTextLayout> {
-        let value = value.to_utf16();
+        let value = value.to_utf16_nul();
 
         unsafe {
             self.dwrite_factory

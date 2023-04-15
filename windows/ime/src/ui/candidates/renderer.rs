@@ -87,6 +87,7 @@ impl<'a> CandidateRenderer<'a> {
     }
 
     pub unsafe fn draw(&self) {
+        self.target.Clear(Some(&self.colors.background));
         let grid = &self.cand_layout.grid;
         let qs_label = 1;
         for (col_idx, col) in self.cand_layout.items.iter().enumerate() {

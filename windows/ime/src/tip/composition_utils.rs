@@ -3,8 +3,6 @@ use windows::core::Error;
 use windows::core::Result;
 use windows::Win32::Foundation::BOOL;
 use windows::Win32::Foundation::E_FAIL;
-use windows::Win32::Foundation::FALSE;
-use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::RECT;
 use windows::Win32::UI::Input::KeyboardAndMouse::GetFocus;
 use windows::Win32::UI::TextServices::IEnumITfCompositionView;
@@ -14,7 +12,6 @@ use windows::Win32::UI::TextServices::ITfContextComposition;
 use windows::Win32::UI::TextServices::ITfContextView;
 use windows::Win32::UI::TextServices::ITfRange;
 use windows::Win32::UI::TextServices::TF_ANCHOR_START;
-use windows::Win32::UI::TextServices::TF_DEFAULT_SELECTION;
 use windows::Win32::UI::TextServices::TF_SELECTION;
 use windows::Win32::UI::TextServices::TF_ST_CORRECTION;
 use windows::Win32::UI::WindowsAndMessaging::GetWindowRect;
@@ -56,7 +53,7 @@ pub fn text_position(
         }
 
         let range = default_selection_range(ec, context)?;
-        let text = " ".to_utf16();
+        let text = " ".to_utf16_nul();
         range.SetText(ec, TF_ST_CORRECTION, &text)?;
         range.Collapse(ec, TF_ANCHOR_START)?;
         context_view.GetTextExt(ec, &range, &mut rect, &mut clipped)?;

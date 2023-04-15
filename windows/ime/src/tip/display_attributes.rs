@@ -4,20 +4,17 @@ use windows::core::implement;
 use windows::core::Error;
 use windows::core::Result;
 use windows::core::GUID;
-use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::S_FALSE;
 use windows::Win32::UI::TextServices::IEnumTfDisplayAttributeInfo;
 use windows::Win32::UI::TextServices::IEnumTfDisplayAttributeInfo_Impl;
 use windows::Win32::UI::TextServices::ITfDisplayAttributeInfo;
-use windows::Win32::UI::TextServices::ITfDisplayAttributeProvider;
-use windows::Win32::UI::TextServices::ITfDisplayAttributeProvider_Impl;
 
 use crate::reg::guids::GUID_DISPLAY_ATTRIBUTE_CONVERTED;
 use crate::reg::guids::GUID_DISPLAY_ATTRIBUTE_FOCUSED;
 use crate::reg::guids::GUID_DISPLAY_ATTRIBUTE_INPUT;
 use crate::tip::display_attribute_info::*;
 
-#[implement(IEnumTfDisplayAttributeInfo, ITfDisplayAttributeProvider)]
+#[implement(IEnumTfDisplayAttributeInfo)]
 pub struct DisplayAttributes {
     pub attributes: Vec<DisplayAttributeInfo>,
     current_index: Cell<usize>,
@@ -121,24 +118,6 @@ impl IEnumTfDisplayAttributeInfo_Impl for DisplayAttributes {
         } else {
             self.current_index.set(curr_index + count);
             Ok(())
-        }
-    }
-}
-
-impl ITfDisplayAttributeProvider_Impl for DisplayAttributes {
-    fn EnumDisplayAttributeInfo(&self) -> Result<IEnumTfDisplayAttributeInfo> {
-        self.Clone()
-    }
-
-    fn GetDisplayAttributeInfo(
-        &self,
-        guid: *const windows::core::GUID,
-    ) -> Result<ITfDisplayAttributeInfo> {
-        let guid = unsafe { *guid };
-
-        match self.by_guid(guid) {
-            Some(attr) => Ok(attr.into()),
-            None => Err(Error::from(E_FAIL)),
         }
     }
 }

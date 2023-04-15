@@ -59,8 +59,7 @@ pub trait WinString {
     // Use str.to_wide_bytes().as_slice()
     // for COM methods that take `const BYTE *` of a UTF-16 string
     fn to_wide_bytes_nul(&self) -> Vec<u8>;
-
-    fn to_utf16(&self) -> Vec<u16>;
+    fn to_utf16_nul(&self) -> Vec<u16>;
 }
 
 impl WinString for &str {
@@ -72,7 +71,7 @@ impl WinString for &str {
             .collect::<Vec<u8>>()
     }
 
-    fn to_utf16(&self) -> Vec<u16> {
+    fn to_utf16_nul(&self) -> Vec<u16> {
         let mut v: Vec<u16> = self.encode_utf16().collect();
         v.push(0);
         v
@@ -85,9 +84,9 @@ impl WinString for String {
         s.to_wide_bytes_nul()
     }
 
-    fn to_utf16(&self) -> Vec<u16> {
+    fn to_utf16_nul(&self) -> Vec<u16> {
         let s = &self[..];
-        s.to_utf16()
+        s.to_utf16_nul()
     }
 }
 

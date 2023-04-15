@@ -1,14 +1,18 @@
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::mem::ManuallyDrop;
 use std::sync::Arc;
 
 use khiin_protos::command::CommandType;
 use khiin_protos::command::Preedit;
+use khiin_protos::command::SegmentStatus;
 use windows::core::ComInterface;
 use windows::core::Error;
 use windows::core::Result;
 use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::FALSE;
+use windows::Win32::System::Com::VARIANT;
+use windows::Win32::System::Com::VT_I4;
 use windows::Win32::UI::TextServices::ITfComposition;
 use windows::Win32::UI::TextServices::ITfCompositionSink;
 use windows::Win32::UI::TextServices::ITfContext;
@@ -16,6 +20,7 @@ use windows::Win32::UI::TextServices::ITfContextComposition;
 use windows::Win32::UI::TextServices::ITfInsertAtSelection;
 use windows::Win32::UI::TextServices::ITfRange;
 use windows::Win32::UI::TextServices::TfActiveSelEnd;
+use windows::Win32::UI::TextServices::GUID_PROP_ATTRIBUTE;
 use windows::Win32::UI::TextServices::TF_AE_END;
 use windows::Win32::UI::TextServices::TF_AE_NONE;
 use windows::Win32::UI::TextServices::TF_ANCHOR_START;
@@ -26,7 +31,10 @@ use windows::Win32::UI::TextServices::TF_ST_CORRECTION;
 
 use khiin_protos::command::Command;
 
+use crate::utils::SegmentData;
 use crate::utils::ToWidePreedit;
+
+use super::text_service::TF_INVALID_GUIDATOM;
 
 pub struct CompositionMgr {
     composition: RefCell<Option<ITfComposition>>,
@@ -58,6 +66,7 @@ impl CompositionMgr {
         context: ITfContext,
         sink: ITfCompositionSink,
         command: Arc<Command>,
+        attr_atoms: &HashMap<SegmentStatus, u32>,
     ) -> Result<()> {
         if self.composition().is_err() {
             self.new_composition(ec, context.clone(), sink)?;
@@ -76,7 +85,13 @@ impl CompositionMgr {
                 &command.response.preedit,
             )?;
         } else {
-            self.do_composition(ec, comp, context, &command.response.preedit)?;
+            self.do_composition(
+                ec,
+                comp,
+                context,
+                &command.response.preedit,
+                attr_atoms,
+            )?;
         }
 
         Ok(())
@@ -87,7 +102,7 @@ impl CompositionMgr {
         ec: u32,
         context: ITfContext,
         sink: ITfCompositionSink,
-    ) -> Result<()> {
+    ) -> Result<ITfComposition> {
         let insert_sel: ITfInsertAtSelection = context.cast()?;
         let insert_pos = unsafe {
             insert_sel.InsertTextAtSelection(ec, TF_IAS_QUERYONLY, &[])?
@@ -95,9 +110,9 @@ impl CompositionMgr {
         let ctx_comp: ITfContextComposition = context.cast()?;
         let comp =
             unsafe { ctx_comp.StartComposition(ec, &insert_pos, &sink)? };
-        self.composition.replace(Some(comp));
+        self.composition.replace(Some(comp.clone()));
         self.set_selection(ec, context, insert_pos, TF_AE_NONE)?;
-        Ok(())
+        Ok(comp)
     }
 
     fn do_composition(
@@ -106,6 +121,7 @@ impl CompositionMgr {
         composition: ITfComposition,
         context: ITfContext,
         preedit: &Preedit,
+        attr_atoms: &HashMap<SegmentStatus, u32>,
     ) -> Result<()> {
         unsafe {
             let preedit = preedit.widen();
@@ -115,13 +131,41 @@ impl CompositionMgr {
                 range.SetText(ec, TF_ST_CORRECTION, &[])?;
             }
 
-            let range = composition.GetRange()?;
+            let comp_range = composition.GetRange()?;
             let display = preedit.display.clone();
-            range.SetText(ec, TF_ST_CORRECTION, &display)?;
+            comp_range.SetText(ec, TF_ST_CORRECTION, &display)?;
+
+            let prop =
+                context.GetProperty(&GUID_PROP_ATTRIBUTE)?;
+            for segment in preedit.segments {
+                let SegmentData {
+                    start,
+                    stop,
+                    status,
+                } = segment;
+                let seg_range = comp_range.Clone()?;
+                seg_range.Collapse(ec, TF_ANCHOR_START)?;
+                let mut shifted: i32 = 0;
+                seg_range.ShiftEnd(ec, stop, &mut shifted, std::ptr::null())?;
+                seg_range.ShiftStart(
+                    ec,
+                    start,
+                    &mut shifted,
+                    std::ptr::null(),
+                )?;
+                let mut variant = VARIANT::default();
+                let atom = attr_atoms
+                    .get(&status)
+                    .unwrap_or(&TF_INVALID_GUIDATOM)
+                    .clone();
+                (*variant.Anonymous.Anonymous).vt = VT_I4;
+                (*variant.Anonymous.Anonymous).Anonymous.lVal = atom as i32;
+                prop.SetValue(ec, &seg_range, &variant)?;
+            }
 
             // TODO segment attrs
 
-            let curs_range = range.Clone()?;
+            let curs_range = comp_range.Clone()?;
             curs_range.Collapse(ec, TF_ANCHOR_START)?;
             let mut shifted: i32 = 0;
             curs_range.ShiftEnd(
