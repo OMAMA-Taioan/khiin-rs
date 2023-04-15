@@ -9,6 +9,7 @@ use super::BufferElement;
 
 const SYL_SEPS: [char; 2] = ['-', ' '];
 
+#[derive(Debug)]
 pub struct KhiinElem {
     value: Vec<Syllable>,
     candidate: Option<Conversion>,

@@ -24,7 +24,7 @@ pub(crate) fn convert_all(
     dict: &Dictionary,
     cfg: &Config,
     raw_buffer: &str,
-) -> Result<(Buffer, Vec<Buffer>)> {
+) -> Result<Buffer> {
     let sections = parse_input(dict, raw_buffer);
     let mut composition = Buffer::new();
 
@@ -55,6 +55,24 @@ pub(crate) fn convert_all(
         }
     }
 
-    let candidates = find_conversion_candidates(db, dict, cfg, raw_buffer)?;
-    Ok((composition, candidates))
+    Ok(composition)
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::config::*;
+    use crate::data::*;
+    use crate::tests::*;
+    use super::*;
+
+    fn setup() -> (Database, Dictionary, Config) {
+        (get_db(), get_dict(), get_conf())
+    }
+
+    #[test]
+    fn it_splits_and_converts_words() {
+        let (db, dict, conf) = setup();
+        let comp = convert_all(&db, &dict, &conf, "abc");
+        println!("{:#?}", comp);
+    }
 }

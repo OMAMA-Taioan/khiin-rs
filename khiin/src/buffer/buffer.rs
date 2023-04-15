@@ -1,7 +1,7 @@
 use super::buffer_element::BufferElementEnum;
 use super::BufferElement;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Buffer {
     elems: Vec<BufferElementEnum>,
 }

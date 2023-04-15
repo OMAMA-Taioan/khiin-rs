@@ -1,15 +1,16 @@
 use anyhow::anyhow;
 use anyhow::Result;
+use khiin_protos::command::preedit::Segment;
 use khiin_protos::command::EditState;
 use khiin_protos::command::Preedit;
 use khiin_protos::command::SegmentStatus;
-use khiin_protos::command::preedit::Segment;
 
 use crate::config::Config;
 use crate::config::InputMode;
 use crate::data::Database;
 use crate::data::Dictionary;
 use crate::input::converter::convert_all;
+use crate::input::converter::find_conversion_candidates;
 use crate::input::parse_input;
 use crate::Engine;
 
@@ -78,9 +79,9 @@ impl BufferMgr {
         composition.push(ch);
         self.char_caret += 1;
         assert!(composition.is_ascii());
-        let (comp, cand) = convert_all(db, dict, conf, &composition)?;
-        self.composition = comp;
-        self.candidates = cand;
+        self.composition = convert_all(db, dict, conf, &composition)?;
+        self.candidates =
+            find_conversion_candidates(db, dict, conf, &composition)?;
         Ok(())
     }
 
@@ -95,8 +96,8 @@ impl BufferMgr {
 
 #[cfg(test)]
 mod tests {
-    use crate::tests::*;
     use super::*;
+    use crate::tests::*;
 
     fn setup() -> (Database, Dictionary, Config, BufferMgr) {
         (get_db(), get_dict(), get_conf(), BufferMgr::new())

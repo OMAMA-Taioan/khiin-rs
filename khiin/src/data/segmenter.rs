@@ -59,6 +59,7 @@ impl Segmenter {
         splits.get(query.chars().count() - 1).unwrap_or(false)
     }
 
+    /// Returns the number of chars that can be segmented in the query string
     pub fn can_segment_max<T>(is_word: T, query: &str) -> usize
     where
         T: Fn(&str) -> bool,

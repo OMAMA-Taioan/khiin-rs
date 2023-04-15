@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use enum_dispatch::enum_dispatch;
 
 use super::StringElem;
@@ -7,6 +9,15 @@ use super::KhiinElem;
 pub enum BufferElementEnum {
     StringElem,
     KhiinElem,
+}
+
+impl Debug for BufferElementEnum {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::StringElem(arg0) => f.debug_tuple("StringElem").field(arg0).finish(),
+            Self::KhiinElem(arg0) => f.debug_tuple("KhiinElem").field(arg0).finish(),
+        }
+    }
 }
 
 #[enum_dispatch]

@@ -68,6 +68,8 @@ pub fn parse_input<'a>(
     while let Some((i, ch)) = iter.next() {
         let remainder = &raw_buffer[i..j];
 
+
+
         if dict.can_segment(remainder) {
             flush_unk(&mut unk_start, &mut unk_end, &mut offsets);
             offsets.push(Offset::new(SectionType::Splittable, i, j));
@@ -87,6 +89,10 @@ pub fn parse_input<'a>(
         .into_iter()
         .map(|sec| sec.as_slice_of(raw_buffer))
         .collect()
+}
+
+fn check_splittable(dict: &Dictionary, raw_buffer: &str) -> usize {
+    dict.can_segment_max(raw_buffer)
 }
 
 #[cfg(test)]
@@ -128,5 +134,12 @@ mod tests {
         assert_eq!(result[0].raw_buffer, "zzz");
         assert_eq!(result[1].ty, SectionType::Splittable);
         assert_eq!(result[1].raw_buffer, "ho2bo5");
+
+        let result = parse_input(&dict, "ho2bo5zzz");
+        assert_eq!(result.len(), 2);
+        assert_eq!(result[0].ty, SectionType::Splittable);
+        assert_eq!(result[0].raw_buffer, "ho2bo5");
+        assert_eq!(result[1].ty, SectionType::Unknown);
+        assert_eq!(result[1].raw_buffer, "zzz");
     }
 }
