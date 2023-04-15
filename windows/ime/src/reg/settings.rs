@@ -178,7 +178,7 @@ fn get_u32_value(hkey: HKEY, name: &str) -> Result<u32> {
             *name,
             RRF_RT_REG_DWORD,
             None,
-            Some(data as *mut c_void),
+            Some(&mut data as *mut _ as *mut c_void),
             Some(&mut data_size),
         );
         if err != ERROR_SUCCESS {

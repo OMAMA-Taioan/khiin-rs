@@ -124,9 +124,8 @@ where
 /// It would be good to experiment with different models for calculating the
 /// cost, or to improve our corpus for better results. The current model uses:
 ///
-/// ```
-/// cost =  ln (1 / 𝓟)
-/// ```
+/// COST =  ln (1 / 𝓟)
+/// 
 /// where `𝓟` is the number of occurrences of a word in the corpus divided by
 /// the total number of words in the corpus. This seems to give decent results.
 fn segment_min_cost(
