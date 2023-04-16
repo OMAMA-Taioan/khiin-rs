@@ -14,10 +14,23 @@
             "args": ["-f", "data/frequency.csv", "-c", "data/conversions_all.csv", "-s", "data/syllables.txt", "-t", "-y", "data/symbols.tsv", "-e", "data/emoji.csv", "-o", "out/khiin_db.sql", "-d", "../resources/khiin.db"]
         },
         {
+            "name": "Notepad",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "C:\\Windows\\System32\\notepad.exe",
+            "cwd": "${workspaceRoot}"
+        },
+        {
             "name": "(Windows) Attach",
             "type": "cppvsdbg",
             "request": "attach",
             "processId": "${command:pickProcess}"
+        },
+        {
+            "name": "lldb attach",
+            "type": "lldb",
+            "request": "attach",
+            "pid": "${command:pickMyProcess}"
         },
         {
             "name": "Win Settings",
