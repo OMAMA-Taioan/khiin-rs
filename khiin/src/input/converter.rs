@@ -26,17 +26,17 @@ pub(crate) fn get_candidates(
         SectionType::Punct => Ok(Vec::new()),
         SectionType::Splittable => {
             let words = dict.all_words_from_start(query);
-            let word_ids: Vec<u32> = words.keys().cloned().collect();
             let candidates =
-                db.find_conversions_for_ids(conf.input_type(), &word_ids)?;
+                db.find_conversions_for_ids(conf.input_type(), &words)?;
 
             let mut result: Vec<Buffer> = Vec::new();
 
             for conv in candidates {
-                let word = words.get(&conv.input_id).unwrap();
                 let khiin_elem: BufferElementEnum =
-                    KhiinElem::from_conversion(word, &conv)?.into();
-                result.push(khiin_elem.into());
+                    KhiinElem::from_conversion(&conv.key_sequence, &conv)?.into();
+                let mut buf: Buffer = khiin_elem.into();
+                buf.set_converted(true);
+                result.push(buf);
             }
 
             Ok(result)
@@ -103,7 +103,7 @@ mod tests {
     fn it_gets_candidates() -> Result<()> {
         let (db, dict, conf) = setup();
         let cands = get_candidates(&db, &dict, &conf, "a")?;
-        println!("{:#?}", cands);
+        // println!("{:#?}", cands);
         Ok(())
     }
 }

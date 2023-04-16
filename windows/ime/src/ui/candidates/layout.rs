@@ -150,12 +150,12 @@ impl CandidateLayout {
         &self,
         row: usize,
         col: usize,
-    ) -> &(Rc<Candidate>, IDWriteTextLayout) {
-        &self.items[col][row]
+    ) -> Option<&(Rc<Candidate>, IDWriteTextLayout)> {
+        self.items.get(col)?.get(row)
     }
 
     pub fn hit_test(&self, pt: Point<i32>) -> Option<Rc<Candidate>> {
         let GridCell { row, col } = self.grid.hit_test(pt)?;
-        Some(self.items[col][row].clone().0)
+        Some(self.items.get(col)?.get(row)?.0.clone())
     }
 }

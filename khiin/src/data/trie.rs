@@ -8,15 +8,20 @@ use qp_trie::Trie as QpTrie;
 use crate::data::models::KeySequence;
 
 pub(crate) struct Trie {
-    qp_trie: QpTrie<BString, u32>,
+    qp_trie: QpTrie<BString, Vec<u32>>,
 }
 
 impl Trie {
     pub fn new(inputs: &Vec<KeySequence>) -> Result<Self> {
-        let mut qp_trie = QpTrie::new();
+        let mut qp_trie: QpTrie<BString, Vec<u32>> = QpTrie::new();
 
         for word in inputs.iter() {
-            qp_trie.insert_str(&word.key_sequence, word.id);
+            if let Some(ids) = qp_trie.get_mut_str(&word.key_sequence) {
+                ids.push(word.id);
+            } else {
+                let v = vec![ word.id ];
+                qp_trie.insert_str(&word.key_sequence, v);
+            }
         }
 
         Ok(Self { qp_trie })
@@ -24,15 +29,17 @@ impl Trie {
 
     pub fn find_words_by_prefix(&self, query: &str) -> Vec<u32> {
         let mut result = HashSet::new();
-        for (_, v) in self.qp_trie.iter_prefix_str(query) {
-            result.insert(v.clone());
+        for (_, vec) in self.qp_trie.iter_prefix_str(query) {
+            for v in vec {
+                result.insert(v.clone());
+            }
         }
         let mut v: Vec<u32> = result.iter().map(|&ea| ea).collect();
         v.sort_unstable();
         v
     }
 
-    pub fn find_words_from_start<'a>(&self, query: &'a str) -> Vec<(&'a str, u32)> {
+    pub fn find_words_from_start<'a>(&self, query: &'a str) -> Vec<&'a str> {
         self.qp_trie.get_keys_str(query)
     }
 
@@ -42,12 +49,12 @@ impl Trie {
 }
 
 trait Walker<'a> {
-    fn get_keys_str(&self, query: &'a str) -> Vec<(&'a str, u32)>;
+    fn get_keys_str(&self, query: &'a str) -> Vec<&'a str>;
 }
 
-impl<'a> Walker<'a> for QpTrie<BString, u32> {
-    fn get_keys_str(&self, query: &'a str) -> Vec<(&'a str, u32)> {
-        let mut found: Vec<(&str, u32)> = Vec::new();
+impl<'a> Walker<'a> for QpTrie<BString, Vec<u32>> {
+    fn get_keys_str(&self, query: &'a str) -> Vec<&'a str> {
+        let mut found: Vec<&str> = Vec::new();
 
         for (i, _) in query.char_indices() {
             let key = &query[0..(i + 1)];
@@ -57,8 +64,8 @@ impl<'a> Walker<'a> for QpTrie<BString, u32> {
                 break;
             }
 
-            if let Some(value) = self.get_str(key) {
-                found.push((key, *value));
+            if self.contains_key_str(key) {
+                found.push(key);
             }
         }
 
@@ -89,11 +96,8 @@ mod tests {
         ]);
         let res = t.qp_trie.get_keys_str("balloonanimal");
         assert_eq!(res.len(), 3);
-        assert_eq!(res[0].0, "ball");
-        assert_eq!(res[0].1, 1);
-        assert_eq!(res[1].0, "balloon");
-        assert_eq!(res[1].1, 3);
-        assert_eq!(res[2].0, "balloonanimal");
-        assert_eq!(res[2].1, 4);
+        assert_eq!(res[0], "ball");
+        assert_eq!(res[1], "balloon");
+        assert_eq!(res[2], "balloonanimal");
     }
 }

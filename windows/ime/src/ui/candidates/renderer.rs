@@ -89,9 +89,10 @@ impl<'a> CandidateRenderer<'a> {
     pub unsafe fn draw(&self) {
         self.target.Clear(Some(&self.colors.background));
         let grid = &self.cand_layout.grid;
-        let qs_label = 1;
+        let mut qs_label = 0;
         for (col_idx, col) in self.cand_layout.items.iter().enumerate() {
             for (row_idx, row) in col.iter().enumerate() {
+                qs_label += 1;
                 let cand = row.0.clone();
                 let text_layout = row.1.clone();
 

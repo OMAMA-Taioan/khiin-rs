@@ -63,7 +63,7 @@ impl Pager {
         for (i, candidate) in candidates
             .iter()
             .skip(start)
-            .take(end - start + 1)
+            .take(end - start)
             .enumerate()
         {
             if i == start + self.max_col_size() {

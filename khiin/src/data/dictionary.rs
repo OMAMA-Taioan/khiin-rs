@@ -30,13 +30,8 @@ impl Dictionary {
         self.word_trie.find_words_by_prefix(query)
     }
 
-    pub fn all_words_from_start<'a>(&self, query: &'a str) -> HashMap<u32, &'a str> {
-        let words = self.word_trie.find_words_from_start(query);
-        let mut result = HashMap::new();
-        for (word, id) in words {
-            result.insert(id, word);
-        }
-        result
+    pub fn all_words_from_start<'a>(&self, query: &'a str) -> Vec<&'a str> {
+        self.word_trie.find_words_from_start(query)
     }
 
     pub fn segment(&self, query: &str) -> Result<Vec<String>> {

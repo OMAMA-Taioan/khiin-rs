@@ -124,25 +124,34 @@ impl Database {
     pub fn find_conversions_for_ids(
         &self,
         input_type: InputType,
-        ids: &Vec<u32>,
+        words: &Vec<&str>,
     ) -> Result<Vec<Conversion>> {
+        let input_col = input_column(input_type);
         let sql = format!(
             r#"
-            select
-                c.*
-            from
-                {table} c
-            where
-                c."input_id" in ({vars})
-            order by c.weight desc
+            with cte as (
+                select
+                    c.*,
+                    row_number() over (partition by c.output order by c.weight desc) as rn
+                from
+                    {table} c
+                where
+                    c.{column} in ({vars})
+            )
+            select *
+            from cte
+            where rn = 1
+            order by length(cte."{column}") desc, cte.weight desc
             "#,
             table = V_LOOKUP,
-            vars = repeat_vars(ids.len()),
+            vars = repeat_vars(words.len()),
+            column = input_col,
         );
+        println!("{}", sql);
+        println!("{:?}", words);
         let mut stmt = self.conn.prepare(&sql)?;
-        let mut rows = stmt.query(rusqlite::params_from_iter(ids))?;
+        let mut rows = stmt.query(rusqlite::params_from_iter(words))?;
         let mut result = Vec::new();
-        let input_col = input_column(input_type);
         while let Some(row) = rows.next()? {
             result.push(get_conversion_row(row, input_col)?)
         }
@@ -224,9 +233,9 @@ mod tests {
     #[test]
     fn it_convers_by_id_vec() {
         let db = get_db();
-        let ids = vec![1, 2, 3];
+        let words = vec!["ho", "hong"];
         let res = db
-            .find_conversions_for_ids(InputType::Numeric, &ids)
+            .find_conversions_for_ids(InputType::Numeric, &words)
             .unwrap();
         assert!(res.len() >= 20);
     }
