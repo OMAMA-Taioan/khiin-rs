@@ -135,7 +135,7 @@ impl CandidateWindow {
         })
     }
 
-    pub fn register(this: Arc<Self>, parent: HWND) -> Result<()> {
+    pub fn create(this: Arc<Self>, parent: HWND) -> Result<()> {
         Wndproc::create(
             this,
             DllModule::global().module,

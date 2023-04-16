@@ -139,7 +139,7 @@ impl Pager {
     }
 
     fn candidate_id_at_index(&self, idx: usize) -> Option<i32> {
-        if 0 <= idx && idx < self.num_candidates {
+        if idx < self.num_candidates {
             Some(self.candidates().get(idx)?.id)
         } else {
             None

@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::slice::from_raw_parts_mut;
@@ -64,6 +65,7 @@ pub struct CandidateListUI {
     context: RefCell<Option<ITfContext>>,
     command: RefCell<Arc<Command>>,
     prev_command: RefCell<Arc<Command>>,
+    popup_registered: RefCell<bool>,
 }
 
 impl CandidateListUI {
@@ -77,6 +79,7 @@ impl CandidateListUI {
             context: RefCell::new(None),
             command: RefCell::new(cmd.clone()),
             prev_command: RefCell::new(cmd),
+            popup_registered: RefCell::new(false),
         }
         .into();
 
@@ -87,16 +90,23 @@ impl CandidateListUI {
 
     pub fn shutdown(&self) -> Result<()> {
         self.context.replace(None);
+        self.popup.hide()?;
         self.popup.destroy()?;
+        self.popup_registered.replace(false);
         self.end_ui_elem()
     }
 
     fn create_candidate_window(&self, context: ITfContext) -> Result<()> {
-        unsafe {
-            let context_view = context.GetActiveView()?;
-            let parent = context_view.GetWnd().unwrap_or(GetFocus());
-            CandidateWindow::register(self.popup.clone(), parent)
+        if !*self.popup_registered.borrow() {
+            unsafe {
+                let context_view = context.GetActiveView()?;
+                let parent = context_view.GetWnd().unwrap_or(GetFocus());
+                CandidateWindow::create(self.popup.clone(), parent)?;
+                self.popup_registered.replace(true);
+            }
         }
+
+        Ok(())
     }
 
     pub fn notify_command(

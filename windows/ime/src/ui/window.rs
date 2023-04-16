@@ -166,10 +166,14 @@ pub trait WindowHandler {
     }
 
     fn hide(&self) -> Result<()> {
+        d!("Hiding window");
         let handle = self.handle()?;
+        d!("Got handle");
         unsafe {
             ShowWindow(handle, SW_HIDE);
+            d!("ShowWindow SW_HIDE");
             ReleaseCapture();
+            d!("ReleaseCapture");
         }
         Ok(())
     }
