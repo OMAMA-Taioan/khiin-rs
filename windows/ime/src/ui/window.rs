@@ -106,8 +106,8 @@ pub trait WindowHandler {
                 self.on_dpi_changed(handle, dpi, rect.into())
             },
             WM_MOUSEMOVE => self.on_mouse_move(handle, lparam.into()),
-            WM_MOUSELEAVE => self.on_mouse_leave(),
-            WM_LBUTTONDOWN => self.on_click(lparam.into()),
+            WM_MOUSELEAVE => self.on_mouse_leave(handle),
+            WM_LBUTTONDOWN => self.on_click(handle, lparam.into()),
             WM_SHOWWINDOW => match wparam.0 {
                 0 => self.on_hide_window(),
                 _ => self.on_show_window(),
@@ -149,8 +149,8 @@ pub trait WindowHandler {
             let dpi = window.dpi;
             if !dpi_aware() {
                 window.origin = Point {
-                    x: pt.x.to_dp(dpi) as i32,
-                    y: pt.y.to_dp(dpi) as i32,
+                    x: pt.x.to_dip(dpi) as i32,
+                    y: pt.y.to_dip(dpi) as i32,
                 };
             } else {
                 window.origin = pt;
@@ -185,7 +185,7 @@ pub trait WindowHandler {
     fn on_create(&self, handle: HWND) -> Result<()> {
         {
             if let Ok(mut window) = self.window_data().try_borrow_mut() {
-                window.dpi = unsafe { GetDpiForWindow(handle) };
+                window.dpi = unsafe { GetDpiForWindow(GetParent(handle)) };
                 window.dpi_parent =
                     unsafe { GetDpiForWindow(GetParent(handle)) };
             }
@@ -205,21 +205,13 @@ pub trait WindowHandler {
             GetMonitorInfoW(hmon, &mut info);
         }
 
-        d!(
-            "Monitor max w: {}, h: {}",
-            info.rcMonitor.right,
-            info.rcMonitor.bottom
-        );
-
-        {
-            if let Ok(mut window) = self.window_data().try_borrow_mut() {
-                window.max_width = info.rcMonitor.right;
-                window.max_height = info.rcMonitor.bottom;
-                d!("Set window max height/width OK");
-                Ok(())
-            } else {
-                winerr!(E_FAIL)
-            }
+        if let Ok(mut window) = self.window_data().try_borrow_mut() {
+            window.max_width = info.rcMonitor.right;
+            window.max_height = info.rcMonitor.bottom;
+            d!("Set window max height/width OK");
+            Ok(())
+        } else {
+            winerr!(E_FAIL)
         }
     }
 
@@ -249,16 +241,9 @@ pub trait WindowHandler {
             width: w,
             height: h,
         } = new_size;
+        let flags = SWP_NOZORDER | SWP_NOACTIVATE;
         unsafe {
-            SetWindowPos(
-                handle,
-                None,
-                x,
-                y,
-                w,
-                h,
-                SWP_NOZORDER | SWP_NOACTIVATE,
-            );
+            SetWindowPos(handle, None, x, y, w, h, flags);
         }
         Ok(())
     }
@@ -267,7 +252,7 @@ pub trait WindowHandler {
         winerr!(E_NOTIMPL)
     }
 
-    fn on_mouse_leave(&self) -> Result<()> {
+    fn on_mouse_leave(&self, handle: HWND) -> Result<()> {
         winerr!(E_NOTIMPL)
     }
 
@@ -275,13 +260,7 @@ pub trait WindowHandler {
         winerr!(E_NOTIMPL)
     }
 
-    fn on_click(&self, pt: Point<i32>) -> Result<()> {
-        d!(
-            "on_click not implemented for this window. Click at: {:?}",
-            pt
-        );
-        winerr!(E_NOTIMPL)
-    }
+    fn on_click(&self, handle: HWND, pt: Point<i32>) -> Result<()>;
 
     fn render(&self, handle: HWND) -> Result<()>;
 }

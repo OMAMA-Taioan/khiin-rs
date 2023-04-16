@@ -42,7 +42,7 @@ impl BufferMgr {
         let mut composing_segment = String::new();
 
         for (i, elem) in self.composition.iter().enumerate() {
-            if elem.is_converted() {
+            if !elem.is_converted() {
                 composing_segment.push_str(&elem.composed_text());
             } else {
                 if !composing_segment.is_empty() {

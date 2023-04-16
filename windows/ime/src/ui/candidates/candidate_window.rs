@@ -4,7 +4,8 @@ use std::sync::Arc;
 
 use log::debug as d;
 use once_cell::sync::Lazy;
-use windows::Win32::UI::Input::KeyboardAndMouse::SetCapture;
+use windows::Win32::UI::Input::KeyboardAndMouse::TME_LEAVE;
+use windows::Win32::UI::Input::KeyboardAndMouse::TRACKMOUSEEVENT_FLAGS;
 use windows::core::AsImpl;
 use windows::core::Error;
 use windows::core::Result;
@@ -22,6 +23,9 @@ use windows::Win32::Graphics::Gdi::PAINTSTRUCT;
 use windows::Win32::Graphics::Gdi::RDW_INVALIDATE;
 use windows::Win32::Graphics::Gdi::RDW_UPDATENOW;
 use windows::Win32::UI::HiDpi::GetDpiForWindow;
+use windows::Win32::UI::Input::KeyboardAndMouse::SetCapture;
+use windows::Win32::UI::Input::KeyboardAndMouse::TrackMouseEvent;
+use windows::Win32::UI::Input::KeyboardAndMouse::TRACKMOUSEEVENT;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
 use windows::Win32::UI::WindowsAndMessaging::SetWindowPos;
@@ -95,7 +99,7 @@ pub struct CandidateWindow {
     textformat: RefCell<IDWriteTextFormat>,
     textformat_sm: RefCell<IDWriteTextFormat>,
     metrics: RefCell<Metrics>,
-    mouse_focused_id: RefCell<u32>,
+    mouse_focused_id: RefCell<Option<u32>>,
     tracking_mouse: RefCell<bool>,
     page_data: Rc<RefCell<CandidatePage>>,
     text_rect: RefCell<Rect<i32>>,
@@ -126,7 +130,7 @@ impl CandidateWindow {
             textformat: RefCell::new(textformat),
             textformat_sm: RefCell::new(textformat_sm),
             metrics: RefCell::new(metrics),
-            mouse_focused_id: RefCell::new(u32::MAX),
+            mouse_focused_id: RefCell::new(None),
             tracking_mouse: RefCell::new(false),
             page_data: Rc::new(RefCell::new(CandidatePage::default())),
             text_rect: RefCell::new(Rect::default()),
@@ -234,7 +238,8 @@ impl CandidateWindow {
 
         self.set_row_height(layout.grid.row_height() as f32)?;
         let Size { mut w, mut h } = layout.grid.grid_size();
-        let mut left = text_rect.left() - self.metrics.borrow().qs_col_w;
+        let mut qs_col_w = self.metrics.borrow().qs_col_w;
+        let mut left = text_rect.left();
         let mut top = text_rect.bottom();
 
         if dpi_aware() {
@@ -242,7 +247,10 @@ impl CandidateWindow {
             log::debug!("Window dpi in calculatelayout: {}", dpi);
             w = w.to_px(dpi);
             h = h.to_px(dpi);
+            qs_col_w = qs_col_w.to_px(dpi);
         }
+
+        left = left - qs_col_w;
 
         if left + w > max_size.w {
             d!("Window too far to the right");
@@ -288,6 +296,21 @@ impl CandidateWindow {
 
         Ok(())
     }
+
+    fn mouse_focused_id(&self) -> Option<u32> {
+        *self.mouse_focused_id.borrow()
+    }
+
+    fn set_mouse_focused_id(&self, id: Option<u32>) {
+        self.mouse_focused_id.replace(id);
+    }
+
+    fn redraw(&self, handle: HWND) {
+        let flags = RDW_INVALIDATE | RDW_UPDATENOW;
+        unsafe {
+            RedrawWindow(handle, None, None, flags);
+        }
+    }
 }
 
 impl Wndproc<CandidateWindow> for CandidateWindow {}
@@ -305,9 +328,8 @@ impl WindowHandler for CandidateWindow {
         Ok(())
     }
 
-    fn on_click(&self, pt: Point<i32>) -> Result<()> {
+    fn on_click(&self, handle: HWND, pt: Point<i32>) -> Result<()> {
         d!("Clicked at: {:?}", pt);
-        let handle = self.handle()?;
 
         if !handle.contains_pt(pt) {
             self.hide()?;
@@ -315,6 +337,50 @@ impl WindowHandler for CandidateWindow {
             return winerr!(E_FAIL);
         }
 
+        Ok(())
+    }
+
+    fn on_mouse_move(&self, handle: HWND, pt: Point<i32>) -> Result<()> {
+        if !*self.tracking_mouse.borrow() {
+            self.tracking_mouse.replace(true);
+            let mut tme = TRACKMOUSEEVENT {
+                cbSize: std::mem::size_of::<TRACKMOUSEEVENT>() as u32,
+                dwFlags: TME_LEAVE,
+                hwndTrack: handle,
+                dwHoverTime: 0,
+            };
+            unsafe { TrackMouseEvent(&mut tme); }
+        }
+
+        if !handle.contains_pt(pt) {
+            self.mouse_focused_id.replace(None);
+            return Ok(());
+        }
+
+        let dpi = self.window.borrow().dpi;
+        let x = pt.x.to_dip(dpi);
+        let y = pt.y.to_dip(dpi);
+
+        if let Some(cand) = self.layout.borrow().hit_test(Point { x, y }) {
+            let mouse_focused = self.mouse_focused_id();
+
+            if let Some(curr_id) = mouse_focused {
+                if curr_id as i32 != cand.id {
+                    self.set_mouse_focused_id(Some(cand.id as u32));
+                }
+            } else {
+                self.set_mouse_focused_id(Some(cand.id as u32));
+            }
+        }
+        self.redraw(handle);
+        Ok(())
+    }
+
+    fn on_mouse_leave(&self, handle: HWND) -> Result<()> {
+        crate::trace!();
+        self.tracking_mouse.replace(false);
+        self.mouse_focused_id.replace(None);
+        self.redraw(handle);
         Ok(())
     }
 
@@ -340,7 +406,10 @@ impl WindowHandler for CandidateWindow {
                 page_data: &*self.page_data.borrow(),
                 metrics: &*self.metrics.borrow(),
                 cand_layout: &*self.layout.borrow(),
-                mouse_focused_id: *self.mouse_focused_id.borrow(),
+                mouse_focused_id: self
+                    .mouse_focused_id
+                    .borrow()
+                    .unwrap_or(u32::MAX),
             }
             .draw();
 

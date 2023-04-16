@@ -7,7 +7,6 @@ use std::sync::RwLock;
 
 use log::debug as d;
 use once_cell::sync::Lazy;
-use windows::Win32::UI::WindowsAndMessaging::HWND_DESKTOP;
 use windows::core::AsImpl;
 use windows::core::Error;
 use windows::core::Result;
@@ -36,6 +35,7 @@ use windows::Win32::UI::WindowsAndMessaging::LoadIconW;
 use windows::Win32::UI::WindowsAndMessaging::SetWindowPos;
 use windows::Win32::UI::WindowsAndMessaging::ShowWindow;
 use windows::Win32::UI::WindowsAndMessaging::SystemParametersInfoW;
+use windows::Win32::UI::WindowsAndMessaging::HWND_DESKTOP;
 use windows::Win32::UI::WindowsAndMessaging::SPI_GETWORKAREA;
 use windows::Win32::UI::WindowsAndMessaging::SWP_NOACTIVATE;
 use windows::Win32::UI::WindowsAndMessaging::SWP_NOZORDER;
@@ -55,7 +55,6 @@ use crate::geometry::Point;
 use crate::geometry::Rect;
 use crate::locales::t;
 use crate::resource::*;
-use crate::ui::client_hit_test;
 use crate::ui::colors::color_f;
 use crate::ui::colors::ColorScheme_F;
 use crate::ui::colors::COLOR_BLACK;
@@ -69,6 +68,7 @@ use crate::ui::window::WindowData;
 use crate::ui::window::WindowHandler;
 use crate::ui::wndproc::Wndproc;
 use crate::utils::CloneInner;
+use crate::utils::Hwnd;
 
 static FONT_NAME: &str = "Microsoft JhengHei UI Regular";
 
@@ -283,7 +283,7 @@ impl SystrayMenu {
     }
 
     fn hit_test(&self, handle: HWND, pt: Point<i32>) -> bool {
-        if !client_hit_test(handle, pt) {
+        if !handle.contains_pt(pt) {
             *self.highlighted_index.borrow_mut() = usize::MAX;
             return false;
         }
@@ -292,8 +292,8 @@ impl SystrayMenu {
 
         if let Ok(items) = self.items.try_borrow() {
             for (i, item) in items.iter().enumerate() {
-                let x_dp = pt.x.to_dp(dpi);
-                let y_dp = pt.y.to_dp(dpi);
+                let x_dp = pt.x.to_dip(dpi);
+                let y_dp = pt.y.to_dip(dpi);
                 let pt_dp = Point { x: x_dp, y: y_dp };
                 if item.rect.contains(pt_dp) {
                     if index != i {
@@ -337,15 +337,16 @@ impl WindowHandler for SystrayMenu {
         self.reset_graphics_resources()
     }
 
+    fn on_click(&self, handle: HWND, pt: Point<i32>) -> Result<()> {
+        d!("Clicked at: {:?}", pt);
+        Ok(())
+    }
+
     fn on_mouse_move(&self, handle: HWND, pt: Point<i32>) -> Result<()> {
         if self.hit_test(handle, pt) {
+            let flags = RDW_INVALIDATE | RDW_UPDATENOW;
             unsafe {
-                RedrawWindow(
-                    handle,
-                    None,
-                    None,
-                    RDW_INVALIDATE | RDW_UPDATENOW,
-                );
+                RedrawWindow(handle, None, None, flags);
             }
         }
 
@@ -386,11 +387,6 @@ impl WindowHandler for SystrayMenu {
             EndPaint(handle, &ps);
             Ok(())
         }
-    }
-
-    fn on_click(&self, pt: Point<i32>) -> Result<()> {
-        d!("Clicked at: {:?}", pt);
-        Ok(())
     }
 }
 

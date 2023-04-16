@@ -76,6 +76,7 @@ impl Grid {
 
     pub fn grid_size(&self) -> Size<i32> {
         let width = self.col_widths.iter().sum::<i32>();
+        // double check
         let height = self.rows as i32 * self.row_height
             + (self.rows as i32 + 1) * self.row_padding;
         Size {
@@ -85,16 +86,10 @@ impl Grid {
     }
 
     fn hit_test(&self, pt: Point<i32>) -> Option<GridCell> {
-        let size = self.grid_size();
-
-        if 0 <= pt.x && pt.x <= size.w && 0 <= pt.y && pt.y <= size.h {
-            let row =
-                pt.y.div_euclid(self.row_height + self.row_padding) as usize;
-
-            let mut sum = 0;
-            for (col, w) in self.col_widths.iter().enumerate() {
-                sum += w;
-                if pt.x <= sum {
+        for col in 0..self.cols {
+            for row in 0..self.rows {
+                let rect = self.cell_rect(row, col);
+                if rect.contains(pt) {
                     return Some(GridCell { row, col });
                 }
             }
@@ -140,7 +135,7 @@ impl CandidateLayout {
                 unsafe {
                     layout.GetMetrics(&mut metrics)?;
                 }
-                grid.ensure_col_width(i, metrics.width as i32 + qs_col_width);
+                grid.ensure_col_width(i, metrics.width as i32 + qs_col_width + row_padding * 2);
                 grid.ensure_row_height(metrics.height as i32);
                 layout_col.push((candidate.clone(), layout));
             }

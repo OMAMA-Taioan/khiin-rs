@@ -19,15 +19,6 @@ pub(crate) mod wndproc;
 mod dpi;
 mod dwm;
 
-pub fn client_hit_test(handle: HWND, pt: Point<i32>) -> bool {
-    let mut rect = RECT::default();
-    unsafe {
-        GetClientRect(handle, &mut rect);
-    }
-    let rect: Rect<i32> = (&rect).into();
-    rect.contains(pt)
-}
-
 pub unsafe fn vcenter_textlayout(
     layout: &IDWriteTextLayout,
     available_height: f32,

@@ -225,7 +225,7 @@ mod tests {
         engine.on_send_key(mock_send_key_request('a'))?;
         engine.on_send_key(mock_send_key_request('a'))?;
         let res = engine.on_send_key(mock_send_key_request('a'))?;
-        println!("{:#?}", res);
+        assert_eq!(res.preedit.segments.len(), 1);
         Ok(())
     }
 }

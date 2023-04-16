@@ -33,12 +33,12 @@ pub fn dpi_aware() -> bool {
 }
 
 pub trait Density {
-    fn to_dp(&self, dpi: u32) -> i32;
+    fn to_dip(&self, dpi: u32) -> i32;
     fn to_px(&self, dpi: u32) -> i32;
 }
 
 impl Density for i32 {
-    fn to_dp(&self, dpi: u32) -> i32 {
+    fn to_dip(&self, dpi: u32) -> i32 {
         let px = *self as f32;
         let dpi = dpi as f32;
         let base_dpi = DEFAULT_DPI as f32;
@@ -56,8 +56,8 @@ impl Density for i32 {
 }
 
 impl Density for u32 {
-    fn to_dp(&self, dpi: u32) -> i32 {
-        (*self as i32).to_dp(dpi)
+    fn to_dip(&self, dpi: u32) -> i32 {
+        (*self as i32).to_dip(dpi)
     }
 
     fn to_px(&self, dpi: u32) -> i32 {
