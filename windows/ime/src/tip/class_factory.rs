@@ -19,7 +19,7 @@ use windows::Win32::System::Com::IClassFactory_Impl;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 
 use crate::dll::DllModule;
-use crate::tip::text_service::TextService;
+use crate::tip::TextService;
 use crate::utils::WinGuid;
 
 #[implement(IClassFactory)]

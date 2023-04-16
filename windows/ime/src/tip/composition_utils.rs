@@ -19,10 +19,9 @@ use windows::Win32::UI::TextServices::TF_ST_CORRECTION;
 use windows::Win32::UI::WindowsAndMessaging::GetWindowRect;
 
 use crate::geometry::Rect;
+use crate::tip::TextService;
 use crate::utils::WinString;
 use crate::winerr;
-
-use super::text_service::TextService;
 
 // Getting the position of composition text on screen with
 // ITfContextView::GetTextExt seems rather unreliable in some applications, so

@@ -31,10 +31,9 @@ use windows::Win32::UI::TextServices::TF_ST_CORRECTION;
 
 use khiin_protos::command::Command;
 
+use crate::tip::text_service::TF_INVALID_GUIDATOM;
 use crate::utils::SegmentData;
 use crate::utils::ToWidePreedit;
-
-use super::text_service::TF_INVALID_GUIDATOM;
 
 pub struct CompositionMgr {
     composition: RefCell<Option<ITfComposition>>,
@@ -135,8 +134,7 @@ impl CompositionMgr {
             let display = preedit.display.clone();
             comp_range.SetText(ec, TF_ST_CORRECTION, &display)?;
 
-            let prop =
-                context.GetProperty(&GUID_PROP_ATTRIBUTE)?;
+            let prop = context.GetProperty(&GUID_PROP_ATTRIBUTE)?;
             for segment in preedit.segments {
                 let SegmentData {
                     start,

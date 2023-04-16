@@ -16,9 +16,8 @@ use windows::Win32::UI::WindowsAndMessaging::PostMessageW;
 
 use khiin_protos::command::*;
 
+use crate::engine::message_handler::WM_KHIIN_COMMAND;
 use crate::winerr;
-
-use super::message_handler::WM_KHIIN_COMMAND;
 
 struct EngineCoordinator {
     engine: khiin::Engine,

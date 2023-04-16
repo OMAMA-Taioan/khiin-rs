@@ -1,13 +1,5 @@
-use windows::Win32::Foundation::HWND;
-use windows::Win32::Foundation::RECT;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextLayout;
 use windows::Win32::Graphics::DirectWrite::DWRITE_TEXT_METRICS;
-use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
-
-use crate::geometry::Point;
-use crate::geometry::Rect;
-
-pub use render_factory::RenderFactory;
 
 pub(crate) mod candidates;
 pub(crate) mod colors;
@@ -15,6 +7,8 @@ pub(crate) mod render_factory;
 pub(crate) mod systray;
 pub(crate) mod window;
 pub(crate) mod wndproc;
+
+pub(crate) use render_factory::RenderFactory;
 
 mod dpi;
 mod dwm;

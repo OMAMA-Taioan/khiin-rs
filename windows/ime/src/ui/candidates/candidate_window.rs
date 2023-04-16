@@ -4,8 +4,6 @@ use std::sync::Arc;
 
 use log::debug as d;
 use once_cell::sync::Lazy;
-use windows::Win32::UI::Input::KeyboardAndMouse::TME_LEAVE;
-use windows::Win32::UI::Input::KeyboardAndMouse::TRACKMOUSEEVENT_FLAGS;
 use windows::core::AsImpl;
 use windows::core::Error;
 use windows::core::Result;
@@ -25,6 +23,7 @@ use windows::Win32::Graphics::Gdi::RDW_UPDATENOW;
 use windows::Win32::UI::HiDpi::GetDpiForWindow;
 use windows::Win32::UI::Input::KeyboardAndMouse::SetCapture;
 use windows::Win32::UI::Input::KeyboardAndMouse::TrackMouseEvent;
+use windows::Win32::UI::Input::KeyboardAndMouse::TME_LEAVE;
 use windows::Win32::UI::Input::KeyboardAndMouse::TRACKMOUSEEVENT;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
@@ -45,7 +44,9 @@ use crate::dll::DllModule;
 use crate::geometry::Point;
 use crate::geometry::Rect;
 use crate::geometry::Size;
+use crate::ui::candidates::CandidateLayout;
 use crate::ui::candidates::CandidatePage;
+use crate::ui::candidates::CandidateRenderer;
 use crate::ui::candidates::Metrics;
 use crate::ui::colors::ColorScheme_F;
 use crate::ui::colors::COLOR_SCHEME_LIGHT;
@@ -57,9 +58,6 @@ use crate::ui::wndproc::Wndproc;
 use crate::utils::CloneInner;
 use crate::utils::Hwnd;
 use crate::winerr;
-
-use super::layout::CandidateLayout;
-use super::renderer::CandidateRenderer;
 
 static FONT_NAME: &str = "Arial";
 const DW_STYLE: Lazy<WINDOW_STYLE> = Lazy::new(|| WS_BORDER | WS_POPUP);
@@ -349,7 +347,9 @@ impl WindowHandler for CandidateWindow {
                 hwndTrack: handle,
                 dwHoverTime: 0,
             };
-            unsafe { TrackMouseEvent(&mut tme); }
+            unsafe {
+                TrackMouseEvent(&mut tme);
+            }
         }
 
         if !handle.contains_pt(pt) {

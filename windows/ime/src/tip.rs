@@ -18,4 +18,16 @@ mod text_service;
 mod thread_focus_sink;
 mod thread_mgr_event_sink;
 
+pub(crate) use candidate_list_ui::CandidateListUI;
+pub(crate) use compartment::Compartment;
+pub(crate) use composition_mgr::CompositionMgr;
+pub(crate) use display_attributes::DisplayAttributes;
+pub(crate) use edit_session::open_edit_session;
 pub(crate) use edit_session::TfEditCookie;
+pub(crate) use key_event::KeyEvent;
+pub(crate) use key_event_sink::KeyEventSink;
+pub(crate) use lang_bar_indicator::LangBarIndicator;
+pub(crate) use preserved_key_mgr::PreservedKeyMgr;
+pub(crate) use sink_mgr::SinkMgr;
+pub(crate) use text_service::TextService;
+pub(crate) use thread_mgr_event_sink::ThreadMgrEventSink;

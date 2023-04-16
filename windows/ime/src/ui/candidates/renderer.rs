@@ -19,15 +19,15 @@ use super::CandidatePage;
 use super::Metrics;
 
 pub(super) struct CandidateRenderer<'a> {
-    pub(super) factory: &'a Arc<RenderFactory>,
-    pub(super) target: &'a ID2D1DCRenderTarget,
-    pub(super) textformat_sm: &'a IDWriteTextFormat,
-    pub(super) brush: &'a ID2D1SolidColorBrush,
-    pub(super) colors: &'a ColorScheme_F,
-    pub(super) page_data: &'a CandidatePage,
-    pub(super) metrics: &'a Metrics,
-    pub(super) cand_layout: &'a CandidateLayout,
-    pub(super) mouse_focused_id: u32,
+    pub factory: &'a Arc<RenderFactory>,
+    pub target: &'a ID2D1DCRenderTarget,
+    pub textformat_sm: &'a IDWriteTextFormat,
+    pub brush: &'a ID2D1SolidColorBrush,
+    pub colors: &'a ColorScheme_F,
+    pub page_data: &'a CandidatePage,
+    pub metrics: &'a Metrics,
+    pub cand_layout: &'a CandidateLayout,
+    pub mouse_focused_id: u32,
 }
 
 impl<'a> CandidateRenderer<'a> {

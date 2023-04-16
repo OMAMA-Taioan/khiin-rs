@@ -28,10 +28,8 @@ use khiin_protos::command::Request;
 use crate::reg::guids::GUID_PRESERVED_KEY_FULL_WIDTH_SPACE;
 use crate::reg::guids::GUID_PRESERVED_KEY_ON_OFF;
 use crate::reg::guids::GUID_PRESERVED_KEY_SWITCH_MODE;
-use crate::tip::key_event::KeyEvent;
-use crate::tip::text_service::TextService;
-
-// use super::engine_mgr;
+use crate::tip::KeyEvent;
+use crate::tip::TextService;
 
 pub fn translate_key_event(input: KeyEvent) -> KhiEvent {
     let mut proto = KhiEvent::new();
