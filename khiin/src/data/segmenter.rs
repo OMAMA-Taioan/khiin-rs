@@ -1,11 +1,9 @@
 use std::collections::HashMap;
 
-use anyhow::anyhow;
 use anyhow::Result;
 use bit_vec::BitVec;
 
-use super::models::KeySequence;
-use super::trie::Trie;
+use crate::data::models::KeySequence;
 
 static BIG: f64 = 1e10;
 
@@ -126,7 +124,7 @@ where
 /// cost, or to improve our corpus for better results. The current model uses:
 ///
 /// COST =  ln (1 / 𝓟)
-/// 
+///
 /// where `𝓟` is the number of occurrences of a word in the corpus divided by
 /// the total number of words in the corpus. This seems to give decent results.
 fn segment_min_cost(

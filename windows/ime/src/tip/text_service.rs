@@ -6,6 +6,7 @@ use std::sync::Arc;
 use std::sync::RwLock;
 
 use khiin_protos::command::SegmentStatus;
+use log::debug as d;
 use protobuf::MessageField;
 use windows::core::implement;
 use windows::core::AsImpl;
@@ -124,10 +125,7 @@ pub struct TextService {
 
     // UI elements
     enum_disp_attr_info: IEnumTfDisplayAttributeInfo,
-    disp_attrs: RefCell<HashMap<SegmentStatus, u32>>,
-    input_attr_guidatom: ArcLock<u32>,
-    converted_attr_guidatom: ArcLock<u32>,
-    focused_attr_guidatom: ArcLock<u32>,
+    disp_attr_guidatoms: RefCell<HashMap<SegmentStatus, u32>>,
     lang_bar_indicator: RefCell<Option<ITfLangBarItemButton>>,
     preserved_key_mgr: RefCell<Option<PreservedKeyMgr>>,
     candidate_list_ui: RefCell<Option<ITfUIElement>>,
@@ -139,13 +137,6 @@ pub struct TextService {
     message_handler: RefCell<Option<HWND>>,
     context_cache: Rc<RefCell<HashMap<u32, ITfContext>>>,
 }
-
-pub struct Context {
-    pub id: u32,
-    pub context: ITfContext,
-}
-
-static mut OOPS: u32 = 0;
 
 // Public portion
 impl TextService {
@@ -191,10 +182,7 @@ impl TextService {
 
             preserved_key_mgr: RefCell::new(None),
             enum_disp_attr_info: DisplayAttributes::new().into(),
-            disp_attrs: RefCell::new(HashMap::new()),
-            input_attr_guidatom: ArcLock::new(TF_INVALID_GUIDATOM),
-            converted_attr_guidatom: ArcLock::new(TF_INVALID_GUIDATOM),
-            focused_attr_guidatom: ArcLock::new(TF_INVALID_GUIDATOM),
+            disp_attr_guidatoms: RefCell::new(HashMap::new()),
             lang_bar_indicator: RefCell::new(None),
             candidate_list_ui: RefCell::new(None),
             composition_mgr: Arc::new(RwLock::new(CompositionMgr::new()?)),
@@ -274,7 +262,7 @@ impl TextService {
             .map_err(|_| Error::from(E_FAIL))?;
 
         let sink: ITfCompositionSink = self.this().cast()?;
-        let attr_atoms = &*self.disp_attrs.borrow();
+        let attr_atoms = &*self.disp_attr_guidatoms.borrow();
         comp_mgr.notify_command(ec, context, sink, command, attr_atoms)
     }
 
@@ -289,16 +277,11 @@ impl TextService {
         context: ITfContext,
         command: Arc<Command>,
     ) -> Result<()> {
-        unsafe {
-            OOPS += 1;
-        }
-
-        if unsafe { OOPS } > 5 {
-            println!("Its broken");
-        }
-
         let focused_caret = command.response.preedit.focused_caret;
         let rect = text_position(ec, context.clone(), focused_caret)?;
+
+        log::debug!("Text position: {:?}", rect);
+
         let cand_ui = self
             .candidate_list_ui
             .try_borrow()
@@ -370,10 +353,12 @@ impl TextService {
         self.init_key_event_sink()?;
         self.init_display_attributes()?;
         self.set_enabled(true)?;
+        log::debug!("TextService fully activated");
         Ok(())
     }
 
     fn deactivate(&self) -> Result<()> {
+        log::debug!("TextService begin deactivating");
         self.set_enabled(false).ok();
         self.deinit_composition_mgr().ok();
         self.deinit_display_attributes().ok();
@@ -643,14 +628,14 @@ impl TextService {
             map.insert(SegmentStatus::SS_FOCUSED, focused_attr);
             map.insert(SegmentStatus::SS_CONVERTED, converted_attr);
             map.insert(SegmentStatus::SS_UNMARKED, TF_INVALID_GUIDATOM);
-            self.disp_attrs.replace(map);
+            self.disp_attr_guidatoms.replace(map);
         }
 
         Ok(())
     }
 
     fn deinit_display_attributes(&self) -> Result<()> {
-        self.disp_attrs.replace(HashMap::new());
+        self.disp_attr_guidatoms.replace(HashMap::new());
         Ok(())
     }
 
@@ -767,6 +752,8 @@ impl ITfTextInputProcessorEx_Impl for TextService {
         tid: u32,
         dwflags: u32,
     ) -> Result<()> {
+        crate::trace!();
+
         self.clientid.set(tid)?;
         self.dwflags.set(dwflags)?;
 
@@ -774,6 +761,7 @@ impl ITfTextInputProcessorEx_Impl for TextService {
             Some(threadmgr) => {
                 self.threadmgr.replace(Some(threadmgr.clone()));
                 if self.activate().is_err() {
+                    d!("TextService activation failed, deactivating...");
                     self.deactivate()?;
                 }
                 Ok(())

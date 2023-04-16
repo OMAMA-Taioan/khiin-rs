@@ -1,5 +1,6 @@
 use log::warn;
 use once_cell::sync::OnceCell;
+use win_dbg_logger::rust_win_dbg_logger_init_debug;
 
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
@@ -106,6 +107,8 @@ pub extern "system" fn DllMain(
                 return FALSE;
             }
 
+            rust_win_dbg_logger_init_debug();
+            
             let dll_module = DllModule {
                 ref_count: Arc::new(AtomicUsize::new(0)),
                 module,

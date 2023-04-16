@@ -4,6 +4,7 @@ use std::slice::from_raw_parts_mut;
 use std::sync::Arc;
 
 use khiin_protos::command::EditState::ES_COMPOSING;
+use windows::Win32::UI::Input::KeyboardAndMouse::GetFocus;
 use windows::core::implement;
 use windows::core::AsImpl;
 use windows::core::ComInterface;
@@ -71,7 +72,7 @@ impl CandidateListUI {
         let elem: ITfUIElement = Self {
             tip: tip.clone(),
             element_id: ArcLock::new(0),
-            popup: CandidateWindow::new(tip)?,
+            popup: Arc::new(CandidateWindow::new(tip)?),
             pager: Rc::new(RefCell::new(Pager::default())),
             context: RefCell::new(None),
             command: RefCell::new(cmd.clone()),
@@ -90,13 +91,23 @@ impl CandidateListUI {
         self.end_ui_elem()
     }
 
+    fn create_candidate_window(&self, context: ITfContext) -> Result<()> {
+        unsafe {
+            let context_view = context.GetActiveView()?;
+            let parent = context_view.GetWnd().unwrap_or(GetFocus());
+            CandidateWindow::register(self.popup.clone(), parent)
+        }
+    }
+
     pub fn notify_command(
         &self,
         context: ITfContext,
         command: Arc<Command>,
         rect: Rect<i32>,
     ) -> Result<()> {
-        self.context.replace(Some(context));
+        self.context.replace(Some(context.clone()));
+        self.create_candidate_window(context)?;
+
         let res = &command.response;
         let edit_state = res.edit_state.enum_value_or_default();
         let focused_id = res.candidate_list.focused;

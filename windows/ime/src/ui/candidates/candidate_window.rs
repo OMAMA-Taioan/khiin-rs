@@ -2,7 +2,9 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::Arc;
 
+use log::debug as d;
 use once_cell::sync::Lazy;
+use windows::Win32::UI::Input::KeyboardAndMouse::SetCapture;
 use windows::core::AsImpl;
 use windows::core::Error;
 use windows::core::Result;
@@ -19,6 +21,7 @@ use windows::Win32::Graphics::Gdi::RedrawWindow;
 use windows::Win32::Graphics::Gdi::PAINTSTRUCT;
 use windows::Win32::Graphics::Gdi::RDW_INVALIDATE;
 use windows::Win32::Graphics::Gdi::RDW_UPDATENOW;
+use windows::Win32::UI::HiDpi::GetDpiForWindow;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
 use windows::Win32::UI::WindowsAndMessaging::SetWindowPos;
@@ -35,6 +38,7 @@ use windows::Win32::UI::WindowsAndMessaging::WS_EX_TOPMOST;
 use windows::Win32::UI::WindowsAndMessaging::WS_POPUP;
 
 use crate::dll::DllModule;
+use crate::geometry::Point;
 use crate::geometry::Rect;
 use crate::geometry::Size;
 use crate::ui::candidates::CandidatePage;
@@ -47,6 +51,8 @@ use crate::ui::window::WindowData;
 use crate::ui::window::WindowHandler;
 use crate::ui::wndproc::Wndproc;
 use crate::utils::CloneInner;
+use crate::utils::Hwnd;
+use crate::winerr;
 
 use super::layout::CandidateLayout;
 use super::renderer::CandidateRenderer;
@@ -71,6 +77,17 @@ pub struct WindowPosInfo {
     height: i32,
 }
 
+impl WindowPosInfo {
+    pub fn adjust_for_window_dpi(&mut self, handle: HWND) {
+        let dpi = unsafe { GetDpiForWindow(handle) };
+        log::debug!("Window dpi: {}", dpi);
+        // self.left = self.left.to_px(dpi);
+        // self.top = self.top.to_px(dpi);
+        self.width = self.width.to_px(dpi);
+        self.height = self.height.to_px(dpi);
+    }
+}
+
 pub struct CandidateWindow {
     tip: ITfTextInputProcessor,
     window: Rc<RefCell<WindowData>>,
@@ -87,7 +104,7 @@ pub struct CandidateWindow {
 }
 
 impl CandidateWindow {
-    pub fn new(tip: ITfTextInputProcessor) -> Result<Arc<Self>> {
+    pub fn new(tip: ITfTextInputProcessor) -> Result<Self> {
         let service = tip.as_impl();
         let factory = service.render_factory.clone();
         let window = WindowData::new(factory)?;
@@ -102,7 +119,7 @@ impl CandidateWindow {
             .factory
             .create_text_format(FONT_NAME, metrics.font_size_sm)?;
 
-        let this = Arc::new(Self {
+        Ok(Self {
             tip,
             window: Rc::new(RefCell::new(window)),
             brush: RefCell::new(brush),
@@ -115,17 +132,19 @@ impl CandidateWindow {
             text_rect: RefCell::new(Rect::default()),
             layout: RefCell::new(CandidateLayout::default()),
             colors: RefCell::new(COLOR_SCHEME_LIGHT.into()),
-        });
+        })
+    }
 
+    pub fn register(this: Arc<Self>, parent: HWND) -> Result<()> {
         Wndproc::create(
-            this.clone(),
+            this,
             DllModule::global().module,
+            parent,
             "",
-            DW_STYLE.0,
-            DW_EX_STYLE.0,
+            (WS_BORDER | WS_POPUP).0,
+            (WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE).0,
         )?;
-
-        Ok(this)
+        Ok(())
     }
 
     pub fn is_showing(&self) -> Result<bool> {
@@ -143,6 +162,7 @@ impl CandidateWindow {
     ) -> Result<()> {
         let pos = self.calculate_layout(page, text_rect)?;
         let handle = self.handle()?;
+        // pos.adjust_for_window_dpi(handle);
 
         unsafe {
             SetWindowPos(
@@ -159,8 +179,9 @@ impl CandidateWindow {
         if !self.is_showing()? {
             unsafe {
                 ShowWindow(handle, SW_SHOWNA);
+                SetCapture(handle);
             }
-            self.set_showing()?;
+            self.set_showing(true)?;
         } else {
             unsafe {
                 RedrawWindow(
@@ -175,12 +196,12 @@ impl CandidateWindow {
         Ok(())
     }
 
-    fn set_showing(&self) -> Result<()> {
+    fn set_showing(&self, showing: bool) -> Result<()> {
         let mut window = self
             .window
             .try_borrow_mut()
             .map_err(|_| Error::from(E_FAIL))?;
-        window.showing = true;
+        window.showing = showing;
         Ok(())
     }
 
@@ -196,6 +217,8 @@ impl CandidateWindow {
             w: self.window.borrow().max_width,
             h: self.window.borrow().max_height,
         };
+
+        d!("Max size: {:?}", max_size);
 
         let padding = self.metrics.borrow().padding as i32;
 
@@ -216,22 +239,29 @@ impl CandidateWindow {
 
         if dpi_aware() {
             let dpi = self.window.borrow().dpi;
+            log::debug!("Window dpi in calculatelayout: {}", dpi);
             w = w.to_px(dpi);
             h = h.to_px(dpi);
         }
 
         if left + w > max_size.w {
+            d!("Window too far to the right");
             left = max_size.w - w;
         }
         if top + h > max_size.h {
+            d!("Window off screen to the bottom");
             top = text_rect.top() - h;
         }
         if left < 0 {
+            d!("Window off screen to the left");
             left = padding;
         }
         if top < 0 {
+            d!("Window off screen to the top");
             top = padding;
         }
+
+        d!("Window pos to (x: {}, y: {}, w: {}, h: {}", left, top, w, h);
 
         self.layout.replace(layout);
 
@@ -272,6 +302,19 @@ impl WindowHandler for CandidateWindow {
         if let Ok(mut window) = self.window.try_borrow_mut() {
             window.handle = handle;
         }
+        Ok(())
+    }
+
+    fn on_click(&self, pt: Point<i32>) -> Result<()> {
+        d!("Clicked at: {:?}", pt);
+        let handle = self.handle()?;
+
+        if !handle.contains_pt(pt) {
+            self.hide()?;
+            self.set_showing(false)?;
+            return winerr!(E_FAIL);
+        }
+
         Ok(())
     }
 

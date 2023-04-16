@@ -1,9 +1,8 @@
 use std::ops::Deref;
 use std::ops::DerefMut;
 
+use crate::buffer::BufferElement;
 use crate::data::models::Conversion;
-
-use super::BufferElement;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StringElem {

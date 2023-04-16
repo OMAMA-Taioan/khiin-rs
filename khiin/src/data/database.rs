@@ -1,17 +1,13 @@
-use std::fmt::format;
 use std::path::PathBuf;
 
-use anyhow::Error;
 use anyhow::Result;
-use anyhow::anyhow;
 use rusqlite::Connection;
 use rusqlite::OpenFlags;
 use rusqlite::Row;
 
 use crate::config::InputType;
-
-use super::models::Conversion;
-use super::models::KeySequence;
+use crate::data::models::Conversion;
+use crate::data::models::KeySequence;
 
 pub struct Database {
     conn: Connection,
@@ -177,7 +173,9 @@ mod tests {
     #[test]
     fn it_finds_conversions() {
         let db = get_db();
-        let res = db.find_conversions(InputType::Numeric, "ho2", None).unwrap();
+        let res = db
+            .find_conversions(InputType::Numeric, "ho2", None)
+            .unwrap();
         assert!(res.len() >= 2);
         assert!(res.iter().any(|row| row.output == "好"));
         assert!(res.iter().any(|row| row.output == "hó"));

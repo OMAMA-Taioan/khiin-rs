@@ -4,7 +4,7 @@ use anyhow::Result;
 use qp_trie::wrapper::BString;
 use qp_trie::Trie as QpTrie;
 
-use super::models::KeySequence;
+use crate::data::models::KeySequence;
 
 pub struct Trie {
     qp_trie: QpTrie<BString, u32>,

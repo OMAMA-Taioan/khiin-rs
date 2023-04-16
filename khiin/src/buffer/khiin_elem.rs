@@ -1,11 +1,9 @@
 use anyhow::anyhow;
 use anyhow::Result;
 
+use crate::buffer::BufferElement;
 use crate::data::models::Conversion;
 use crate::input::Syllable;
-use crate::input::Tone;
-
-use super::BufferElement;
 
 const SYL_SEPS: [char; 2] = ['-', ' '];
 

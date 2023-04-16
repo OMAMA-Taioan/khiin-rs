@@ -1,3 +1,5 @@
+use log::debug as d;
+
 use windows::core::ComInterface;
 use windows::core::Error;
 use windows::core::Result;
@@ -22,15 +24,13 @@ use crate::winerr;
 
 use super::text_service::TextService;
 
-/**
- * Getting the position of composition text on screen with ITfContextView::GetTextExt
- * seems rather unreliable in some applications, so we include some fallbacks.
- * If everything works as expected, we will get the range from the ITfContext
- * directly (via the ITfCompositionView). If not, we try the default selection.
- * Finally, if both fail, we put the window in the upper left corner of the parent
- * window, which is not ideal but still better than falling back to 0,0 at the
- * upper left corner of the entire screen.
- */
+// Getting the position of composition text on screen with
+// ITfContextView::GetTextExt seems rather unreliable in some applications, so
+// we include some fallbacks. If everything works as expected, we will get the
+// range from the ITfContext directly (via the ITfCompositionView). If not, we
+// try the default selection. Finally, if both fail, we put the window in the
+// upper left corner of the parent window, which is not ideal but still better
+// than falling back to 0,0 at the upper left corner of the entire screen.
 pub fn text_position(
     ec: u32,
     context: ITfContext,
@@ -40,6 +40,7 @@ pub fn text_position(
         let context_view = context.GetActiveView()?;
         let range = composition_range(ec, context.clone())?;
         let mut shifted = 0i32;
+
         range.Collapse(ec, TF_ANCHOR_START)?;
         range.ShiftEnd(ec, caret, &mut shifted, std::ptr::null())?;
         range.ShiftStart(ec, caret, &mut shifted, std::ptr::null())?;
@@ -49,20 +50,23 @@ pub fn text_position(
         context_view.GetTextExt(ec, &range, &mut rect, &mut clipped)?;
 
         if !empty_rect(&rect) {
+            d!("text position from composition range: {:?}", rect);
             return Ok((&rect).into());
         }
 
-        let range = default_selection_range(ec, context)?;
         let text = " ".to_utf16_nul();
+        let range = default_selection_range(ec, context)?;
         range.SetText(ec, TF_ST_CORRECTION, &text)?;
         range.Collapse(ec, TF_ANCHOR_START)?;
         context_view.GetTextExt(ec, &range, &mut rect, &mut clipped)?;
 
         if !empty_rect(&rect) {
+            d!("text position from default selection range: {:?}", rect);
             return Ok((&rect).into());
         }
 
         let rect = parent_window_origin(context_view)?;
+        d!("text position parent window origin: {:?}", rect);
         Ok((&rect).into())
     }
 }

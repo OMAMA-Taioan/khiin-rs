@@ -8,7 +8,6 @@ use windows::Win32::UI::WindowsAndMessaging::SetWindowTextW;
 use crate::locales::t;
 use crate::pages::PageHandler;
 use crate::resource::*;
-use crate::windowsx::*;
 
 #[derive(Default)]
 pub struct StylePage {

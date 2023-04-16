@@ -6,6 +6,7 @@ pub(crate) mod string_elem;
 
 pub(crate) use buffer::Buffer;
 pub(crate) use buffer_element::BufferElement;
+pub(crate) use buffer_element::BufferElementEnum;
 pub(crate) use buffer_mgr::BufferMgr;
 pub(crate) use khiin_elem::KhiinElem;
 pub(crate) use string_elem::StringElem;

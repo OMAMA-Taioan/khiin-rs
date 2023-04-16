@@ -5,7 +5,9 @@ use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::RwLock;
 
+use log::debug as d;
 use once_cell::sync::Lazy;
+use windows::Win32::UI::WindowsAndMessaging::HWND_DESKTOP;
 use windows::core::AsImpl;
 use windows::core::Error;
 use windows::core::Result;
@@ -21,7 +23,6 @@ use windows::Win32::Graphics::Direct2D::ID2D1SolidColorBrush;
 use windows::Win32::Graphics::Direct2D::D2D1_BITMAP_INTERPOLATION_MODE;
 use windows::Win32::Graphics::Direct2D::D2D1_DRAW_TEXT_OPTIONS_NONE;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextFormat;
-use windows::Win32::Graphics::DirectWrite::IDWriteTextLayout;
 use windows::Win32::Graphics::DirectWrite::DWRITE_TEXT_METRICS;
 use windows::Win32::Graphics::Gdi::BeginPaint;
 use windows::Win32::Graphics::Gdi::EndPaint;
@@ -148,6 +149,7 @@ impl SystrayMenu {
         Wndproc::create(
             this.clone(),
             DllModule::global().module,
+            HWND_DESKTOP,
             "",
             DW_STYLE.0,
             DW_EX_STYLE.0,
@@ -384,6 +386,11 @@ impl WindowHandler for SystrayMenu {
             EndPaint(handle, &ps);
             Ok(())
         }
+    }
+
+    fn on_click(&self, pt: Point<i32>) -> Result<()> {
+        d!("Clicked at: {:?}", pt);
+        Ok(())
     }
 }
 

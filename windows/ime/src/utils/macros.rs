@@ -22,3 +22,10 @@ macro_rules! check_win32error {
         }
     };
 }
+
+#[macro_export]
+macro_rules! trace {
+    () => {
+        log::debug!("{}", stdext::function_name!());
+    };
+}

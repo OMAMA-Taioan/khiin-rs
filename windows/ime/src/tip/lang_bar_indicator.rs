@@ -12,7 +12,6 @@ use windows::core::IUnknown;
 use windows::core::Result;
 use windows::core::BSTR;
 use windows::core::GUID;
-use windows::core::PCWSTR;
 use windows::Win32::Foundation::BOOL;
 use windows::Win32::Foundation::E_INVALIDARG;
 use windows::Win32::Foundation::E_NOTIMPL;
@@ -44,12 +43,10 @@ use windows::Win32::UI::WindowsAndMessaging::IMAGE_ICON;
 use windows::Win32::UI::WindowsAndMessaging::LR_DEFAULTCOLOR;
 
 use crate::dll::DllModule;
-use crate::geometry::Point;
 use crate::reg::guids::IID_KhiinTextService;
 use crate::resource::make_int_resource;
 use crate::resource::IDI_MODE_CONTINUOUS;
 use crate::ui::systray::SystrayMenu;
-use crate::ui::window::WindowHandler;
 use crate::ui::wndproc::Wndproc;
 use crate::winerr;
 

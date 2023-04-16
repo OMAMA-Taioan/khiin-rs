@@ -2,7 +2,8 @@ use std::cell::RefCell;
 use std::mem::transmute;
 use std::rc::Rc;
 use std::sync::Arc;
-use windows::core::Error;
+
+use log::debug as d;
 use windows::core::Result;
 use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::E_NOTIMPL;
@@ -43,8 +44,6 @@ use crate::ui::dpi::dpi_aware;
 use crate::ui::dpi::Density;
 use crate::ui::dwm::set_rounded_corners;
 use crate::ui::render_factory::RenderFactory;
-use crate::utils::get_x_param;
-use crate::utils::get_y_param;
 use crate::utils::hi_word;
 use crate::utils::lo_word;
 use crate::winerr;
@@ -103,15 +102,12 @@ pub trait WindowHandler {
             WM_DPICHANGED => {
                 let dpi = hi_word(wparam.0 as u32);
                 let rect: &RECT = unsafe { transmute(lparam) };
+                log::debug!("Dpi changed to: {}", dpi);
                 self.on_dpi_changed(handle, dpi, rect.into())
             },
-            WM_MOUSEMOVE => {
-                let x = get_x_param(lparam);
-                let y = get_y_param(lparam);
-                self.on_mouse_move(handle, Point { x, y })
-            },
+            WM_MOUSEMOVE => self.on_mouse_move(handle, lparam.into()),
             WM_MOUSELEAVE => self.on_mouse_leave(),
-            WM_LBUTTONDOWN => self.on_click(),
+            WM_LBUTTONDOWN => self.on_click(lparam.into()),
             WM_SHOWWINDOW => match wparam.0 {
                 0 => self.on_hide_window(),
                 _ => self.on_show_window(),
@@ -128,6 +124,10 @@ pub trait WindowHandler {
         if let Ok(mut window) = self.window_data().try_borrow_mut() {
             let target = window.factory.create_dc_render_target()?;
             window.target = target.clone();
+            let dpi = window.dpi as f32;
+            unsafe {
+                window.target.SetDpi(dpi, dpi);
+            }
         }
 
         Ok(())
@@ -191,6 +191,7 @@ pub trait WindowHandler {
     }
 
     fn on_monitor_change(&self, handle: HWND) -> Result<()> {
+        d!("on_monitor_changed");
         let hmon = unsafe {
             MonitorFromWindow(GetParent(handle), MONITOR_DEFAULTTONEAREST)
         };
@@ -199,10 +200,18 @@ pub trait WindowHandler {
         unsafe {
             GetMonitorInfoW(hmon, &mut info);
         }
+
+        d!(
+            "Monitor max w: {}, h: {}",
+            info.rcMonitor.right,
+            info.rcMonitor.bottom
+        );
+
         {
             if let Ok(mut window) = self.window_data().try_borrow_mut() {
                 window.max_width = info.rcMonitor.right;
                 window.max_height = info.rcMonitor.bottom;
+                d!("Set window max height/width OK");
                 Ok(())
             } else {
                 winerr!(E_FAIL)
@@ -229,6 +238,7 @@ pub trait WindowHandler {
         dpi: u16,
         new_size: Rect<i32>,
     ) -> Result<()> {
+        crate::trace!();
         self.set_dpi(handle, dpi)?;
         let Rect {
             origin: Point { x, y },
@@ -257,11 +267,15 @@ pub trait WindowHandler {
         winerr!(E_NOTIMPL)
     }
 
-    fn on_click(&self) -> Result<()> {
+    fn on_resize(&self, width: u16, height: u16) -> Result<()> {
         winerr!(E_NOTIMPL)
     }
 
-    fn on_resize(&self, width: u16, height: u16) -> Result<()> {
+    fn on_click(&self, pt: Point<i32>) -> Result<()> {
+        d!(
+            "on_click not implemented for this window. Click at: {:?}",
+            pt
+        );
         winerr!(E_NOTIMPL)
     }
 

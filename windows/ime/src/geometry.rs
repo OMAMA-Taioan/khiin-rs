@@ -1,5 +1,8 @@
+use std::fmt::Debug;
+
 use num::cast::NumCast;
 use num::Num;
+use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::POINT;
 use windows::Win32::Foundation::RECT;
 use windows::Win32::Graphics::Direct2D::Common::D2D_POINT_2F;
@@ -7,18 +10,30 @@ use windows::Win32::Graphics::Direct2D::Common::D2D_RECT_F;
 use windows::Win32::Graphics::Direct2D::D2D1_ELLIPSE;
 use windows::Win32::Graphics::Direct2D::D2D1_ROUNDED_RECT;
 
+use crate::utils::get_x_param;
+use crate::utils::get_y_param;
+
 #[derive(Copy, Clone, Default)]
 pub struct Point<T>
 where
-    T: Copy + Num + NumCast + PartialOrd,
+    T: Debug + Copy + Num + NumCast + PartialOrd,
 {
     pub x: T,
     pub y: T,
 }
 
+impl<T> Debug for Point<T>
+where
+    T: Debug + Copy + Num + NumCast + PartialOrd,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Point=(x: {:?}, y: {:?})", &self.x, &self.y)
+    }
+}
+
 impl<T> Point<T>
 where
-    T: Copy + Num + NumCast + PartialOrd,
+    T: Debug + Copy + Num + NumCast + PartialOrd,
 {
     pub fn new(x: T, y: T) -> Self {
         Self { x, y }
@@ -51,7 +66,7 @@ impl Point<i32> {
 
 impl<T> From<POINT> for Point<T>
 where
-    T: Copy + Num + NumCast + PartialOrd,
+    T: Debug + Copy + Num + NumCast + PartialOrd,
 {
     fn from(value: POINT) -> Self {
         Point {
@@ -63,7 +78,7 @@ where
 
 impl<T> From<&POINT> for Point<T>
 where
-    T: Copy + Num + NumCast + PartialOrd,
+    T: Debug + Copy + Num + NumCast + PartialOrd,
 {
     fn from(value: &POINT) -> Self {
         Point {
@@ -73,7 +88,21 @@ where
     }
 }
 
-#[derive(Default, Clone, Copy)]
+impl<T> From<LPARAM> for Point<T>
+where
+    T: Debug + Copy + Num + NumCast + PartialOrd,
+{
+    fn from(value: LPARAM) -> Self {
+        let x = get_x_param(value);
+        let y = get_y_param(value);
+        Point {
+            x: NumCast::from(x).unwrap(),
+            y: NumCast::from(y).unwrap(),
+        }
+    }
+}
+
+#[derive(Debug, Default, Clone, Copy)]
 pub struct Size<T>
 where
     T: Copy + Num + NumCast + PartialOrd,
@@ -85,7 +114,7 @@ where
 #[derive(Default, Clone, Copy)]
 pub struct Rect<T>
 where
-    T: Copy + Num + NumCast + PartialOrd,
+    T: Debug + Copy + Num + NumCast + PartialOrd,
 {
     pub origin: Point<T>, // top left
     pub width: T,
@@ -123,7 +152,7 @@ impl Rect<f32> {
 
 impl<T> Rect<T>
 where
-    T: Copy + Num + NumCast + PartialOrd,
+    T: Debug + Copy + Num + NumCast + PartialOrd,
 {
     pub fn new(origin: Point<T>, width: T, height: T) -> Self {
         Rect {
@@ -171,6 +200,19 @@ where
     }
 }
 
+impl<T> Debug for Rect<T>
+where
+    T: Debug + Copy + Num + NumCast + PartialOrd,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Rect=(Origin(x: {:?}, y: {:?}), Size(w: {:?}, h: {:?}))",
+            &self.origin.x, &self.origin.y, &self.width, &self.height
+        )
+    }
+}
+
 impl From<&RECT> for Rect<i32> {
     fn from(value: &RECT) -> Self {
         Rect {
@@ -181,5 +223,11 @@ impl From<&RECT> for Rect<i32> {
             width: value.right - value.left,
             height: value.bottom - value.top,
         }
+    }
+}
+
+impl From<RECT> for Rect<i32> {
+    fn from(value: RECT) -> Self {
+        Self::from(&value)
     }
 }

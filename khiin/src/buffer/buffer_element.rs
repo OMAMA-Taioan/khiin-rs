@@ -2,10 +2,9 @@ use std::fmt::Debug;
 
 use enum_dispatch::enum_dispatch;
 
+use crate::buffer::KhiinElem;
+use crate::buffer::StringElem;
 use crate::data::models::Conversion;
-
-use super::StringElem;
-use super::KhiinElem;
 
 #[enum_dispatch(BufferElement)]
 #[derive(Debug, Clone)]

@@ -1,3 +1,7 @@
+use windows::Win32::Foundation::FALSE;
+use windows::Win32::Foundation::HWND;
+use windows::Win32::Foundation::RECT;
+use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
 use windows::core::ComInterface;
 use windows::core::Error;
 use windows::core::Result;
@@ -10,6 +14,9 @@ use windows::Win32::System::Com::CoCreateInstance;
 use windows::Win32::System::Com::StringFromGUID2;
 use windows::Win32::System::Com::CLSCTX_INPROC_SERVER;
 use windows::Win32::System::LibraryLoader::GetModuleFileNameW;
+
+use crate::geometry::Point;
+use crate::geometry::Rect;
 
 pub fn co_create_inproc<T: ComInterface>(clsid: &GUID) -> Result<T> {
     let iface: T =
@@ -118,4 +125,21 @@ pub fn get_x_param(lparam: LPARAM) -> i32 {
 #[inline]
 pub fn get_y_param(lparam: LPARAM) -> i32 {
     hi_word(lparam.0 as u32) as i16 as i32
+}
+
+pub trait Hwnd {
+    fn contains_pt(&self, pt: Point<i32>) -> bool;
+}
+
+impl Hwnd for HWND {
+    fn contains_pt(&self, pt: Point<i32>) -> bool {
+        let mut rect = RECT::default();
+        let err = unsafe { GetClientRect(*self, &mut rect) };
+        if err != FALSE {
+            let rect: Rect<i32> = rect.into();
+            rect.contains(pt)
+        } else {
+            false
+        }
+    }
 }

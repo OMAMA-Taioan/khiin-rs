@@ -1,18 +1,11 @@
-use std::collections::HashMap;
-
-use once_cell::sync::Lazy;
-use regex::Regex;
 use unicode_normalization::UnicodeNormalization;
 
-use crate::collection;
+use crate::input::lomaji::get_tone_position;
 use crate::input::lomaji::key_to_tone;
 use crate::input::lomaji::strip_khin;
 use crate::input::lomaji::strip_tone_diacritic;
-
-use super::lomaji::get_tone_position;
-use super::lomaji::tone_char_to_index;
-use super::lomaji::tone_to_char;
-use super::Tone;
+use crate::input::lomaji::tone_to_char;
+use crate::input::Tone;
 
 #[derive(Default, Debug, PartialEq, Clone)]
 pub struct Syllable {

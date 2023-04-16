@@ -1,5 +1,5 @@
-use super::buffer_element::BufferElementEnum;
-use super::BufferElement;
+use crate::buffer::BufferElement;
+use crate::buffer::BufferElementEnum;
 
 #[derive(Default, Debug, Clone)]
 pub struct Buffer {

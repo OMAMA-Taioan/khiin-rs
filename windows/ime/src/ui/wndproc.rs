@@ -2,6 +2,8 @@ use std::ffi::c_void;
 use std::mem::size_of;
 use std::mem::transmute;
 use std::sync::Arc;
+
+use log::debug as d;
 use windows::core::Result;
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::BOOL;
@@ -37,17 +39,15 @@ use windows::Win32::UI::WindowsAndMessaging::GWLP_USERDATA;
 use windows::Win32::UI::WindowsAndMessaging::HCURSOR;
 use windows::Win32::UI::WindowsAndMessaging::HICON;
 use windows::Win32::UI::WindowsAndMessaging::HMENU;
-use windows::Win32::UI::WindowsAndMessaging::HWND_DESKTOP;
 use windows::Win32::UI::WindowsAndMessaging::WINDOW_EX_STYLE;
 use windows::Win32::UI::WindowsAndMessaging::WINDOW_STYLE;
 use windows::Win32::UI::WindowsAndMessaging::WM_NCCREATE;
 use windows::Win32::UI::WindowsAndMessaging::WNDCLASSEXW;
 
+use crate::ui::dwm::set_rounded_corners;
 use crate::ui::window::WindowHandler;
 use crate::utils::ToPcwstr;
 use crate::winerr;
-
-use super::dwm::set_rounded_corners;
 
 pub trait Wndproc<T>: WindowHandler
 where
@@ -107,6 +107,7 @@ where
     fn create(
         this: Arc<Self>,
         module: HMODULE,
+        parent: HWND,
         window_name: &str,
         dwstyle: u32,
         dwexstyle: u32,
@@ -138,7 +139,7 @@ where
                 CW_USEDEFAULT,
                 CW_USEDEFAULT,
                 CW_USEDEFAULT,
-                HWND_DESKTOP,
+                parent,
                 HMENU::default(),
                 module,
                 Some(this_ptr as *mut c_void),
@@ -159,9 +160,9 @@ where
         let handle = self.handle()?;
         self.set_handle(None)?;
 
-        unsafe {
-            DestroyWindow(handle);
-        }
+        let destroyed = unsafe { DestroyWindow(handle) };
+        d!("Window destroyed: {:?}", destroyed);
+
         Ok(())
     }
 
