@@ -1,6 +1,7 @@
 use anyhow::Result;
 
 use crate::buffer::Buffer;
+use crate::buffer::BufferElementEnum;
 use crate::buffer::KhiinElem;
 use crate::buffer::StringElem;
 use crate::config::Config;
@@ -8,15 +9,39 @@ use crate::data::Database;
 use crate::data::Dictionary;
 use crate::input::parser::SectionType;
 
-use super::parse_input;
+use super::parse_longest_from_start;
+use super::parse_whole_input;
 
 pub(crate) fn get_candidates(
     db: &Database,
     dict: &Dictionary,
-    cfg: &Config,
+    conf: &Config,
     raw_buffer: &str,
 ) -> Result<Vec<Buffer>> {
-    Ok(Vec::new())
+    let (ty, query) = parse_longest_from_start(dict, raw_buffer);
+
+    match ty {
+        SectionType::Plaintext => Ok(Vec::new()),
+        SectionType::Hyphens => Ok(Vec::new()),
+        SectionType::Punct => Ok(Vec::new()),
+        SectionType::Splittable => {
+            let words = dict.all_words_from_start(query);
+            let word_ids: Vec<u32> = words.keys().cloned().collect();
+            let candidates =
+                db.find_conversions_for_ids(conf.input_type(), &word_ids)?;
+
+            let mut result: Vec<Buffer> = Vec::new();
+
+            for conv in candidates {
+                let word = words.get(&conv.input_id).unwrap();
+                let khiin_elem: BufferElementEnum =
+                    KhiinElem::from_conversion(word, &conv)?.into();
+                result.push(khiin_elem.into());
+            }
+
+            Ok(result)
+        },
+    }
 }
 
 pub(crate) fn convert_all(
@@ -25,7 +50,7 @@ pub(crate) fn convert_all(
     cfg: &Config,
     raw_buffer: &str,
 ) -> Result<Buffer> {
-    let sections = parse_input(dict, raw_buffer);
+    let sections = parse_whole_input(dict, raw_buffer);
     let mut composition = Buffer::new();
 
     for (ty, section) in sections {
@@ -44,10 +69,8 @@ pub(crate) fn convert_all(
                         Some(1),
                     )?;
                     if let Some(conv) = conversions.get(0) {
-                        let khiin_elem = KhiinElem::from_conversion(
-                            raw_buffer,
-                            conv,
-                        )?;
+                        let khiin_elem =
+                            KhiinElem::from_conversion(raw_buffer, conv)?;
                         composition.push(khiin_elem.into());
                     }
                 }
@@ -60,10 +83,10 @@ pub(crate) fn convert_all(
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::config::*;
     use crate::data::*;
     use crate::tests::*;
-    use super::*;
 
     fn setup() -> (Database, Dictionary, Config) {
         (get_db(), get_dict(), get_conf())
@@ -74,5 +97,13 @@ mod tests {
         let (db, dict, conf) = setup();
         let comp = convert_all(&db, &dict, &conf, "abc");
         println!("{:#?}", comp);
+    }
+
+    #[test]
+    fn it_gets_candidates() -> Result<()> {
+        let (db, dict, conf) = setup();
+        let cands = get_candidates(&db, &dict, &conf, "a")?;
+        println!("{:#?}", cands);
+        Ok(())
     }
 }

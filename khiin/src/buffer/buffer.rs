@@ -60,6 +60,24 @@ impl Buffer {
     }
 }
 
+impl From<BufferElementEnum> for Buffer {
+    fn from(value: BufferElementEnum) -> Self {
+        let mut buf = Self::new();
+        buf.push(value);
+        buf
+    }
+}
+
+impl From<Vec<BufferElementEnum>> for Buffer {
+    fn from(value: Vec<BufferElementEnum>) -> Self {
+        let mut buf = Self::new();
+        for elem in value.into_iter() {
+            buf.push(elem);
+        }
+        buf
+    }
+}
+
 pub struct BufferIter<'a> {
     elems: &'a Vec<BufferElementEnum>,
     index: usize,

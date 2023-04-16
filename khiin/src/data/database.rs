@@ -120,6 +120,35 @@ impl Database {
 
         Ok(result)
     }
+
+    pub fn find_conversions_for_ids(
+        &self,
+        input_type: InputType,
+        ids: &Vec<u32>,
+    ) -> Result<Vec<Conversion>> {
+        let sql = format!(
+            r#"
+            select
+                c.*
+            from
+                {table} c
+            where
+                c."input_id" in ({vars})
+            order by c.weight desc
+            "#,
+            table = V_LOOKUP,
+            vars = repeat_vars(ids.len()),
+        );
+        let mut stmt = self.conn.prepare(&sql)?;
+        let mut rows = stmt.query(rusqlite::params_from_iter(ids))?;
+        let mut result = Vec::new();
+        let input_col = input_column(input_type);
+        while let Some(row) = rows.next()? {
+            result.push(get_conversion_row(row, input_col)?)
+        }
+
+        Ok(result)
+    }
 }
 
 fn get_conversion_row(
@@ -135,6 +164,15 @@ fn get_conversion_row(
         category: row.get("category")?,
         annotation: row.get("annotation")?,
     })
+}
+
+// from rusqlite docs
+fn repeat_vars(count: usize) -> String {
+    assert_ne!(count, 0);
+    let mut s = "?,".repeat(count);
+    // Remove trailing comma
+    s.pop();
+    s
 }
 
 #[cfg(test)]
@@ -181,5 +219,15 @@ mod tests {
         assert!(res.iter().any(|row| row.output == "hó"));
         assert!(res[0].annotation.is_none());
         assert!(res[0].category.is_none());
+    }
+
+    #[test]
+    fn it_convers_by_id_vec() {
+        let db = get_db();
+        let ids = vec![1, 2, 3];
+        let res = db
+            .find_conversions_for_ids(InputType::Numeric, &ids)
+            .unwrap();
+        assert!(res.len() >= 20);
     }
 }

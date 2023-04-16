@@ -17,7 +17,7 @@ use crate::data::Dictionary;
 use crate::input::converter::convert_all;
 use crate::input::converter::get_candidates;
 
-pub struct BufferMgr {
+pub(crate) struct BufferMgr {
     composition: Buffer,
     candidates: Vec<Buffer>,
     edit_state: EditState,
@@ -122,7 +122,9 @@ impl BufferMgr {
         let mut composition = self.composition.raw_text();
         composition.push(ch);
         self.char_caret += 1;
+
         assert!(composition.is_ascii());
+
         self.composition = convert_all(db, dict, conf, &composition)?;
         self.candidates = get_candidates(db, dict, conf, &composition)?;
         let mut first = self.composition.clone();

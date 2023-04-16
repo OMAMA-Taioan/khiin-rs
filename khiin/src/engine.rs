@@ -43,7 +43,7 @@ impl Engine {
         &self.db
     }
 
-    pub fn dict(&self) -> &Dictionary {
+    pub(crate) fn dict(&self) -> &Dictionary {
         &self.dict
     }
 

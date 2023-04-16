@@ -9,19 +9,31 @@ pub enum SectionType {
     Splittable,
 }
 
-pub fn parse_input<'a>(
+pub(crate) fn parse_longest_from_start<'a>(
+    dict: &Dictionary,
+    raw_buffer: &'a str,
+) -> (SectionType, &'a str) {
+    let len = max_segmentable_len(dict, raw_buffer);
+    if len > 0 {
+        return (SectionType::Splittable, &raw_buffer[..len]);
+    }
+
+    (SectionType::Plaintext, raw_buffer)
+}
+
+pub(crate) fn parse_whole_input<'a>(
     dict: &Dictionary,
     raw_buffer: &'a str,
 ) -> Vec<(SectionType, &'a str)> {
     let functions = &[
-        (SectionType::Splittable, check_splittable),
+        (SectionType::Splittable, max_segmentable_len),
     ];
 
     parse_input_to_sections(dict, raw_buffer, functions)
 }
 
 /// Returns byte length of splittable section from the beginning
-fn check_splittable(dict: &Dictionary, raw_buffer: &str) -> usize {
+fn max_segmentable_len(dict: &Dictionary, raw_buffer: &str) -> usize {
     let char_count = dict.can_segment_max(raw_buffer);
     raw_buffer.to_byte_len(char_count)
 }
@@ -34,7 +46,7 @@ fn check_splittable(dict: &Dictionary, raw_buffer: &str) -> usize {
 /// slice of the input string and the type of the section. Unknown sections that
 /// were not matched by any of the matcher functions are passed through as
 /// SectionType::Plaintext.
-pub fn parse_input_to_sections<'a, F>(
+fn parse_input_to_sections<'a, F>(
     dict: &Dictionary,
     input: &'a str,
     functions: &[(SectionType, F)],
@@ -91,12 +103,12 @@ mod tests {
     use crate::input::parser::SectionType;
     use crate::tests::get_dict;
 
-    use super::parse_input;
+    use super::parse_whole_input;
 
     #[test]
     fn it_finds_a_word() {
         let dict = get_dict();
-        let result = parse_input(&dict, "ho2");
+        let result = parse_whole_input(&dict, "ho2");
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].0, SectionType::Splittable);
         assert_eq!(result[0].1, "ho2");
@@ -105,12 +117,12 @@ mod tests {
     #[test]
     fn it_finds_unknown() {
         let dict = get_dict();
-        let result = parse_input(&dict, "zzz");
+        let result = parse_whole_input(&dict, "zzz");
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].0, SectionType::Plaintext);
         assert_eq!(result[0].1, "zzz");
 
-        let result = parse_input(&dict, "平安");
+        let result = parse_whole_input(&dict, "平安");
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].0, SectionType::Plaintext);
         assert_eq!(result[0].1, "平安");
@@ -119,14 +131,14 @@ mod tests {
     #[test]
     fn it_finds_different_types() {
         let dict = get_dict();
-        let result = parse_input(&dict, "zzzho2bo5");
+        let result = parse_whole_input(&dict, "zzzho2bo5");
         assert_eq!(result.len(), 2);
         assert_eq!(result[0].0, SectionType::Plaintext);
         assert_eq!(result[0].1, "zzz");
         assert_eq!(result[1].0, SectionType::Splittable);
         assert_eq!(result[1].1, "ho2bo5");
 
-        let result = parse_input(&dict, "ho2bo5zzz");
+        let result = parse_whole_input(&dict, "ho2bo5zzz");
         assert_eq!(result.len(), 2);
         assert_eq!(result[0].0, SectionType::Splittable);
         assert_eq!(result[0].1, "ho2bo5");

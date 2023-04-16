@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use anyhow::Result;
 
 use crate::config::InputType;
@@ -6,7 +8,7 @@ use crate::data::Database;
 use crate::data::Segmenter;
 use crate::data::Trie;
 
-pub struct Dictionary {
+pub(crate) struct Dictionary {
     word_trie: Trie,
     segmenter: Segmenter,
 }
@@ -26,6 +28,15 @@ impl Dictionary {
 
     pub fn find_words_by_prefix(&self, query: &str) -> Vec<u32> {
         self.word_trie.find_words_by_prefix(query)
+    }
+
+    pub fn all_words_from_start<'a>(&self, query: &'a str) -> HashMap<u32, &'a str> {
+        let words = self.word_trie.find_words_from_start(query);
+        let mut result = HashMap::new();
+        for (word, id) in words {
+            result.insert(id, word);
+        }
+        result
     }
 
     pub fn segment(&self, query: &str) -> Result<Vec<String>> {
