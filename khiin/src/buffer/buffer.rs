@@ -144,7 +144,7 @@ impl From<Vec<BufferElementEnum>> for Buffer {
     }
 }
 
-pub struct BufferIter<'a> {
+pub(crate) struct BufferIter<'a> {
     elems: &'a Vec<BufferElementEnum>,
     index: usize,
 }

@@ -8,7 +8,7 @@ use crate::data::models::Conversion;
 
 #[enum_dispatch(BufferElement)]
 #[derive(Debug, Clone)]
-pub enum BufferElementEnum {
+pub(crate) enum BufferElementEnum {
     StringElem,
     KhiinElem,
 }

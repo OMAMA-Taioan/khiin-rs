@@ -9,7 +9,7 @@ use crate::input::Syllable;
 const SYL_SEPS: [char; 2] = ['-', ' '];
 
 #[derive(Debug, Clone)]
-pub struct KhiinElem {
+pub(crate) struct KhiinElem {
     value: Vec<Syllable>,
     candidate: Option<Conversion>,
     converted: bool,
@@ -26,6 +26,11 @@ fn get_first_syllable(target: &str) -> &str {
 }
 
 impl KhiinElem {
+    // Returns just the syllables, without spacers
+    pub fn syls_only(&self) -> Vec<&Syllable> {
+        self.value.iter().filter(|&syl| !syl.is_spacer()).collect()
+    }
+
     pub fn from_conversion(raw_input: &str, conv: &Conversion) -> Result<Self> {
         let mut elems = Vec::new();
         let target = conv.input.as_str();
@@ -37,12 +42,14 @@ impl KhiinElem {
             {
                 raw = &raw[len..];
                 elems.push(syl);
+                elems.push(Syllable::spacer());
             }
         }
 
         if elems.is_empty() {
             Err(anyhow!("Unable make an element from conversion"))
         } else {
+            elems.pop(); // Remove the last (extra) spacer
             Ok(Self {
                 value: elems,
                 candidate: Some(conv.clone()),
@@ -78,8 +85,9 @@ impl KhiinElem {
         }
 
         let cand_syls = cand_syls.unwrap();
+        let self_syls = self.syls_only();
 
-        if cand_syls.len() != self.value.len() {
+        if cand_syls.len() != self_syls.len() {
             return self.raw_char_count();
         }
 
@@ -177,33 +185,18 @@ impl BufferElement for KhiinElem {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::data::models::Conversion;
-    use crate::input::*;
     use crate::tests::*;
 
     #[test]
     fn it_builds_from_conversion_alignment() {
         let c = mock_conversion("hó bô", "好無");
         let elem = KhiinElem::from_conversion("hobo", &c).unwrap();
-        assert_eq!(elem.value.len(), 2);
-        assert_eq!(
-            elem.value[0],
-            Syllable {
-                raw_input: String::from("ho"),
-                raw_body: String::from("ho"),
-                tone: Tone::None,
-                khin: false
-            }
-        );
-        assert_eq!(
-            elem.value[1],
-            Syllable {
-                raw_input: String::from("bo"),
-                raw_body: String::from("bo"),
-                tone: Tone::None,
-                khin: false
-            }
-        );
+        assert_eq!(elem.value.len(), 3);
+        assert_eq!(elem.value[0].raw_input, String::from("ho"));
+        assert_eq!(elem.value[0].raw_body, String::from("ho"));
+        assert!(elem.value[1].is_spacer());
+        assert_eq!(elem.value[2].raw_input,String::from("bo"));
+        assert_eq!(elem.value[2].raw_body,String::from("bo"));
     }
 
     #[test]
