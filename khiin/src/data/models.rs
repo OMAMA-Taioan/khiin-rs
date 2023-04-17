@@ -19,6 +19,11 @@ pub struct KeySequence {
 }
 
 impl Conversion {
+    /// Attempts to align input and output syllables in a 1-to-1 mapping, taking
+    /// each Hanji to be a syllable, and otherwise splitting by space characters
+    /// as per the standard database format. Returns `None` if the alignment is
+    /// not 1-to-1. If it is 1-to-1, `Some(Vec)` contains elements of the form
+    /// `(input, output)`.
     pub fn align_input_output_syllables(
         &self,
     ) -> Option<Vec<(String, String)>> {
