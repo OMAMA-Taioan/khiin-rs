@@ -127,9 +127,15 @@ impl BufferMgr {
 
         self.composition = convert_all(db, dict, conf, &composition)?;
         self.candidates = get_candidates(db, dict, conf, &composition)?;
-        let mut first = self.composition.clone();
-        first.set_converted(true);
-        self.candidates.insert(0, first);
+
+        if !self.candidates.iter().any(|cand| {
+            *&self.composition.eq_display(cand)
+        }) {
+            let mut first = self.composition.clone();
+            first.set_converted(true);
+            self.candidates.insert(0, first);
+        }
+
         Ok(())
     }
 
