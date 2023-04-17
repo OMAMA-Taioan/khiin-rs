@@ -9,6 +9,7 @@ use crate::config::InputType;
 use crate::data::Database;
 use crate::data::Dictionary;
 use crate::Engine;
+use crate::data::models::Conversion;
 
 pub(crate) use mock_protos::*;
 
@@ -41,4 +42,16 @@ pub(crate) fn get_dict() -> Dictionary {
 
 pub fn get_conf() -> Config {
     Config::new()
+}
+
+pub fn mock_conversion(input: &str, output: &str) -> Conversion {
+    Conversion {
+        key_sequence: String::new(),
+        input: input.into(),
+        input_id: 0,
+        output: output.into(),
+        weight: 0,
+        category: None,
+        annotation: None,
+    }
 }

@@ -5,7 +5,7 @@ use crate::buffer::BufferElement;
 use crate::buffer::BufferElementEnum;
 
 #[derive(Default, Debug, Clone)]
-pub struct Buffer {
+pub(crate) struct Buffer {
     elems: Vec<BufferElementEnum>,
 }
 
@@ -26,6 +26,11 @@ impl DerefMut for Buffer {
 impl Buffer {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub fn split_off(&mut self, index: usize) -> Buffer {
+        let elems = self.split_off(index);
+        Buffer::from(elems)
     }
 
     pub fn eq_display(&self, other: &Buffer) -> bool {
@@ -75,6 +80,50 @@ impl Buffer {
             elem.set_converted(converted);
         }
     }
+
+    // Example carets:
+    // raw:       "pengan"  
+    // composed:  "pengan" 6
+    // converted: "平安"    2 
+    pub fn raw_caret_from(&self, char_caret: usize) -> usize {
+        if char_caret == self.composed_char_count() {
+            return self.raw_char_count()
+        }
+
+        let caret_at_index = self.elem_index_at_char_caret(char_caret);
+
+        assert!(caret_at_index < self.elems.len());
+
+        let mut pre = self.clone();
+
+        // Index 0 covered by the assert above
+        let at = pre.split_off(caret_at_index);
+        let at = &at[0];
+
+        let pre_caret_char_count = pre.display_text().chars().count();
+
+        let remainder = char_caret - pre_caret_char_count;
+        
+        pre.raw_char_count() + at.raw_caret_from(remainder)
+    }
+
+    fn elem_index_at_char_caret(&self, char_caret: usize) -> usize {
+        let mut remainder = char_caret;
+        let mut index = 0;
+        for (i, elem) in self.elems.iter().enumerate() {
+            index = i;
+            let elem_char_count = elem.composed_char_count();
+            if remainder > elem_char_count {
+                remainder -= elem_char_count;
+            } else {
+                break;
+            }
+        }
+
+        index
+    }
+
+    
 }
 
 impl From<BufferElementEnum> for Buffer {

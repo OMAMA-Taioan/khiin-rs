@@ -25,6 +25,16 @@ impl DerefMut for StringElem {
     }
 }
 
+impl From<String> for StringElem {
+    fn from(value: String) -> Self {
+        Self {
+            converted: false,
+            selected: false,
+            value,
+        }
+    }
+}
+
 impl From<&str> for StringElem {
     fn from(value: &str) -> Self {
         Self {

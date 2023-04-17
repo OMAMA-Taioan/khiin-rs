@@ -146,6 +146,11 @@ impl Syllable {
 
         Some((shared_prefix_len, Syllable::from_raw(&raw_syl)))
     }
+
+    pub(crate) fn raw_caret_from_composed(&self, remainder: usize) -> usize {
+        // TODO
+        0
+    }
 }
 
 fn get_tone_char(tone: Tone) -> Option<char> {

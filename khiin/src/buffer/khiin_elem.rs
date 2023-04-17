@@ -1,5 +1,6 @@
 use anyhow::anyhow;
 use anyhow::Result;
+use regex::Regex;
 
 use crate::buffer::BufferElement;
 use crate::data::models::Conversion;
@@ -50,6 +51,54 @@ impl KhiinElem {
             })
         }
     }
+
+    fn raw_caret_from_composed(&self, caret: usize) -> usize {
+        0
+    }
+
+    // converted 平安
+    // syllable: peng, an
+    // caret at converted = 1
+    // raw caret should be 4
+    fn raw_caret_from_converted(&self, caret: usize) -> usize {
+        if caret >= self.converted_text().chars().count() {
+            return self.raw_char_count();
+        }
+
+        if self.candidate.is_none() {
+            return self.raw_caret_from_composed(caret);
+        }
+
+        let candidate = self.candidate.clone().unwrap();
+
+        let cand_syls = candidate.align_input_output_syllables();
+
+        if cand_syls.is_none() {
+            return self.raw_char_count();
+        }
+
+        let cand_syls = cand_syls.unwrap();
+
+        if cand_syls.len() != self.value.len() {
+            return self.raw_char_count();
+        }
+
+        let mut remainder = caret;
+        let mut raw_caret = 0;
+
+        for (i, (_, output)) in cand_syls.iter().enumerate() {
+            let converted_char_count = output.chars().count();
+            if remainder >= converted_char_count {
+                remainder -= converted_char_count;
+                raw_caret += self.value[i].raw_input.chars().count();
+            } else {
+                raw_caret += self.value[i].raw_caret_from_composed(remainder);
+                break;
+            }
+        }
+
+        raw_caret
+    }
 }
 
 impl BufferElement for KhiinElem {
@@ -65,11 +114,15 @@ impl BufferElement for KhiinElem {
     }
 
     fn raw_char_count(&self) -> usize {
-        todo!()
+        self.value.iter().map(|s| s.raw_input.chars().count()).sum()
     }
 
     fn raw_caret_from(&self, caret: usize) -> usize {
-        todo!()
+        if self.converted {
+            self.raw_caret_from_converted(caret)
+        } else {
+            self.raw_caret_from_composed(caret)
+        }
     }
 
     fn composed_text(&self) -> String {
@@ -126,26 +179,15 @@ mod test {
     use super::*;
     use crate::data::models::Conversion;
     use crate::input::*;
-
-    fn mock_conversion(input: &str) -> Conversion {
-        Conversion {
-            key_sequence: String::new(),
-            input: input.into(),
-            input_id: 0,
-            output: String::new(),
-            weight: 0,
-            category: None,
-            annotation: None,
-        }
-    }
+    use crate::tests::*;
 
     #[test]
     fn it_builds_from_conversion_alignment() {
-        let c = mock_conversion("hó bô");
-        let tt = KhiinElem::from_conversion("hobo", &c).unwrap();
-        assert_eq!(tt.value.len(), 2);
+        let c = mock_conversion("hó bô", "好無");
+        let elem = KhiinElem::from_conversion("hobo", &c).unwrap();
+        assert_eq!(elem.value.len(), 2);
         assert_eq!(
-            tt.value[0],
+            elem.value[0],
             Syllable {
                 raw_input: String::from("ho"),
                 raw_body: String::from("ho"),
@@ -154,7 +196,7 @@ mod test {
             }
         );
         assert_eq!(
-            tt.value[1],
+            elem.value[1],
             Syllable {
                 raw_input: String::from("bo"),
                 raw_body: String::from("bo"),
@@ -162,5 +204,26 @@ mod test {
                 khin: false
             }
         );
+    }
+
+    #[test]
+    fn it_gets_raw_caret_from_converted() {
+        let c = mock_conversion("hó bô", "好無");
+        let elem = KhiinElem::from_conversion("hobo", &c).unwrap();
+        assert_eq!(elem.raw_caret_from_converted(0), 0);
+        assert_eq!(elem.raw_caret_from_converted(1), 2);
+        assert_eq!(elem.raw_caret_from_converted(2), 4);
+
+        let c = mock_conversion("hó bô", "好無");
+        let elem = KhiinElem::from_conversion("ho2bo5", &c).unwrap();
+        assert_eq!(elem.raw_caret_from_converted(0), 0);
+        assert_eq!(elem.raw_caret_from_converted(1), 3);
+        assert_eq!(elem.raw_caret_from_converted(2), 6);
+    }
+
+    #[test]
+    fn it_gets_raw_caret_from_composed() {
+        let c = mock_conversion("hó bô", "好無");
+        let elem = KhiinElem::from_conversion("hobo", &c).unwrap();
     }
 }

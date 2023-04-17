@@ -17,6 +17,8 @@ use crate::data::Dictionary;
 use crate::input::converter::convert_all;
 use crate::input::converter::get_candidates;
 
+use super::StringElem;
+
 pub(crate) struct BufferMgr {
     composition: Buffer,
     candidates: Vec<Buffer>,
@@ -128,9 +130,11 @@ impl BufferMgr {
         self.composition = convert_all(db, dict, conf, &composition)?;
         self.candidates = get_candidates(db, dict, conf, &composition)?;
 
-        if !self.candidates.iter().any(|cand| {
-            *&self.composition.eq_display(cand)
-        }) {
+        if !self
+            .candidates
+            .iter()
+            .any(|cand| *&self.composition.eq_display(cand))
+        {
             let mut first = self.composition.clone();
             first.set_converted(true);
             self.candidates.insert(0, first);
@@ -145,6 +149,37 @@ impl BufferMgr {
 
     fn insert_manual(&mut self, ch: char) -> Result<()> {
         Err(anyhow!("Not implemented"))
+    }
+
+    pub fn focus_next_candidate(&mut self) -> Result<()> {
+        if self.edit_state == EditState::ES_COMPOSING {
+            self.edit_state = EditState::ES_SELECTING;
+            self.focus_candidate(0);
+        }
+
+        Ok(())
+    }
+
+    fn focus_candidate(&mut self, index: usize) -> Result<()> {
+        let raw_caret = self.composition.raw_caret_from(self.char_caret);
+        
+        let mut candidate = self
+            .candidates
+            .get(index)
+            .ok_or(anyhow!("Candidate index out of bounds"))?
+            .clone();
+
+        let cand_raw_count = candidate.raw_char_count();
+        let comp_raw_text = self.composition.raw_text();
+        let remainder: Vec<char> =
+            comp_raw_text.chars().skip(cand_raw_count).collect();
+        let remainder: String = remainder.into_iter().collect();
+
+        let mut new_comp = candidate;
+        let string_elem: StringElem = remainder.into();
+        new_comp.push(string_elem.into());
+
+        Ok(())
     }
 }
 
