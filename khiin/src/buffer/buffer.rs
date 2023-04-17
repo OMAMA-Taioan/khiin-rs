@@ -1,3 +1,6 @@
+use std::ops::Deref;
+use std::ops::DerefMut;
+
 use crate::buffer::BufferElement;
 use crate::buffer::BufferElementEnum;
 
@@ -6,9 +9,27 @@ pub struct Buffer {
     elems: Vec<BufferElementEnum>,
 }
 
+impl Deref for Buffer {
+    type Target = Vec<BufferElementEnum>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.elems
+    }
+}
+
+impl DerefMut for Buffer {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.elems
+    }
+}
+
 impl Buffer {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    pub fn eq_display(&self, other: &Buffer) -> bool {
+        self.display_text() == other.display_text()
     }
 
     pub fn iter(&self) -> BufferIter<'_> {
@@ -16,10 +37,6 @@ impl Buffer {
             elems: &self.elems,
             index: 0,
         }
-    }
-
-    pub fn push(&mut self, elem: BufferElementEnum) {
-        self.elems.push(elem)
     }
 
     pub fn raw_text(&self) -> String {
