@@ -216,7 +216,7 @@ mod tests {
     }
 
     #[test]
-    fn it_does_stuff() -> Result<()> {
+    fn it_inserts_multiple_characters() -> Result<()> {
         let mut engine = get_engine().unwrap();
         engine.on_send_key(mock_send_key_request('a'))?;
         engine.on_send_key(mock_send_key_request('a'))?;
