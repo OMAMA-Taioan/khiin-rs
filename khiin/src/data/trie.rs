@@ -2,7 +2,6 @@ use std::collections::HashSet;
 
 use anyhow::Result;
 use qp_trie::wrapper::BString;
-use qp_trie::SubTrie;
 use qp_trie::Trie as QpTrie;
 
 use crate::data::models::KeySequence;
@@ -19,7 +18,7 @@ impl Trie {
             if let Some(ids) = qp_trie.get_mut_str(&word.key_sequence) {
                 ids.push(word.id);
             } else {
-                let v = vec![ word.id ];
+                let v = vec![word.id];
                 qp_trie.insert_str(&word.key_sequence, v);
             }
         }
@@ -78,22 +77,21 @@ mod tests {
     use super::*;
 
     fn get_trie(words: Vec<&str>) -> Trie {
-        let ks = words.into_iter().enumerate().map(|(i, w)| KeySequence {
-            id: (i + 1) as u32,
-            key_sequence: w.to_string(),
-            p: 0.0,
-        }).collect();
+        let ks = words
+            .into_iter()
+            .enumerate()
+            .map(|(i, w)| KeySequence {
+                id: (i + 1) as u32,
+                key_sequence: w.to_string(),
+                p: 0.0,
+            })
+            .collect();
         Trie::new(&ks).unwrap()
     }
 
     #[test]
     fn it_gets_contained_keys() {
-        let t = get_trie(vec![
-            "ball",
-            "tomato",
-            "balloon",
-            "balloonanimal",
-        ]);
+        let t = get_trie(vec!["ball", "tomato", "balloon", "balloonanimal"]);
         let res = t.qp_trie.get_keys_str("balloonanimal");
         assert_eq!(res.len(), 3);
         assert_eq!(res[0], "ball");

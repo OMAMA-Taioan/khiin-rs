@@ -1,12 +1,6 @@
-use windows::Win32::Foundation::FALSE;
-use windows::Win32::Foundation::HWND;
-use windows::Win32::Foundation::RECT;
-use windows::Win32::UI::WindowsAndMessaging::GetClientRect;
 use windows::core::ComInterface;
-use windows::core::Error;
 use windows::core::Result;
 use windows::core::GUID;
-use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HMODULE;
 use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::MAX_PATH;
@@ -15,8 +9,7 @@ use windows::Win32::System::Com::StringFromGUID2;
 use windows::Win32::System::Com::CLSCTX_INPROC_SERVER;
 use windows::Win32::System::LibraryLoader::GetModuleFileNameW;
 
-use crate::geometry::Point;
-use crate::geometry::Rect;
+use crate::fail;
 
 pub fn co_create_inproc<T: ComInterface>(clsid: &GUID) -> Result<T> {
     let iface: T =
@@ -33,12 +26,12 @@ impl WinGuid for GUID {
         let mut buffer = [0u16; 39];
         let len = unsafe { StringFromGUID2(self, &mut buffer) };
         if len == 0 {
-            return Err(Error::from(E_FAIL));
+            return Err(fail!());
         }
         let result = String::from_utf16(&buffer[..len as usize]);
         match result {
             Ok(x) => Ok(x),
-            Err(_) => Err(Error::from(E_FAIL)),
+            Err(_) => Err(fail!()),
         }
     }
 }
@@ -52,12 +45,12 @@ impl GetPath for HMODULE {
         let mut buffer = [0u16; MAX_PATH as usize];
         let len = unsafe { GetModuleFileNameW(*self, &mut buffer) };
         if len == 0 {
-            return Err(Error::from(E_FAIL));
+            return Err(fail!());
         }
         let result = String::from_utf16(&buffer[..len as usize]);
         match result {
             Ok(x) => Ok(x),
-            Err(_) => Err(Error::from(E_FAIL)),
+            Err(_) => Err(fail!()),
         }
     }
 }
@@ -125,21 +118,4 @@ pub fn get_x_param(lparam: LPARAM) -> i32 {
 #[inline]
 pub fn get_y_param(lparam: LPARAM) -> i32 {
     hi_word(lparam.0 as u32) as i16 as i32
-}
-
-pub trait Hwnd {
-    fn contains_pt(&self, pt: Point<i32>) -> bool;
-}
-
-impl Hwnd for HWND {
-    fn contains_pt(&self, pt: Point<i32>) -> bool {
-        let mut rect = RECT::default();
-        let err = unsafe { GetClientRect(*self, &mut rect) };
-        if err != FALSE {
-            let rect: Rect<i32> = rect.into();
-            rect.contains(pt)
-        } else {
-            false
-        }
-    }
 }

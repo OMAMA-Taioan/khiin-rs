@@ -6,6 +6,13 @@ macro_rules! winerr {
 }
 
 #[macro_export]
+macro_rules! fail {
+    () => {
+        windows::core::Error::from(windows::Win32::Foundation::E_FAIL)
+    };
+}
+
+#[macro_export]
 macro_rules! check_win32error {
     ($result:ident) => {
         if $result.is_ok() {

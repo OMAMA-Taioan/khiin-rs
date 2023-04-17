@@ -1,11 +1,9 @@
-use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::slice::from_raw_parts_mut;
 use std::sync::Arc;
 
 use khiin_protos::command::EditState::ES_COMPOSING;
-use windows::Win32::UI::Input::KeyboardAndMouse::GetFocus;
 use windows::core::implement;
 use windows::core::AsImpl;
 use windows::core::ComInterface;
@@ -15,10 +13,10 @@ use windows::core::BSTR;
 use windows::core::GUID;
 use windows::Win32::Foundation::SysAllocString;
 use windows::Win32::Foundation::BOOL;
-use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::E_INVALIDARG;
 use windows::Win32::Foundation::E_NOTIMPL;
 use windows::Win32::Foundation::TRUE;
+use windows::Win32::UI::Input::KeyboardAndMouse::GetFocus;
 use windows::Win32::UI::TextServices::ITfCandidateListUIElement;
 use windows::Win32::UI::TextServices::ITfCandidateListUIElementBehavior;
 use windows::Win32::UI::TextServices::ITfCandidateListUIElementBehavior_Impl;
@@ -39,6 +37,7 @@ use windows::Win32::UI::TextServices::ITfUIElement_Impl;
 
 use khiin_protos::command::Command;
 
+use crate::fail;
 use crate::geometry::Rect;
 use crate::reg::guids::GUID_CANDIDATE_WINDOW;
 use crate::ui::candidates::CandidateWindow;
@@ -127,15 +126,12 @@ impl CandidateListUI {
         } else {
             self.pager
                 .try_borrow()
-                .map_err(|_| Error::from(E_FAIL))?
+                .map_err(|_| fail!())?
                 .set_focus(focused_id)?;
         }
 
         self.popup.show(
-            self.pager
-                .try_borrow()
-                .map_err(|_| Error::from(E_FAIL))?
-                .get_page(),
+            self.pager.try_borrow().map_err(|_| fail!())?.get_page(),
             rect,
         )?;
 
@@ -208,10 +204,7 @@ impl ITfUIElement_Impl for CandidateListUI {
         match bshow.0 {
             0 => self.popup.hide(),
             _ => self.popup.show(
-                self.pager
-                    .try_borrow()
-                    .map_err(|_| Error::from(Error::from(E_FAIL)))?
-                    .get_page(),
+                self.pager.try_borrow().map_err(|_| fail!())?.get_page(),
                 Rect::<i32>::default(),
             ),
         }
@@ -240,7 +233,7 @@ impl ITfCandidateListUIElement_Impl for CandidateListUI {
             self.context
                 .borrow()
                 .clone()
-                .ok_or(Error::from(E_FAIL))?
+                .ok_or(fail!())?
                 .GetDocumentMgr()
         }
     }
@@ -249,7 +242,7 @@ impl ITfCandidateListUIElement_Impl for CandidateListUI {
         Ok(self
             .pager
             .try_borrow()
-            .map_err(|_| Error::from(E_FAIL))?
+            .map_err(|_| fail!())?
             .candidate_count() as u32)
     }
 
@@ -257,7 +250,7 @@ impl ITfCandidateListUIElement_Impl for CandidateListUI {
         Ok(self
             .command
             .try_borrow()
-            .map_err(|_| Error::from(E_FAIL))?
+            .map_err(|_| fail!())?
             .response
             .candidate_list
             .focused as u32)
@@ -267,12 +260,12 @@ impl ITfCandidateListUIElement_Impl for CandidateListUI {
         let candidate = self
             .command
             .try_borrow()
-            .map_err(|_| Error::from(E_FAIL))?
+            .map_err(|_| fail!())?
             .response
             .candidate_list
             .candidates
             .get(uindex as usize)
-            .ok_or(Error::from(E_FAIL))?
+            .ok_or(fail!())?
             .value
             .as_str()
             .to_pcwstr();
@@ -289,11 +282,8 @@ impl ITfCandidateListUIElement_Impl for CandidateListUI {
     ) -> Result<()> {
         let page_count = unsafe { &mut *page_count };
 
-        *page_count = self
-            .pager
-            .try_borrow()
-            .map_err(|_| Error::from(E_FAIL))?
-            .page_count() as u32;
+        *page_count =
+            self.pager.try_borrow().map_err(|_| fail!())?.page_count() as u32;
 
         if index_buf_size < *page_count {
             return Err(Error::from(E_INVALIDARG));
@@ -304,7 +294,7 @@ impl ITfCandidateListUIElement_Impl for CandidateListUI {
         let max_page_size = self
             .pager
             .try_borrow()
-            .map_err(|_| Error::from(E_FAIL))?
+            .map_err(|_| fail!())?
             .max_page_size();
 
         for i in 0..*page_count {
@@ -319,11 +309,7 @@ impl ITfCandidateListUIElement_Impl for CandidateListUI {
     }
 
     fn GetCurrentPage(&self) -> Result<u32> {
-        Ok(self
-            .pager
-            .try_borrow()
-            .map_err(|_| Error::from(E_FAIL))?
-            .current_page() as u32)
+        Ok(self.pager.try_borrow().map_err(|_| fail!())?.current_page() as u32)
     }
 }
 
@@ -333,7 +319,7 @@ impl ITfCandidateListUIElementBehavior_Impl for CandidateListUI {
             >= self
                 .pager
                 .try_borrow()
-                .map_err(|_| Error::from(E_FAIL))?
+                .map_err(|_| fail!())?
                 .candidate_count() as u32
         {
             winerr!(E_INVALIDARG)

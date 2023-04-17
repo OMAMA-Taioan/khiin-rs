@@ -7,7 +7,6 @@ use windows::core::AsImpl;
 use windows::core::Result;
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::BOOL;
-use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::FALSE;
 use windows::Win32::Foundation::HMODULE;
 use windows::Win32::Foundation::HWND;
@@ -40,8 +39,8 @@ use windows::Win32::UI::WindowsAndMessaging::WNDCLASS_STYLES;
 
 use khiin_protos::command::*;
 
+use crate::fail;
 use crate::utils::ToPcwstr;
-use crate::winerr;
 
 pub const WM_KHIIN_COMMAND: u32 = WM_USER;
 
@@ -69,7 +68,7 @@ impl MessageHandler {
                 self.tip.as_impl().handle_command(cmd)?;
                 Ok(())
             },
-            _ => winerr!(E_FAIL),
+            _ => Err(fail!()),
         }
     }
 
@@ -126,7 +125,7 @@ impl MessageHandler {
         unsafe {
             let class_name = Self::WINDOW_CLASS_NAME.to_pcwstr();
             if !Self::register_class(module) {
-                return winerr!(E_FAIL);
+                return Err(fail!());
             }
 
             let this_ptr = Arc::into_raw(this.clone());
@@ -149,7 +148,7 @@ impl MessageHandler {
             if IsWindow(handle) != FALSE {
                 Ok(handle)
             } else {
-                winerr!(E_FAIL)
+                Err(fail!())
             }
         }
     }

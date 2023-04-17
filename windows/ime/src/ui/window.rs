@@ -5,7 +5,6 @@ use std::sync::Arc;
 
 use log::debug as d;
 use windows::core::Result;
-use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::E_NOTIMPL;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::LPARAM;
@@ -13,56 +12,32 @@ use windows::Win32::Foundation::RECT;
 use windows::Win32::Foundation::WPARAM;
 use windows::Win32::Graphics::Direct2D::ID2D1DCRenderTarget;
 use windows::Win32::Graphics::Dwm::DWMWCP_ROUND;
-use windows::Win32::Graphics::Gdi::GetMonitorInfoW;
-use windows::Win32::Graphics::Gdi::MonitorFromWindow;
-use windows::Win32::Graphics::Gdi::MONITORINFO;
-use windows::Win32::Graphics::Gdi::MONITOR_DEFAULTTONEAREST;
 use windows::Win32::UI::Controls::WM_MOUSELEAVE;
-use windows::Win32::UI::HiDpi::GetDpiForWindow;
 use windows::Win32::UI::Input::KeyboardAndMouse::ReleaseCapture;
-use windows::Win32::UI::WindowsAndMessaging::GetParent;
-use windows::Win32::UI::WindowsAndMessaging::SetWindowPos;
 use windows::Win32::UI::WindowsAndMessaging::ShowWindow;
-use windows::Win32::UI::WindowsAndMessaging::SWP_NOACTIVATE;
-use windows::Win32::UI::WindowsAndMessaging::SWP_NOZORDER;
 use windows::Win32::UI::WindowsAndMessaging::SW_HIDE;
-use windows::Win32::UI::WindowsAndMessaging::USER_DEFAULT_SCREEN_DPI;
-use windows::Win32::UI::WindowsAndMessaging::WM_CREATE;
-use windows::Win32::UI::WindowsAndMessaging::WM_DISPLAYCHANGE;
 use windows::Win32::UI::WindowsAndMessaging::WM_DPICHANGED;
 use windows::Win32::UI::WindowsAndMessaging::WM_LBUTTONDOWN;
 use windows::Win32::UI::WindowsAndMessaging::WM_MOUSEMOVE;
 use windows::Win32::UI::WindowsAndMessaging::WM_NCCREATE;
 use windows::Win32::UI::WindowsAndMessaging::WM_PAINT;
 use windows::Win32::UI::WindowsAndMessaging::WM_SHOWWINDOW;
-use windows::Win32::UI::WindowsAndMessaging::WM_SIZE;
-use windows::Win32::UI::WindowsAndMessaging::WM_WINDOWPOSCHANGING;
 
+use crate::fail;
 use crate::geometry::Point;
 use crate::geometry::Rect;
-use crate::ui::dpi::dpi_aware;
-use crate::ui::dpi::Density;
 use crate::ui::dwm::set_rounded_corners;
 use crate::ui::render_factory::RenderFactory;
 use crate::utils::hi_word;
-use crate::utils::lo_word;
 use crate::winerr;
 
-// These were previously in GuiWindow class
-// in c++ version
 #[derive(Clone)]
 pub struct WindowData {
+    pub factory: Arc<RenderFactory>,
+    pub target: ID2D1DCRenderTarget,
     pub handle: Option<HWND>,
     pub showing: bool,
     pub tracking_mouse: bool,
-    pub max_width: i32,
-    pub max_height: i32,
-    pub dpi_parent: u32,
-    pub dpi: u32,
-    pub scale: f32,
-    pub factory: Arc<RenderFactory>,
-    pub target: ID2D1DCRenderTarget,
-    pub origin: Point<i32>,
 }
 
 impl WindowData {
@@ -71,12 +46,6 @@ impl WindowData {
             handle: None,
             showing: false,
             tracking_mouse: false,
-            max_width: 0,
-            max_height: 0,
-            dpi_parent: 0,
-            dpi: 0,
-            scale: 0.0,
-            origin: Point::default(),
             target: factory.create_dc_render_target()?,
             factory,
         })
@@ -97,8 +66,6 @@ pub trait WindowHandler {
     ) -> Result<()> {
         match message {
             WM_NCCREATE => set_rounded_corners(handle, DWMWCP_ROUND),
-            WM_CREATE => self.on_create(handle),
-            WM_DISPLAYCHANGE => self.on_monitor_change(handle),
             WM_DPICHANGED => {
                 let dpi = hi_word(wparam.0 as u32);
                 let rect: &RECT = unsafe { transmute(lparam) };
@@ -113,10 +80,7 @@ pub trait WindowHandler {
                 _ => self.on_show_window(),
             },
             WM_PAINT => self.render(handle),
-            WM_SIZE => self
-                .on_resize(lo_word(lparam.0 as u32), hi_word(lparam.0 as u32)),
-            WM_WINDOWPOSCHANGING => self.on_monitor_change(handle),
-            _ => winerr!(E_FAIL),
+            _ => Err(fail!()),
         }
     }
 
@@ -124,45 +88,33 @@ pub trait WindowHandler {
         if let Ok(mut window) = self.window_data().try_borrow_mut() {
             let target = window.factory.create_dc_render_target()?;
             window.target = target.clone();
-            let dpi = window.dpi as f32;
-            unsafe {
-                window.target.SetDpi(dpi, dpi);
-            }
         }
 
         Ok(())
     }
 
-    fn set_handle(&self, handle: Option<HWND>) -> Result<()>;
+    fn on_dpi_changed(
+        &self,
+        handle: HWND,
+        dpi: u16,
+        new_size: Rect<i32>,
+    ) -> Result<()> {
+        unsafe {
+            self.window_data()
+                .try_borrow()
+                .map_err(|_| fail!())?
+                .target
+                .SetDpi(dpi as f32, dpi as f32);
+        }
+        Ok(())
+    }
 
     fn handle(&self) -> Result<HWND> {
-        if let Ok(window) = self.window_data().try_borrow() {
-            if let Some(handle) = window.handle {
-                return Ok(handle);
-            }
-        }
-        winerr!(E_FAIL)
-    }
-
-    fn set_origin(&self, pt: Point<i32>) -> Result<()> {
-        if let Ok(mut window) = self.window_data().try_borrow_mut() {
-            let dpi = window.dpi;
-            if !dpi_aware() {
-                window.origin = Point {
-                    x: pt.x.to_dip(dpi) as i32,
-                    y: pt.y.to_dip(dpi) as i32,
-                };
-            } else {
-                window.origin = pt;
-            }
-            Ok(())
-        } else {
-            winerr!(E_FAIL)
-        }
-    }
-
-    fn on_show_window(&self) -> Result<()> {
-        winerr!(E_NOTIMPL)
+        self.window_data()
+            .try_borrow()
+            .map_err(|_| fail!())?
+            .handle
+            .ok_or(fail!())
     }
 
     fn hide(&self) -> Result<()> {
@@ -178,87 +130,24 @@ pub trait WindowHandler {
         Ok(())
     }
 
+    // Optional
+    fn on_show_window(&self) -> Result<()> {
+        winerr!(E_NOTIMPL)
+    }
+
+    // Optional
     fn on_hide_window(&self) -> Result<()> {
         winerr!(E_NOTIMPL)
     }
 
-    fn on_create(&self, handle: HWND) -> Result<()> {
-        {
-            if let Ok(mut window) = self.window_data().try_borrow_mut() {
-                window.dpi = unsafe { GetDpiForWindow(GetParent(handle)) };
-                window.dpi_parent =
-                    unsafe { GetDpiForWindow(GetParent(handle)) };
-            }
-        }
-        self.on_monitor_change(handle)?;
-        Ok(())
-    }
-
-    fn on_monitor_change(&self, handle: HWND) -> Result<()> {
-        d!("on_monitor_changed");
-        let hmon = unsafe {
-            MonitorFromWindow(GetParent(handle), MONITOR_DEFAULTTONEAREST)
-        };
-        let mut info = MONITORINFO::default();
-        info.cbSize = std::mem::size_of::<MONITORINFO>() as u32;
-        unsafe {
-            GetMonitorInfoW(hmon, &mut info);
-        }
-
-        if let Ok(mut window) = self.window_data().try_borrow_mut() {
-            window.max_width = info.rcMonitor.right;
-            window.max_height = info.rcMonitor.bottom;
-            d!("Set window max height/width OK");
-            Ok(())
-        } else {
-            winerr!(E_FAIL)
-        }
-    }
-
-    fn set_dpi(&self, handle: HWND, dpi: u16) -> Result<()> {
-        if let Ok(mut window) = self.window_data().try_borrow_mut() {
-            unsafe {
-                window.target.SetDpi(dpi as f32, dpi as f32);
-            }
-            window.dpi = dpi as u32;
-            window.dpi_parent = unsafe { GetDpiForWindow(GetParent(handle)) };
-            window.scale =
-                window.dpi_parent as f32 / USER_DEFAULT_SCREEN_DPI as f32;
-        }
-        Ok(())
-    }
-
-    fn on_dpi_changed(
-        &self,
-        handle: HWND,
-        dpi: u16,
-        new_size: Rect<i32>,
-    ) -> Result<()> {
-        crate::trace!();
-        self.set_dpi(handle, dpi)?;
-        let Rect {
-            origin: Point { x, y },
-            width: w,
-            height: h,
-        } = new_size;
-        let flags = SWP_NOZORDER | SWP_NOACTIVATE;
-        unsafe {
-            SetWindowPos(handle, None, x, y, w, h, flags);
-        }
-        Ok(())
-    }
-
-    fn on_mouse_move(&self, handle: HWND, pt: Point<i32>) -> Result<()> {
-        winerr!(E_NOTIMPL)
-    }
-
+    // Optional
     fn on_mouse_leave(&self, handle: HWND) -> Result<()> {
         winerr!(E_NOTIMPL)
     }
 
-    fn on_resize(&self, width: u16, height: u16) -> Result<()> {
-        winerr!(E_NOTIMPL)
-    }
+    fn set_handle(&self, handle: Option<HWND>) -> Result<()>;
+
+    fn on_mouse_move(&self, handle: HWND, pt: Point<i32>) -> Result<()>;
 
     fn on_click(&self, handle: HWND, pt: Point<i32>) -> Result<()>;
 

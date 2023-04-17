@@ -5,12 +5,13 @@ use windows::core::IUnknown;
 use windows::core::Result;
 use windows::core::GUID;
 use windows::Win32::Foundation::ERROR_INVALID_PARAMETER;
-use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::System::Com::VARIANT;
 use windows::Win32::System::Com::VT_I4;
+use windows::Win32::UI::TextServices::ITfCompartment;
 use windows::Win32::UI::TextServices::ITfCompartmentMgr;
-use windows::Win32::UI::TextServices::{ITfCompartment, ITfThreadMgr};
+use windows::Win32::UI::TextServices::ITfThreadMgr;
 
+use crate::fail;
 use crate::winerr;
 
 #[derive(Clone)]
@@ -101,7 +102,7 @@ impl Compartment {
     pub fn compartment(&self) -> Result<ITfCompartment> {
         match self.manager.clone() {
             Some(manager) => unsafe { manager.GetCompartment(&self.guid) },
-            None => winerr!(E_FAIL),
+            None => Err(fail!()),
         }
     }
 }

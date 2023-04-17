@@ -7,9 +7,7 @@ use khiin_protos::command::CommandType;
 use khiin_protos::command::Preedit;
 use khiin_protos::command::SegmentStatus;
 use windows::core::ComInterface;
-use windows::core::Error;
 use windows::core::Result;
-use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::FALSE;
 use windows::Win32::System::Com::VARIANT;
 use windows::Win32::System::Com::VT_I4;
@@ -31,6 +29,7 @@ use windows::Win32::UI::TextServices::TF_ST_CORRECTION;
 
 use khiin_protos::command::Command;
 
+use crate::fail;
 use crate::tip::text_service::TF_INVALID_GUIDATOM;
 use crate::utils::SegmentData;
 use crate::utils::ToWidePreedit;
@@ -54,9 +53,9 @@ impl CompositionMgr {
     pub fn composition(&self) -> Result<ITfComposition> {
         self.composition
             .try_borrow()
-            .map_err(|_| Error::from(E_FAIL))?
+            .map_err(|_| fail!())?
             .clone()
-            .ok_or(Error::from(E_FAIL))
+            .ok_or(fail!())
     }
 
     pub fn notify_command(

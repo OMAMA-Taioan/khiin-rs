@@ -12,4 +12,5 @@ pub(crate) use pager::CandidateCols;
 pub(crate) use pager::CandidatePage;
 pub(crate) use pager::Pager;
 
+pub(self) use candidate_window::DisplayMode;
 pub(self) use renderer::CandidateRenderer;

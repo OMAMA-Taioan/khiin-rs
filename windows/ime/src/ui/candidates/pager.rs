@@ -9,7 +9,7 @@ use windows::core::Result;
 use khiin_protos::command::Candidate;
 use khiin_protos::command::Command;
 
-use super::candidate_window::DisplayMode;
+use super::DisplayMode;
 
 static SHORT_COL_SIZE: usize = 5;
 static LONG_COL_SIZE: usize = 10;

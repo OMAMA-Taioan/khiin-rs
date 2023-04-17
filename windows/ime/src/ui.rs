@@ -10,7 +10,7 @@ pub(crate) mod wndproc;
 
 pub(crate) use render_factory::RenderFactory;
 
-mod dpi;
+pub(crate) mod dpi;
 mod dwm;
 
 pub unsafe fn vcenter_textlayout(

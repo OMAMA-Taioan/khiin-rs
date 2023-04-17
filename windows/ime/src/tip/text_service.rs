@@ -11,11 +11,9 @@ use protobuf::MessageField;
 use windows::core::implement;
 use windows::core::AsImpl;
 use windows::core::ComInterface;
-use windows::core::Error;
 use windows::core::IUnknown;
 use windows::core::Result;
 use windows::core::GUID;
-use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::TextServices::CLSID_TF_CategoryMgr;
 use windows::Win32::UI::TextServices::IEnumTfDisplayAttributeInfo;
@@ -49,32 +47,32 @@ use khiin_protos::config::BoolValue;
 use crate::dll::DllModule;
 use crate::engine::AsyncEngine;
 use crate::engine::MessageHandler;
+use crate::fail;
 use crate::locales::set_locale;
 use crate::reg::guids::GUID_CONFIG_CHANGED_COMPARTMENT;
 use crate::reg::guids::GUID_DISPLAY_ATTRIBUTE_CONVERTED;
 use crate::reg::guids::GUID_DISPLAY_ATTRIBUTE_FOCUSED;
 use crate::reg::guids::GUID_DISPLAY_ATTRIBUTE_INPUT;
 use crate::reg::guids::GUID_RESET_USERDATA_COMPARTMENT;
+use crate::tip::composition_utils::text_position;
+use crate::tip::open_edit_session;
 use crate::tip::CandidateListUI;
 use crate::tip::Compartment;
 use crate::tip::CompositionMgr;
-use crate::tip::composition_utils::text_position;
 use crate::tip::DisplayAttributes;
-use crate::tip::open_edit_session;
 use crate::tip::KeyEventSink;
 use crate::tip::LangBarIndicator;
 use crate::tip::PreservedKeyMgr;
 use crate::tip::SinkMgr;
-use crate::tip::ThreadMgrEventSink;
 use crate::tip::TfEditCookie;
+use crate::tip::ThreadMgrEventSink;
 use crate::ui::candidates::CandidateWindow;
-use crate::ui::RenderFactory;
 use crate::ui::systray::SystrayMenu;
 use crate::ui::wndproc::Wndproc;
+use crate::ui::RenderFactory;
 use crate::utils::co_create_inproc;
 use crate::utils::ArcLock;
 use crate::utils::GetPath;
-use crate::winerr;
 
 pub const TF_CLIENTID_NULL: u32 = 0;
 pub const TF_INVALID_GUIDATOM: u32 = 0;
@@ -255,10 +253,7 @@ impl TextService {
         context: ITfContext,
         command: Arc<Command>,
     ) -> Result<()> {
-        let mut comp_mgr = self
-            .composition_mgr
-            .write()
-            .map_err(|_| Error::from(E_FAIL))?;
+        let mut comp_mgr = self.composition_mgr.write().map_err(|_| fail!())?;
 
         let sink: ITfCompositionSink = self.this().cast()?;
         let attr_atoms = &*self.disp_attr_guidatoms.borrow();
@@ -284,9 +279,9 @@ impl TextService {
         let cand_ui = self
             .candidate_list_ui
             .try_borrow()
-            .map_err(|_| Error::from(E_FAIL))?
+            .map_err(|_| fail!())?
             .clone()
-            .ok_or(Error::from(E_FAIL))?;
+            .ok_or(fail!())?;
 
         let cand_ui = cand_ui.as_impl();
         cand_ui.notify_command(context, command, rect)
@@ -307,7 +302,7 @@ impl TextService {
 
         if let Some(x) = self.async_engine.borrow().as_ref() {
             let tx = x.sender();
-            tx.send(command).map_err(|_| Error::from(E_FAIL))
+            tx.send(command).map_err(|_| fail!())
         } else {
             Ok(())
         }
@@ -318,7 +313,7 @@ impl TextService {
             .context_cache
             .borrow_mut()
             .remove(&command.request.id)
-            .ok_or(Error::from(E_FAIL))?
+            .ok_or(fail!())?
             .clone();
 
         open_edit_session(self.clientid.get()?, context.clone(), |ec| {
@@ -379,8 +374,7 @@ impl TextService {
 
     fn init_engine(&self) -> Result<()> {
         let filename = PathBuf::from(DllModule::global().module.get_path()?);
-        let mut dbfile =
-            filename.parent().ok_or(Error::from(E_FAIL))?.to_path_buf();
+        let mut dbfile = filename.parent().ok_or(fail!())?.to_path_buf();
         dbfile.push("khiin.db");
         let dbfile = dbfile.to_string_lossy().to_string();
 
@@ -418,7 +412,7 @@ impl TextService {
             let this: ITfCompartmentEventSink = self.this().cast()?;
             sinkmgr.advise(punk, this)
         } else {
-            winerr!(E_FAIL)
+            Err(fail!())
         }
     }
 
@@ -430,7 +424,7 @@ impl TextService {
         sinkmgr.borrow_mut().unadvise()?;
         match compartment.write() {
             Ok(mut comp) => comp.deinit(),
-            Err(_) => winerr!(E_FAIL),
+            Err(_) => Err(fail!()),
         }
     }
 
@@ -440,7 +434,7 @@ impl TextService {
     ) -> Result<bool> {
         match compartment.read() {
             Ok(comp) => comp.get_bool(),
-            Err(_) => winerr!(E_FAIL),
+            Err(_) => Err(fail!()),
         }
     }
 
@@ -450,7 +444,7 @@ impl TextService {
     ) -> Result<u32> {
         match compartment.read() {
             Ok(comp) => comp.get_value(),
-            Err(_) => winerr!(E_FAIL),
+            Err(_) => Err(fail!()),
         }
     }
 
@@ -475,7 +469,7 @@ impl TextService {
     fn set_open_close_compartment(&self, value: bool) -> Result<()> {
         match self.open_close_compartment.read() {
             Ok(comp) => comp.set_bool(value),
-            Err(_) => winerr!(E_FAIL),
+            Err(_) => Err(fail!()),
         }
     }
 
@@ -641,7 +635,7 @@ impl TextService {
     fn deinit_composition_mgr(&self) -> Result<()> {
         self.composition_mgr
             .try_read()
-            .map_err(|_| Error::from(E_FAIL))?
+            .map_err(|_| fail!())?
             .reset()
     }
 }
@@ -666,7 +660,7 @@ impl ITfDisplayAttributeProvider_Impl for TextService {
 
         match disp_attrs.by_guid(guid) {
             Some(attr) => Ok(attr.into()),
-            None => Err(Error::from(E_FAIL)),
+            None => Err(fail!()),
         }
     }
 }
@@ -714,7 +708,7 @@ impl ITfCompositionSink_Impl for TextService {
             }
             self.composition_mgr
                 .try_read()
-                .map_err(|_| Error::from(E_FAIL))?
+                .map_err(|_| fail!())?
                 .cancel_composition(ecwrite)?;
         }
         Ok(())

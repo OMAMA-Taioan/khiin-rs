@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use anyhow::Result;
 
 use crate::config::InputType;
@@ -50,7 +48,7 @@ impl Dictionary {
         if !query.is_ascii() {
             return 0;
         }
-        
+
         let is_word = |s: &str| *&self.word_trie.contains(&s);
         Segmenter::can_segment_max(is_word, query)
     }

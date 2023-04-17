@@ -5,10 +5,8 @@ use std::sync::Arc;
 use log::debug as d;
 use once_cell::sync::Lazy;
 use windows::core::AsImpl;
-use windows::core::Error;
 use windows::core::Result;
 use windows::Win32::Foundation::D2DERR_RECREATE_TARGET;
-use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::RECT;
 use windows::Win32::Graphics::Direct2D::Common::D2D1_COLOR_F;
@@ -20,7 +18,6 @@ use windows::Win32::Graphics::Gdi::RedrawWindow;
 use windows::Win32::Graphics::Gdi::PAINTSTRUCT;
 use windows::Win32::Graphics::Gdi::RDW_INVALIDATE;
 use windows::Win32::Graphics::Gdi::RDW_UPDATENOW;
-use windows::Win32::UI::HiDpi::GetDpiForWindow;
 use windows::Win32::UI::Input::KeyboardAndMouse::SetCapture;
 use windows::Win32::UI::Input::KeyboardAndMouse::TrackMouseEvent;
 use windows::Win32::UI::Input::KeyboardAndMouse::TME_LEAVE;
@@ -41,6 +38,7 @@ use windows::Win32::UI::WindowsAndMessaging::WS_EX_TOPMOST;
 use windows::Win32::UI::WindowsAndMessaging::WS_POPUP;
 
 use crate::dll::DllModule;
+use crate::fail;
 use crate::geometry::Point;
 use crate::geometry::Rect;
 use crate::geometry::Size;
@@ -57,7 +55,6 @@ use crate::ui::window::WindowHandler;
 use crate::ui::wndproc::Wndproc;
 use crate::utils::CloneInner;
 use crate::utils::Hwnd;
-use crate::winerr;
 
 static FONT_NAME: &str = "Arial";
 const DW_STYLE: Lazy<WINDOW_STYLE> = Lazy::new(|| WS_BORDER | WS_POPUP);
@@ -77,17 +74,6 @@ pub struct WindowPosInfo {
     top: i32,
     width: i32,
     height: i32,
-}
-
-impl WindowPosInfo {
-    pub fn adjust_for_window_dpi(&mut self, handle: HWND) {
-        let dpi = unsafe { GetDpiForWindow(handle) };
-        log::debug!("Window dpi: {}", dpi);
-        // self.left = self.left.to_px(dpi);
-        // self.top = self.top.to_px(dpi);
-        self.width = self.width.to_px(dpi);
-        self.height = self.height.to_px(dpi);
-    }
 }
 
 pub struct CandidateWindow {
@@ -143,18 +129,14 @@ impl CandidateWindow {
             DllModule::global().module,
             parent,
             "",
-            (WS_BORDER | WS_POPUP).0,
-            (WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE).0,
+            DW_STYLE.0,
+            DW_EX_STYLE.0,
         )?;
         Ok(())
     }
 
     pub fn is_showing(&self) -> Result<bool> {
-        Ok(self
-            .window
-            .try_borrow()
-            .map_err(|_| Error::from(E_FAIL))?
-            .showing)
+        Ok(self.window.try_borrow().map_err(|_| fail!())?.showing)
     }
 
     pub fn show(
@@ -162,9 +144,8 @@ impl CandidateWindow {
         page: CandidatePage,
         text_rect: Rect<i32>,
     ) -> Result<()> {
-        let pos = self.calculate_layout(page, text_rect)?;
         let handle = self.handle()?;
-        // pos.adjust_for_window_dpi(handle);
+        let pos = self.calculate_layout(page, text_rect, handle)?;
 
         unsafe {
             SetWindowPos(
@@ -199,10 +180,7 @@ impl CandidateWindow {
     }
 
     fn set_showing(&self, showing: bool) -> Result<()> {
-        let mut window = self
-            .window
-            .try_borrow_mut()
-            .map_err(|_| Error::from(E_FAIL))?;
+        let mut window = self.window.try_borrow_mut().map_err(|_| fail!())?;
         window.showing = showing;
         Ok(())
     }
@@ -211,15 +189,12 @@ impl CandidateWindow {
         &self,
         page: CandidatePage,
         text_rect: Rect<i32>,
+        handle: HWND,
     ) -> Result<WindowPosInfo> {
         self.page_data.replace(page);
         self.text_rect.replace(text_rect);
 
-        let max_size = Size {
-            w: self.window.borrow().max_width,
-            h: self.window.borrow().max_height,
-        };
-
+        let max_size = handle.max_size();
         d!("Max size: {:?}", max_size);
 
         let padding = self.metrics.borrow().padding as i32;
@@ -241,7 +216,7 @@ impl CandidateWindow {
         let mut top = text_rect.bottom();
 
         if dpi_aware() {
-            let dpi = self.window.borrow().dpi;
+            let dpi = handle.dpi();
             log::debug!("Window dpi in calculatelayout: {}", dpi);
             w = w.to_px(dpi);
             h = h.to_px(dpi);
@@ -289,7 +264,7 @@ impl CandidateWindow {
     fn set_row_height(&self, row_height: f32) -> Result<()> {
         self.metrics
             .try_borrow_mut()
-            .map_err(|_| Error::from(E_FAIL))?
+            .map_err(|_| fail!())?
             .row_height = row_height;
 
         Ok(())
@@ -332,7 +307,7 @@ impl WindowHandler for CandidateWindow {
         if !handle.contains_pt(pt) {
             self.hide()?;
             self.set_showing(false)?;
-            return winerr!(E_FAIL);
+            return Err(fail!());
         }
 
         Ok(())
@@ -357,7 +332,8 @@ impl WindowHandler for CandidateWindow {
             return Ok(());
         }
 
-        let dpi = self.window.borrow().dpi;
+        // let dpi = self.window.borrow().dpi;
+        let dpi = handle.dpi();
         let x = pt.x.to_dip(dpi);
         let y = pt.y.to_dip(dpi);
 

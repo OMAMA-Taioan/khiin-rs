@@ -7,7 +7,6 @@ use log::debug as d;
 use windows::core::Result;
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::BOOL;
-use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::FALSE;
 use windows::Win32::Foundation::HMODULE;
 use windows::Win32::Foundation::HWND;
@@ -44,10 +43,10 @@ use windows::Win32::UI::WindowsAndMessaging::WINDOW_STYLE;
 use windows::Win32::UI::WindowsAndMessaging::WM_NCCREATE;
 use windows::Win32::UI::WindowsAndMessaging::WNDCLASSEXW;
 
+use crate::fail;
 use crate::ui::dwm::set_rounded_corners;
 use crate::ui::window::WindowHandler;
 use crate::utils::ToPcwstr;
-use crate::winerr;
 
 pub trait Wndproc<T>: WindowHandler
 where
@@ -115,7 +114,7 @@ where
         unsafe {
             let class_name = Self::WINDOW_CLASS_NAME.to_pcwstr();
             if !Self::register_class(module) {
-                return winerr!(E_FAIL);
+                return Err(fail!());
             }
 
             let window_name = if window_name.is_empty() {
@@ -151,7 +150,7 @@ where
                 this.set_handle(Some(handle))?;
                 Ok(())
             } else {
-                winerr!(E_FAIL)
+                Err(fail!())
             }
         }
     }

@@ -8,10 +8,8 @@ use std::sync::RwLock;
 use log::debug as d;
 use once_cell::sync::Lazy;
 use windows::core::AsImpl;
-use windows::core::Error;
 use windows::core::Result;
 use windows::Win32::Foundation::D2DERR_RECREATE_TARGET;
-use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::RECT;
 use windows::Win32::Graphics::Direct2D::Common::D2D1_COLOR_F;
@@ -51,6 +49,7 @@ use windows::Win32::UI::WindowsAndMessaging::WS_POPUP;
 use khiin_protos::config::AppConfig;
 
 use crate::dll::DllModule;
+use crate::fail;
 use crate::geometry::Point;
 use crate::geometry::Rect;
 use crate::locales::t;
@@ -144,8 +143,6 @@ impl SystrayMenu {
             highlighted_index: RefCell::new(usize::MAX),
         });
 
-        this.reset_graphics_resources()?;
-
         Wndproc::create(
             this.clone(),
             DllModule::global().module,
@@ -154,6 +151,8 @@ impl SystrayMenu {
             DW_STYLE.0,
             DW_EX_STYLE.0,
         )?;
+
+        this.reset_graphics_resources()?;
 
         Ok(this)
     }
@@ -166,9 +165,9 @@ impl SystrayMenu {
     }
 
     pub fn show(&self, pt: Point<i32>) -> Result<()> {
-        self.set_origin(pt)?;
-        let (x, y, w, h) = self.calculate_layout()?;
+        // self.set_origin(pt)?;
         let handle = self.handle()?;
+        let (x, y, w, h) = self.calculate_layout(handle, pt)?;
         unsafe {
             SetWindowPos(
                 handle,
@@ -182,26 +181,25 @@ impl SystrayMenu {
             ShowWindow(handle, SW_SHOWNA);
         }
 
-        let mut window = self
-            .window
-            .try_borrow_mut()
-            .map_err(|_| Error::from(E_FAIL))?;
+        let mut window = self.window.try_borrow_mut().map_err(|_| fail!())?;
         window.showing = true;
 
         Ok(())
     }
 
-    fn calculate_layout(&self) -> Result<(i32, i32, i32, i32)> {
+    fn calculate_layout(
+        &self,
+        handle: HWND,
+        origin: Point<i32>,
+    ) -> Result<(i32, i32, i32, i32)> {
         let mut max_item_width = 0i32;
         let mut max_row_height = 0i32;
 
-        let mut items = self
-            .items
-            .try_borrow_mut()
-            .map_err(|_| Error::from(E_FAIL))?;
+        let mut items = self.items.try_borrow_mut().map_err(|_| fail!())?;
 
-        let window =
-            self.window.try_borrow().map_err(|_| Error::from(E_FAIL))?;
+        let max_size = handle.max_size();
+
+        let window = self.window.try_borrow().map_err(|_| fail!())?;
 
         for item in items.iter_mut() {
             if item.separator {
@@ -212,8 +210,8 @@ impl SystrayMenu {
                 let layout = window.factory.create_text_layout(
                     &text[..],
                     (*self.textformat.borrow()).clone(),
-                    window.max_width as f32,
-                    window.max_height as f32,
+                    max_size.w as f32,
+                    max_size.h as f32,
                 )?;
 
                 let mut metrics = DWRITE_TEXT_METRICS::default();
@@ -246,19 +244,20 @@ impl SystrayMenu {
 
         let mut w = total_width;
         let mut h = total_height;
-        let mut x = window.origin.x;
+        let mut x = origin.x;
         let mut y = work_area_bottom() - VPAD;
 
         if dpi_aware() {
-            w = w.to_px(window.dpi);
-            h = h.to_px(window.dpi);
-            y = work_area_bottom() - VPAD.to_px(window.dpi);
+            let dpi = handle.dpi();
+            w = w.to_px(dpi);
+            h = h.to_px(dpi);
+            y = work_area_bottom() - VPAD.to_px(dpi);
         }
 
         x = x - w / 2;
         y = y - h;
 
-        let max_width = window.max_width;
+        let max_width = handle.max_size().w; //window.max_width;
         if x + w > max_width {
             x -= x + w - max_width;
         }
@@ -268,8 +267,7 @@ impl SystrayMenu {
 
     fn reset_graphics_resources(&self) -> Result<()> {
         self.reset_render_target()?;
-        let window =
-            self.window.try_borrow().map_err(|_| Error::from(E_FAIL))?;
+        let window = self.window.try_borrow().map_err(|_| fail!())?;
 
         let color = color_f(&COLOR_BLACK);
         let brush =
@@ -288,7 +286,7 @@ impl SystrayMenu {
             return false;
         }
         let index = *self.highlighted_index.borrow();
-        let dpi = self.window_data().borrow().dpi;
+        let dpi = handle.dpi();
 
         if let Ok(items) = self.items.try_borrow() {
             for (i, item) in items.iter().enumerate() {
@@ -324,17 +322,10 @@ impl WindowHandler for SystrayMenu {
     }
 
     fn on_hide_window(&self) -> Result<()> {
-        let mut window = self
-            .window
-            .try_borrow_mut()
-            .map_err(|_| Error::from(E_FAIL))?;
+        let mut window = self.window.try_borrow_mut().map_err(|_| fail!())?;
         window.showing = false;
         window.tracking_mouse = false;
         Ok(())
-    }
-
-    fn on_resize(&self, _width: u16, _height: u16) -> Result<()> {
-        self.reset_graphics_resources()
     }
 
     fn on_click(&self, handle: HWND, pt: Point<i32>) -> Result<()> {

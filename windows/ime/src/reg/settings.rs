@@ -7,7 +7,6 @@ use windows::core::Result;
 use windows::Win32::Foundation::GetLastError;
 use windows::Win32::Foundation::ERROR_FILE_NOT_FOUND;
 use windows::Win32::Foundation::ERROR_SUCCESS;
-use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::System::Registry::RegDeleteValueW;
 use windows::Win32::System::Registry::RegGetValueW;
 use windows::Win32::System::Registry::RegSetValueExW;
@@ -19,11 +18,11 @@ use windows::Win32::System::Registry::RRF_RT_REG_DWORD;
 use windows::Win32::System::Registry::RRF_RT_REG_SZ;
 
 use crate::check_win32error;
+use crate::fail;
 use crate::reg::hkey::Hkey;
 use crate::ui::colors::SystemTheme;
 use crate::utils::ToPcwstr;
 use crate::utils::WinString;
-use crate::winerr;
 
 static SETTINGS_REG_PATH: &str = "Software\\Khiin PJH\\Settings";
 static SYSTEM_THEME_SUBKEY: &str =
@@ -84,7 +83,7 @@ pub fn get_system_theme() -> Result<SystemTheme> {
         if err != ERROR_SUCCESS {
             let err = GetLastError().0;
             debug!("error: {}", err);
-            return winerr!(E_FAIL);
+            return Err(fail!());
         }
 
         let data = Box::from_raw(data);
@@ -133,7 +132,7 @@ fn get_string_value(key: HKEY, name: &str) -> Result<OsString> {
         if err != ERROR_SUCCESS {
             let err = GetLastError().0;
             debug!("error: {}", err);
-            return winerr!(E_FAIL);
+            return Err(fail!());
         }
 
         let u16_size = data_size as usize / std::mem::size_of::<u16>();
@@ -149,7 +148,7 @@ fn get_string_value(key: HKEY, name: &str) -> Result<OsString> {
         );
 
         if err != ERROR_SUCCESS {
-            return winerr!(E_FAIL);
+            return Err(fail!());
         }
 
         let data_size = data_size as usize;
@@ -184,7 +183,7 @@ fn get_u32_value(hkey: HKEY, name: &str) -> Result<u32> {
         if err != ERROR_SUCCESS {
             let err = GetLastError().0;
             debug!("error: {}", err);
-            return winerr!(E_FAIL);
+            return Err(fail!());
         }
         Ok(data)
     }
@@ -205,7 +204,7 @@ fn delete_settings_value(name: &str) -> Result<()> {
         if err != ERROR_SUCCESS {
             let err = GetLastError().0;
             debug!("Error deleting key: {}", err);
-            return winerr!(E_FAIL);
+            return Err(fail!());
         }
         Ok(())
     }
@@ -230,10 +229,10 @@ pub fn can_attach_in_debug() -> Result<()> {
             let value = 0u32.to_le_bytes();
             match RegSetValueExW(hkey, *name, 0, REG_DWORD, Some(&value)) {
                 ERROR_SUCCESS => Ok(()),
-                _ => winerr!(E_FAIL),
+                _ => Err(fail!()),
             }
         } else {
-            winerr!(E_FAIL)
+            Err(fail!())
         }
     }
 }

@@ -2,9 +2,8 @@ use std::sync::Arc;
 use std::sync::RwLock;
 
 use windows::core::Result;
-use windows::Win32::Foundation::E_FAIL;
 
-use crate::winerr;
+use crate::fail;
 
 #[derive(Default)]
 pub struct ArcLock<T: Copy> {
@@ -21,7 +20,7 @@ impl<T: Copy> ArcLock<T> {
     pub fn get(&self) -> Result<T> {
         match self.value.read() {
             Ok(guard) => Ok(*guard),
-            Err(_) => winerr!(E_FAIL),
+            Err(_) => Err(fail!()),
         }
     }
 
@@ -31,7 +30,7 @@ impl<T: Copy> ArcLock<T> {
                 *guard = value;
                 return Ok(());
             },
-            Err(_) => winerr!(E_FAIL),
+            Err(_) => Err(fail!()),
         }
     }
 }

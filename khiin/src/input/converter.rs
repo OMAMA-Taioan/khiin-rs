@@ -33,7 +33,8 @@ pub(crate) fn get_candidates(
 
             for conv in candidates {
                 let khiin_elem: BufferElementEnum =
-                    KhiinElem::from_conversion(&conv.key_sequence, &conv)?.into();
+                    KhiinElem::from_conversion(&conv.key_sequence, &conv)?
+                        .into();
                 let mut buf: Buffer = khiin_elem.into();
                 buf.set_converted(true);
                 result.push(buf);
@@ -84,8 +85,6 @@ pub(crate) fn convert_all(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::*;
-    use crate::data::*;
     use crate::tests::*;
 
     fn setup() -> (Database, Dictionary, Config) {

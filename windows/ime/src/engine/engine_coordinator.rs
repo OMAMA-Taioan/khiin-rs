@@ -6,9 +6,7 @@ use std::sync::Arc;
 use std::thread::JoinHandle;
 
 use protobuf::Message;
-use windows::core::Error;
 use windows::core::Result;
-use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::WPARAM;
@@ -17,7 +15,7 @@ use windows::Win32::UI::WindowsAndMessaging::PostMessageW;
 use khiin_protos::command::*;
 
 use crate::engine::message_handler::WM_KHIIN_COMMAND;
-use crate::winerr;
+use crate::fail;
 
 struct EngineCoordinator {
     engine: khiin::Engine,
@@ -28,17 +26,17 @@ impl EngineCoordinator {
         if let Some(engine) = khiin::Engine::new(&db_path) {
             Ok(Self { engine })
         } else {
-            winerr!(E_FAIL)
+            Err(fail!())
         }
     }
 
     fn send_command(&mut self, cmd: Command) -> Result<Command> {
-        let bytes = cmd.write_to_bytes().map_err(|_| Error::from(E_FAIL))?;
+        let bytes = cmd.write_to_bytes().map_err(|_| fail!())?;
         let cmd = self
             .engine
             .send_command_bytes(&bytes)
-            .map_err(|_| Error::from(E_FAIL))?;
-        Command::parse_from_bytes(&cmd).map_err(|_| Error::from(E_FAIL))
+            .map_err(|_| fail!())?;
+        Command::parse_from_bytes(&cmd).map_err(|_| fail!())
     }
 }
 
@@ -108,8 +106,8 @@ impl AsyncEngine {
         req.type_ = CommandType::CMD_SHUTDOWN.into();
         cmd.request = Some(req).into();
 
-        self.tx.send(cmd).map_err(|_| Error::from(E_FAIL))?;
+        self.tx.send(cmd).map_err(|_| fail!())?;
         let thread = self.thread.replace(None).unwrap();
-        thread.join().map_err(|_| Error::from(E_FAIL))
+        thread.join().map_err(|_| fail!())
     }
 }

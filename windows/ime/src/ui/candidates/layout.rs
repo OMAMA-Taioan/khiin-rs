@@ -2,15 +2,14 @@ use std::cmp::max;
 use std::rc::Rc;
 use std::sync::Arc;
 
-use windows::core::Error;
 use windows::core::Result;
-use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextFormat;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextLayout;
 use windows::Win32::Graphics::DirectWrite::DWRITE_TEXT_METRICS;
 
 use khiin_protos::command::Candidate;
 
+use crate::fail;
 use crate::geometry::Point;
 use crate::geometry::Rect;
 use crate::geometry::Size;
@@ -117,7 +116,7 @@ impl CandidateLayout {
     ) -> Result<Self> {
         let n_cols = cols.len();
         debug_assert!(n_cols > 0);
-        let n_rows = cols.get(0).ok_or(Error::from(E_FAIL))?.len();
+        let n_rows = cols.get(0).ok_or(fail!())?.len();
         let mut grid = Grid::new(n_rows, n_cols, min_col_width, row_padding);
         let mut items = Vec::new();
 
@@ -135,7 +134,10 @@ impl CandidateLayout {
                 unsafe {
                     layout.GetMetrics(&mut metrics)?;
                 }
-                grid.ensure_col_width(i, metrics.width as i32 + qs_col_width + row_padding * 2);
+                grid.ensure_col_width(
+                    i,
+                    metrics.width as i32 + qs_col_width + row_padding * 2,
+                );
                 grid.ensure_row_height(metrics.height as i32);
                 layout_col.push((candidate.clone(), layout));
             }
