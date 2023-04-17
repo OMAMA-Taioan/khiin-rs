@@ -12,7 +12,7 @@ use khiin_protos::command::Command;
 use super::DisplayMode;
 
 static SHORT_COL_SIZE: usize = 5;
-static LONG_COL_SIZE: usize = 10;
+static LONG_COL_SIZE: usize = 9;
 static NUM_GRID_COLS: usize = 4;
 
 pub type CandidateCols = Vec<Vec<Rc<Candidate>>>;
