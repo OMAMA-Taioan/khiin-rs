@@ -4,19 +4,42 @@
         {
             "type": "cargo",
             "command": "build",
-            "args": ["--manifest-path=windows/ime/Cargo.toml"],
-            "problemMatcher": ["$rustc"],
+            "args": [
+                "--manifest-path=windows/ime/Cargo.toml"
+            ],
+            "problemMatcher": [
+                "$rustc"
+            ],
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": false
             },
             "label": "cargo:build:windows:ime"
         },
         {
             "type": "cargo",
+            "command": "build",
+            "args": [
+                "--manifest-path=cli/Cargo.toml"
+            ],
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "label": "cargo:build:cli"
+        },
+        {
+            "type": "cargo",
             "command": "test",
-            "args": ["--manifest-path=khiin/Cargo.toml"],
-            "problemMatcher": ["$rustc"],
+            "args": [
+                "--manifest-path=khiin/Cargo.toml"
+            ],
+            "problemMatcher": [
+                "$rustc"
+            ],
             "group": {
                 "kind": "test",
                 "isDefault": true

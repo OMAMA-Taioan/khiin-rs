@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Build khiin.db",
+            "name": "Db:Build",
             "type": "python",
             "request": "launch",
             "cwd": "${workspaceFolder}/data",
@@ -14,7 +14,7 @@
             "args": ["-f", "data/frequency.csv", "-c", "data/conversions_all.csv", "-s", "data/syllables.txt", "-t", "-y", "data/symbols.tsv", "-e", "data/emoji.csv", "-o", "out/khiin_db.sql", "-d", "../resources/khiin.db"]
         },
         {
-            "name": "Notepad",
+            "name": "Win:Notepad",
             "type": "cppvsdbg",
             "request": "launch",
             "preLaunchTask": "cargo:build:windows:ime",
@@ -22,23 +22,30 @@
             "cwd": "${workspaceRoot}"
         },
         {
-            "name": "(Windows) Attach",
+            "name": "Win:Attach",
             "type": "cppvsdbg",
             "request": "attach",
             "processId": "${command:pickProcess}"
         },
         {
-            "name": "lldb attach",
+            "name": "LLDB:Attach",
             "type": "lldb",
             "request": "attach",
             "pid": "${command:pickMyProcess}"
         },
         {
-            "name": "Win Settings",
+            "name": "Win:Settings",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceRoot}/target/debug/khiin_settings.exe",
             "cwd": "${workspaceRoot}"
+        },
+        {
+            "name": "Unix:CLI",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceRoot}/target/debug/khiin_cli",
+            "preLaunchTask": "cargo:build:cli"
         }
     ]
 }
