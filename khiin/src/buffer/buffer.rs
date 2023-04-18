@@ -66,7 +66,7 @@ impl Buffer {
     pub fn display_text(&self) -> String {
         self.elems.iter().fold(String::default(), |mut acc, elem| {
             if elem.is_converted() {
-                acc.push_str(&elem.converted_text());
+                acc.push_str(&elem.display_text());
             } else {
                 acc.push_str(&elem.composed_text());
             }
@@ -75,10 +75,11 @@ impl Buffer {
         })
     }
 
-    pub fn composed_char_count(&self) -> usize {
-        self.elems
-            .iter()
-            .fold(0, |acc, elem| acc + elem.composed_char_count())
+    pub fn display_char_count(&self) -> usize {
+        self.elems.iter().fold(0, |mut acc, elem| {
+            acc += elem.display_char_count();
+            acc
+        })
     }
 
     pub fn set_converted(&mut self, converted: bool) {
@@ -92,7 +93,7 @@ impl Buffer {
     // composed:  "pengan" 6
     // converted: "平安"    2 
     pub fn raw_caret_from(&self, char_caret: usize) -> usize {
-        if char_caret == self.composed_char_count() {
+        if char_caret == self.display_char_count() {
             return self.raw_char_count()
         }
 

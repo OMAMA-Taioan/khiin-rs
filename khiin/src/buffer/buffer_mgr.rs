@@ -24,8 +24,14 @@ pub(crate) struct BufferMgr {
     composition: Buffer,
     candidates: Vec<Buffer>,
     edit_state: EditState,
+
+    /// Position of the text input caret, in chars of the preedit displayed text
     char_caret: usize,
+
+    /// Focused preedit buffer segment (thick underline)
     focused_elem_idx: usize,
+
+    /// Focused candidate in pager, also shows in preedit
     focused_cand_idx: Option<usize>,
 }
 
@@ -58,7 +64,7 @@ impl BufferMgr {
                 }
 
                 let mut segment = Segment::default();
-                segment.value = elem.converted_text();
+                segment.value = elem.display_text();
                 segment.status = (if self.focused_elem_idx == i {
                     SegmentStatus::SS_FOCUSED
                 } else {
@@ -213,6 +219,7 @@ impl BufferMgr {
         self.composition = new_comp;
 
         self.focused_cand_idx = Some(index);
+        self.char_caret = self.composition.display_char_count();
 
         Ok(())
     }

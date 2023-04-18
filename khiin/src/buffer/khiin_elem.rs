@@ -74,7 +74,7 @@ impl KhiinElem {
     // caret at converted = 1
     // raw caret should be 4
     fn raw_caret_from_converted(&self, caret: usize) -> usize {
-        if caret >= self.converted_text().chars().count() {
+        if caret >= self.display_char_count() {
             return self.raw_char_count();
         }
 
@@ -104,9 +104,9 @@ impl KhiinElem {
             let converted_char_count = output.chars().count();
             if remainder >= converted_char_count {
                 remainder -= converted_char_count;
-                raw_caret += self.value[i].raw_input.chars().count();
+                raw_caret += self_syls[i].raw_input.chars().count();
             } else {
-                raw_caret += self.value[i].raw_caret_from_composed(remainder);
+                raw_caret += self_syls[i].raw_caret_from_composed(remainder);
                 break;
             }
         }
@@ -123,12 +123,39 @@ impl BufferElement for KhiinElem {
         })
     }
 
-    fn raw_len(&self) -> usize {
-        self.value.iter().map(|s| s.raw_input.len()).sum()
-    }
-
     fn raw_char_count(&self) -> usize {
         self.value.iter().map(|s| s.raw_input.chars().count()).sum()
+    }
+
+    fn composed_text(&self) -> String {
+        self.value.iter().map(|s| s.compose()).collect()
+    }
+
+    fn composed_char_count(&self) -> usize {
+        self.value.iter().fold(0, |mut acc, el| {
+            acc += el.compose().chars().count();
+            acc
+        })
+    }
+
+    fn display_text(&self) -> String {
+        if self.converted {
+            if let Some(conv) = &self.candidate {
+                return conv.output.clone();
+            }
+        }
+
+        self.composed_text()
+    }
+
+    fn display_char_count(&self) -> usize {
+        if self.converted {
+            if let Some(conv) = &self.candidate {
+                return conv.output.chars().count();
+            }
+        }
+
+        self.composed_char_count()
     }
 
     fn raw_caret_from(&self, caret: usize) -> usize {
@@ -139,24 +166,8 @@ impl BufferElement for KhiinElem {
         }
     }
 
-    fn composed_text(&self) -> String {
-        self.value.iter().map(|s| s.compose()).collect()
-    }
-
-    fn composed_char_count(&self) -> usize {
-        todo!()
-    }
-
     fn caret_from(&self, raw_caret: usize) -> usize {
         todo!()
-    }
-
-    fn converted_text(&self) -> String {
-        if let Some(conv) = &self.candidate {
-            conv.output.clone()
-        } else {
-            self.composed_text()
-        }
     }
 
     fn set_converted(&mut self, converted: bool) {

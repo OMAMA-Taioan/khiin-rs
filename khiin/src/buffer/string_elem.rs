@@ -50,28 +50,32 @@ impl BufferElement for StringElem {
         self.chars().count()
     }
 
-    fn composed_char_count(&self) -> usize {
-        self.chars().count()
-    }
-
     fn raw_text(&self) -> String {
         self.value.clone()
-    }
-
-    fn raw_caret_from(&self, caret: usize) -> usize {
-        caret
     }
 
     fn composed_text(&self) -> String {
         self.value.clone()
     }
 
-    fn caret_from(&self, raw_caret: usize) -> usize {
-        raw_caret
+    fn composed_char_count(&self) -> usize {
+        self.chars().count()
     }
 
-    fn converted_text(&self) -> String {
+    fn display_text(&self) -> String {
         self.value.clone()
+    }
+
+    fn display_char_count(&self) -> usize {
+        self.value.chars().count()
+    }
+
+    fn raw_caret_from(&self, caret: usize) -> usize {
+        caret
+    }
+
+    fn caret_from(&self, raw_caret: usize) -> usize {
+        raw_caret
     }
 
     fn is_converted(&self) -> bool {
@@ -98,10 +102,6 @@ impl BufferElement for StringElem {
         let start = self.value.char_indices().nth(idx).unwrap().0;
         let end = self.value.char_indices().nth(idx + 1).unwrap().0;
         self.value.replace_range(start..end, "");
-    }
-
-    fn raw_len(&self) -> usize {
-        self.len()
     }
 
     fn set_converted(&mut self, converted: bool) {
