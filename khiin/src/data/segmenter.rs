@@ -101,9 +101,9 @@ where
             let end = i + 1;
             let substr = &query[start..end];
 
-            // println!("Checking substr: {}", substr);
+            log::trace!("Checking substr: {}", substr);
             if is_word(&substr) {
-                // println!("Ok!");
+                log::trace!("Ok!");
                 splits_at.set(i, true);
                 split_indices.push(i as i32);
                 break;
@@ -146,13 +146,13 @@ fn segment_min_cost(
         for j in i.saturating_sub(max_word_len)..i {
             let chunk = &input[j..i];
 
-            // println!("chunk: {}", chunk);
+            log::trace!("chunk: {}", chunk);
 
             if !cost_map.contains_key(chunk) {
                 continue;
             }
 
-            // println!("chunk cost: {}", cost_map.get(chunk).unwrap());
+            log::trace!("chunk cost: {}", cost_map.get(chunk).unwrap());
 
             curr_cost = costs[j].0 + cost_map.get(chunk).unwrap();
             if curr_cost <= min_cost {
@@ -257,12 +257,12 @@ mod tests {
         let result = segmenter
             .segment("goamchaiujoachelanghamgoaukangkhoanesengtiong")
             .expect("Could not segment text");
-        println!("{}", result.join(" "));
+        log::debug!("{}", result.join(" "));
         assert_eq!(result.len(), 12);
         let result = segmenter
             .segment("goa2mchaiu7joa7che7lang5ham5goa2ukangkhoan2esengtiong")
             .expect("Could not segment text");
-        println!("{}", result.join(" "));
+        log::debug!("{}", result.join(" "));
         assert_eq!(result.len(), 12);
     }
 

@@ -29,7 +29,7 @@ impl Buffer {
     }
 
     pub fn split_off(&mut self, index: usize) -> Buffer {
-        let elems = self.split_off(index);
+        let elems = self.elems.split_off(index);
         Buffer::from(elems)
     }
 
@@ -41,6 +41,12 @@ impl Buffer {
         BufferIter {
             elems: &self.elems,
             index: 0,
+        }
+    }
+
+    pub fn extend(&mut self, other: Buffer) {
+        for elem in other.elems.into_iter() {
+            self.push(elem);
         }
     }
 
@@ -123,7 +129,23 @@ impl Buffer {
         index
     }
 
-    
+
+    pub fn elem_index_at_raw_char_count(&self, char_count: usize) -> usize {
+        let mut remainder = char_count;
+        let mut index = 0;
+
+        for (i, elem) in self.elems.iter().enumerate() {
+            index = i;
+            let elem_raw_char_count = elem.raw_char_count();
+            if remainder > elem_raw_char_count {
+                remainder -= elem_raw_char_count;
+            } else {
+                break;
+            }
+        }
+
+        index
+    }    
 }
 
 impl From<BufferElementEnum> for Buffer {

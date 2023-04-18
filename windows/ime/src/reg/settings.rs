@@ -269,6 +269,6 @@ mod tests {
     fn can_get_system_theme() {
         let theme = get_system_theme();
         assert!(theme.is_ok());
-        println!("System theme is: {:?}", theme.unwrap());
+        log::debug!("System theme is: {:?}", theme.unwrap());
     }
 }

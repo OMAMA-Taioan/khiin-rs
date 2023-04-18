@@ -8,6 +8,12 @@ use crate::input::Syllable;
 
 const SYL_SEPS: [char; 2] = ['-', ' '];
 
+// while composing, we can align raw & composed.
+// 
+// after conversion, we cannot align, so: if it is already converted, then all
+// caret operations should act on the converted string, and user can press Esc
+// to get back the raw string (unmodified)
+
 #[derive(Debug, Clone)]
 pub(crate) struct KhiinElem {
     value: Vec<Syllable>,

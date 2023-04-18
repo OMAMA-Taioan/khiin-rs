@@ -147,8 +147,8 @@ impl Database {
             vars = repeat_vars(words.len()),
             column = input_col,
         );
-        println!("{}", sql);
-        println!("{:?}", words);
+        log::trace!("{}", sql);
+        log::trace!("{:?}", words);
         let mut stmt = self.conn.prepare(&sql)?;
         let mut rows = stmt.query(rusqlite::params_from_iter(words))?;
         let mut result = Vec::new();
@@ -192,7 +192,7 @@ mod tests {
     #[test]
     fn it_finds_the_db_file() {
         let dbfile = debug_db_path();
-        println!("dbfile: {}", dbfile.display());
+        log::debug!("dbfile: {}", dbfile.display());
         assert!(dbfile.exists());
     }
 

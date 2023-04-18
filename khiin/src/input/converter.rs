@@ -95,14 +95,14 @@ mod tests {
     fn it_splits_and_converts_words() {
         let (db, dict, conf) = setup();
         let comp = convert_all(&db, &dict, &conf, "abc");
-        println!("{:#?}", comp);
+        log::debug!("{:#?}", comp);
     }
 
     #[test]
     fn it_gets_candidates() -> Result<()> {
         let (db, dict, conf) = setup();
         let cands = get_candidates(&db, &dict, &conf, "a")?;
-        // println!("{:#?}", cands);
+        log::debug!("{:#?}", cands);
         Ok(())
     }
 }

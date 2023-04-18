@@ -1,8 +1,14 @@
+use khiin_protos::command::SpecialKey;
 use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::WPARAM;
 use windows::Win32::UI::Input::KeyboardAndMouse::GetKeyboardState;
 use windows::Win32::UI::Input::KeyboardAndMouse::ToAscii;
+use windows::Win32::UI::Input::KeyboardAndMouse::VIRTUAL_KEY;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_BACK;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_CONTROL;
+
+use khiin_protos::command::KeyEvent as KhiinKeyEvent;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_DOWN;
 
 use crate::utils::hi_word;
 use crate::utils::lo_byte;
@@ -60,5 +66,31 @@ impl KeyEvent {
         }
 
         return false;
+    }
+
+    pub fn to_khiin(&self) -> KhiinKeyEvent {
+        let mut e = KhiinKeyEvent::new();
+
+        if self.ascii > 0 {
+            e.key_code = self.ascii as i32;
+        }
+
+        e.special_key = windows_to_khiin_special_key_code(self).into();
+
+        e
+    }
+
+    pub fn as_virtual_key(&self) -> VIRTUAL_KEY {
+        VIRTUAL_KEY(self.keycode as u16)
+    }
+}
+
+fn windows_to_khiin_special_key_code(e: &KeyEvent) -> SpecialKey {
+    let vk = e.as_virtual_key();
+
+    match vk {
+        _ if vk == VK_BACK => SpecialKey::SK_BACKSPACE,
+        _ if vk == VK_DOWN => SpecialKey::SK_DOWN,
+        _ => SpecialKey::SK_NONE,
     }
 }

@@ -7,6 +7,7 @@ use khiin_protos::command::CandidateList;
 use khiin_protos::command::EditState;
 use khiin_protos::command::Preedit;
 use khiin_protos::command::SegmentStatus;
+use log::trace;
 
 use crate::buffer::Buffer;
 use crate::buffer::BufferElement;
@@ -25,6 +26,7 @@ pub(crate) struct BufferMgr {
     edit_state: EditState,
     char_caret: usize,
     focused_elem_idx: usize,
+    focused_cand_idx: Option<usize>,
 }
 
 impl BufferMgr {
@@ -35,6 +37,7 @@ impl BufferMgr {
             edit_state: EditState::ES_EMPTY,
             char_caret: 0,
             focused_elem_idx: 0,
+            focused_cand_idx: None,
         }
     }
 
@@ -55,7 +58,7 @@ impl BufferMgr {
                 }
 
                 let mut segment = Segment::default();
-                segment.value = elem.composed_text();
+                segment.value = elem.converted_text();
                 segment.status = (if self.focused_elem_idx == i {
                     SegmentStatus::SS_FOCUSED
                 } else {
@@ -154,33 +157,94 @@ impl BufferMgr {
     pub fn focus_next_candidate(&mut self) -> Result<()> {
         if self.edit_state == EditState::ES_COMPOSING {
             self.edit_state = EditState::ES_SELECTING;
-            self.focus_candidate(0);
         }
+
+        let to_focus = match self.focused_cand_idx {
+            Some(i) => i + 1,
+            None => 0,
+        };
+        self.focus_candidate(to_focus);
 
         Ok(())
     }
 
+    // When focusing a candidate, we must construct the new composition to be
+    // displayed in the preedit.
+    //
+    // Steps:
+    // 1. Get the raw text from the candidate
+    // 2. Split the current composition into [ lhs, rhs ]:
+    //    [ elements up to this raw text, elements after this raw text]
+    // 3. Get the remaining text after removing the prefix (1) from the raw text
+    //    buffer (2-LHS)
+    // 4. Make a new composition
+    // 5. Add the candidate into the composition
+    // 6. Add the remaining raw text (3) into the composition
+    // 7. Add back the elements from 2-RHS
     fn focus_candidate(&mut self, index: usize) -> Result<()> {
-        let raw_caret = self.composition.raw_caret_from(self.char_caret);
-        
-        let mut candidate = self
+        let candidate = self
             .candidates
             .get(index)
             .ok_or(anyhow!("Candidate index out of bounds"))?
             .clone();
 
         let cand_raw_count = candidate.raw_char_count();
-        let comp_raw_text = self.composition.raw_text();
-        let remainder: Vec<char> =
-            comp_raw_text.chars().skip(cand_raw_count).collect();
-        let remainder: String = remainder.into_iter().collect();
+
+        let comp_split_element_index = self
+            .composition
+            .elem_index_at_raw_char_count(cand_raw_count);
+
+        let mut comp_lhs = self.composition.clone();
+        let comp_rhs = comp_lhs.split_off(comp_split_element_index + 1);
+
+        let lhs_raw = comp_lhs.raw_text();
+        let lhs_remainder = substring(&lhs_raw, 0, cand_raw_count);
 
         let mut new_comp = candidate;
-        let string_elem: StringElem = remainder.into();
-        new_comp.push(string_elem.into());
+
+        if !lhs_remainder.is_empty() {
+            new_comp.push(StringElem::from(lhs_remainder).into());
+        }
+
+        if !comp_rhs.is_empty() {
+            new_comp.extend(comp_rhs);
+        }
+
+        self.composition = new_comp;
+
+        self.focused_cand_idx = Some(index);
 
         Ok(())
     }
+}
+
+fn substring(
+    s: &str,
+    start_char_index: usize,
+    end_char_index: usize,
+) -> String {
+    let mut char_count = 0;
+    let mut start_byte_index = None;
+    let mut end_byte_index = None;
+
+    for (i, _) in s.char_indices() {
+        if char_count == start_char_index {
+            start_byte_index = Some(i);
+        }
+        if char_count == end_char_index {
+            end_byte_index = Some(i);
+            break;
+        }
+        char_count += 1;
+    }
+
+    if let Some(start) = start_byte_index {
+        if let Some(end) = end_byte_index {
+            return String::from(&s[start..end]);
+        }
+    }
+
+    String::new()
 }
 
 #[cfg(test)]
@@ -191,6 +255,11 @@ mod tests {
 
     fn setup() -> (Database, Dictionary, Config, BufferMgr) {
         (get_db(), get_dict(), get_conf(), BufferMgr::new())
+    }
+
+    fn preedit_text(buf: &BufferMgr) -> String {
+        let pe = buf.build_preedit();
+        pe.segments.into_iter().map(|s| s.value).collect()
     }
 
     #[test]
@@ -207,6 +276,27 @@ mod tests {
         assert_eq!(buf.composition.display_text().as_str(), "a");
         assert!(buf.candidates.len() > 0);
         assert!(contains_hanji(&buf.candidates[0].display_text()));
+        Ok(())
+    }
+
+    #[test]
+    fn it_focuses_the_first_candidate() -> Result<()> {
+        let (db, dict, conf, mut buf) = setup();
+        buf.insert(&db, &dict, &conf, 'a')?;
+        buf.focus_next_candidate()?;
+        let text = preedit_text(&buf);
+        assert_eq!(text.as_str(), "亞");
+        Ok(())
+    }
+
+    #[test_log::test]
+    fn it_focuses_the_second_candidate() -> Result<()> {
+        let (db, dict, conf, mut buf) = setup();
+        buf.insert(&db, &dict, &conf, 'a')?;
+        buf.focus_next_candidate()?;
+        buf.focus_next_candidate()?;
+        let text = preedit_text(&buf);
+        assert_eq!(text.as_str(), "亜");
         Ok(())
     }
 }

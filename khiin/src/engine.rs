@@ -108,7 +108,7 @@ impl Engine {
             SpecialKey::SK_UP => {},
             SpecialKey::SK_RIGHT => {},
             SpecialKey::SK_DOWN => {
-                self.buffer_mgr.focus_next_candidate();
+                self.buffer_mgr.focus_next_candidate()?;
             },
             SpecialKey::SK_PGUP => {},
             SpecialKey::SK_PGDN => {},

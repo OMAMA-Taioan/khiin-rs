@@ -10,7 +10,15 @@ use windows::Win32::Foundation::FALSE;
 use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::TRUE;
 use windows::Win32::Foundation::WPARAM;
+use windows::Win32::UI::Input::KeyboardAndMouse::VIRTUAL_KEY;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_BACK;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_DOWN;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_LEFT;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_RETURN;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_RIGHT;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_SHIFT;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_TAB;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_UP;
 use windows::Win32::UI::TextServices::ITfContext;
 use windows::Win32::UI::TextServices::ITfKeyEventSink;
 use windows::Win32::UI::TextServices::ITfKeyEventSink_Impl;
@@ -22,7 +30,6 @@ use windows::Win32::UI::WindowsAndMessaging::WM_KEYUP;
 
 use khiin_protos::command::Command;
 use khiin_protos::command::CommandType;
-use khiin_protos::command::KeyEvent as KhiEvent;
 use khiin_protos::command::Request;
 
 use crate::reg::guids::GUID_PRESERVED_KEY_FULL_WIDTH_SPACE;
@@ -31,18 +38,12 @@ use crate::reg::guids::GUID_PRESERVED_KEY_SWITCH_MODE;
 use crate::tip::KeyEvent;
 use crate::tip::TextService;
 
-pub fn translate_key_event(input: KeyEvent) -> KhiEvent {
-    let mut proto = KhiEvent::new();
-    proto.key_code = input.ascii as i32;
-    proto
-}
-
 pub fn handle_key(
     tip: ITfTextInputProcessor,
     context: ITfContext,
     key_event: KeyEvent,
 ) -> Result<()> {
-    let khi = translate_key_event(key_event);
+    let khi = key_event.to_khiin();
     let mut req = Request::new();
     req.id = rand::random::<u32>();
     req.type_ = CommandType::CMD_SEND_KEY.into();
@@ -118,10 +119,10 @@ impl KeyEventSink {
         // TODO: check for candidate UI priority keys
 
         // TODO: check other keys, etc.
-        if key_event.ascii == 0 {
-            Ok(FALSE)
-        } else {
+        if is_handled_key(key_event) {
             Ok(TRUE)
+        } else {
+            Ok(FALSE)
         }
     }
 
@@ -264,4 +265,14 @@ impl ITfKeyEventSink_Impl for KeyEventSink {
             _ => Ok(FALSE),
         }
     }
+}
+
+const HANDLED_KEYS: &[VIRTUAL_KEY] = &[
+    VK_BACK, VK_TAB, VK_RETURN, VK_DOWN, VK_UP, VK_RIGHT, VK_LEFT,
+];
+
+fn is_handled_key(key: &KeyEvent) -> bool {
+    let vk = key.as_virtual_key();
+
+    key.ascii > 0 || HANDLED_KEYS.contains(&vk)
 }

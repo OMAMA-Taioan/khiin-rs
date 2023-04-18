@@ -3,7 +3,7 @@
 #![allow(non_camel_case_types)]
 
 // temporary
-// #![allow(unused)]
+#![allow(unused)]
 
 pub mod resource;
 pub mod utils;
