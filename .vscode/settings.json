@@ -3,5 +3,8 @@
     "python.linting.enabled": true,
     "python.formatting.provider": "autopep8",
     "python.formatting.autopep8Args": ["--max-line-length", "79", "--experimental"],
-    "rust-analyzer.rustfmt.extraArgs": [ "+nightly" ]
+    "rust-analyzer.rustfmt.extraArgs": [ "+nightly" ],
+    "rust-analyzer.runnableEnv": {
+        "RUST_LOG": "debug",
+    }
 }
