@@ -105,8 +105,10 @@ impl Engine {
             SpecialKey::SK_BACKSPACE => {},
             SpecialKey::SK_TAB => {},
             SpecialKey::SK_LEFT => {},
-            SpecialKey::SK_UP => {},
             SpecialKey::SK_RIGHT => {},
+            SpecialKey::SK_UP => {
+                self.buffer_mgr.focus_prev_candidate()?;
+            },
             SpecialKey::SK_DOWN => {
                 self.buffer_mgr.focus_next_candidate()?;
             },

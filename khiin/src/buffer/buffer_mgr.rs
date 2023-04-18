@@ -1,5 +1,5 @@
-use std::fmt::Debug;
 use std::fmt::format;
+use std::fmt::Debug;
 
 use anyhow::anyhow;
 use anyhow::Result;
@@ -142,15 +142,15 @@ impl BufferMgr {
     ) -> Result<()> {
         let mut composition = self.composition.raw_text();
         composition.push(ch);
-        
+
         assert!(composition.is_ascii());
-        
+
         self.composition = convert_all(db, dict, conf, &composition)?;
         self.candidates = get_candidates(db, dict, conf, &composition)?;
 
         let mut first = self.composition.clone();
         first.set_converted(true);
-        
+
         if !self
             .candidates
             .iter()
@@ -161,7 +161,7 @@ impl BufferMgr {
             self.candidates.insert(0, first);
         }
         self.char_caret = self.composition.display_char_count();
-        
+
         Ok(())
     }
 
@@ -178,12 +178,25 @@ impl BufferMgr {
             self.edit_state = EditState::ES_SELECTING;
         }
 
-        let to_focus = match self.focused_cand_idx {
+        let mut to_focus = match self.focused_cand_idx {
+            Some(i) if i >= self.candidates.len() - 1 => 0,
             Some(i) => i + 1,
             None => 0,
         };
+
         self.focus_candidate(to_focus);
 
+        Ok(())
+    }
+
+    pub fn focus_prev_candidate(&mut self) -> Result<()> {
+        let mut to_focus = match self.focused_cand_idx {
+            Some(i) if i == 0 => self.candidates.len() - 1,
+            Some(i) => i - 1,
+            None => self.candidates.len() - 1,
+        };
+
+        self.focus_candidate(to_focus);
         Ok(())
     }
 
@@ -217,7 +230,7 @@ impl BufferMgr {
         let comp_rhs = comp_lhs.split_off(comp_split_element_index + 1);
 
         let lhs_raw = comp_lhs.raw_text();
-        let lhs_remainder = lhs_raw.char_substr(0, cand_raw_count);
+        let lhs_remainder = lhs_raw.char_substr(cand_raw_count, lhs_raw.chars().count());
 
         let mut new_comp = candidate;
 

@@ -8,7 +8,6 @@ use khiin::Engine;
 use khiin_protos::command::Command;
 use khiin_protos::command::CommandType;
 use khiin_protos::command::KeyEvent;
-use khiin_protos::command::ModifierKey;
 use khiin_protos::command::Request;
 use khiin_protos::command::SpecialKey;
 use protobuf::Message;
@@ -91,6 +90,7 @@ fn update_display(
         display = "|";
     }
 
+    clear(stdout)?;
     write!(stdout, "{}Khíín Phah Jī Hoat", Goto(2, 2))?;
     write!(stdout, "{}Raw input:  {}", Goto(2, 4), raw)?;
     write!(stdout, "{}User sees:  {}", Goto(2, 6), display)?;

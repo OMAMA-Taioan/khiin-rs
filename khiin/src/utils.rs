@@ -30,6 +30,10 @@ impl CharSubstr for &str {
             char_count += 1;
         }
 
+        if end_byte_index == None {
+            end_byte_index = Some(self.len());
+        }
+
         if let Some(start) = start_byte_index {
             if let Some(end) = end_byte_index {
                 return &self[start..end];
