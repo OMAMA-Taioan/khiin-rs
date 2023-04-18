@@ -34,6 +34,8 @@ impl Buffer {
     }
 
     pub fn eq_display(&self, other: &Buffer) -> bool {
+        log::trace!("self.display_text()={}", self.display_text());
+        log::trace!("other.display_text()={}", other.display_text());
         self.display_text() == other.display_text()
     }
 

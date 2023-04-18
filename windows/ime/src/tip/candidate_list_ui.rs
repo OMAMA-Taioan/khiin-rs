@@ -121,6 +121,8 @@ impl CandidateListUI {
         let edit_state = res.edit_state.enum_value_or_default();
         let focused_id = res.candidate_list.focused;
 
+        log::debug!("edit_state={:?}", edit_state);
+
         if edit_state == ES_COMPOSING {
             self.pager.replace(Pager::new(command.clone()));
         } else {

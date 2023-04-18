@@ -1,3 +1,6 @@
+use std::fmt::Debug;
+use std::fmt::format;
+
 use anyhow::anyhow;
 use anyhow::Result;
 
@@ -17,6 +20,7 @@ use crate::data::Database;
 use crate::data::Dictionary;
 use crate::input::converter::convert_all;
 use crate::input::converter::get_candidates;
+use crate::utils::CharSubstr;
 
 use super::StringElem;
 
@@ -96,9 +100,15 @@ impl BufferMgr {
         for (i, c) in self.candidates.iter().enumerate() {
             let mut cand = Candidate::default();
             cand.value = c.display_text();
-            cand.id = (i + 1) as i32;
+            cand.id = i as i32;
             list.candidates.push(cand);
         }
+
+        list.focused = if self.focused_cand_idx.is_none() {
+            -1
+        } else {
+            self.focused_cand_idx.unwrap() as i32
+        };
 
         list
     }
@@ -132,23 +142,26 @@ impl BufferMgr {
     ) -> Result<()> {
         let mut composition = self.composition.raw_text();
         composition.push(ch);
-        self.char_caret += 1;
-
+        
         assert!(composition.is_ascii());
-
+        
         self.composition = convert_all(db, dict, conf, &composition)?;
         self.candidates = get_candidates(db, dict, conf, &composition)?;
 
+        let mut first = self.composition.clone();
+        first.set_converted(true);
+        
         if !self
             .candidates
             .iter()
-            .any(|cand| *&self.composition.eq_display(cand))
+            .any(move |cand| first.eq_display(cand))
         {
             let mut first = self.composition.clone();
             first.set_converted(true);
             self.candidates.insert(0, first);
         }
-
+        self.char_caret = self.composition.display_char_count();
+        
         Ok(())
     }
 
@@ -204,7 +217,7 @@ impl BufferMgr {
         let comp_rhs = comp_lhs.split_off(comp_split_element_index + 1);
 
         let lhs_raw = comp_lhs.raw_text();
-        let lhs_remainder = substring(&lhs_raw, 0, cand_raw_count);
+        let lhs_remainder = lhs_raw.char_substr(0, cand_raw_count);
 
         let mut new_comp = candidate;
 
@@ -223,35 +236,78 @@ impl BufferMgr {
 
         Ok(())
     }
+
+    fn _fmt_preedit(&self, sep: char) -> String {
+        let preedit = self.build_preedit();
+        let mut display_text = String::new();
+        let mut char_count = 0;
+        display_text.push(sep);
+        display_text.push_str(&format!("Raw: {}", self.composition.raw_text()));
+
+        let state = match self.edit_state {
+            EditState::ES_EMPTY => "Empty",
+            EditState::ES_COMPOSING => "Composing",
+            EditState::ES_CONVERTED => "Converted",
+            EditState::ES_SELECTING => "Selecting",
+        };
+
+        display_text.push(sep);
+        display_text.push_str(state);
+        display_text.push_str(": ");
+
+        for (i, elem) in preedit.segments.iter().enumerate() {
+            if preedit.focused_caret == i as i32 {
+                display_text.push('>');
+            }
+
+            for ch in elem.value.chars() {
+                if char_count as i32 == preedit.caret {
+                    display_text.push('|');
+                }
+                display_text.push(ch);
+                char_count += 1;
+            }
+
+            if char_count as i32 == preedit.caret {
+                display_text.push('|');
+            }
+
+            if elem.status.unwrap() == SegmentStatus::SS_CONVERTED {
+                display_text.push('^');
+            }
+
+            if elem.status.unwrap() == SegmentStatus::SS_FOCUSED {
+                display_text.push('*');
+            }
+        }
+
+        display_text
+    }
 }
 
-fn substring(
-    s: &str,
-    start_char_index: usize,
-    end_char_index: usize,
-) -> String {
-    let mut char_count = 0;
-    let mut start_byte_index = None;
-    let mut end_byte_index = None;
+impl Debug for BufferMgr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let sep = if f.alternate() { '\n' } else { ' ' };
 
-    for (i, _) in s.char_indices() {
-        if char_count == start_char_index {
-            start_byte_index = Some(i);
+        let mut display_text = self._fmt_preedit(sep);
+
+        let cands = self.get_candidates();
+
+        if cands.candidates.is_empty() {
+            return write!(f, "{}", display_text);
         }
-        if char_count == end_char_index {
-            end_byte_index = Some(i);
-            break;
+
+        display_text.push(sep);
+        display_text.push_str("Candidates:");
+        display_text.push(sep);
+
+        for (i, cand) in cands.candidates.iter().enumerate() {
+            display_text.push_str(&format!("{}. {}", i + 1, cand.value));
+            display_text.push(sep);
         }
-        char_count += 1;
+
+        write!(f, "{}", display_text)
     }
-
-    if let Some(start) = start_byte_index {
-        if let Some(end) = end_byte_index {
-            return String::from(&s[start..end]);
-        }
-    }
-
-    String::new()
 }
 
 #[cfg(test)]
@@ -259,6 +315,7 @@ mod tests {
     use super::*;
     use crate::input::unicode::*;
     use crate::tests::*;
+    use crate::utils::Unique;
 
     fn setup() -> (Database, Dictionary, Config, BufferMgr) {
         (get_db(), get_dict(), get_conf(), BufferMgr::new())
@@ -293,6 +350,8 @@ mod tests {
         buf.focus_next_candidate()?;
         let text = preedit_text(&buf);
         assert_eq!(text.as_str(), "亞");
+        assert_eq!(buf.focused_cand_idx, Some(0));
+        assert_eq!(buf.get_candidates().focused, 0);
         Ok(())
     }
 
@@ -304,6 +363,33 @@ mod tests {
         buf.focus_next_candidate()?;
         let text = preedit_text(&buf);
         assert_eq!(text.as_str(), "亜");
+        Ok(())
+    }
+
+    #[test_log::test]
+    fn it_excludes_duplicates() -> Result<()> {
+        let (db, dict, conf, mut buf) = setup();
+        for ch in "pengan".chars().collect::<Vec<char>>() {
+            buf.insert(&db, &dict, &conf, ch)?;
+        }
+
+        assert!(buf.candidates.len() > 1);
+
+        let display_texts: Vec<String> =
+            buf.candidates.iter().map(|ea| ea.display_text()).collect();
+
+        assert!(display_texts.all_unique());
+
+        Ok(())
+    }
+
+    #[test_log::test]
+    fn it_positions_caret_at_end_during_composition() -> Result<()> {
+        let (db, dict, conf, mut buf) = setup();
+        for ch in "pengan".chars().collect::<Vec<char>>() {
+            buf.insert(&db, &dict, &conf, ch)?;
+        }
+        log::debug!("{:?}", buf);
         Ok(())
     }
 }
