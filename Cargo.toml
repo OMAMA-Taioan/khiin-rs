@@ -1,6 +1,7 @@
 [workspace]
 
 members = [
+    "cli",
     "khiin",
     "protos",
     "windows/ime",

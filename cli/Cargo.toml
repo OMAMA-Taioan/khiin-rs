@@ -1,0 +1,13 @@
+[package]
+name = "khiin_cli"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+khiin = { path = "../khiin" }
+khiin_protos = { path = "../protos" }
+log = "0.4.17"
+protobuf = "3.2.0"
+termion = "2.0.1"
