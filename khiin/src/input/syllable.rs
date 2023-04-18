@@ -9,21 +9,12 @@ use crate::input::lomaji::strip_tone_diacritic;
 use crate::input::lomaji::tone_to_char;
 use crate::input::Tone;
 
-#[derive(Default, Debug, Copy, Clone, PartialEq)]
-enum SylSpacer {
-    #[default]
-    None,
-    Space,
-    Erased,
-}
-
 #[derive(Default, Debug, PartialEq, Clone)]
 pub(crate) struct Syllable {
     pub raw_input: String,
     pub raw_body: String,
     pub tone: Tone,
     pub khin: bool,
-    spacer: SylSpacer,
 }
 
 impl Syllable {
@@ -33,20 +24,7 @@ impl Syllable {
             raw_body: String::new(),
             tone: Tone::None,
             khin: false,
-            spacer: SylSpacer::Space,
         }
-    }
-
-    pub fn is_spacer(&self) -> bool {
-        self.spacer != SylSpacer::None
-    }
-
-    pub fn erase_spacer(&mut self) {
-        self.spacer = SylSpacer::Erased;
-    }
-
-    pub fn is_erased_spacer(&self) -> bool {
-        self.spacer == SylSpacer::Erased
     }
 
     pub fn compose(&self) -> String {
@@ -93,7 +71,6 @@ impl Syllable {
             raw_body,
             tone,
             khin: false,
-            spacer: SylSpacer::None
         }
     }
 
@@ -136,7 +113,6 @@ impl Syllable {
             raw_body,
             khin,
             tone,
-            spacer: SylSpacer::None,
         }
     }
 
