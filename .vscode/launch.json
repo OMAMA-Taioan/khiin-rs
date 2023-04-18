@@ -17,7 +17,7 @@
             "name": "Notepad",
             "type": "cppvsdbg",
             "request": "launch",
-            "preLaunchTask": "cargo:build",
+            "preLaunchTask": "cargo:build:windows:ime",
             "program": "C:\\Windows\\System32\\notepad.exe",
             "cwd": "${workspaceRoot}"
         },

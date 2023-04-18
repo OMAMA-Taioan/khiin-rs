@@ -4,22 +4,24 @@
         {
             "type": "cargo",
             "command": "build",
+            "args": ["--manifest-path=windows/ime/Cargo.toml"],
             "problemMatcher": ["$rustc"],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "label": "cargo:build"
+            "label": "cargo:build:windows:ime"
         },
         {
             "type": "cargo",
             "command": "test",
+            "args": ["--manifest-path=khiin/Cargo.toml"],
             "problemMatcher": ["$rustc"],
             "group": {
                 "kind": "test",
                 "isDefault": true
             },
-            "label": "cargo:test"
+            "label": "cargo:test:khiin"
         }
     ]
 }
