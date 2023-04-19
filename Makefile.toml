@@ -59,7 +59,7 @@ script_runner = "@shell"
 script = '''
 cp resources/khiin.db target/debug/khiin.db
 '''
-dependencies = ["db-build"]
+dependencies = ["db-copy"]
 
 [tasks.db-copy]
 condition = { files_not_exist = ["resources/khiin.db"] }
