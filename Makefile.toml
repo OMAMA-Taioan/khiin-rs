@@ -64,6 +64,7 @@ args = [
 condition = { files_exist = ["resources/khiin.db"] }
 script_runner = "@shell"
 script = '''
+mkdir -p target/debug
 cp resources/khiin.db target/debug/khiin.db
 '''
 dependencies = ["db-copy"]
