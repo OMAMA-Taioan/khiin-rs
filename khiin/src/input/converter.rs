@@ -71,7 +71,7 @@ pub(crate) fn convert_all(
                     )?;
                     if let Some(conv) = conversions.get(0) {
                         let khiin_elem =
-                            KhiinElem::from_conversion(raw_buffer, conv)?;
+                            KhiinElem::from_conversion(&word, conv)?;
                         composition.push(khiin_elem.into());
                     }
                 }
