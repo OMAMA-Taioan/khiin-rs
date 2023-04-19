@@ -5,11 +5,52 @@ use bit_vec::BitVec;
 
 use crate::data::models::KeySequence;
 
-static BIG: f64 = 1e10;
+/// A number between 0.0 and 1.0, where higher numbers bias towards keeping
+/// longer words un-split, and lower numbers bias towards following the rankings
+/// provided in the frequency database.
+/// 
+/// A value of 1.0 will weigh any longer word higher than any shorter word. A
+/// value of 0.0 will not bias the results at all, and will use only the
+/// frequency index in the database to decide whether or not to split.
+const LENGTH_BIAS: f64 = 1.0;
+
+const BIG: f64 = 1e10;
 
 pub struct Segmenter {
     max_word_length: usize,
     cost_map: HashMap<String, f64>,
+}
+
+fn min_max(map: &HashMap<String, f64>) -> Option<(f64, f64)> {
+    let mut min: Option<f64> = None;
+    let mut max: Option<f64> = None;
+
+    for &value in map.values() {
+        if let Some(current_min) = min {
+            if let Some(cmp) = current_min.partial_cmp(&value) {
+                if cmp == std::cmp::Ordering::Greater {
+                    min = Some(value);
+                }
+            }
+        } else {
+            min = Some(value);
+        }
+
+        if let Some(current_max) = max {
+            if let Some(cmp) = current_max.partial_cmp(&value) {
+                if cmp == std::cmp::Ordering::Less {
+                    max = Some(value);
+                }
+            }
+        } else {
+            max = Some(value);
+        }
+    }
+
+    match (min, max) {
+        (Some(min_value), Some(max_value)) => Some((min_value, max_value)),
+        _ => None,
+    }
 }
 
 impl Segmenter {
@@ -31,8 +72,15 @@ impl Segmenter {
                 word.p
             };
 
-            let cost = (1.0 / p).ln();
+            // Apply the length bias
+            let mut cost = (1.0 / p).ln();
+            let bias = (word_len as f64).powf(LENGTH_BIAS);
+            cost = cost / bias;
             cost_map.insert(word.key_sequence, cost);
+        }
+
+        if let Some((min, max)) = min_max(&cost_map) {
+            log::debug!("min {}, max {}", min, max);
         }
 
         Ok(Segmenter {

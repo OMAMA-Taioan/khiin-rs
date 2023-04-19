@@ -70,7 +70,7 @@ mod tests {
         Dictionary::new(&db, InputType::Numeric).unwrap()
     }
 
-    #[test]
+    #[test_log::test]
     fn it_loads() {
         let db = get_db();
         let dict = Dictionary::new(&db, InputType::Numeric);
