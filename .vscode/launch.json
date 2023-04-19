@@ -5,13 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Db:Build",
-            "type": "python",
+            "name": "Dev CLI",
+            "type": "lldb",
             "request": "launch",
-            "cwd": "${workspaceFolder}/data",
-            "program": "${workspaceFolder}/data/src/sql_gen.py",
-            "console": "integratedTerminal",
-            "args": ["-f", "data/frequency.csv", "-c", "data/conversions_all.csv", "-s", "data/syllables.txt", "-t", "-y", "data/symbols.tsv", "-e", "data/emoji.csv", "-o", "out/khiin_db.sql", "-d", "../resources/khiin.db"]
+            "program": "${workspaceRoot}/target/debug/khiin_cli",
+            "preLaunchTask": "cargo:build:cli"
         },
         {
             "name": "Win:Notepad",
@@ -39,13 +37,6 @@
             "request": "launch",
             "program": "${workspaceRoot}/target/debug/khiin_settings.exe",
             "cwd": "${workspaceRoot}"
-        },
-        {
-            "name": "Unix:CLI",
-            "type": "lldb",
-            "request": "launch",
-            "program": "${workspaceRoot}/target/debug/khiin_cli",
-            "preLaunchTask": "cargo:build:cli"
         }
     ]
 }

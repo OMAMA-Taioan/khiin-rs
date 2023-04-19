@@ -18,10 +18,7 @@
         },
         {
             "type": "cargo",
-            "command": "build",
-            "args": [
-                "--manifest-path=cli/Cargo.toml"
-            ],
+            "command": "make",
             "problemMatcher": [
                 "$rustc"
             ],

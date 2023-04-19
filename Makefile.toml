@@ -4,6 +4,13 @@ skip_core_tasks = true
 [tasks.default]
 alias = "build-all"
 
+[tasks.empty]
+
+[tasks.run-cli]
+windows_alias = "empty"
+dependencies = [ "build-unix" ]
+command = "./target/debug/khiin_cli"
+
 [tasks.build-all]
 linux_alias = "build-unix"
 mac_alias = "build-unix"
