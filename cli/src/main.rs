@@ -3,5 +3,7 @@ pub(crate) mod engine_ctrl;
 pub(crate) mod keys;
 
 fn main() -> anyhow::Result<()> {
-    cli::run()
+    let ret = cli::run();
+    println!("{}", termion::cursor::Show);
+    ret
 }
