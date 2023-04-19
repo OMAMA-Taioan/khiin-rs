@@ -8,13 +8,15 @@ alias = "build-all"
 linux_alias = "build-unix"
 mac_alias = "build-unix"
 windows_alias = "build-windows"
+dependencies = ["db-copy"]
 
 [tasks.build-windows]
-dependencies = [ "windows-build-tip", "windows-build-settings" ]
+dependencies = ["windows-build-tip", "windows-build-settings"]
 
 [tasks.windows-build-tip]
 command = "cargo"
 args = ["build", "--manifest-path=windows/ime/Cargo.toml"]
+dependencies = ["db-copy"]
 
 [tasks.windows-build-settings]
 command = "cargo"
@@ -26,6 +28,47 @@ dependencies = ["unix-build-cli"]
 [tasks.unix-build-cli]
 command = "cargo"
 args = ["build", "--manifest-path=cli/Cargo.toml"]
+dependencies = ["db-copy-to-target"]
+
+[tasks.db-build]
+cwd = "data"
+condition = { files_not_exist = ["out/khiin.db"] }
+command = "python"
+args = [
+    "src/sql_gen.py",
+    "-f",
+    "data/frequency.csv",
+    "-c",
+    "data/conversions_all.csv",
+    "-s",
+    "data/syllables.txt",
+    "-t",
+    "-y",
+    "data/symbols.tsv",
+    "-e",
+    "data/emoji.csv",
+    "-o",
+    "out/khiin_db.sql",
+    "-d",
+    "out/khiin.db",
+]
+
+[tasks.db-copy-to-target]
+condition = { files_exist = ["resources/khiin.db"] }
+script_runner = "@shell"
+script = '''
+cp resources/khiin.db target/debug/khiin.db
+'''
+dependencies = ["db-build"]
+
+[tasks.db-copy]
+condition = { files_not_exist = ["resources/khiin.db"] }
+script_runner = "@shell"
+script = '''
+mkdir -p resources
+cp data/out/khiin.db resources/khiin.db
+'''
+dependencies = ["db-build"]
 
 [tasks.fmt]
 dependencies = ["format-cli", "format-khiin", "format-windows"]
@@ -57,33 +100,3 @@ args = [
     "--",
     "--emit=files",
 ]
-
-[tasks.db-build]
-cwd = "data"
-command = "python"
-args = [
-    "src/sql_gen.py",
-    "-f",
-    "data/frequency.csv",
-    "-c",
-    "data/conversions_all.csv",
-    "-s",
-    "data/syllables.txt",
-    "-t",
-    "-y",
-    "data/symbols.tsv",
-    "-e",
-    "data/emoji.csv",
-    "-o",
-    "out/khiin_db.sql",
-    "-d",
-    "out/khiin.db",
-]
-
-[tasks.db-copy]
-script_runner = "@shell"
-script = '''
-mkdir -p resources
-cp data/out/khiin.db resources/khiin.db
-'''
-dependencies = ["db-build"]
