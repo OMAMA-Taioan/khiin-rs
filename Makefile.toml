@@ -33,7 +33,7 @@ dependencies = ["db-copy-to-target"]
 [tasks.db-build]
 cwd = "data"
 condition = { files_not_exist = ["out/khiin.db"] }
-command = "python"
+command = "python3"
 args = [
     "src/sql_gen.py",
     "-f",
