@@ -17,8 +17,11 @@ impl WPreedit {
     pub fn new(preedit: &Preedit) -> Self {
         let caret = preedit.caret;
 
-        let (segments, display): (Vec<SegmentData>, Vec<Vec<u16>>) =
-            preedit.segments.iter().enumerate().map(|(i, s)| {
+        let (segments, display): (Vec<SegmentData>, Vec<Vec<u16>>) = preedit
+            .segments
+            .iter()
+            .enumerate()
+            .map(|(i, s)| {
                 let wstring: Vec<u16> = s.value.encode_utf16().collect();
                 let size = wstring.len() as i32;
                 let seg_data = SegmentData {
@@ -27,8 +30,9 @@ impl WPreedit {
                     status: s.status.enum_value_or_default(),
                 };
                 (seg_data, wstring)
-            }).unzip();
-        
+            })
+            .unzip();
+
         let display: Vec<u16> = display.into_iter().flatten().collect();
 
         Self {

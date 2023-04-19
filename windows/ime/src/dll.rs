@@ -108,7 +108,7 @@ pub extern "system" fn DllMain(
             }
 
             rust_win_dbg_logger_init_debug();
-            
+
             let dll_module = DllModule {
                 ref_count: Arc::new(AtomicUsize::new(0)),
                 module,

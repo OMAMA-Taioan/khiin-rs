@@ -50,11 +50,11 @@ impl KeyEvent {
                 0,
             )
         };
-        
+
         if result == 1 {
             event.ascii = char[0] as u8;
         }
-        
+
         event.keystate[VK_CTRL] = vk_ctrl_tmp;
 
         event

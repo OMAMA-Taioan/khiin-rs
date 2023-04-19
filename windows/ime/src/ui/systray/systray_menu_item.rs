@@ -1,6 +1,5 @@
-use windows::Win32::Graphics::{
-    Direct2D::Common::D2D_RECT_F, DirectWrite::IDWriteTextLayout,
-};
+use windows::Win32::Graphics::Direct2D::Common::D2D_RECT_F;
+use windows::Win32::Graphics::DirectWrite::IDWriteTextLayout;
 
 use crate::geometry::Rect;
 

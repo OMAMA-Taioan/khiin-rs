@@ -60,11 +60,8 @@ impl Pager {
         let mut start = self.start_index();
         let end = self.end_index();
         let mut col: Vec<Rc<Candidate>> = Vec::new();
-        for (i, candidate) in candidates
-            .iter()
-            .skip(start)
-            .take(end - start)
-            .enumerate()
+        for (i, candidate) in
+            candidates.iter().skip(start).take(end - start).enumerate()
         {
             if i == start + self.max_col_size() {
                 grid.push(col);

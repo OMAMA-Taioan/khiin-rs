@@ -238,7 +238,8 @@ impl BufferMgr {
         let comp_rhs = comp_lhs.split_off(comp_split_element_index + 1);
 
         let lhs_raw = comp_lhs.raw_text();
-        let lhs_remainder = lhs_raw.char_substr(cand_raw_count, lhs_raw.chars().count());
+        let lhs_remainder =
+            lhs_raw.char_substr(cand_raw_count, lhs_raw.chars().count());
 
         let mut new_comp = candidate;
 

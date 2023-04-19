@@ -37,7 +37,7 @@ impl Hwnd for HWND {
         if !dpi_aware() {
             return USER_DEFAULT_SCREEN_DPI;
         }
-        
+
         unsafe {
             let dpi = GetDpiForWindow(GetParent(*self));
 

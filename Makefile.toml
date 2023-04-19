@@ -1,0 +1,89 @@
+[config]
+skip_core_tasks = true
+
+[tasks.default]
+alias = "build-all"
+
+[tasks.build-all]
+linux_alias = "build-unix"
+mac_alias = "build-unix"
+windows_alias = "build-windows"
+
+[tasks.build-windows]
+dependencies = [ "windows-build-tip", "windows-build-settings" ]
+
+[tasks.windows-build-tip]
+command = "cargo"
+args = ["build", "--manifest-path=windows/ime/Cargo.toml"]
+
+[tasks.windows-build-settings]
+command = "cargo"
+args = ["build", "--manifest-path=windows/settings/Cargo.toml"]
+
+[tasks.build-unix]
+dependencies = ["unix-build-cli"]
+
+[tasks.unix-build-cli]
+command = "cargo"
+args = ["build", "--manifest-path=cli/Cargo.toml"]
+
+[tasks.fmt]
+dependencies = ["format-cli", "format-khiin", "format-windows"]
+
+[tasks.format-cli]
+command = "cargo"
+toolchain = "nightly"
+args = ["fmt", "--manifest-path=cli/Cargo.toml", "--", "--emit=files"]
+
+[tasks.format-khiin]
+command = "cargo"
+toolchain = "nightly"
+args = ["fmt", "--manifest-path=khiin/Cargo.toml", "--", "--emit=files"]
+
+[tasks.format-windows]
+dependencies = ["format-windows-ime", "format-windows-settings"]
+
+[tasks.format-windows-ime]
+command = "cargo"
+toolchain = "nightly"
+args = ["fmt", "--manifest-path=windows/ime/Cargo.toml", "--", "--emit=files"]
+
+[tasks.format-windows-settings]
+command = "cargo"
+toolchain = "nightly"
+args = [
+    "fmt",
+    "--manifest-path=windows/settings/Cargo.toml",
+    "--",
+    "--emit=files",
+]
+
+[tasks.db-build]
+cwd = "data"
+command = "python"
+args = [
+    "src/sql_gen.py",
+    "-f",
+    "data/frequency.csv",
+    "-c",
+    "data/conversions_all.csv",
+    "-s",
+    "data/syllables.txt",
+    "-t",
+    "-y",
+    "data/symbols.tsv",
+    "-e",
+    "data/emoji.csv",
+    "-o",
+    "out/khiin_db.sql",
+    "-d",
+    "out/khiin.db",
+]
+
+[tasks.db-copy]
+script_runner = "@shell"
+script = '''
+mkdir -p resources
+cp data/out/khiin.db resources/khiin.db
+'''
+dependencies = ["db-build"]

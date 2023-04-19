@@ -23,7 +23,7 @@ khiin-rs/
 │   ├── ime/        # TSF library
 │   ├── res/        # Windows specific resources
 │   └── settings/   # Settings app
-└── Cargo.toml      # Workspace root
+└── Makefile.toml   # Cargo build tasks
 ```
 
 ## Database

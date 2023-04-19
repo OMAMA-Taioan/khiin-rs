@@ -91,12 +91,12 @@ impl Buffer {
     }
 
     // Example carets:
-    // raw:       "pengan"  
+    // raw:       "pengan"
     // composed:  "pengan" 6
-    // converted: "平安"    2 
+    // converted: "平安"    2
     pub fn raw_caret_from(&self, char_caret: usize) -> usize {
         if char_caret == self.display_char_count() {
-            return self.raw_char_count()
+            return self.raw_char_count();
         }
 
         let caret_at_index = self.elem_index_at_char_caret(char_caret);
@@ -112,7 +112,7 @@ impl Buffer {
         let pre_caret_char_count = pre.display_text().chars().count();
 
         let remainder = char_caret - pre_caret_char_count;
-        
+
         pre.raw_char_count() + at.raw_caret_from(remainder)
     }
 
@@ -132,7 +132,6 @@ impl Buffer {
         index
     }
 
-
     pub fn elem_index_at_raw_char_count(&self, char_count: usize) -> usize {
         let mut remainder = char_count;
         let mut index = 0;
@@ -148,7 +147,7 @@ impl Buffer {
         }
 
         index
-    }    
+    }
 }
 
 impl From<BufferElementEnum> for Buffer {

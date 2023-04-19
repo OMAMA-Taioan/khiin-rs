@@ -17,13 +17,13 @@ pub(crate) enum BufferElementEnum {
 pub trait BufferElement {
     fn raw_text(&self) -> String;
     fn raw_char_count(&self) -> usize;
-    
+
     fn composed_text(&self) -> String;
     fn composed_char_count(&self) -> usize;
-    
+
     fn display_text(&self) -> String;
     fn display_char_count(&self) -> usize;
-    
+
     fn raw_caret_from(&self, caret: usize) -> usize;
     fn caret_from(&self, raw_caret: usize) -> usize;
 

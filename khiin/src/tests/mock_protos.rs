@@ -1,4 +1,5 @@
-use khiin_protos::command::{*, preedit::*};
+use khiin_protos::command::preedit::*;
+use khiin_protos::command::*;
 
 pub fn mock_send_key_request(ch: char) -> Request {
     let mut req = Request::default();

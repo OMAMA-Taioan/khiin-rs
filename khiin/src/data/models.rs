@@ -52,7 +52,12 @@ impl Conversion {
             return None;
         }
 
-        Some(input_split.into_iter().zip(output_split.into_iter()).collect())
+        Some(
+            input_split
+                .into_iter()
+                .zip(output_split.into_iter())
+                .collect(),
+        )
     }
 }
 

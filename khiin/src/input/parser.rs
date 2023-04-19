@@ -25,9 +25,7 @@ pub(crate) fn parse_whole_input<'a>(
     dict: &Dictionary,
     raw_buffer: &'a str,
 ) -> Vec<(SectionType, &'a str)> {
-    let functions = &[
-        (SectionType::Splittable, max_segmentable_len),
-    ];
+    let functions = &[(SectionType::Splittable, max_segmentable_len)];
 
     parse_input_to_sections(dict, raw_buffer, functions)
 }
@@ -41,7 +39,7 @@ fn max_segmentable_len(dict: &Dictionary, raw_buffer: &str) -> usize {
 /// Iterates over the input string, matching the string against the provided
 /// functions in order. The functions must return the length of the matched
 /// prefix in bytes.
-/// 
+///
 /// This function returns a Vec of sections, with each section containing a
 /// slice of the input string and the type of the section. Unknown sections that
 /// were not matched by any of the matcher functions are passed through as
@@ -51,7 +49,9 @@ fn parse_input_to_sections<'a, F>(
     input: &'a str,
     functions: &[(SectionType, F)],
 ) -> Vec<(SectionType, &'a str)>
-where F: Fn(&Dictionary, &str) -> usize {
+where
+    F: Fn(&Dictionary, &str) -> usize,
+{
     let mut result = Vec::new();
     let input_len = input.len();
     let mut start = 0;

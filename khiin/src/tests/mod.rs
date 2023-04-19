@@ -6,10 +6,10 @@ use std::path::PathBuf;
 
 use crate::config::Config;
 use crate::config::InputType;
+use crate::data::models::Conversion;
 use crate::data::Database;
 use crate::data::Dictionary;
 use crate::Engine;
-use crate::data::models::Conversion;
 
 pub(crate) use mock_protos::*;
 

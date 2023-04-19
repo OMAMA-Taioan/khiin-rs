@@ -1,6 +1,7 @@
 from textwrap import dedent
 import csv_parsers as csv
 import lomaji
+import os
 import argparse
 import itertools
 import locale
@@ -343,6 +344,11 @@ parser.add_argument('-y', '--symbols', metavar='FILE',
 parser.add_argument('-e', '--emoji', metavar='FILE',
                     help='Include the emoji csv file as a table')
 
+def ensure_dir(file):
+    dir = os.path.dirname(file)
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+
 if __name__ == "__main__":
     args = parser.parse_args()
 
@@ -355,6 +361,9 @@ if __name__ == "__main__":
     db_file = args.db
     symbol_file = args.symbols
     emoji_file = args.emoji
+
+    ensure_dir(sql_file)
+    ensure_dir(db_file)
 
     freq_csv = csv.parse_freq_csv(freq_file, exclude_zeros)
     conv_csv = csv.parse_conv_csv(conv_file, hanji_first)

@@ -1,7 +1,7 @@
 use once_cell::sync::Lazy;
 use regex::Regex;
-use unicode_normalization::UnicodeNormalization;
 use std::collections::HashMap;
+use unicode_normalization::UnicodeNormalization;
 
 use crate::collection;
 
