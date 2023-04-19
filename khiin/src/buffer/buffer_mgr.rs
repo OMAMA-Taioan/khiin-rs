@@ -117,6 +117,14 @@ impl BufferMgr {
         self.edit_state
     }
 
+    pub fn reset(&mut self) -> Result<()> {
+        self.composition.clear();
+        self.candidates.clear();
+        self.focused_cand_idx = None;
+        self.focused_elem_idx = 0;
+        Ok(())
+    }
+
     pub fn insert(
         &mut self,
         db: &Database,

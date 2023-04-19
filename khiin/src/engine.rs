@@ -57,7 +57,10 @@ impl Engine {
 
         let res = match req.type_.enum_value_or_default() {
             CommandType::CMD_UNSPECIFIED => {
-                Err(anyhow!("Command not specified"))
+                let mut res = Response::new();
+                let mut cmd = Command::new();
+                res.error = ErrorCode::FAIL.into();
+                Ok(res)
             },
             CommandType::CMD_SEND_KEY => self.on_send_key(req),
             CommandType::CMD_REVERT => self.on_revert(req),
@@ -130,12 +133,14 @@ impl Engine {
         Err(anyhow!("Not implemented"))
     }
 
-    fn on_reset(&self, req: Request) -> Result<Response> {
-        Err(anyhow!("Not implemented"))
+    fn on_reset(&mut self, req: Request) -> Result<Response> {
+        self.buffer_mgr.reset()?;
+        Ok(Response::new())
     }
 
-    fn on_commit(&self, req: Request) -> Result<Response> {
-        Err(anyhow!("Not implemented"))
+    fn on_commit(&mut self, req: Request) -> Result<Response> {
+        self.buffer_mgr.reset()?;
+        Ok(Response::new())
     }
 
     fn on_select_candidate(&self, req: Request) -> Result<Response> {
