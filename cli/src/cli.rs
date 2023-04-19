@@ -4,6 +4,7 @@ use std::io::Stdout;
 use std::io::Write;
 
 use anyhow::Result;
+use khiin_protos::command::Command;
 use termion::cursor::Goto;
 use termion::event::Key;
 use termion::input::TermRead;
@@ -40,7 +41,7 @@ fn update_display(
     stdout: &mut RawTerminal<Stdout>,
     raw: &str,
     display: &str,
-    cands: &Vec<&str>,
+    cands: &Vec<String>,
 ) -> Result<()> {
     let mut display = display;
     if display.is_empty() {
@@ -53,14 +54,90 @@ fn update_display(
     write!(stdout, "{}User sees:  {}", Goto(2, 6), display)?;
     write!(stdout, "{}Candidates:  ", Goto(2, 8))?;
 
-    for (i, cand) in cands.iter().take(9).enumerate() {
-        write!(stdout, "{}{}. {}", Goto(15, 8 + i as u16), i + 1, cand)?;
+    for (i, cand) in cands.iter().enumerate() {
+        write!(stdout, "{}{}", Goto(15, 8 + i as u16), cand)?;
     }
 
     draw_footer(stdout)?;
 
     stdout.flush()?;
     Ok(())
+}
+
+fn page_range(
+    item_count: usize,
+    page_size: usize,
+    index: usize,
+) -> (usize, usize) {
+    let start = (index / page_size) * page_size;
+    let end = std::cmp::min(start + page_size, item_count);
+    (start, end)
+}
+
+fn get_candidate_page(cmd: &Command) -> Vec<String> {
+    let page_size = 9;
+    let cl = &cmd.response.candidate_list;
+    let item_count = cl.candidates.len();
+
+    let (start, end) = if cl.focused < 0 {
+        (0, std::cmp::min(item_count, 9))
+    } else {
+        page_range(item_count, page_size, cl.focused as usize)
+    };
+
+    let mut ret = Vec::new();
+
+    for i in start..end {
+        let num = (i % page_size) + 1;
+        let mut cand = String::new();
+        if i as i32 == cl.focused {
+            cand.push_str("*");
+        } else {
+            cand.push_str(" ");
+        }
+
+        cand.push_str(format!("{}. {}", num, cl.candidates[i].value).as_str());
+        ret.push(cand)
+    }
+
+    ret
+}
+
+fn draw_ime(
+    stdout: &mut RawTerminal<Stdout>,
+    raw_input: &str,
+    cmd: Command,
+) -> Result<()> {
+    let mut disp_buffer = String::new();
+
+    let preedit = &cmd.response.preedit;
+    let mut char_count = 0;
+
+    for (i, segment) in preedit.segments.iter().enumerate() {
+        if cmd.response.preedit.focused_caret == i as i32 {
+            disp_buffer.push('>');
+        }
+
+        if preedit.caret == char_count {
+            disp_buffer.push('|');
+        }
+
+        for ch in segment.value.chars().collect::<Vec<char>>() {
+            disp_buffer.push(ch);
+            char_count += 1
+        }
+    }
+
+    if preedit.caret == char_count {
+        disp_buffer.push('|');
+    }
+
+    let cands = get_candidate_page(&cmd);
+    // let cl = &cmd.response.candidate_list;
+    // let cands: Vec<&str> =
+    //     cl.candidates.iter().map(|c| c.value.as_str()).collect();
+
+    update_display(stdout, &raw_input, &disp_buffer, &cands)
 }
 
 fn draw_footer(stdout: &mut RawTerminal<Stdout>) -> Result<()> {
@@ -110,38 +187,7 @@ pub fn run() -> Result<()> {
         }
 
         let cmd = engine.send_key(key)?;
-
-        let preedit = &cmd.response.preedit;
-        let mut char_count = 0;
-
-        for (i, segment) in preedit.segments.iter().enumerate() {
-            if cmd.response.preedit.focused_caret == i as i32 {
-                disp_buffer.push('>');
-            }
-
-            if preedit.caret == char_count {
-                disp_buffer.push('|');
-            }
-
-            for ch in segment.value.chars().collect::<Vec<char>>() {
-                disp_buffer.push(ch);
-                char_count += 1
-            }
-        }
-
-        if preedit.caret == char_count {
-            disp_buffer.push('|');
-        }
-
-        let cands: Vec<&str> = cmd
-            .response
-            .candidate_list
-            .candidates
-            .iter()
-            .map(|c| c.value.as_str())
-            .collect();
-
-        update_display(&mut stdout, &raw_input, &disp_buffer, &cands)?;
+        draw_ime(&mut stdout, &raw_input, cmd)?;
     }
     clear(&mut stdout)?;
     Ok(())
