@@ -225,3 +225,37 @@ TODO
 ## Android App
 
 TODO
+
+---
+
+## Development CLI App
+
+### Quickstart
+
+- `python3` must be installed and available in the system path
+
+Install rust:
+
+```
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+Reload your terminal to source the new files. Then install `cargo-make`:
+
+```
+cargo install --force cargo-make
+```
+
+Clone this repo and build it:
+
+```
+git clone https://github.com/aiongg/khiin-rs.git
+cd khiin-rs
+cargo make
+```
+
+Run the terminal application:
+
+```
+./target/debug/khiin_cli
+```
