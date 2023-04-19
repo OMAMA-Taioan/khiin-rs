@@ -236,7 +236,7 @@ impl BufferMgr {
             .elem_index_at_raw_char_count(cand_raw_count);
 
         let mut comp_lhs = self.composition.clone();
-        let comp_rhs = comp_lhs.split_off(comp_split_element_index + 1);
+        let mut comp_rhs = comp_lhs.split_off(comp_split_element_index + 1);
 
         let lhs_raw = comp_lhs.raw_text();
         let lhs_remainder =
@@ -249,6 +249,7 @@ impl BufferMgr {
         }
 
         if !comp_rhs.is_empty() {
+            comp_rhs.set_converted(false);
             new_comp.extend(comp_rhs);
         }
 
