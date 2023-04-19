@@ -5,11 +5,14 @@ use std::io::Write;
 
 use anyhow::Result;
 use khiin_protos::command::Command;
+use termion::cursor::BlinkingBar;
 use termion::cursor::Goto;
+use termion::cursor::Show;
 use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::IntoRawMode;
 use termion::raw::RawTerminal;
+use unicode_width::UnicodeWidthStr;
 
 use crate::engine_ctrl::EngineCtrl;
 
@@ -33,7 +36,7 @@ fn clear(stdout: &mut RawTerminal<Stdout>) -> Result<()> {
 
 fn blank_display(stdout: &mut RawTerminal<Stdout>) -> Result<()> {
     clear(stdout)?;
-    update_display(stdout, "", "", &Vec::new())?;
+    update_display(stdout, "", "", 0, "", &Vec::new())?;
     Ok(())
 }
 
@@ -41,25 +44,25 @@ fn update_display(
     stdout: &mut RawTerminal<Stdout>,
     raw: &str,
     display: &str,
+    caret: usize,
+    attrs: &str,
     cands: &Vec<String>,
 ) -> Result<()> {
     let mut display = display;
-    if display.is_empty() {
-        display = "|";
-    }
 
     clear(stdout)?;
     write!(stdout, "{}Khíín Phah Jī Hoat", Goto(2, 2))?;
     write!(stdout, "{}Raw input:  {}", Goto(2, 4), raw)?;
     write!(stdout, "{}User sees:  {}", Goto(2, 6), display)?;
+    write!(stdout, "{}{}", Goto(14, 7), attrs)?;
     write!(stdout, "{}Candidates:  ", Goto(2, 8))?;
-
+    
     for (i, cand) in cands.iter().enumerate() {
         write!(stdout, "{}{}", Goto(15, 8 + i as u16), cand)?;
     }
 
     draw_footer(stdout)?;
-
+    write!(stdout, "{}{}{}", Goto(14 + caret as u16, 6), Show, BlinkingBar)?;
     stdout.flush()?;
     Ok(())
 }
@@ -109,35 +112,44 @@ fn draw_ime(
     cmd: Command,
 ) -> Result<()> {
     let mut disp_buffer = String::new();
+    let mut attr_buffer = String::new();
 
     let preedit = &cmd.response.preedit;
     let mut char_count = 0;
+    let mut caret = 0;
 
-    for (i, segment) in preedit.segments.iter().enumerate() {
-        if cmd.response.preedit.focused_caret == i as i32 {
-            disp_buffer.push('>');
-        }
+    for segment in preedit.segments.iter() {
+        let mut disp_seg = String::new();
 
         if preedit.caret == char_count {
-            disp_buffer.push('|');
+            caret = disp_buffer.width() + disp_seg.width();
         }
 
         for ch in segment.value.chars().collect::<Vec<char>>() {
-            disp_buffer.push(ch);
+            disp_seg.push(ch);
             char_count += 1
         }
+
+        let attr = match segment.status.enum_value_or_default() {
+            khiin_protos::command::SegmentStatus::SS_UNMARKED => ' ',
+            khiin_protos::command::SegmentStatus::SS_COMPOSING => '┄',
+            khiin_protos::command::SegmentStatus::SS_CONVERTED => '─',
+            khiin_protos::command::SegmentStatus::SS_FOCUSED => '━',
+        };
+
+        let seg_width = disp_seg.width();
+        let seg_attr = attr.to_string().repeat(seg_width);
+        disp_buffer.push_str(&disp_seg);
+        attr_buffer.push_str(&seg_attr);
     }
 
     if preedit.caret == char_count {
-        disp_buffer.push('|');
+        caret = disp_buffer.width();
     }
 
     let cands = get_candidate_page(&cmd);
-    // let cl = &cmd.response.candidate_list;
-    // let cands: Vec<&str> =
-    //     cl.candidates.iter().map(|c| c.value.as_str()).collect();
 
-    update_display(stdout, &raw_input, &disp_buffer, &cands)
+    update_display(stdout, &raw_input, &disp_buffer, caret, &attr_buffer, &cands)
 }
 
 fn draw_footer(stdout: &mut RawTerminal<Stdout>) -> Result<()> {
