@@ -70,12 +70,16 @@ dependencies = ["db-copy"]
 
 [tasks.db-copy]
 condition = { files_not_exist = ["resources/khiin.db"] }
+dependencies = ["db-build"]
 script_runner = "@shell"
 script = '''
 mkdir -p resources
 cp data/out/khiin.db resources/khiin.db
 '''
-dependencies = ["db-build"]
+
+[tasks.test]
+command = "cargo"
+args = ["test", "--manifest-path=khiin/Cargo.toml"]
 
 [tasks.fmt]
 dependencies = ["format-cli", "format-khiin", "format-windows"]
