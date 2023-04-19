@@ -5,6 +5,7 @@ use std::io::Write;
 
 use anyhow::Result;
 use khiin_protos::command::Command;
+use khiin_protos::command::SegmentStatus;
 use termion::cursor::BlinkingBar;
 use termion::cursor::Goto;
 use termion::cursor::Show;
@@ -48,8 +49,6 @@ fn update_display(
     attrs: &str,
     cands: &Vec<String>,
 ) -> Result<()> {
-    let mut display = display;
-
     clear(stdout)?;
     write!(stdout, "{}Khíín Phah Jī Hoat", Goto(2, 2))?;
     write!(stdout, "{}Raw input:  {}", Goto(2, 4), raw)?;
@@ -131,10 +130,10 @@ fn draw_ime(
         }
 
         let attr = match segment.status.enum_value_or_default() {
-            khiin_protos::command::SegmentStatus::SS_UNMARKED => ' ',
-            khiin_protos::command::SegmentStatus::SS_COMPOSING => '┄',
-            khiin_protos::command::SegmentStatus::SS_CONVERTED => '─',
-            khiin_protos::command::SegmentStatus::SS_FOCUSED => '━',
+            SegmentStatus::SS_UNMARKED => ' ',
+            SegmentStatus::SS_COMPOSING => '┄',
+            SegmentStatus::SS_CONVERTED => '─',
+            SegmentStatus::SS_FOCUSED => '━',
         };
 
         let seg_width = disp_seg.width();
