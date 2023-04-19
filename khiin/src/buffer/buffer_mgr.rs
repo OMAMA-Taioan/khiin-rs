@@ -65,6 +65,7 @@ impl BufferMgr {
                     segment.value = composing_segment.clone();
                     segment.status = SegmentStatus::SS_COMPOSING.into();
                     preedit.segments.push(segment);
+                    composing_segment.clear();
                 }
 
                 let mut segment = Segment::default();

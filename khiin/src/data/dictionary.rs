@@ -40,6 +40,11 @@ impl Dictionary {
         if !query.is_ascii() {
             return false;
         }
+
+        if query.is_empty() {
+            return true;
+        }
+
         let is_word = |s: &str| *&self.word_trie.contains(&s);
         Segmenter::can_segment(is_word, query)
     }

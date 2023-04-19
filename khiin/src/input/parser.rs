@@ -25,9 +25,7 @@ pub(crate) fn parse_whole_input<'a>(
     dict: &Dictionary,
     raw_buffer: &'a str,
 ) -> Vec<(SectionType, &'a str)> {
-    let functions = &[(SectionType::Splittable, max_segmentable_len)];
-
-    parse_input_to_sections(dict, raw_buffer, functions)
+    parse_input_to_sections(dict, raw_buffer)
 }
 
 /// Returns byte length of splittable section from the beginning
@@ -36,21 +34,18 @@ fn max_segmentable_len(dict: &Dictionary, raw_buffer: &str) -> usize {
     raw_buffer.to_byte_len(char_count)
 }
 
-/// Iterates over the input string, matching the string against the provided
-/// functions in order. The functions must return the length of the matched
-/// prefix in bytes.
+/// Iterates over the input string, matching the string against the functions
+/// provided in the while loop. These functions should provide the length (in
+/// bytes) of the consumed text.
 ///
-/// This function returns a Vec of sections, with each section containing a
+/// Returns a Vec of sections, with each section containing a
 /// slice of the input string and the type of the section. Unknown sections that
 /// were not matched by any of the matcher functions are passed through as
 /// SectionType::Plaintext.
-fn parse_input_to_sections<'a, F>(
+fn parse_input_to_sections<'a>(
     dict: &Dictionary,
     input: &'a str,
-    functions: &[(SectionType, F)],
 ) -> Vec<(SectionType, &'a str)>
-where
-    F: Fn(&Dictionary, &str) -> usize,
 {
     let mut result = Vec::new();
     let input_len = input.len();
@@ -61,14 +56,19 @@ where
         let remaining = &input[start..];
         let mut parsed_type = SectionType::Plaintext;
         let mut parsed_len = 0;
+        let mut done = false;
 
-        for (ty, f) in functions {
-            let bytes = f(dict, remaining);
+        if !done {
+            let bytes = max_segmentable_len(dict, remaining);
             if bytes > 0 {
-                parsed_type = *ty;
+                parsed_type = SectionType::Splittable;
                 parsed_len = bytes;
-                break;
+                done = true;
             }
+        }
+
+        if !done {
+            // TODO check for a different segment type
         }
 
         if parsed_type != SectionType::Plaintext {

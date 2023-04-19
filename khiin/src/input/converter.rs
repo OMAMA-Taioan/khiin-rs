@@ -1,6 +1,7 @@
 use anyhow::Result;
 
 use crate::buffer::Buffer;
+use crate::buffer::BufferElement;
 use crate::buffer::BufferElementEnum;
 use crate::buffer::KhiinElem;
 use crate::buffer::StringElem;
@@ -25,24 +26,37 @@ pub(crate) fn get_candidates(
         SectionType::Hyphens => Ok(Vec::new()),
         SectionType::Punct => Ok(Vec::new()),
         SectionType::Splittable => {
-            let words = dict.all_words_from_start(query);
-            let candidates =
-                db.find_conversions_for_ids(conf.input_type(), &words)?;
-
-            let mut result: Vec<Buffer> = Vec::new();
-
-            for conv in candidates {
-                let khiin_elem: BufferElementEnum =
-                    KhiinElem::from_conversion(&conv.key_sequence, &conv)?
-                        .into();
-                let mut buf: Buffer = khiin_elem.into();
-                buf.set_converted(true);
-                result.push(buf);
-            }
-
-            Ok(result)
+            candidates_for_splittable(db, dict, conf, query)
         },
     }
+}
+
+fn candidates_for_splittable(
+    db: &Database,
+    dict: &Dictionary,
+    conf: &Config,
+    query: &str,
+) -> Result<Vec<Buffer>> {
+    let words = dict.all_words_from_start(query);
+    let candidates = db.find_conversions_for_ids(conf.input_type(), &words)?;
+
+    let result = candidates
+        .into_iter()
+        .map(|conv| KhiinElem::from_conversion(&conv.key_sequence, &conv))
+        .filter(|elem| elem.is_ok())
+        .map(|elem| elem.unwrap().into())
+        .filter(|elem: &BufferElementEnum| {
+            let len = elem.raw_text().len();
+            len >= query.len() || dict.can_segment(&query[len..])
+        })
+        .map(|elem| {
+            let mut buffer: Buffer = elem.into();
+            buffer.set_converted(true);
+            buffer
+        })
+        .collect();
+
+    Ok(result)
 }
 
 pub(crate) fn convert_all(
@@ -62,24 +76,38 @@ pub(crate) fn convert_all(
             SectionType::Hyphens => todo!(),
             SectionType::Punct => todo!(),
             SectionType::Splittable => {
-                let words = dict.segment(section)?;
-                for word in words {
-                    let conversions = db.find_conversions(
-                        cfg.input_type(),
-                        word.as_str(),
-                        Some(1),
-                    )?;
-                    if let Some(conv) = conversions.get(0) {
-                        let khiin_elem =
-                            KhiinElem::from_conversion(&word, conv)?;
-                        composition.push(khiin_elem.into());
-                    }
+                let elems = convert_section(db, dict, cfg, ty, section)?;
+                for elem in elems.into_iter() {
+                    composition.push(elem)
                 }
             },
         }
     }
 
     Ok(composition)
+}
+
+fn convert_section(
+    db: &Database,
+    dict: &Dictionary,
+    cfg: &Config,
+    ty: SectionType,
+    section: &str,
+) -> Result<Vec<BufferElementEnum>> {
+    let mut ret = Vec::new();
+
+    let words = dict.segment(section)?;
+    for word in words {
+        let conversions =
+            db.find_conversions(cfg.input_type(), word.as_str(), Some(1))?;
+
+        if let Some(conv) = conversions.get(0) {
+            let khiin_elem = KhiinElem::from_conversion(&word, conv)?;
+            ret.push(khiin_elem.into());
+        }
+    }
+
+    Ok(ret)
 }
 
 #[cfg(test)]
