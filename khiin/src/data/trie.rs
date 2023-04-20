@@ -83,6 +83,7 @@ mod tests {
             .map(|(i, w)| KeySequence {
                 id: (i + 1) as u32,
                 key_sequence: w.to_string(),
+                n_syls: 1,
                 p: 0.0,
             })
             .collect();

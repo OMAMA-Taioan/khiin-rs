@@ -15,6 +15,7 @@ pub struct Conversion {
 pub struct KeySequence {
     pub id: u32,
     pub key_sequence: String,
+    pub n_syls: usize,
     pub p: f64,
 }
 

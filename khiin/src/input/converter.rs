@@ -45,6 +45,7 @@ fn candidates_for_splittable(
             true
         }
     });
+    
     let candidates = db.find_conversions_for_ids(conf.input_type(), &words)?;
 
     let result = candidates
@@ -53,11 +54,6 @@ fn candidates_for_splittable(
         .filter(|elem| elem.is_ok())
         .map(|elem| elem.unwrap().into())
         .filter(|elem: &BufferElementEnum| {
-            if let Some(c) = elem.candidate() {
-                if c.output == "掖" {
-                    println!("here");
-                }
-            }
             let len = elem.raw_text().len();
             len >= query.len() || dict.can_segment(&query[len..])
         })
@@ -146,7 +142,7 @@ mod tests {
         Ok(())
     }
 
-    #[test]
+    #[test_log::test]
     fn it_contains_ia7() -> Result<()> {
         let (db, dict, conf) = setup();
         let result = candidates_for_splittable(&db, &dict, &conf, "ia7")?;

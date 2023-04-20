@@ -53,6 +53,7 @@ impl Database {
             select
                 "input_id",
                 "{column}",
+                "n_syls",
                 "p"
             from
                 "{table}"
@@ -68,6 +69,7 @@ impl Database {
             let input = KeySequence {
                 id: row.get("input_id")?,
                 key_sequence: row.get(input_col)?,
+                n_syls: row.get("n_syls")?,
                 p: row.get("p")?,
             };
             result.push(input);

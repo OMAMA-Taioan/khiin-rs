@@ -12,7 +12,9 @@ use crate::data::models::KeySequence;
 /// A value of 1.0 will weigh any longer word higher than any shorter word. A
 /// value of 0.0 will not bias the results at all, and will use only the
 /// frequency index in the database to decide whether or not to split.
-const LENGTH_BIAS: f64 = 0.2;
+const LENGTH_BIAS: f64 = 0.5;
+
+const SYLLABLE_BIAS: f64 = 0.9;
 
 const BIG: f64 = 1e10;
 
@@ -75,7 +77,8 @@ impl Segmenter {
             // Apply the length bias
             let mut cost = (1.0 / p).ln();
             let bias = (word_len as f64).powf(LENGTH_BIAS);
-            cost = cost / bias;
+            let syl_bias = (word.n_syls as f64).powf(SYLLABLE_BIAS);
+            cost = cost / bias * syl_bias;
             cost_map.insert(word.key_sequence, cost);
         }
 
@@ -263,40 +266,41 @@ mod tests {
     #[test]
     fn it_splits_using_a_word_list() {
         let words = vec![
-            "goa2",
-            "goa",
-            "m7chai",
-            "mchai",
-            "joache",
-            "joa7che7",
-            "lang5",
-            "lang",
-            "ham5",
-            "ham",
-            "u7",
-            "u",
-            "kangkhoan2",
-            "kangkhoan",
-            "e",
-            "seng",
-            "tiong",
-            "li2",
-            "li",
-            "ho2",
-            "ho",
-            "la",
-            "toa7",
-            "toa",
-            "toa7lang5",
-            "toalang",
-            "to",
-            "a",
-            "ng",
+            ("goa2", 1),
+            ("goa", 1),
+            ("m7chai", 2),
+            ("mchai", 2),
+            ("joache", 2),
+            ("joa7che7", 2),
+            ("lang5", 1),
+            ("lang", 1),
+            ("ham5", 1),
+            ("ham", 1),
+            ("u7", 1),
+            ("u", 1),
+            ("kangkhoan2", 2),
+            ("kangkhoan", 2),
+            ("e", 1),
+            ("seng", 1),
+            ("tiong", 1),
+            ("li2", 1),
+            ("li", 1),
+            ("ho2", 1),
+            ("ho", 1),
+            ("la", 1),
+            ("toa7", 1),
+            ("toa", 1),
+            ("toa7lang5", 2),
+            ("toalang", 2),
+            ("to", 1),
+            ("a", 1),
+            ("ng", 1),
         ]
         .iter()
-        .map(|s| KeySequence {
+        .map(|(keys, syls)| KeySequence {
             id: 0,
-            key_sequence: s.to_string(),
+            key_sequence: keys.to_string(),
+            n_syls: *syls,
             p: 0.01,
         })
         .collect();
