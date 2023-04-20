@@ -11,6 +11,7 @@ use khiin_protos::command::EditState;
 use khiin_protos::command::Preedit;
 use khiin_protos::command::SegmentStatus;
 use log::trace;
+use protobuf::SpecialFields;
 
 use crate::buffer::Buffer;
 use crate::buffer::BufferElement;
@@ -22,6 +23,7 @@ use crate::input::converter::convert_all;
 use crate::input::converter::get_candidates;
 use crate::utils::CharSubstr;
 
+use super::Spacer;
 use super::StringElem;
 
 pub(crate) struct BufferMgr {
@@ -57,14 +59,33 @@ impl BufferMgr {
         let mut composing_segment = String::new();
 
         for (i, elem) in self.composition.iter().enumerate() {
+            if let super::BufferElementEnum::Spacer(s) = elem {
+                if s.deleted {
+                    continue;
+                }
+
+                if !composing_segment.is_empty() {
+                    composing_segment.push(' ');
+                } else {
+                    preedit.segments.push(Segment {
+                        status: SegmentStatus::SS_UNMARKED.into(),
+                        value: elem.display_text(),
+                        special_fields: SpecialFields::default(),
+                    });
+                }
+
+                continue;
+            }
+
             if !elem.is_converted() {
                 composing_segment.push_str(&elem.composed_text());
             } else {
                 if !composing_segment.is_empty() {
-                    let mut segment = Segment::default();
-                    segment.value = composing_segment.clone();
-                    segment.status = SegmentStatus::SS_COMPOSING.into();
-                    preedit.segments.push(segment);
+                    preedit.segments.push(Segment {
+                        status: SegmentStatus::SS_COMPOSING.into(),
+                        value: composing_segment.clone(),
+                        special_fields: SpecialFields::default(),
+                    });
                     composing_segment.clear();
                 }
 
@@ -76,15 +97,17 @@ impl BufferMgr {
                     SegmentStatus::SS_CONVERTED
                 })
                 .into();
+
                 preedit.segments.push(segment);
             }
         }
 
         if !composing_segment.is_empty() {
-            let mut segment = Segment::default();
-            segment.value = composing_segment.clone();
-            segment.status = SegmentStatus::SS_COMPOSING.into();
-            preedit.segments.push(segment);
+            preedit.segments.push(Segment {
+                status: SegmentStatus::SS_COMPOSING.into(),
+                value: composing_segment.clone(),
+                special_fields: SpecialFields::default(),
+            });
         }
 
         preedit.caret = self.char_caret as i32;
@@ -133,7 +156,6 @@ impl BufferMgr {
         conf: &Config,
         ch: char,
     ) -> Result<()> {
-        self.composition.clear_autospaces();
         self.edit_state = EditState::ES_COMPOSING;
 
         match conf.input_mode() {
@@ -170,7 +192,11 @@ impl BufferMgr {
             first.set_converted(true);
             self.candidates.insert(0, first);
         }
-        
+
+        for c in self.candidates.iter_mut() {
+            c.autospace();
+        }
+
         self.composition.autospace();
         self.char_caret = self.composition.display_char_count();
 
@@ -226,8 +252,6 @@ impl BufferMgr {
     // 6. Add the remaining raw text (3) into the composition
     // 7. Add back the elements from 2-RHS
     fn focus_candidate(&mut self, index: usize) -> Result<()> {
-        self.composition.clear_autospaces();
-        
         let candidate = self
             .candidates
             .get(index)

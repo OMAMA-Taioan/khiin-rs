@@ -3,8 +3,8 @@ use crate::data::models::Conversion;
 use super::BufferElement;
 #[derive(Debug, Clone)]
 pub struct Spacer {
+    pub deleted: bool,
     converted: bool,
-    deleted: bool,
 }
 
 impl Spacer {
@@ -62,7 +62,7 @@ impl BufferElement for Spacer {
     }
 
     fn is_converted(&self) -> bool {
-        self.converted
+        true
     }
 
     fn is_selected(&self) -> bool {
