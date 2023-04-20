@@ -46,7 +46,7 @@ fn candidates_for_splittable(
         }
     });
     
-    let candidates = db.find_conversions_for_ids(conf.input_type(), &words)?;
+    let candidates = db.find_conversions_for_words(conf.input_type(), &words)?;
 
     let result = candidates
         .into_iter()

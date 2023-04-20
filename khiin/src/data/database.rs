@@ -123,7 +123,7 @@ impl Database {
         Ok(result)
     }
 
-    pub fn find_conversions_for_ids(
+    pub fn find_conversions_for_words(
         &self,
         input_type: InputType,
         words: &Vec<&str>,
@@ -148,8 +148,10 @@ impl Database {
             select *
             from cte
             where rn = 1
-            order by length(cte."{column}") desc,
-            cte.weight desc
+            order by
+            length(cte."{column}") desc,
+            (cte.weight / cte.n_syls) desc --,
+            -- cte.weight desc
             "#,
             table = V_LOOKUP,
             vars = repeat_vars(words.len()),
@@ -243,7 +245,7 @@ mod tests {
         let db = get_db();
         let words = vec!["ho", "hong"];
         let res = db
-            .find_conversions_for_ids(InputType::Numeric, &words)
+            .find_conversions_for_words(InputType::Numeric, &words)
             .unwrap();
         assert!(res.len() >= 20);
     }
