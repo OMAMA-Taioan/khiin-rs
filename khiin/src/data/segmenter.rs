@@ -12,7 +12,7 @@ use crate::data::models::KeySequence;
 /// A value of 1.0 will weigh any longer word higher than any shorter word. A
 /// value of 0.0 will not bias the results at all, and will use only the
 /// frequency index in the database to decide whether or not to split.
-const LENGTH_BIAS: f64 = 1.0;
+const LENGTH_BIAS: f64 = 0.2;
 
 const BIG: f64 = 1e10;
 
