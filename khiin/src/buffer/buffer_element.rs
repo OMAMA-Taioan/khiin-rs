@@ -33,7 +33,7 @@ pub trait BufferElement {
 
     fn set_khin(&self);
 
-    fn candidate(&self) -> Option<Conversion>;
+    fn candidate(&self) -> Option<&Conversion>;
 
     fn insert(&mut self, idx: usize, ch: char);
     fn erase(&mut self, idx: usize);

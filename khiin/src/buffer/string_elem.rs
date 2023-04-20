@@ -90,7 +90,7 @@ impl BufferElement for StringElem {
         // noop
     }
 
-    fn candidate(&self) -> Option<Conversion> {
+    fn candidate(&self) -> Option<&Conversion> {
         None
     }
 

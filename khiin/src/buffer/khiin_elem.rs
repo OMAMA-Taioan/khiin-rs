@@ -245,8 +245,8 @@ impl BufferElement for KhiinElem {
         todo!()
     }
 
-    fn candidate(&self) -> Option<Conversion> {
-        todo!()
+    fn candidate(&self) -> Option<&Conversion> {
+        self.candidate.as_ref()
     }
 
     fn insert(&mut self, idx: usize, ch: char) {
