@@ -132,7 +132,12 @@ impl Database {
             with cte as (
                 select
                     c.*,
-                    row_number() over (partition by c.output order by c.weight desc) as rn
+                    row_number() over (
+                        partition by c.output
+                        order by
+                            c.weight desc,
+                            length(c.{column}) desc
+                    ) as rn
                 from
                     {table} c
                 where
@@ -141,7 +146,8 @@ impl Database {
             select *
             from cte
             where rn = 1
-            order by length(cte."{column}") desc, cte.weight desc
+            order by length(cte."{column}") desc,
+            cte.weight desc
             "#,
             table = V_LOOKUP,
             vars = repeat_vars(words.len()),

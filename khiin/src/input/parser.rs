@@ -45,8 +45,7 @@ fn max_segmentable_len(dict: &Dictionary, raw_buffer: &str) -> usize {
 fn parse_input_to_sections<'a>(
     dict: &Dictionary,
     input: &'a str,
-) -> Vec<(SectionType, &'a str)>
-{
+) -> Vec<(SectionType, &'a str)> {
     let mut result = Vec::new();
     let input_len = input.len();
     let mut start = 0;

@@ -46,6 +46,11 @@ fn candidates_for_splittable(
         .filter(|elem| elem.is_ok())
         .map(|elem| elem.unwrap().into())
         .filter(|elem: &BufferElementEnum| {
+            if let Some(c) = elem.candidate() {
+                if c.output == "掖" {
+                    println!("here");
+                }
+            }
             let len = elem.raw_text().len();
             len >= query.len() || dict.can_segment(&query[len..])
         })
@@ -131,6 +136,14 @@ mod tests {
         let (db, dict, conf) = setup();
         let cands = get_candidates(&db, &dict, &conf, "a")?;
         log::debug!("{:#?}", cands);
+        Ok(())
+    }
+
+    #[test]
+    fn it_contains_ia7() -> Result<()> {
+        let (db, dict, conf) = setup();
+        let result = candidates_for_splittable(&db, &dict, &conf, "ia7")?;
+        assert!(result.iter().any(|c| c.display_text() == "掖"));
         Ok(())
     }
 }
