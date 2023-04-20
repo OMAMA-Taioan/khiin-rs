@@ -37,7 +37,14 @@ fn candidates_for_splittable(
     conf: &Config,
     query: &str,
 ) -> Result<Vec<Buffer>> {
-    let words = dict.all_words_from_start(query);
+    let mut words = dict.all_words_from_start(query);
+    words.retain(|&w| {
+        if let Some(rem) = query.strip_prefix(w) {
+            dict.can_segment(rem)
+        } else {
+            true
+        }
+    });
     let candidates = db.find_conversions_for_ids(conf.input_type(), &words)?;
 
     let result = candidates
