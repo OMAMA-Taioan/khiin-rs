@@ -233,6 +233,7 @@ TODO
 ### Quickstart
 
 - `python3` must be installed and available in the system path
+- All commands should be run from the root `khiin-rs` directory
 
 Install rust:
 
@@ -258,4 +259,10 @@ Run the terminal application:
 
 ```
 ./target/debug/khiin_cli
+```
+
+To rebuild the database after an update, run:
+
+```
+cargo make db-rebuild
 ```

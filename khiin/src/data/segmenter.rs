@@ -5,6 +5,11 @@ use bit_vec::BitVec;
 
 use crate::data::models::KeySequence;
 
+/// A number 0.0 or greater. If set to 0.0, all words will be treated equally
+/// regardless of frequency. The higher the number, the more heavily weighted
+/// the frequency will be. The default (unbiased) weight is 1.0.
+const FREQUENCY_BIAS: f64 = 1.0;
+
 /// A number between 0.0 and 1.0, where higher numbers bias towards keeping
 /// longer words un-split, and lower numbers bias towards following the rankings
 /// provided in the frequency database.
@@ -12,9 +17,15 @@ use crate::data::models::KeySequence;
 /// A value of 1.0 will weigh any longer word higher than any shorter word. A
 /// value of 0.0 will not bias the results at all, and will use only the
 /// frequency index in the database to decide whether or not to split.
-const LENGTH_BIAS: f64 = 0.5;
+const LETTER_COUNT_BIAS: f64 = 0.2;
 
-const SYLLABLE_BIAS: f64 = 0.9;
+/// A number between 0.0 and 1.0, where higher numbers bias towards splitting
+/// fewer syllables, and lower numbers bias towards following the rankings
+/// provided in the frequency database.
+/// 
+/// For example, "hoan" could be split as 2 syllables "ho" and "an", or 1
+/// syllable "hoan". A higher number would be more likely to use "hoan". 
+const SYLLABLE_COUNT_BIAS: f64 = 0.2;
 
 const BIG: f64 = 1e10;
 
@@ -74,10 +85,10 @@ impl Segmenter {
                 word.p
             };
 
-            // Apply the length bias
-            let mut cost = (1.0 / p).ln();
-            let bias = (word_len as f64).powf(LENGTH_BIAS);
-            let syl_bias = (word.n_syls as f64).powf(SYLLABLE_BIAS);
+            // Apply the cost biases
+            let mut cost = (1.0 / p.powf(FREQUENCY_BIAS)).ln();
+            let bias = (word_len as f64).powf(LETTER_COUNT_BIAS);
+            let syl_bias = (word.n_syls as f64).powf(SYLLABLE_COUNT_BIAS);
             cost = cost / bias * syl_bias;
             cost_map.insert(word.key_sequence, cost);
         }
