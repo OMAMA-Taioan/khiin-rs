@@ -165,6 +165,7 @@ drop view if exists "{V_LOOKUP}";
 create view "{V_LOOKUP}" (
     "numeric",
     "telex",
+    "n_syls",
     "input",
     "input_id",
     "output",
@@ -174,6 +175,7 @@ create view "{V_LOOKUP}" (
 ) as select
     "n"."numeric",
     "n"."telex",
+    "n"."n_syls",
     "f"."input",
     "n"."input_id",
     "c"."output",

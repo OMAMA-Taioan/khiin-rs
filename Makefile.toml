@@ -37,6 +37,20 @@ command = "cargo"
 args = ["build", "--manifest-path=cli/Cargo.toml"]
 dependencies = ["db-copy-to-target"]
 
+[tasks.db-rebuild]
+dependencies = [
+    "db-clean",
+    "db-build"
+]
+
+[tasks.db-clean]
+cwd = "data"
+condition = { files_exist = ["out/khiin.db"] }
+script_runner = "@shell"
+script = '''
+rm out/khiin.db
+'''
+
 [tasks.db-build]
 cwd = "data"
 condition = { files_not_exist = ["out/khiin.db"] }
