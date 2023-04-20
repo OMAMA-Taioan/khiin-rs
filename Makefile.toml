@@ -44,11 +44,11 @@ dependencies = [
 ]
 
 [tasks.db-clean]
-cwd = "data"
-condition = { files_exist = ["out/khiin.db"] }
+condition = { files_exist = ["data/out/khiin.db"] }
 script_runner = "@shell"
 script = '''
-rm out/khiin.db
+rm data/out/khiin.db
+rm resources/khiin.db
 '''
 
 [tasks.db-build]
