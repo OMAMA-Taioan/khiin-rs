@@ -37,10 +37,16 @@ impl ToByteLen for &str {
     }
 }
 
-pub fn is_hanji(ch: char) -> bool {
-    ch >= HANJI_CUTOFF
+pub trait IsHanji {
+    fn is_hanji(&self) -> bool;
+}
+
+impl IsHanji for char {
+    fn is_hanji(&self) -> bool {
+        self >= &HANJI_CUTOFF
+    }
 }
 
 pub fn contains_hanji(s: &str) -> bool {
-    s.chars().any(is_hanji)
+    s.chars().any(|c| c.is_hanji())
 }

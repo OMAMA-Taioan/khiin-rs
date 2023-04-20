@@ -3,6 +3,7 @@ use std::fmt::Debug;
 use enum_dispatch::enum_dispatch;
 
 use crate::buffer::KhiinElem;
+use crate::buffer::Spacer;
 use crate::buffer::StringElem;
 use crate::data::models::Conversion;
 
@@ -11,6 +12,7 @@ use crate::data::models::Conversion;
 pub(crate) enum BufferElementEnum {
     StringElem,
     KhiinElem,
+    Spacer,
 }
 
 #[enum_dispatch]

@@ -3,6 +3,9 @@ use std::ops::DerefMut;
 
 use crate::buffer::BufferElement;
 use crate::buffer::BufferElementEnum;
+use crate::buffer::Spacer;
+use crate::input::unicode::IsHanji;
+
 
 #[derive(Default, Debug, Clone)]
 pub(crate) struct Buffer {
@@ -147,6 +150,39 @@ impl Buffer {
         }
 
         index
+    }
+
+    pub fn autospace(&mut self) {
+        let mut i = 0;
+        while i < self.elems.len() - 1 {
+            match (
+                &self.elems[i].display_text().chars().last(),
+                &self.elems[i + 1].display_text().chars().next(),
+            ) {
+                (Some(a), Some(b)) => {
+                    let ah = a.is_hanji();
+                    let bh = b.is_hanji();
+                    if ah ^ bh || !ah && !bh {
+                        self.elems.insert(i + 1, Spacer::new().into());
+                        i += 2;
+                    } else {
+                        i += 1;
+                    }
+                },
+                _ => {
+                    i += 1;
+                },
+            }
+        }
+    }
+
+    pub fn clear_autospaces(&mut self) {
+        self.elems.retain(|e| {
+            match e {
+                BufferElementEnum::Spacer(_) => false,
+                _ => true
+            }
+        })
     }
 }
 

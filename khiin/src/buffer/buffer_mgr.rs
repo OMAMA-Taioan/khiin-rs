@@ -133,6 +133,7 @@ impl BufferMgr {
         conf: &Config,
         ch: char,
     ) -> Result<()> {
+        self.composition.clear_autospaces();
         self.edit_state = EditState::ES_COMPOSING;
 
         match conf.input_mode() {
@@ -169,6 +170,8 @@ impl BufferMgr {
             first.set_converted(true);
             self.candidates.insert(0, first);
         }
+        
+        self.composition.autospace();
         self.char_caret = self.composition.display_char_count();
 
         Ok(())
@@ -223,6 +226,8 @@ impl BufferMgr {
     // 6. Add the remaining raw text (3) into the composition
     // 7. Add back the elements from 2-RHS
     fn focus_candidate(&mut self, index: usize) -> Result<()> {
+        self.composition.clear_autospaces();
+        
         let candidate = self
             .candidates
             .get(index)
@@ -256,12 +261,13 @@ impl BufferMgr {
         self.composition = new_comp;
 
         self.focused_cand_idx = Some(index);
+        self.composition.autospace();
         self.char_caret = self.composition.display_char_count();
 
         Ok(())
     }
 
-    fn _fmt_preedit(&self, sep: char) -> String {
+    fn _debug_preedit(&self, sep: char) -> String {
         let preedit = self.build_preedit();
         let mut display_text = String::new();
         let mut char_count = 0;
@@ -313,7 +319,7 @@ impl Debug for BufferMgr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let sep = if f.alternate() { '\n' } else { ' ' };
 
-        let mut display_text = self._fmt_preedit(sep);
+        let mut display_text = self._debug_preedit(sep);
 
         let cands = self.get_candidates();
 
