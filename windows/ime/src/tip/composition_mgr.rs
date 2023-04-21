@@ -45,6 +45,10 @@ impl CompositionMgr {
         })
     }
 
+    pub fn composing(&self) -> bool {
+        self.composition.borrow().is_some()
+    }
+
     pub fn reset(&self) -> Result<()> {
         self.composition.replace(None);
         Ok(())
@@ -190,6 +194,7 @@ impl CompositionMgr {
         context: ITfContext,
         preedit: &Preedit,
     ) -> Result<()> {
+        log::debug!("Committing composition");
         unsafe {
             let preedit = preedit.widen();
             let range = composition.GetRange()?;

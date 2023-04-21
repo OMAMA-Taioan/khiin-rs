@@ -4,6 +4,8 @@ use std::sync::Arc;
 
 use log::debug as d;
 use once_cell::sync::Lazy;
+use windows::Win32::UI::Input::KeyboardAndMouse::ReleaseCapture;
+use windows::Win32::UI::WindowsAndMessaging::SW_HIDE;
 use windows::core::AsImpl;
 use windows::core::Result;
 use windows::Win32::Foundation::D2DERR_RECREATE_TARGET;
@@ -176,6 +178,20 @@ impl CandidateWindow {
             }
         }
 
+        Ok(())
+    }
+
+    pub fn hide(&self) -> Result<()> {
+        d!("Hiding window");
+        self.set_showing(false)?;
+        let handle = self.handle()?;
+        d!("Got handle");
+        unsafe {
+            ShowWindow(handle, SW_HIDE);
+            d!("ShowWindow SW_HIDE");
+            ReleaseCapture();
+            d!("ReleaseCapture");
+        }
         Ok(())
     }
 

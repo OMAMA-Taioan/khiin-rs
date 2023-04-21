@@ -1,5 +1,6 @@
 use std::cell::Cell;
 
+use khiin_protos::command::SpecialKey;
 use windows::core::implement;
 use windows::core::AsImpl;
 use windows::core::ComInterface;
@@ -37,6 +38,16 @@ use crate::reg::guids::GUID_PRESERVED_KEY_ON_OFF;
 use crate::reg::guids::GUID_PRESERVED_KEY_SWITCH_MODE;
 use crate::tip::KeyEvent;
 use crate::tip::TextService;
+
+const HANDLED_KEYS: &[VIRTUAL_KEY] = &[
+    VK_BACK, VK_TAB, VK_RETURN, VK_DOWN, VK_UP, VK_RIGHT, VK_LEFT,
+];
+
+fn is_handled_key(key: &KeyEvent) -> bool {
+    let vk = key.as_virtual_key();
+
+    key.ascii > 0 || HANDLED_KEYS.contains(&vk)
+}
 
 pub fn handle_key(
     tip: ITfTextInputProcessor,
@@ -109,6 +120,19 @@ impl KeyEventSink {
             return Ok(FALSE);
         }
 
+        let composing = service.composing();
+        let special_key = key_event.to_khiin().special_key.enum_value_or_default();
+
+        log::debug!("Composing: {}", composing);
+        log::debug!("Special key: {:?}", special_key);
+
+        if !service.composing()
+            && key_event.to_khiin().special_key.enum_value_or_default()
+                != SpecialKey::SK_NONE
+        {
+            return Ok(FALSE);
+        }
+
         if key_event.keycode == VK_SHIFT.0 as u32
         /* TODO: check config */
         {
@@ -145,6 +169,7 @@ impl KeyEventSink {
 
         match test {
             Ok(TRUE) => {
+                log::debug!("Key event: {:?}", key_event);
                 self.shift_pressed.set(false);
                 match handle_key(self.tip.clone(), context, key_event) {
                     Ok(_) => Ok(TRUE),
@@ -265,14 +290,4 @@ impl ITfKeyEventSink_Impl for KeyEventSink {
             _ => Ok(FALSE),
         }
     }
-}
-
-const HANDLED_KEYS: &[VIRTUAL_KEY] = &[
-    VK_BACK, VK_TAB, VK_RETURN, VK_DOWN, VK_UP, VK_RIGHT, VK_LEFT,
-];
-
-fn is_handled_key(key: &KeyEvent) -> bool {
-    let vk = key.as_virtual_key();
-
-    key.ascii > 0 || HANDLED_KEYS.contains(&vk)
 }

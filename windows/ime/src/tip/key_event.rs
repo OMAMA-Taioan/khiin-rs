@@ -8,13 +8,26 @@ use windows::Win32::UI::Input::KeyboardAndMouse::VK_BACK;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_CONTROL;
 
 use khiin_protos::command::KeyEvent as KhiinKeyEvent;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_DELETE;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_DOWN;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_END;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_ESCAPE;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_HOME;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_LEFT;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_NEXT;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_PRIOR;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_RETURN;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_RIGHT;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_SPACE;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_TAB;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_UP;
 
 use crate::utils::hi_word;
 use crate::utils::lo_byte;
 
 const VK_CTRL: usize = VK_CONTROL.0 as usize;
 
+#[derive(Debug)]
 pub struct KeyEvent {
     pub message: u32,
     pub ascii: u8,
@@ -77,6 +90,8 @@ impl KeyEvent {
 
         e.special_key = windows_to_khiin_special_key_code(self).into();
 
+        log::debug!("Khiin key event: {:?}", e);
+
         e
     }
 
@@ -89,8 +104,20 @@ fn windows_to_khiin_special_key_code(e: &KeyEvent) -> SpecialKey {
     let vk = e.as_virtual_key();
 
     match vk {
+        _ if vk == VK_SPACE => SpecialKey::SK_SPACE,
+        _ if vk == VK_RETURN => SpecialKey::SK_ENTER,
+        _ if vk == VK_ESCAPE => SpecialKey::SK_ESC,
         _ if vk == VK_BACK => SpecialKey::SK_BACKSPACE,
+        _ if vk == VK_TAB => SpecialKey::SK_TAB,
+        _ if vk == VK_LEFT => SpecialKey::SK_LEFT,
+        _ if vk == VK_UP => SpecialKey::SK_UP,
+        _ if vk == VK_RIGHT => SpecialKey::SK_RIGHT,
         _ if vk == VK_DOWN => SpecialKey::SK_DOWN,
+        _ if vk == VK_PRIOR => SpecialKey::SK_PGUP,
+        _ if vk == VK_NEXT => SpecialKey::SK_PGDN,
+        _ if vk == VK_HOME => SpecialKey::SK_HOME,
+        _ if vk == VK_END => SpecialKey::SK_END,
+        _ if vk == VK_DELETE => SpecialKey::SK_DEL,
         _ => SpecialKey::SK_NONE,
     }
 }

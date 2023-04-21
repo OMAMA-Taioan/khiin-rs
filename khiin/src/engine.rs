@@ -92,12 +92,13 @@ impl Engine {
             SpecialKey::SK_NONE => {
                 let ch = ascii_char_from_i32(req.key_event.key_code);
                 if let Some(ch) = ch {
-                    self.buffer_mgr
-                        .insert(&self.inner, ch)?;
+                    self.buffer_mgr.insert(&self.inner, ch)?;
                 }
             },
             SpecialKey::SK_SPACE => {},
-            SpecialKey::SK_ENTER => {},
+            SpecialKey::SK_ENTER => {
+                return self.on_commit(req);
+            },
             SpecialKey::SK_ESC => {},
             SpecialKey::SK_BACKSPACE => {},
             SpecialKey::SK_TAB => {},
@@ -117,9 +118,7 @@ impl Engine {
         };
 
         let mut response = Response::default();
-        response.preedit = Some(self.buffer_mgr.build_preedit()).into();
-        response.edit_state = self.buffer_mgr.edit_state().into();
-        response.candidate_list = Some(self.buffer_mgr.get_candidates()).into();
+        self.attach_buffer_data(&mut response)?;
         Ok(response)
     }
 
@@ -133,8 +132,16 @@ impl Engine {
     }
 
     fn on_commit(&mut self, req: Request) -> Result<Response> {
+        let mut response = Response::new();
+        response.committed = true;
+        self.attach_preedit(&mut response)?;
         self.buffer_mgr.reset()?;
-        Ok(Response::new())
+        if let Some(ref mut p) = response.preedit.as_mut() {
+            p.caret = 0;
+            p.focused_caret = 0;
+        }
+        response.edit_state = EditState::ES_EMPTY.into();
+        Ok(response)
     }
 
     fn on_select_candidate(&self, req: Request) -> Result<Response> {
@@ -179,6 +186,27 @@ impl Engine {
 
     fn on_shutdown(&self, req: Request) -> Result<Response> {
         Err(anyhow!("Not implemented"))
+    }
+
+    fn attach_preedit(&self, res: &mut Response) -> Result<()> {
+        res.preedit = Some(self.buffer_mgr.build_preedit()).into();
+        Ok(())
+    }
+
+    fn attach_candidate_list(&self, res: &mut Response) -> Result<()> {
+        res.candidate_list = Some(self.buffer_mgr.get_candidates()).into();
+        Ok(())
+    }
+
+    fn attach_edit_state(&self, res: &mut Response) -> Result<()> {
+        res.edit_state = self.buffer_mgr.edit_state().into();
+        Ok(())
+    }
+
+    fn attach_buffer_data(&self, res: &mut Response) -> Result<()> {
+        self.attach_preedit(res)?;
+        self.attach_candidate_list(res)?;
+        self.attach_edit_state(res)
     }
 }
 

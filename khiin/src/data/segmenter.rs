@@ -22,9 +22,9 @@ const LETTER_COUNT_BIAS: f64 = 0.2;
 /// A number between 0.0 and 1.0, where higher numbers bias towards splitting
 /// fewer syllables, and lower numbers bias towards following the rankings
 /// provided in the frequency database.
-/// 
+///
 /// For example, "hoan" could be split as 2 syllables "ho" and "an", or 1
-/// syllable "hoan". A higher number would be more likely to use "hoan". 
+/// syllable "hoan". A higher number would be more likely to use "hoan".
 const SYLLABLE_COUNT_BIAS: f64 = 0.2;
 
 const BIG: f64 = 1e10;

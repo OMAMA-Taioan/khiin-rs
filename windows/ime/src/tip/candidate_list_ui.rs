@@ -3,6 +3,7 @@ use std::rc::Rc;
 use std::slice::from_raw_parts_mut;
 use std::sync::Arc;
 
+use khiin_protos::command::EditState;
 use khiin_protos::command::EditState::ES_COMPOSING;
 use windows::core::implement;
 use windows::core::AsImpl;
@@ -114,16 +115,26 @@ impl CandidateListUI {
         command: Arc<Command>,
         rect: Rect<i32>,
     ) -> Result<()> {
+        let res = &command.response;
+        let edit_state = res.edit_state.enum_value_or_default();
+
+        if edit_state == EditState::ES_EMPTY
+            || res.candidate_list.candidates.is_empty()
+        {
+            self.context.replace(None);
+            self.pager.replace(Pager::default());
+            self.popup.hide()?;
+            return Ok(());
+        }
+
         self.context.replace(Some(context.clone()));
         self.create_candidate_window(context)?;
 
-        let res = &command.response;
-        let edit_state = res.edit_state.enum_value_or_default();
         let focused_id = res.candidate_list.focused;
 
         log::debug!("edit_state={:?}", edit_state);
 
-        if edit_state == ES_COMPOSING {
+        if edit_state == EditState::ES_COMPOSING {
             self.pager.replace(Pager::new(command.clone()));
         } else {
             self.pager

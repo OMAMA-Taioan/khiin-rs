@@ -117,19 +117,6 @@ pub trait WindowHandler {
             .ok_or(fail!())
     }
 
-    fn hide(&self) -> Result<()> {
-        d!("Hiding window");
-        let handle = self.handle()?;
-        d!("Got handle");
-        unsafe {
-            ShowWindow(handle, SW_HIDE);
-            d!("ShowWindow SW_HIDE");
-            ReleaseCapture();
-            d!("ReleaseCapture");
-        }
-        Ok(())
-    }
-
     // Optional
     fn on_show_window(&self) -> Result<()> {
         winerr!(E_NOTIMPL)

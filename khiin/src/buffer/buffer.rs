@@ -6,7 +6,6 @@ use crate::buffer::BufferElementEnum;
 use crate::buffer::Spacer;
 use crate::input::unicode::IsHanji;
 
-
 #[derive(Default, Debug, Clone)]
 pub(crate) struct Buffer {
     elems: Vec<BufferElementEnum>,
@@ -179,11 +178,9 @@ impl Buffer {
     }
 
     pub fn clear_autospace(&mut self) {
-        self.elems.retain(|e| {
-            match e {
-                BufferElementEnum::Spacer(_) => false,
-                _ => true
-            }
+        self.elems.retain(|e| match e {
+            BufferElementEnum::Spacer(_) => false,
+            _ => true,
         })
     }
 }

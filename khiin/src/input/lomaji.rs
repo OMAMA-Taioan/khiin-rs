@@ -100,7 +100,7 @@ pub fn strip_tone_diacritic(syl: &str) -> (String, Tone) {
         }
     }
 
-    if tone == Tone::None{ 
+    if tone == Tone::None {
         let stripped_lc = stripped.to_lowercase();
         tone = if T4_SUFFIXES.iter().any(|suf| stripped_lc.ends_with(*suf)) {
             Tone::T4

@@ -24,9 +24,7 @@ pub(crate) fn get_candidates(
         SectionType::Plaintext => Ok(Vec::new()),
         SectionType::Hyphens => Ok(Vec::new()),
         SectionType::Punct => Ok(Vec::new()),
-        SectionType::Splittable => {
-            candidates_for_splittable(engine, query)
-        },
+        SectionType::Splittable => candidates_for_splittable(engine, query),
     }
 }
 
