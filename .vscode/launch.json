@@ -37,6 +37,15 @@
             "request": "launch",
             "program": "${workspaceRoot}/target/debug/khiin_settings.exe",
             "cwd": "${workspaceRoot}"
+        },
+        {
+            "name": "Db:Build",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/data",
+            "program": "${workspaceFolder}/data/src/sql_gen.py",
+            "console": "integratedTerminal",
+            "args": ["-f", "data/frequency.csv", "-c", "data/conversions_all.csv", "-s", "data/syllables.txt", "-t", "-y", "data/symbols.tsv", "-e", "data/emoji.csv", "-o", "out/khiin_db.sql", "-d", "out/khiin.db"]
         }
     ]
 }
