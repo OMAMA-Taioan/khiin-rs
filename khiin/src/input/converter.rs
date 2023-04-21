@@ -8,35 +8,33 @@ use crate::buffer::StringElem;
 use crate::config::Config;
 use crate::data::Database;
 use crate::data::Dictionary;
+use crate::engine::EngInner;
 use crate::input::parser::SectionType;
 
 use super::parse_longest_from_start;
 use super::parse_whole_input;
 
 pub(crate) fn get_candidates(
-    db: &Database,
-    dict: &Dictionary,
-    conf: &Config,
+    engine: &EngInner,
     raw_buffer: &str,
 ) -> Result<Vec<Buffer>> {
-    let (ty, query) = parse_longest_from_start(dict, raw_buffer);
+    let (ty, query) = parse_longest_from_start(&engine.dict, raw_buffer);
 
     match ty {
         SectionType::Plaintext => Ok(Vec::new()),
         SectionType::Hyphens => Ok(Vec::new()),
         SectionType::Punct => Ok(Vec::new()),
         SectionType::Splittable => {
-            candidates_for_splittable(db, dict, conf, query)
+            candidates_for_splittable(engine, query)
         },
     }
 }
 
 fn candidates_for_splittable(
-    db: &Database,
-    dict: &Dictionary,
-    conf: &Config,
+    engine: &EngInner,
     query: &str,
 ) -> Result<Vec<Buffer>> {
+    let EngInner { db, dict, conf } = &engine;
     let mut words = dict.all_words_from_start(query);
     words.retain(|&w| {
         if let Some(rem) = query.strip_prefix(w) {
@@ -45,8 +43,9 @@ fn candidates_for_splittable(
             true
         }
     });
-    
-    let candidates = db.find_conversions_for_words(conf.input_type(), &words)?;
+
+    let candidates =
+        db.find_conversions_for_words(conf.input_type(), &words)?;
 
     let result = candidates
         .into_iter()
@@ -68,12 +67,10 @@ fn candidates_for_splittable(
 }
 
 pub(crate) fn convert_all(
-    db: &Database,
-    dict: &Dictionary,
-    cfg: &Config,
+    engine: &EngInner,
     raw_buffer: &str,
 ) -> Result<Buffer> {
-    let sections = parse_whole_input(dict, raw_buffer);
+    let sections = parse_whole_input(&engine.dict, raw_buffer);
     let mut composition = Buffer::new();
 
     for (ty, section) in sections {
@@ -84,7 +81,7 @@ pub(crate) fn convert_all(
             SectionType::Hyphens => todo!(),
             SectionType::Punct => todo!(),
             SectionType::Splittable => {
-                let elems = convert_section(db, dict, cfg, ty, section)?;
+                let elems = convert_section(engine, ty, section)?;
                 for elem in elems.into_iter() {
                     composition.push(elem)
                 }
@@ -96,18 +93,20 @@ pub(crate) fn convert_all(
 }
 
 fn convert_section(
-    db: &Database,
-    dict: &Dictionary,
-    cfg: &Config,
+    engine: &EngInner,
+
     ty: SectionType,
     section: &str,
 ) -> Result<Vec<BufferElementEnum>> {
     let mut ret = Vec::new();
 
-    let words = dict.segment(section)?;
+    let words = engine.dict.segment(section)?;
     for word in words {
-        let conversions =
-            db.find_conversions(cfg.input_type(), word.as_str(), Some(1))?;
+        let conversions = engine.db.find_conversions(
+            engine.conf.input_type(),
+            word.as_str(),
+            Some(1),
+        )?;
 
         if let Some(conv) = conversions.get(0) {
             let khiin_elem = KhiinElem::from_conversion(&word, conv)?;
@@ -129,23 +128,23 @@ mod tests {
 
     #[test]
     fn it_splits_and_converts_words() {
-        let (db, dict, conf) = setup();
-        let comp = convert_all(&db, &dict, &conf, "abc");
+        let (engine, _) = test_harness();
+        let comp = convert_all(&engine, "abc");
         log::debug!("{:#?}", comp);
     }
 
     #[test]
     fn it_gets_candidates() -> Result<()> {
-        let (db, dict, conf) = setup();
-        let cands = get_candidates(&db, &dict, &conf, "a")?;
+        let (engine, _) = test_harness();
+        let cands = get_candidates(&engine, "a")?;
         log::debug!("{:#?}", cands);
         Ok(())
     }
 
     #[test_log::test]
     fn it_contains_ia7() -> Result<()> {
-        let (db, dict, conf) = setup();
-        let result = candidates_for_splittable(&db, &dict, &conf, "ia7")?;
+        let (engine, _) = test_harness();
+        let result = candidates_for_splittable(&engine, "ia7")?;
         assert!(result.iter().any(|c| c.display_text() == "掖"));
         Ok(())
     }

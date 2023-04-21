@@ -15,10 +15,14 @@ use crate::data::database::Database;
 use crate::data::dictionary::Dictionary;
 
 pub struct Engine {
-    db: Database,
-    dict: Dictionary,
-    conf: Config,
     buffer_mgr: BufferMgr,
+    inner: EngInner,
+}
+
+pub(crate) struct EngInner {
+    pub(crate) db: Database,
+    pub(crate) dict: Dictionary,
+    pub(crate) conf: Config,
 }
 
 impl Engine {
@@ -32,23 +36,13 @@ impl Engine {
         let dict = Dictionary::new(&db, InputType::Numeric).ok()?;
 
         Some(Engine {
-            db,
-            dict,
             buffer_mgr: BufferMgr::new(),
-            conf: Config::new(),
+            inner: EngInner {
+                db,
+                dict,
+                conf: Config::new(),
+            },
         })
-    }
-
-    pub fn db(&self) -> &Database {
-        &self.db
-    }
-
-    pub(crate) fn dict(&self) -> &Dictionary {
-        &self.dict
-    }
-
-    pub fn conf(&self) -> &Config {
-        &self.conf
     }
 
     pub fn send_command_bytes(&mut self, bytes: &[u8]) -> Result<Vec<u8>> {
@@ -99,7 +93,7 @@ impl Engine {
                 let ch = ascii_char_from_i32(req.key_event.key_code);
                 if let Some(ch) = ch {
                     self.buffer_mgr
-                        .insert(&self.db, &self.dict, &self.conf, ch)?;
+                        .insert(&self.inner, ch)?;
                 }
             },
             SpecialKey::SK_SPACE => {},
@@ -110,10 +104,10 @@ impl Engine {
             SpecialKey::SK_LEFT => {},
             SpecialKey::SK_RIGHT => {},
             SpecialKey::SK_UP => {
-                self.buffer_mgr.focus_prev_candidate()?;
+                self.buffer_mgr.focus_prev_candidate(&self.inner)?;
             },
             SpecialKey::SK_DOWN => {
-                self.buffer_mgr.focus_next_candidate()?;
+                self.buffer_mgr.focus_next_candidate(&self.inner)?;
             },
             SpecialKey::SK_PGUP => {},
             SpecialKey::SK_PGDN => {},

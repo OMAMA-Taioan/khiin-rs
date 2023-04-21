@@ -153,7 +153,7 @@ impl Buffer {
     }
 
     pub fn autospace(&mut self) {
-        self.clear_autospaces();
+        self.clear_autospace();
 
         let mut i = 0;
         while i < self.elems.len() - 1 {
@@ -178,7 +178,7 @@ impl Buffer {
         }
     }
 
-    fn clear_autospaces(&mut self) {
+    pub fn clear_autospace(&mut self) {
         self.elems.retain(|e| {
             match e {
                 BufferElementEnum::Spacer(_) => false,

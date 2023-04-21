@@ -4,11 +4,13 @@ pub(crate) mod mock_protos;
 
 use std::path::PathBuf;
 
+use crate::buffer::BufferMgr;
 use crate::config::Config;
 use crate::config::InputType;
 use crate::data::models::Conversion;
 use crate::data::Database;
 use crate::data::Dictionary;
+use crate::engine::EngInner;
 use crate::Engine;
 
 pub(crate) use mock_protos::*;
@@ -54,4 +56,15 @@ pub fn mock_conversion(input: &str, output: &str) -> Conversion {
         category: None,
         annotation: None,
     }
+}
+
+pub(crate) fn test_harness() -> (EngInner, BufferMgr) {
+    (
+        EngInner {
+            db: get_db(),
+            dict: get_dict(),
+            conf: get_conf(),
+        },
+        BufferMgr::new(),
+    )
 }

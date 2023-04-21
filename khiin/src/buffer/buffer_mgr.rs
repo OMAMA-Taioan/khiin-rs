@@ -19,6 +19,7 @@ use crate::config::Config;
 use crate::config::InputMode;
 use crate::data::Database;
 use crate::data::Dictionary;
+use crate::engine::EngInner;
 use crate::input::converter::convert_all;
 use crate::input::converter::get_candidates;
 use crate::utils::CharSubstr;
@@ -149,36 +150,24 @@ impl BufferMgr {
         Ok(())
     }
 
-    pub fn insert(
-        &mut self,
-        db: &Database,
-        dict: &Dictionary,
-        conf: &Config,
-        ch: char,
-    ) -> Result<()> {
+    pub fn insert(&mut self, engine: &EngInner, ch: char) -> Result<()> {
         self.edit_state = EditState::ES_COMPOSING;
 
-        match conf.input_mode() {
-            InputMode::Continuous => self.insert_continuous(db, dict, conf, ch),
+        match engine.conf.input_mode() {
+            InputMode::Continuous => self.insert_continuous(engine, ch),
             InputMode::SingleWord => self.insert_single_word(ch),
             InputMode::Manual => self.insert_manual(ch),
         }
     }
 
-    fn insert_continuous(
-        &mut self,
-        db: &Database,
-        dict: &Dictionary,
-        conf: &Config,
-        ch: char,
-    ) -> Result<()> {
+    fn insert_continuous(&mut self, engine: &EngInner, ch: char) -> Result<()> {
         let mut composition = self.composition.raw_text();
         composition.push(ch);
 
         assert!(composition.is_ascii());
 
-        self.composition = convert_all(db, dict, conf, &composition)?;
-        self.candidates = get_candidates(db, dict, conf, &composition)?;
+        self.composition = convert_all(engine, &composition)?;
+        self.candidates = get_candidates(engine, &composition)?;
 
         let mut first = self.composition.clone();
         first.set_converted(true);
@@ -211,7 +200,7 @@ impl BufferMgr {
         Err(anyhow!("Not implemented"))
     }
 
-    pub fn focus_next_candidate(&mut self) -> Result<()> {
+    pub fn focus_next_candidate(&mut self, engine: &EngInner) -> Result<()> {
         if self.edit_state == EditState::ES_COMPOSING {
             self.edit_state = EditState::ES_SELECTING;
         }
@@ -222,19 +211,19 @@ impl BufferMgr {
             None => 0,
         };
 
-        self.focus_candidate(to_focus);
+        self.focus_candidate(engine, to_focus);
 
         Ok(())
     }
 
-    pub fn focus_prev_candidate(&mut self) -> Result<()> {
+    pub fn focus_prev_candidate(&mut self, engine: &EngInner) -> Result<()> {
         let mut to_focus = match self.focused_cand_idx {
             Some(i) if i == 0 => self.candidates.len() - 1,
             Some(i) => i - 1,
             None => self.candidates.len() - 1,
         };
 
-        self.focus_candidate(to_focus);
+        self.focus_candidate(engine, to_focus);
         Ok(())
     }
 
@@ -243,15 +232,18 @@ impl BufferMgr {
     //
     // Steps:
     // 1. Get the raw text from the candidate
-    // 2. Split the current composition into [ lhs, rhs ]:
-    //    [ elements up to this raw text, elements after this raw text]
-    // 3. Get the remaining text after removing the prefix (1) from the raw text
-    //    buffer (2-LHS)
+    // 2. Get the remaining text after removing the candidate from the current
+    //    composition
     // 4. Make a new composition
     // 5. Add the candidate into the composition
-    // 6. Add the remaining raw text (3) into the composition
-    // 7. Add back the elements from 2-RHS
-    fn focus_candidate(&mut self, index: usize) -> Result<()> {
+    // 6. Auto-split the remaining text into a Buffer
+    // 7. Extend the new composition
+    fn focus_candidate(
+        &mut self,
+        engine: &EngInner,
+        index: usize,
+    ) -> Result<()> {
+        self.composition.clear_autospace();
         let candidate = self
             .candidates
             .get(index)
@@ -259,28 +251,14 @@ impl BufferMgr {
             .clone();
 
         let cand_raw_count = candidate.raw_char_count();
-
-        let comp_split_element_index = self
-            .composition
-            .elem_index_at_raw_char_count(cand_raw_count);
-
-        let mut comp_lhs = self.composition.clone();
-        let mut comp_rhs = comp_lhs.split_off(comp_split_element_index + 1);
-
-        let lhs_raw = comp_lhs.raw_text();
-        let lhs_remainder =
-            lhs_raw.char_substr(cand_raw_count, lhs_raw.chars().count());
+        let comp_raw = self.composition.raw_text();
+        let mut remainder =
+            comp_raw.char_substr(cand_raw_count, comp_raw.chars().count());
 
         let mut new_comp = candidate;
+        let remainder_split = convert_all(engine, &remainder)?;
 
-        if !lhs_remainder.is_empty() {
-            new_comp.push(StringElem::from(lhs_remainder).into());
-        }
-
-        if !comp_rhs.is_empty() {
-            comp_rhs.set_converted(false);
-            new_comp.extend(comp_rhs);
-        }
+        new_comp.extend(remainder_split);
 
         self.composition = new_comp;
 
@@ -290,7 +268,10 @@ impl BufferMgr {
 
         Ok(())
     }
+}
 
+// Just for debugging
+impl BufferMgr {
     fn _debug_preedit(&self, sep: char) -> String {
         let preedit = self.build_preedit();
         let mut display_text = String::new();
@@ -371,10 +352,6 @@ mod tests {
     use crate::tests::*;
     use crate::utils::Unique;
 
-    fn setup() -> (Database, Dictionary, Config, BufferMgr) {
-        (get_db(), get_dict(), get_conf(), BufferMgr::new())
-    }
-
     fn preedit_text(buf: &BufferMgr) -> String {
         let pe = buf.build_preedit();
         pe.segments.into_iter().map(|s| s.value).collect()
@@ -388,8 +365,8 @@ mod tests {
 
     #[test]
     fn it_inserts_chars_continuous_mode() -> Result<()> {
-        let (db, dict, conf, mut buf) = setup();
-        buf.insert_continuous(&db, &dict, &conf, 'a')?;
+        let (e, mut buf) = test_harness();
+        buf.insert_continuous(&e, 'a')?;
         assert_eq!(buf.composition.raw_text().as_str(), "a");
         assert_eq!(buf.composition.display_text().as_str(), "a");
         assert!(buf.candidates.len() > 0);
@@ -399,9 +376,9 @@ mod tests {
 
     #[test]
     fn it_focuses_the_first_candidate() -> Result<()> {
-        let (db, dict, conf, mut buf) = setup();
-        buf.insert(&db, &dict, &conf, 'a')?;
-        buf.focus_next_candidate()?;
+        let (e, mut buf) = test_harness();
+        buf.insert(&e, 'a')?;
+        buf.focus_next_candidate(&e)?;
         let text = preedit_text(&buf);
         assert_eq!(text.as_str(), "亞");
         assert_eq!(buf.focused_cand_idx, Some(0));
@@ -411,10 +388,10 @@ mod tests {
 
     #[test_log::test]
     fn it_focuses_the_second_candidate() -> Result<()> {
-        let (db, dict, conf, mut buf) = setup();
-        buf.insert(&db, &dict, &conf, 'a')?;
-        buf.focus_next_candidate()?;
-        buf.focus_next_candidate()?;
+        let (e, mut buf) = test_harness();
+        buf.insert(&e, 'a')?;
+        buf.focus_next_candidate(&e)?;
+        buf.focus_next_candidate(&e)?;
         let text = preedit_text(&buf);
         assert_eq!(text.as_str(), "亜");
         Ok(())
@@ -422,9 +399,9 @@ mod tests {
 
     #[test_log::test]
     fn it_excludes_duplicates() -> Result<()> {
-        let (db, dict, conf, mut buf) = setup();
+        let (e, mut buf) = test_harness();
         for ch in "pengan".chars().collect::<Vec<char>>() {
-            buf.insert(&db, &dict, &conf, ch)?;
+            buf.insert(&e, ch)?;
         }
 
         assert!(buf.candidates.len() > 1);
@@ -439,9 +416,9 @@ mod tests {
 
     #[test_log::test]
     fn it_positions_caret_at_end_during_composition() -> Result<()> {
-        let (db, dict, conf, mut buf) = setup();
+        let (e, mut buf) = test_harness();
         for ch in "pengan".chars().collect::<Vec<char>>() {
-            buf.insert(&db, &dict, &conf, ch)?;
+            buf.insert(&e, ch)?;
         }
         log::debug!("{:?}", buf);
         Ok(())

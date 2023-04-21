@@ -15,6 +15,11 @@ pub(crate) enum BufferElementEnum {
     Spacer,
 }
 
+pub(crate) enum ConversionState {
+    NotConverted,
+    Converted,
+}
+
 #[enum_dispatch]
 pub trait BufferElement {
     fn raw_text(&self) -> String;
