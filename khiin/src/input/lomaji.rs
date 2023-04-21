@@ -7,7 +7,7 @@ use crate::collection;
 
 use super::Tone;
 
-static TONE_CHAR_MAP: Lazy<HashMap<Tone, char>> = Lazy::new(|| {
+const TONE_CHAR_MAP: Lazy<HashMap<Tone, char>> = Lazy::new(|| {
     collection!(
         Tone::T2 => '\u{0301}',
         Tone::T3 => '\u{0300}',
@@ -19,7 +19,7 @@ static TONE_CHAR_MAP: Lazy<HashMap<Tone, char>> = Lazy::new(|| {
     )
 });
 
-static CHAR_TONE_MAP: Lazy<HashMap<char, Tone>> = Lazy::new(|| {
+const CHAR_TONE_MAP: Lazy<HashMap<char, Tone>> = Lazy::new(|| {
     collection!(
         '\u{0301}' => Tone::T2,
         '\u{0300}' => Tone::T3,
@@ -31,7 +31,7 @@ static CHAR_TONE_MAP: Lazy<HashMap<char, Tone>> = Lazy::new(|| {
     )
 });
 
-static DIGIT_TONE_MAP: Lazy<HashMap<char, Tone>> = Lazy::new(|| {
+const DIGIT_TONE_MAP: Lazy<HashMap<char, Tone>> = Lazy::new(|| {
     collection!(
         '1' => Tone::T1,
         '2' => Tone::T2,
@@ -45,7 +45,7 @@ static DIGIT_TONE_MAP: Lazy<HashMap<char, Tone>> = Lazy::new(|| {
     )
 });
 
-static TONE_LETTER_PATTERNS: Lazy<Vec<(Regex, usize)>> = Lazy::new(|| {
+const TONE_LETTER_PATTERNS: Lazy<Vec<(Regex, usize)>> = Lazy::new(|| {
     vec![
         (Regex::new("(?i)o[ae][ptkhmn]").unwrap(), 1),
         (Regex::new("(?i)o").unwrap(), 0),
@@ -58,11 +58,13 @@ static TONE_LETTER_PATTERNS: Lazy<Vec<(Regex, usize)>> = Lazy::new(|| {
     ]
 });
 
-static NUMERIC_TONE_CHARS: [char; 10] =
+const NUMERIC_TONE_CHARS: [char; 10] =
     ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
-static TELEX_TONE_CHARS: [char; 10] =
+const TELEX_TONE_CHARS: [char; 10] =
     ['0', '1', 's', 'f', '4', 'l', '6', 'j', 'j', 'w'];
+
+const T4_SUFFIXES: &[&str] = &["h", "p", "t", "k", "hnn", "h\u{207f}"];
 
 pub fn tone_to_char(tone: &Tone) -> Option<char> {
     TONE_CHAR_MAP.get(tone).map(|&c| c)
@@ -95,6 +97,15 @@ pub fn strip_tone_diacritic(syl: &str) -> (String, Tone) {
             tone = *CHAR_TONE_MAP.get(&ch).unwrap();
         } else {
             stripped.push(ch)
+        }
+    }
+
+    if tone == Tone::None{ 
+        let stripped_lc = stripped.to_lowercase();
+        tone = if T4_SUFFIXES.iter().any(|suf| stripped_lc.ends_with(*suf)) {
+            Tone::T4
+        } else {
+            Tone::T1
         }
     }
 
