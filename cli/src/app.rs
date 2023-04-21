@@ -32,7 +32,7 @@ fn get_db_filename() -> Result<String> {
 }
 
 fn clear(stdout: &mut Stdout) -> Result<()> {
-    queue!(stdout, Clear(ClearType::All))?;
+    queue!(stdout, Clear(ClearType::All), MoveTo(1, 1))?;
     stdout.flush()?;
     Ok(())
 }

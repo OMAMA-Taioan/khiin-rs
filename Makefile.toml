@@ -5,44 +5,41 @@ default_to_workspace = false
 [tasks.default]
 alias = "build-all"
 
-[tasks.empty]
-
 [tasks.run-cli]
-windows_alias = "empty"
-dependencies = [ "build-unix" ]
+dependencies = ["build-cli"]
 command = "./target/debug/khiin_cli"
 
 [tasks.build-all]
 linux_alias = "build-unix"
 mac_alias = "build-unix"
 windows_alias = "build-windows"
-dependencies = ["db-copy"]
 
 [tasks.build-windows]
-dependencies = ["windows-build-tip", "windows-build-settings"]
+dependencies = ["build-cli", "build-win32-tip", "build-win32-settings"]
 
-[tasks.windows-build-tip]
+[tasks.build-win32-tip]
 command = "cargo"
 args = ["build", "--manifest-path=windows/ime/Cargo.toml"]
 dependencies = ["db-copy-to-target"]
 
-[tasks.windows-build-settings]
+[tasks.build-win32-settings]
 command = "cargo"
 args = ["build", "--manifest-path=windows/settings/Cargo.toml"]
 
 [tasks.build-unix]
-dependencies = ["unix-build-cli"]
+dependencies = ["build-cli"]
 
-[tasks.unix-build-cli]
+[tasks.build-cli]
 command = "cargo"
 args = ["build", "--manifest-path=cli/Cargo.toml"]
 dependencies = ["db-copy-to-target"]
 
+############
+# Database #
+############
+
 [tasks.db-rebuild]
-dependencies = [
-    "db-clean",
-    "db-build"
-]
+dependencies = ["db-clean", "db-build"]
 
 [tasks.db-clean]
 condition = { files_exist = ["data/out/khiin.db"] }
@@ -50,6 +47,7 @@ script_runner = "@shell"
 script = '''
 rm data/out/khiin.db
 rm resources/khiin.db
+rm target/debug/khiin.db
 '''
 
 [tasks.db-build]
@@ -92,10 +90,17 @@ script = '''
 mkdir -p resources
 cp data/out/khiin.db resources/khiin.db
 '''
+###########
+#  Tests  #
+###########
 
 [tasks.test]
 command = "cargo"
 args = ["test", "--manifest-path=khiin/Cargo.toml"]
+
+##############
+# Formatting #
+##############
 
 [tasks.fmt]
 dependencies = ["format-cli", "format-khiin", "format-windows"]
@@ -111,14 +116,14 @@ toolchain = "nightly"
 args = ["fmt", "--manifest-path=khiin/Cargo.toml", "--", "--emit=files"]
 
 [tasks.format-windows]
-dependencies = ["format-windows-ime", "format-windows-settings"]
+dependencies = ["format-win32-ime", "format-win32-settings"]
 
-[tasks.format-windows-ime]
+[tasks.format-win32-ime]
 command = "cargo"
 toolchain = "nightly"
 args = ["fmt", "--manifest-path=windows/ime/Cargo.toml", "--", "--emit=files"]
 
-[tasks.format-windows-settings]
+[tasks.format-win32-settings]
 command = "cargo"
 toolchain = "nightly"
 args = [
