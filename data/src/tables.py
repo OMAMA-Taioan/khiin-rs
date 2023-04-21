@@ -115,11 +115,12 @@ class Conversion:
 
 class SqlInputSeq:
     def __init__(self, input: str, numeric: str, telex: str, n_syls: int,
-                 p: float) -> None:
+                 fuzzy_tone: bool, p: float) -> None:
         self.input = input
         self.numeric = numeric
         self.telex = telex
         self.n_syls = n_syls
+        self.fuzzy_tone = fuzzy_tone
         self.p = p
 
     @staticmethod
@@ -130,6 +131,7 @@ class SqlInputSeq:
                 "numeric"       text not null,
                 "telex"         text not null,
                 "n_syls"        integer,
+                "fuzzy_tone"    boolean,
                 "p"             real,
                 unique("input_id", "numeric"),
                 foreign key("input_id") references "{T_FREQ}"("id")
@@ -138,12 +140,13 @@ class SqlInputSeq:
     def insert_row(self):
         return collapse(f"""\
         insert into "{T_KEYSEQ}" \
-        ("input_id", "numeric", "telex", "n_syls", "p") \
+        ("input_id", "numeric", "telex", "n_syls", "fuzzy_tone", "p") \
         select \
         "f"."id", \
         '{self.numeric}', \
         '{self.telex}', \
         {self.n_syls}, \
+        {self.fuzzy_tone}, \
         {self.p} \
         from "{T_FREQ}" as "f" \
         where "f"."input"='{self.input}';""")

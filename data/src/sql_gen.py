@@ -59,9 +59,10 @@ def get_input_sequences(freq: List[Frequency]):
     for row in freq:
         row_seqs = lomaji.to_input_sequences(row.input)
         n_syls = len(row_seqs)
-        for (numeric, telex, n_syls) in row_seqs:
+        for i, (numeric, telex, n_syls) in enumerate(row_seqs):
+            fuzzy_tone = i > 0 and n_syls == 1
             input_seqs.append(SqlInputSeq(
-                row.input, numeric, telex, n_syls, p=row.freq / total_count
+                row.input, numeric, telex, n_syls, fuzzy_tone, p=row.freq / total_count
             ))
     return input_seqs
 
