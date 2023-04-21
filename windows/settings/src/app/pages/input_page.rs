@@ -2,8 +2,8 @@ use std::cell::RefCell;
 
 use windows::Win32::Foundation::HWND;
 
-use crate::pages::PageHandler;
-use crate::resource::*;
+use crate::app::pages::PageHandler;
+use crate::app::resource::*;
 
 #[derive(Default)]
 pub struct InputPage {

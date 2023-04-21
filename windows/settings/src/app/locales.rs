@@ -4,7 +4,7 @@ use std::sync::Mutex;
 use once_cell::sync::Lazy;
 
 use crate::collection;
-use crate::resource::*;
+use crate::app::resource::*;
 
 #[derive(Clone, Copy)]
 pub enum Locale {

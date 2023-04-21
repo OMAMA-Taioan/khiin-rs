@@ -1,5 +1,6 @@
 [config]
 skip_core_tasks = true
+default_to_workspace = false
 
 [tasks.default]
 alias = "build-all"
@@ -23,7 +24,7 @@ dependencies = ["windows-build-tip", "windows-build-settings"]
 [tasks.windows-build-tip]
 command = "cargo"
 args = ["build", "--manifest-path=windows/ime/Cargo.toml"]
-dependencies = ["db-copy"]
+dependencies = ["db-copy-to-target"]
 
 [tasks.windows-build-settings]
 command = "cargo"

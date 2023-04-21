@@ -5,9 +5,9 @@ use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::WindowsAndMessaging::GetParent;
 use windows::Win32::UI::WindowsAndMessaging::SetWindowTextW;
 
-use crate::locales::t;
-use crate::pages::PageHandler;
-use crate::resource::*;
+use crate::app::locales::t;
+use crate::app::pages::PageHandler;
+use crate::app::resource::*;
 
 #[derive(Default)]
 pub struct StylePage {

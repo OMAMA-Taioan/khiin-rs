@@ -47,10 +47,10 @@ use windows::Win32::UI::WindowsAndMessaging::SC_MINIMIZE;
 use windows::Win32::UI::WindowsAndMessaging::WM_INITDIALOG;
 use windows::Win32::UI::WindowsAndMessaging::WS_MINIMIZEBOX;
 
-use crate::locales::t;
-use crate::pages::PageHandler;
-use crate::pages::PropSheetPage;
-use crate::winuser::*;
+use crate::app::locales::t;
+use crate::app::pages::PageHandler;
+use crate::app::pages::PropSheetPage;
+use crate::app::winuser::*;
 
 static mut INITIALIZED: bool = false;
 

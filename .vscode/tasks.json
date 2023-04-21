@@ -3,9 +3,9 @@
     "tasks": [
         {
             "type": "cargo",
-            "command": "build",
+            "command": "make",
             "args": [
-                "--manifest-path=windows/ime/Cargo.toml"
+                "build-all"
             ],
             "problemMatcher": [
                 "$rustc"

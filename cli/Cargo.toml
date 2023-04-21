@@ -12,5 +12,7 @@ khiin = { path = "../khiin" }
 khiin_protos = { path = "../protos" }
 log = "0.4.17"
 protobuf = "3.2.0"
-termion = "2.0.1"
 unicode-width = "0.1.10"
+
+[target.'cfg(not(windows))'.dependencies]
+termion = "2.0.1"
