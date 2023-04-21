@@ -12,6 +12,14 @@
             "preLaunchTask": "cargo:build:cli"
         },
         {
+            "name": "Win:CLI",
+            "cwd": "${workspaceRoot}",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceRoot}/target/debug/cli2.exe",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Win:Notepad",
             "type": "cppvsdbg",
             "request": "launch",

@@ -1,19 +1,10 @@
-#[cfg(not(windows))]
-pub(crate) mod cli;
-#[cfg(not(windows))]
-pub(crate) mod engine_ctrl;
-#[cfg(not(windows))]
-pub(crate) mod keys;
+mod app;
+mod engine_ctrl;
+mod keys;
 
-#[cfg(not(windows))]
-fn main() -> anyhow::Result<()> {
-    env_logger::init();
-    let ret = cli::run();
-    println!("{}", termion::cursor::Show);
-    ret
-}
+use anyhow::Result;
 
-#[cfg(windows)]
-fn main() {
-    println!("Not implemented on windows.")
+fn main() -> Result<()> {
+    let mut stdout = std::io::stdout();
+    app::run(&mut stdout)
 }

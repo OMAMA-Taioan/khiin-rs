@@ -1,18 +1,26 @@
-use std::io::stdin;
-use std::io::stdout;
 use std::io::Stdout;
 use std::io::Write;
 
 use anyhow::Result;
+use crossterm::cursor::MoveTo;
+use crossterm::cursor::SetCursorStyle;
+use crossterm::cursor::Show;
+use crossterm::event::read;
+use crossterm::event::Event;
+use crossterm::event::KeyCode;
+use crossterm::event::KeyEvent;
+use crossterm::event::KeyEventKind;
+use crossterm::execute;
+use crossterm::queue;
+use crossterm::style::Print;
+use crossterm::terminal::disable_raw_mode;
+use crossterm::terminal::enable_raw_mode;
+use crossterm::terminal::size;
+use crossterm::terminal::Clear;
+use crossterm::terminal::ClearType;
+use crossterm::terminal::EnterAlternateScreen;
 use khiin_protos::command::Command;
 use khiin_protos::command::SegmentStatus;
-use termion::cursor::BlinkingBar;
-use termion::cursor::Goto;
-use termion::cursor::Show;
-use termion::event::Key;
-use termion::input::TermRead;
-use termion::raw::IntoRawMode;
-use termion::raw::RawTerminal;
 use unicode_width::UnicodeWidthStr;
 
 use crate::engine_ctrl::EngineCtrl;
@@ -23,26 +31,20 @@ fn get_db_filename() -> Result<String> {
     Ok(db_path.to_str().unwrap().to_string())
 }
 
-fn clear(stdout: &mut RawTerminal<Stdout>) -> Result<()> {
-    write!(
-        stdout,
-        "{}{}{}",
-        termion::clear::All,
-        Goto(1, 1),
-        termion::cursor::Hide
-    )?;
+fn clear(stdout: &mut Stdout) -> Result<()> {
+    queue!(stdout, Clear(ClearType::All))?;
     stdout.flush()?;
     Ok(())
 }
 
-fn blank_display(stdout: &mut RawTerminal<Stdout>) -> Result<()> {
+fn blank_display(stdout: &mut Stdout) -> Result<()> {
     clear(stdout)?;
     update_display(stdout, "", "", 0, "", &Vec::new())?;
     Ok(())
 }
 
 fn update_display(
-    stdout: &mut RawTerminal<Stdout>,
+    stdout: &mut Stdout,
     raw: &str,
     display: &str,
     caret: usize,
@@ -50,18 +52,31 @@ fn update_display(
     cands: &Vec<String>,
 ) -> Result<()> {
     clear(stdout)?;
-    write!(stdout, "{}Khíín Phah Jī Hoat", Goto(2, 2))?;
-    write!(stdout, "{}Raw input:  {}", Goto(2, 4), raw)?;
-    write!(stdout, "{}User sees:  {}", Goto(2, 6), display)?;
-    write!(stdout, "{}{}", Goto(14, 7), attrs)?;
-    write!(stdout, "{}Candidates:  ", Goto(2, 8))?;
-    
+    execute!(
+        stdout,
+        MoveTo(2, 2),
+        Print("Khíín Phah Jī Hoat"),
+        MoveTo(2, 4),
+        Print(format!("Raw input:  {}", raw)),
+        MoveTo(2, 6),
+        Print(format!("User sees:  {}", display)),
+        MoveTo(14, 7),
+        Print(format!("{}", attrs)),
+        MoveTo(2, 8),
+        Print(format!("Candidates:")),
+    )?;
+
     for (i, cand) in cands.iter().enumerate() {
-        write!(stdout, "{}{}", Goto(15, 8 + i as u16), cand)?;
+        execute!(stdout, MoveTo(15, 8 + i as u16), Print(format!("{}", cand)))?;
     }
 
     draw_footer(stdout)?;
-    write!(stdout, "{}{}{}", Goto(14 + caret as u16, 6), Show, BlinkingBar)?;
+    execute!(
+        stdout,
+        MoveTo(14 + caret as u16, 6),
+        Show,
+        SetCursorStyle::BlinkingBar
+    )?;
     stdout.flush()?;
     Ok(())
 }
@@ -105,11 +120,7 @@ fn get_candidate_page(cmd: &Command) -> Vec<String> {
     ret
 }
 
-fn draw_ime(
-    stdout: &mut RawTerminal<Stdout>,
-    raw_input: &str,
-    cmd: Command,
-) -> Result<()> {
+fn draw_ime(stdout: &mut Stdout, raw_input: &str, cmd: Command) -> Result<()> {
     let mut disp_buffer = String::new();
     let mut attr_buffer = String::new();
 
@@ -148,11 +159,18 @@ fn draw_ime(
 
     let cands = get_candidate_page(&cmd);
 
-    update_display(stdout, &raw_input, &disp_buffer, caret, &attr_buffer, &cands)
+    update_display(
+        stdout,
+        &raw_input,
+        &disp_buffer,
+        caret,
+        &attr_buffer,
+        &cands,
+    )
 }
 
-fn draw_footer(stdout: &mut RawTerminal<Stdout>) -> Result<()> {
-    let (_, rows) = termion::terminal_size()?;
+fn draw_footer(stdout: &mut Stdout) -> Result<()> {
+    let (_, rows) = size()?;
     let help = vec!["<Esc>: Quit", "<Enter>: Clear"];
     let max_len = help.iter().map(|s| s.chars().count()).max().unwrap_or(0) + 4;
 
@@ -161,45 +179,66 @@ fn draw_footer(stdout: &mut RawTerminal<Stdout>) -> Result<()> {
         .map(|s| format!("{:>width$}", s, width = max_len))
         .collect();
 
-    write!(stdout, "{}{}", Goto(2, rows - 1), formatted.join(""))?;
+    execute!(
+        stdout,
+        MoveTo(2, rows - 1),
+        Print(format!("{}", formatted.join("")))
+    )?;
 
     Ok(())
 }
 
-pub fn run() -> Result<()> {
-    let stdin = stdin();
-    let mut stdout = stdout().into_raw_mode().unwrap();
+fn read_key() -> Result<KeyEvent> {
+    loop {
+        if let Event::Key(event) = read()? {
+            return Ok(event);
+        }
+    }
+}
+
+pub fn run(stdout: &mut Stdout) -> Result<()> {
+    execute!(stdout, EnterAlternateScreen)?;
+    enable_raw_mode()?;
 
     let mut engine = EngineCtrl::new(get_db_filename()?)?;
 
-    blank_display(&mut stdout)?;
+    blank_display(stdout)?;
 
     let mut raw_input = String::new();
     let mut disp_buffer = String::new();
 
-    for key in stdin.keys() {
+    loop {
         disp_buffer.clear();
-        let key = key?;
 
-        if key == Key::Esc {
+        let key = read_key()?;
+
+        if key.kind != KeyEventKind::Press {
+            continue;
+        }
+
+        if key.code == KeyCode::Esc {
             break;
         }
 
-        if let Key::Char(c) = key {
-            if c == '\n' {
+        match key.code {
+            KeyCode::Enter => {
                 raw_input.clear();
                 disp_buffer.clear();
                 engine.reset()?;
-                blank_display(&mut stdout)?;
+                blank_display(stdout)?;
                 continue;
-            }
-
-            raw_input.push(c);
+            },
+            KeyCode::Char(c) => {
+                raw_input.push(c);
+            },
+            _ => {},
         }
 
         let cmd = engine.send_key(key)?;
-        draw_ime(&mut stdout, &raw_input, cmd)?;
+        draw_ime(stdout, &raw_input, cmd)?;
     }
-    clear(&mut stdout)?;
-    Ok(())
+
+    clear(stdout)?;
+
+    disable_raw_mode().map_err(|e| anyhow::Error::from(e))
 }

@@ -1,11 +1,11 @@
 use anyhow::Result;
 
+use crossterm::event::KeyEvent as CTKeyEvent;
 use khiin::Engine;
 use khiin_protos::command::Command;
 use khiin_protos::command::CommandType;
 use khiin_protos::command::Request;
 use protobuf::Message;
-use termion::event::Key;
 
 use crate::keys::translate_keys;
 
@@ -19,7 +19,7 @@ impl EngineCtrl {
         Ok(Self { engine })
     }
 
-    pub fn send_key(&mut self, key: Key) -> Result<Command> {
+    pub fn send_key(&mut self, key: CTKeyEvent) -> Result<Command> {
         let cmd = build_command(key);
         self.send_command(cmd)
     }
@@ -40,7 +40,7 @@ impl EngineCtrl {
     }
 }
 
-fn build_command(key: Key) -> Command {
+fn build_command(key: CTKeyEvent) -> Command {
     let key_event = translate_keys(key);
 
     let mut req = Request::new();

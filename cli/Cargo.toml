@@ -1,5 +1,5 @@
 [package]
-name = "khiin_cli"
+name = "cli"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,12 +7,10 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.70"
+crossterm = "0.26.1"
 env_logger = "0.10.0"
 khiin = { path = "../khiin" }
 khiin_protos = { path = "../protos" }
 log = "0.4.17"
 protobuf = "3.2.0"
 unicode-width = "0.1.10"
-
-[target.'cfg(not(windows))'.dependencies]
-termion = "2.0.1"
