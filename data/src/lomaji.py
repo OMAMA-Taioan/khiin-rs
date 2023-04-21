@@ -16,9 +16,12 @@ ASCII_SUBS = [
 ]
 
 TELEX_MAP = {
+    '1': '1',
     '2': 's',
     '3': 'f',
+    '4': '4',
     '5': 'l',
+    '6': 'x',
     '7': 'j',
     '8': 'j',
     '9': 'w'
@@ -56,6 +59,13 @@ def poj_to_fhl_reading(text):
     text = re.sub(r' ', '-', text)
     return text
 
+def add_t1_t4(syllable: str) -> str:
+    if syllable[-1].isdigit():
+        return syllable
+    if syllable[-1].lower() in ['h', 'p', 't', 'k']:
+        return syllable + '4'
+    else:
+        return syllable + '1'
 
 def poj_to_khiin(syllable, strip_tones):
     decomposed = unicodedata.normalize('NFD', syllable)
@@ -63,6 +73,7 @@ def poj_to_khiin(syllable, strip_tones):
         decomposed = re.sub(sub[0], sub[1], decomposed)
     numeric = re.sub(r'([A-Za-z]+)(\d)([A-Za-z]+)',
                      r'\1\3\2', decomposed).lower()
+    numeric = add_t1_t4(numeric)
     toneless = numeric
     telex = numeric
 
