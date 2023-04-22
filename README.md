@@ -14,6 +14,10 @@ This is an in-progress Rust rewrite of the first (C++) version of Khíín.
 
 ```
 khiin-rs/
+├── android/
+│   ├── app         # Jetpack Compose Android app
+│   └── rust        # JNI glue library for khiin
+├── cli             # Terminal application (for developers)
 ├── data            # SQLite db generator
 ├── khiin           # Cross-platform engine
 ├── protos          # Protobuf definitions
@@ -224,7 +228,21 @@ TODO
 
 ## Android App
 
-TODO
+The Android IME is currently in progress / unstable. It is a modern Jetpack
+Compose app written in Kotlin. The `android/rust` folder contains a small
+wrapper around `khiin` that communicates with the Android app via JNI.
+
+There is currently a
+[bug](https://github.com/mozilla/rust-android-gradle/issues/105) that crashes
+the Android app on an x86_64 emulator. It works on the x86 emulator, and on the
+ARM devices themselves. If the linked issue is ever fixed we will update to make
+that work. (Although currently we are using
+[`android-rust`](https://github.com/MatrixDev/GradleAndroidRustPlugin) instead
+of `rust-android-gradle`; the issue is related to the NDK and not the plugin.)
+
+As of now the database must be built and placed in `android/app/src/main/assets`
+manually, and it must be deleted from the device (or emulator) to be updated. We
+will fix these to automate everything later.
 
 ---
 

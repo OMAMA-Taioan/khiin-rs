@@ -13,10 +13,14 @@ pub(crate) struct Dictionary {
 
 impl Dictionary {
     pub fn new(db: &Database, input_type: InputType) -> Result<Self> {
+        log::debug!("Initializing Dictionary");
         let inputs = db.all_words_by_freq(input_type)?;
+        log::debug!("Database query successful");
 
         let word_trie = Trie::new(&inputs)?;
+        log::debug!("Word trie loaded");
         let segmenter = Segmenter::new(inputs)?;
+        log::debug!("Segmenter loaded");
 
         Ok(Self {
             word_trie,

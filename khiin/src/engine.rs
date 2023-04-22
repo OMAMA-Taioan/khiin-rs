@@ -29,11 +29,14 @@ impl Engine {
     pub fn new(filename: &str) -> Option<Engine> {
         let path = PathBuf::from(filename);
         if !path.exists() {
+            log::debug!("Database file not found: {}", filename);
             return None;
         }
 
         let db = Database::new(&path).ok()?;
+        log::debug!("Database loaded from: {}", filename);
         let dict = Dictionary::new(&db, InputType::Numeric).ok()?;
+        log::debug!("Dictionary initialized");
 
         Some(Engine {
             buffer_mgr: BufferMgr::new(),
@@ -88,6 +91,7 @@ impl Engine {
     }
 
     fn on_send_key(&mut self, req: Request) -> Result<Response> {
+        log::debug!("Engine::on_send_key");
         match req.key_event.special_key.enum_value_or_default() {
             SpecialKey::SK_NONE => {
                 let ch = ascii_char_from_i32(req.key_event.key_code);

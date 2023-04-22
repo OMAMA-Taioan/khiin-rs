@@ -10,6 +10,7 @@ use khiin_protos::command::CandidateList;
 use khiin_protos::command::EditState;
 use khiin_protos::command::Preedit;
 use khiin_protos::command::SegmentStatus;
+use log::debug;
 use log::trace;
 use protobuf::SpecialFields;
 
@@ -161,6 +162,7 @@ impl BufferMgr {
     }
 
     fn insert_continuous(&mut self, engine: &EngInner, ch: char) -> Result<()> {
+        debug!("BufferMgr::insert_continuous ({})", ch);
         let mut composition = self.composition.raw_text();
         composition.push(ch);
 
@@ -168,6 +170,8 @@ impl BufferMgr {
 
         self.composition = convert_all(engine, &composition)?;
         self.candidates = get_candidates(engine, &composition)?;
+
+        debug!("Number of candidates found: {}", self.candidates.len());
 
         let mut first = self.composition.clone();
         first.set_converted(true);
