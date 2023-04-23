@@ -11,6 +11,7 @@
 		645BCFA029F4E2B20066F34C /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 645BCF9F29F4E2B20066F34C /* KeyboardViewController.swift */; };
 		645BCFA429F4E2B20066F34C /* Keyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 645BCF9D29F4E2B20066F34C /* Keyboard.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		64CCBC6629F4E95B00C926F9 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 64CCBC6529F4E95B00C926F9 /* Settings.bundle */; };
+		64CCBC7029F51FC200C926F9 /* KhiinColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64CCBC6E29F51F7500C926F9 /* KhiinColors.swift */; };
 		64D378C829F4D18200D30F37 /* KhiinApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D378C729F4D18200D30F37 /* KhiinApp.swift */; };
 		64D378CA29F4D18200D30F37 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D378C929F4D18200D30F37 /* ContentView.swift */; };
 		64D378CC29F4D18300D30F37 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 64D378CB29F4D18300D30F37 /* Assets.xcassets */; };
@@ -70,6 +71,7 @@
 		645BCFA129F4E2B20066F34C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		645BCFA929F4E3E50066F34C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		64CCBC6529F4E95B00C926F9 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
+		64CCBC6E29F51F7500C926F9 /* KhiinColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KhiinColors.swift; sourceTree = "<group>"; };
 		64D378C429F4D18200D30F37 /* Khiin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Khiin.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		64D378C729F4D18200D30F37 /* KhiinApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KhiinApp.swift; sourceTree = "<group>"; };
 		64D378C929F4D18200D30F37 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -113,6 +115,7 @@
 			isa = PBXGroup;
 			children = (
 				645BCF9F29F4E2B20066F34C /* KeyboardViewController.swift */,
+				64CCBC6E29F51F7500C926F9 /* KhiinColors.swift */,
 				645BCFA129F4E2B20066F34C /* Info.plist */,
 			);
 			path = Keyboard;
@@ -332,6 +335,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				645BCFA029F4E2B20066F34C /* KeyboardViewController.swift in Sources */,
+				64CCBC7029F51FC200C926F9 /* KhiinColors.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

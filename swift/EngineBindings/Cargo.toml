@@ -7,3 +7,5 @@ edition = "2021"
 crate-type = ["staticlib"]
 
 [dependencies]
+khiin = { path = "../../khiin" }
+khiin_protos = { path = "../../protos" }
