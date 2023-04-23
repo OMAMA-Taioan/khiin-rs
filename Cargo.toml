@@ -4,6 +4,7 @@ members = [
     "cli",
     "khiin",
     "protos",
+    "swift/EngineBindings",
     "windows/ime",
     "windows/settings"
 ]
