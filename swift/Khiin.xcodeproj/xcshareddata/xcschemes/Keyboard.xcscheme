@@ -58,8 +58,8 @@
       launchAutomaticallySubstyle = "2">
       <RemoteRunnable
          runnableDebuggingMode = "1"
-         BundleIdentifier = "com.apple.mobilesafari"
-         RemotePath = "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS.simruntime/Contents/Resources/RuntimeRoot/Applications/MobileSafari.app">
+         BundleIdentifier = "com.edwardgreve.khiin"
+         RemotePath = "/Users/ed/Library/Developer/CoreSimulator/Devices/829A25BB-A919-4C2D-9605-ED44193EE39C/data/Containers/Bundle/Application/BFF18AAB-B349-4E8C-BD7C-144D7212EC1A/Khiin.app">
       </RemoteRunnable>
       <MacroExpansion>
          <BuildableReference
