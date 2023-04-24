@@ -75,9 +75,15 @@ class KeyboardViewController: UIInputViewController {
             return
         }
         
-        let result = bytes.withUnsafeBytes { ptr in
-            let bufferPtr = ptr.bindMemory(to: UInt8.self)
-            return self.engine?.sendCommand(bufferPtr)
+        let result: RustVec<UInt8>? = bytes.withUnsafeBytes {
+            (ptr: UnsafeRawBufferPointer) -> RustVec<UInt8>? in
+            guard let rawPtr = ptr.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                return nil
+            }
+            return self.engine?.sendCommand(
+                rawPtr,
+                UInt(bytes.count)
+            )
         }
         
         guard let result = result else {
