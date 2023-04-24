@@ -70,7 +70,8 @@ dependencies = ["mac-builddirs"]
 cwd = "protos/src"
 script_runner = "@shell"
 script = '''
-protoc --swift_out=../../swift/EngineBindings/generated *.proto
+mkdir -p ../../swift/Protos
+protoc --swift_out=../../swift/Protos *.proto
 '''
 
 [tasks.mac-builddirs]

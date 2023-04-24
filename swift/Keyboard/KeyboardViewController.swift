@@ -1,6 +1,8 @@
 import SwiftUI
 import UIKit
 
+import KhiinBridge
+
 class KeyboardViewController: UIInputViewController {
     var engine: EngineController?
     
@@ -21,7 +23,9 @@ class KeyboardViewController: UIInputViewController {
             return;
         }
         print("Found database: \(String(describing: dbFilePath))")
-        self.engine = EngineController(dbFilePath)
+        if let engine = EngineController.new(dbFilePath) {
+            self.engine = engine
+        }
     }
 
     func setupInitialWidth() {
@@ -41,6 +45,12 @@ class KeyboardViewController: UIInputViewController {
     }
 
     func handleKey(key: Key) {
+        print("Handling key: \(key.label)")
+        
+        guard let engine = self.engine else {
+            return
+        }
+        
         var req = Khiin_Proto_Request()
         var keyEvent = Khiin_Proto_KeyEvent()
         
@@ -54,11 +64,63 @@ class KeyboardViewController: UIInputViewController {
         
         req.keyEvent = keyEvent
         
-        if let cmd = self.engine?.sendCommand(req) {
-            print("Obtained response with \(cmd.response.candidateList.candidates.count) candidates")
+        let bytes: Data? = {
+            do {
+                var cmd = Khiin_Proto_Command()
+                cmd.request = req
+                let data = try cmd.serializedData()
+                return data
+            } catch {
+                return nil
+            }
+        }()
+        
+        guard let bytes = bytes else {
+            return
         }
         
-        print("Handling key: \(key.label)")
+        var lenOutput: UInt = 0
+        var cmdOutput = UnsafeMutablePointer<UInt8>.allocate(capacity: 0)
+        
+        let result = bytes.withUnsafeBytes {
+            (cmdInput: UnsafeRawBufferPointer) -> Int32 in
+                return engine.sendCommand(
+                    (cmdInput.baseAddress?.assumingMemoryBound(to: UInt8.self))!,
+                    UInt(bytes.count),
+                    &cmdOutput,
+                    &lenOutput
+                )
+        }
+        
+        if result != 0 {
+            print("Could not read result from engine")
+            return
+        }
+        
+        let outputData = Data(
+            bytesNoCopy: cmdOutput,
+            count: Int(lenOutput),
+            deallocator: .custom({ (pointer, size) in
+                pointer.deallocate()
+            })
+        )
+        
+        let cmdResponse: Khiin_Proto_Command? = {
+            do {
+                let res = try Khiin_Proto_Command.init(serializedData: outputData)
+                return res
+            } catch {
+                print("Unable to decode bytes from engine")
+                return nil
+            }
+        }()
+        
+        guard let cmd = cmdResponse else {
+            return
+        }
+        
+        print("Obtained response with \(cmd.response.candidateList.candidates.count) candidates")
+        
         self.textDocumentProxy.insertText(key.label)
     }
 }
