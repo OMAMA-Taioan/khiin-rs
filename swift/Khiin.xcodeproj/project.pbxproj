@@ -7,13 +7,25 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6410D78E29F5A4BE003FE21E /* KeyboardWrapperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64CCBC7129F55E9F00C926F9 /* KeyboardWrapperView.swift */; };
+		64420AA329F62CCD002B74FF /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 64420AA229F62CCD002B74FF /* SwiftProtobuf */; };
+		64420AAB29F62F7B002B74FF /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 64420AAA29F62F7B002B74FF /* SwiftProtobuf */; };
+		64420AAE29F62FB5002B74FF /* EngineBindings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 64D378DB29F4D19800D30F37 /* EngineBindings.framework */; };
+		64420AAF29F63077002B74FF /* config.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A2A4D429F62C0600E6D200 /* config.pb.swift */; };
+		64420AB029F63077002B74FF /* command.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A2A4D529F62C0600E6D200 /* command.pb.swift */; };
+		64420AB429F63BBD002B74FF /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 64420AB329F63BBD002B74FF /* SwiftProtobuf */; };
 		645BCF9829F4DE980066F34C /* EngineBindings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 64D378DB29F4D19800D30F37 /* EngineBindings.framework */; };
 		645BCFA029F4E2B20066F34C /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 645BCF9F29F4E2B20066F34C /* KeyboardViewController.swift */; };
 		645BCFA429F4E2B20066F34C /* Keyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 645BCF9D29F4E2B20066F34C /* Keyboard.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		6497E2BF29F58A1B009311B5 /* KeyboardHostingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6497E2BE29F58A1B009311B5 /* KeyboardHostingController.swift */; };
+		64A2A4CE29F623A700E6D200 /* EngineController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A2A4CD29F623A700E6D200 /* EngineController.swift */; };
+		64A2A4CF29F623AC00E6D200 /* EngineController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A2A4CD29F623A700E6D200 /* EngineController.swift */; };
+		64A2A4D029F624E000E6D200 /* khiin.db in Resources */ = {isa = PBXBuildFile; fileRef = 64D796C629F60BF500ABB745 /* khiin.db */; };
+		64A2A4D729F62C0600E6D200 /* config.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A2A4D429F62C0600E6D200 /* config.pb.swift */; };
+		64A2A4D829F62C0600E6D200 /* command.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A2A4D529F62C0600E6D200 /* command.pb.swift */; };
 		64CCBC6629F4E95B00C926F9 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 64CCBC6529F4E95B00C926F9 /* Settings.bundle */; };
 		64CCBC7029F51FC200C926F9 /* KhiinColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64CCBC6E29F51F7500C926F9 /* KhiinColors.swift */; };
 		64CCBC7529F55F2D00C926F9 /* KhiinColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64CCBC6E29F51F7500C926F9 /* KhiinColors.swift */; };
-		64CCBC7629F55F3200C926F9 /* KeyboardWrapperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64CCBC7129F55E9F00C926F9 /* KeyboardWrapperView.swift */; };
 		64CCBC7929F5680E00C926F9 /* ViewPreviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64CCBC7829F5680E00C926F9 /* ViewPreviews.swift */; };
 		64CCBC7B29F5686500C926F9 /* KeyboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64CCBC7A29F5686500C926F9 /* KeyboardViewModel.swift */; };
 		64D378C829F4D18200D30F37 /* KhiinApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D378C729F4D18200D30F37 /* KhiinApp.swift */; };
@@ -21,6 +33,7 @@
 		64D378CC29F4D18300D30F37 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 64D378CB29F4D18300D30F37 /* Assets.xcassets */; };
 		64D378D029F4D18300D30F37 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 64D378CF29F4D18300D30F37 /* Preview Assets.xcassets */; };
 		64D378E229F4D19800D30F37 /* EngineBindings.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 64D378DB29F4D19800D30F37 /* EngineBindings.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		64D796C729F60BF500ABB745 /* khiin.db in Resources */ = {isa = PBXBuildFile; fileRef = 64D796C629F60BF500ABB745 /* khiin.db */; };
 		64EDA29529F4DA6E00A873D0 /* cbindgen.toml in Resources */ = {isa = PBXBuildFile; fileRef = 64EDA29129F4DA6E00A873D0 /* cbindgen.toml */; };
 		64EDA29629F4DA6E00A873D0 /* khiin_swift.h in Headers */ = {isa = PBXBuildFile; fileRef = 64EDA29229F4DA6E00A873D0 /* khiin_swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		64EDA29729F4DA6E00A873D0 /* src in Resources */ = {isa = PBXBuildFile; fileRef = 64EDA29329F4DA6E00A873D0 /* src */; };
@@ -28,6 +41,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		64420AAC29F62FB1002B74FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 64D378BC29F4D18200D30F37 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 64D378DA29F4D19800D30F37;
+			remoteInfo = EngineBindings;
+		};
 		645BCFA229F4E2B20066F34C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 64D378BC29F4D18200D30F37 /* Project object */;
@@ -74,6 +94,10 @@
 		645BCF9F29F4E2B20066F34C /* KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardViewController.swift; sourceTree = "<group>"; };
 		645BCFA129F4E2B20066F34C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		645BCFA929F4E3E50066F34C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		6497E2BE29F58A1B009311B5 /* KeyboardHostingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardHostingController.swift; sourceTree = "<group>"; };
+		64A2A4CD29F623A700E6D200 /* EngineController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineController.swift; sourceTree = "<group>"; };
+		64A2A4D429F62C0600E6D200 /* config.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = config.pb.swift; path = generated/config.pb.swift; sourceTree = "<group>"; };
+		64A2A4D529F62C0600E6D200 /* command.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = command.pb.swift; path = generated/command.pb.swift; sourceTree = "<group>"; };
 		64CCBC6529F4E95B00C926F9 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		64CCBC6E29F51F7500C926F9 /* KhiinColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KhiinColors.swift; sourceTree = "<group>"; };
 		64CCBC7129F55E9F00C926F9 /* KeyboardWrapperView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardWrapperView.swift; sourceTree = "<group>"; };
@@ -86,8 +110,9 @@
 		64D378CD29F4D18300D30F37 /* Khiin.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Khiin.entitlements; sourceTree = "<group>"; };
 		64D378CF29F4D18300D30F37 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		64D378DB29F4D19800D30F37 /* EngineBindings.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = EngineBindings.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		64D796C629F60BF500ABB745 /* khiin.db */ = {isa = PBXFileReference; lastKnownFileType = file; path = khiin.db; sourceTree = "<group>"; };
 		64EDA29129F4DA6E00A873D0 /* cbindgen.toml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cbindgen.toml; sourceTree = "<group>"; };
-		64EDA29229F4DA6E00A873D0 /* khiin_swift.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = khiin_swift.h; sourceTree = "<group>"; };
+		64EDA29229F4DA6E00A873D0 /* khiin_swift.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = khiin_swift.h; path = generated/khiin_swift.h; sourceTree = "<group>"; };
 		64EDA29329F4DA6E00A873D0 /* src */ = {isa = PBXFileReference; lastKnownFileType = folder; path = src; sourceTree = "<group>"; };
 		64EDA29429F4DA6E00A873D0 /* Cargo.toml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Cargo.toml; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -97,6 +122,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				64420AAE29F62FB5002B74FF /* EngineBindings.framework in Frameworks */,
+				64420AAB29F62F7B002B74FF /* SwiftProtobuf in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -105,6 +132,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				645BCF9829F4DE980066F34C /* EngineBindings.framework in Frameworks */,
+				64420AA329F62CCD002B74FF /* SwiftProtobuf in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +140,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				64420AB429F63BBD002B74FF /* SwiftProtobuf in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,6 +154,7 @@
 				645BCF9F29F4E2B20066F34C /* KeyboardViewController.swift */,
 				645BCFA129F4E2B20066F34C /* Info.plist */,
 				64CCBC7A29F5686500C926F9 /* KeyboardViewModel.swift */,
+				6497E2BE29F58A1B009311B5 /* KeyboardHostingController.swift */,
 			);
 			path = Keyboard;
 			sourceTree = "<group>";
@@ -168,6 +198,7 @@
 		64D378C629F4D18200D30F37 /* Khiin */ = {
 			isa = PBXGroup;
 			children = (
+				64D796C629F60BF500ABB745 /* khiin.db */,
 				64CCBC7429F55EF700C926F9 /* Theme */,
 				645BCFA929F4E3E50066F34C /* Info.plist */,
 				64D378C729F4D18200D30F37 /* KhiinApp.swift */,
@@ -192,10 +223,13 @@
 		64D378DC29F4D19800D30F37 /* EngineBindings */ = {
 			isa = PBXGroup;
 			children = (
+				64A2A4D529F62C0600E6D200 /* command.pb.swift */,
+				64A2A4D429F62C0600E6D200 /* config.pb.swift */,
 				64EDA29429F4DA6E00A873D0 /* Cargo.toml */,
 				64EDA29129F4DA6E00A873D0 /* cbindgen.toml */,
 				64EDA29229F4DA6E00A873D0 /* khiin_swift.h */,
 				64EDA29329F4DA6E00A873D0 /* src */,
+				64A2A4CD29F623A700E6D200 /* EngineController.swift */,
 			);
 			path = EngineBindings;
 			sourceTree = "<group>";
@@ -225,9 +259,12 @@
 			buildRules = (
 			);
 			dependencies = (
+				64420AAD29F62FB1002B74FF /* PBXTargetDependency */,
+				64420AA929F62F74002B74FF /* PBXTargetDependency */,
 			);
 			name = Keyboard;
 			packageProductDependencies = (
+				64420AAA29F62F7B002B74FF /* SwiftProtobuf */,
 			);
 			productName = Keyboard;
 			productReference = 645BCF9D29F4E2B20066F34C /* Keyboard.appex */;
@@ -251,6 +288,7 @@
 			);
 			name = Khiin;
 			packageProductDependencies = (
+				64420AA229F62CCD002B74FF /* SwiftProtobuf */,
 			);
 			productName = Khiin;
 			productReference = 64D378C429F4D18200D30F37 /* Khiin.app */;
@@ -268,8 +306,12 @@
 			buildRules = (
 			);
 			dependencies = (
+				64420AB229F63BB5002B74FF /* PBXTargetDependency */,
 			);
 			name = EngineBindings;
+			packageProductDependencies = (
+				64420AB329F63BBD002B74FF /* SwiftProtobuf */,
+			);
 			productName = KhiinBindings;
 			productReference = 64D378DB29F4D19800D30F37 /* EngineBindings.framework */;
 			productType = "com.apple.product-type.framework";
@@ -292,6 +334,7 @@
 					};
 					64D378DA29F4D19800D30F37 = {
 						CreatedOnToolsVersion = 14.3;
+						LastSwiftMigration = 1430;
 					};
 				};
 			};
@@ -305,6 +348,7 @@
 			);
 			mainGroup = 64D378BB29F4D18200D30F37;
 			packageReferences = (
+				64420AA129F62CCD002B74FF /* XCRemoteSwiftPackageReference "swift-protobuf" */,
 			);
 			productRefGroup = 64D378C529F4D18200D30F37 /* Products */;
 			projectDirPath = "";
@@ -322,6 +366,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				64A2A4D029F624E000E6D200 /* khiin.db in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -332,6 +377,7 @@
 				64D378D029F4D18300D30F37 /* Preview Assets.xcassets in Resources */,
 				64CCBC6629F4E95B00C926F9 /* Settings.bundle in Resources */,
 				64D378CC29F4D18300D30F37 /* Assets.xcassets in Resources */,
+				64D796C729F60BF500ABB745 /* khiin.db in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -352,10 +398,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				64CCBC7629F55F3200C926F9 /* KeyboardWrapperView.swift in Sources */,
 				645BCFA029F4E2B20066F34C /* KeyboardViewController.swift in Sources */,
+				6410D78E29F5A4BE003FE21E /* KeyboardWrapperView.swift in Sources */,
+				64420AB029F63077002B74FF /* command.pb.swift in Sources */,
 				64CCBC7029F51FC200C926F9 /* KhiinColors.swift in Sources */,
+				6497E2BF29F58A1B009311B5 /* KeyboardHostingController.swift in Sources */,
 				64CCBC7B29F5686500C926F9 /* KeyboardViewModel.swift in Sources */,
+				64420AAF29F63077002B74FF /* config.pb.swift in Sources */,
+				64A2A4CF29F623AC00E6D200 /* EngineController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -374,12 +424,28 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				64A2A4D729F62C0600E6D200 /* config.pb.swift in Sources */,
+				64A2A4D829F62C0600E6D200 /* command.pb.swift in Sources */,
+				64A2A4CE29F623A700E6D200 /* EngineController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		64420AA929F62F74002B74FF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			productRef = 64420AA829F62F74002B74FF /* SwiftProtobuf */;
+		};
+		64420AAD29F62FB1002B74FF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 64D378DA29F4D19800D30F37 /* EngineBindings */;
+			targetProxy = 64420AAC29F62FB1002B74FF /* PBXContainerItemProxy */;
+		};
+		64420AB229F63BB5002B74FF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			productRef = 64420AB129F63BB5002B74FF /* SwiftProtobuf */;
+		};
 		645BCFA329F4E2B20066F34C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			platformFilter = ios;
@@ -410,11 +476,16 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-lkhiin_swift",
+					"-L$(PROJECT_DIR)/../target/universal/debug",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.edwardgreve.khiin.keyboard;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = EngineBindings/generated/khiin_swift.h;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -436,11 +507,16 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-lkhiin_swift",
+					"-L$(PROJECT_DIR)/../target/universal/release",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.edwardgreve.khiin.keyboard;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = EngineBindings/generated/khiin_swift.h;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
@@ -597,6 +673,7 @@
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = EngineBindings/generated/khiin_swift.h;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -639,6 +716,7 @@
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = EngineBindings/generated/khiin_swift.h;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -647,6 +725,8 @@
 		64D378E429F4D19900D30F37 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -670,12 +750,18 @@
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++20";
+				OTHER_LDFLAGS = (
+					"-lkhiin_swift",
+					"-L$(PROJECT_DIR)/../target/universal/debug",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.edwardgreve.khiin.bindings;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = auto;
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = EngineBindings/generated/khiin_swift.h;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
@@ -686,6 +772,8 @@
 		64D378E529F4D19900D30F37 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -709,12 +797,17 @@
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++20";
+				OTHER_LDFLAGS = (
+					"-lkhiin_swift",
+					"-L$(PROJECT_DIR)/../target/universal/release",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.edwardgreve.khiin.bindings;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = auto;
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = EngineBindings/generated/khiin_swift.h;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
@@ -762,6 +855,45 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		64420AA129F62CCD002B74FF /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-protobuf.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		64420AA229F62CCD002B74FF /* SwiftProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 64420AA129F62CCD002B74FF /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobuf;
+		};
+		64420AA829F62F74002B74FF /* SwiftProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 64420AA129F62CCD002B74FF /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobuf;
+		};
+		64420AAA29F62F7B002B74FF /* SwiftProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 64420AA129F62CCD002B74FF /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobuf;
+		};
+		64420AB129F63BB5002B74FF /* SwiftProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 64420AA129F62CCD002B74FF /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobuf;
+		};
+		64420AB329F63BBD002B74FF /* SwiftProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 64420AA129F62CCD002B74FF /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobuf;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 64D378BC29F4D18200D30F37 /* Project object */;
 }

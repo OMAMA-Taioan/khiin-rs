@@ -2,31 +2,75 @@ import SwiftUI
 import UIKit
 
 class KeyboardViewController: UIInputViewController {
+    var engine: EngineController?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("Loaded")
-        guard let inputView = self.inputView else {
-            return
+        self.setupInitialWidth()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.setup { controller in
+            KeyboardWrapperView(
+                controller: controller,
+                width: self.view.frame.width
+            )
         }
+        guard let dbFilePath = Bundle.main.path(forResource: "khiin", ofType: "db") else {
+            return;
+        }
+        print("Found database: \(String(describing: dbFilePath))")
+        self.engine = EngineController(dbFilePath)
+    }
 
-        let viewModel = KeyboardViewModel(document: self.textDocumentProxy)
-        let vc = UIHostingController(
-            rootView: KeyboardWrapperView(viewModel)
-        )
-        vc.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        vc.view.translatesAutoresizingMaskIntoConstraints = false
+    func setupInitialWidth() {
+        self.view.frame.size.width = UIScreen.main.bounds.width
+    }
 
-        self.addChild(vc)
-        self.view.addSubview(vc.view)
-        vc.didMove(toParent: self)
+    func setup<Content: View>(
+        @ViewBuilder with rootView: @escaping (
+            _ controller: KeyboardViewController
+        ) -> Content
+    ) {
+        let view = KeyboardRootView { [unowned self] in rootView(self) }
+        self.children.forEach { $0.removeFromParent() }
+        self.view.subviews.forEach { $0.removeFromSuperview() }
+        let host = KeyboardHostingController(rootView: view)
+        host.add(to: self)
+    }
 
-        NSLayoutConstraint.activate([
-            vc.view.topAnchor.constraint(equalTo: self.view.topAnchor),
-            vc.view.rightAnchor.constraint(equalTo: self.view.rightAnchor),
-            vc.view.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
-            vc.view.leftAnchor.constraint(equalTo: self.view.leftAnchor),
-        ])
-                
-        inputView.backgroundColor = .clear
+    func handleKey(key: Key) {
+        var req = Khiin_Proto_Request()
+        var keyEvent = Khiin_Proto_KeyEvent()
+        
+        switch key.action{
+        case .char(let c):
+            req.type = .cmdSendKey
+            keyEvent.keyCode = c
+        default:
+            req.type = .cmdUnspecified
+        }
+        
+        req.keyEvent = keyEvent
+        
+        if let cmd = self.engine?.sendCommand(req) {
+            print("Obtained response with \(cmd.response.candidateList.candidates.count) candidates")
+        }
+        
+        print("Handling key: \(key.label)")
+        self.textDocumentProxy.insertText(key.label)
+    }
+}
+
+struct KeyboardRootView<ViewType: View>: View {
+    init(@ViewBuilder _ view: @escaping () -> ViewType) {
+        self.view = view
+    }
+    
+    var view: () -> ViewType
+    
+    var body: some View {
+        self.view()
     }
 }

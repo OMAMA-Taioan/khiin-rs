@@ -3,15 +3,18 @@ skip_core_tasks = true
 default_to_workspace = false
 
 [tasks.default]
-alias = "build-all"
+alias = "build"
 
-[tasks.run-cli]
+[tasks.clean]
+mac_alias = "clean-mac"
+
+[tasks.run]
 dependencies = ["build-cli"]
 command = "./target/debug/khiin_cli"
 
-[tasks.build-all]
-linux_alias = "build-unix"
-mac_alias = "build-unix"
+[tasks.build]
+linux_alias = "build-linux"
+mac_alias = "build-mac"
 windows_alias = "build-windows"
 
 [tasks.build-windows]
@@ -26,7 +29,69 @@ dependencies = ["db-copy-to-target"]
 command = "cargo"
 args = ["build", "--manifest-path=windows/settings/Cargo.toml"]
 
-[tasks.build-unix]
+##################
+#    Mac & iOS   #
+##################
+
+[tasks.build-mac]
+dependencies = [
+    "build-mac-libs",
+    "build-mac-bindings",
+    "build-mac-protos",
+    "db-copy-mac",
+    "build-cli",
+]
+
+[tasks.clean-mac]
+script_runner = "@shell"
+script = '''
+rm -rf swift/EngineBindings/generated
+'''
+dependencies = ["clean-db"]
+
+[tasks.build-mac-libs]
+command = "cargo"
+args = ["lipo", "--targets", "aarch64-apple-ios-sim,x86_64-apple-ios"]
+
+[tasks.build-mac-bindings]
+dependencies = ["mac-builddirs"]
+command = "cbindgen"
+args = [
+    "--config",
+    "swift/EngineBindings/cbindgen.toml",
+    "--crate",
+    "khiin_swift",
+    "--output",
+    "swift/EngineBindings/generated/khiin_swift.h",
+]
+
+[tasks.build-mac-protos]
+dependencies = ["mac-builddirs"]
+cwd = "protos/src"
+script_runner = "@shell"
+script = '''
+protoc --swift_out=../../swift/EngineBindings/generated *.proto
+'''
+
+[tasks.mac-builddirs]
+script_runner = "@shell"
+script = '''
+mkdir -p swift/EngineBindings/generated
+'''
+
+[tasks.db-copy-mac]
+condition = { files_exist = ["resources/khiin.db"] }
+script_runner = "@shell"
+script = '''
+cp resources/khiin.db swift/Khiin/khiin.db
+'''
+dependencies = ["db-copy"]
+
+############
+#  Linux   #
+############
+
+[tasks.build-linux]
 dependencies = ["build-cli"]
 
 [tasks.build-cli]
@@ -34,14 +99,15 @@ command = "cargo"
 args = ["build", "--manifest-path=cli/Cargo.toml"]
 dependencies = ["db-copy-to-target"]
 
+
 ############
 # Database #
 ############
 
 [tasks.db-rebuild]
-dependencies = ["db-clean", "db-build"]
+dependencies = ["clean-db", "db-build"]
 
-[tasks.db-clean]
+[tasks.clean-db]
 condition = { files_exist = ["data/out/khiin.db"] }
 script_runner = "@shell"
 script = '''

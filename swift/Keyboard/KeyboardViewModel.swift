@@ -1,10 +1,10 @@
 import SwiftUI
 
 class KeyboardViewModel: ObservableObject {
-    let document: UITextDocumentProxy
+    let controller: KeyboardViewController
     
-    init(document: UITextDocumentProxy) {
-        self.document = document
+    init(controller: KeyboardViewController) {
+        self.controller = controller
     }
     
     func handleKey(_ key: Key) {
