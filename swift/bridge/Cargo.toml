@@ -9,7 +9,7 @@ crate-type = ["staticlib"]
 [dependencies]
 khiin = { path = "../../khiin" }
 khiin_protos = { path = "../../protos" }
-swift-bridge = "0.1"
+swift-bridge = { path = "../../../swift-bridge" }
 
 [build-dependencies]
-swift-bridge-build = "0.1"
+swift-bridge-build = { path = "../../../swift-bridge/crates/swift-bridge-build" }

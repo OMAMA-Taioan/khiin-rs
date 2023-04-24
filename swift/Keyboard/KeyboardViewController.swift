@@ -47,10 +47,6 @@ class KeyboardViewController: UIInputViewController {
     func handleKey(key: Key) {
         print("Handling key: \(key.label)")
         
-        guard let engine = self.engine else {
-            return
-        }
-        
         var req = Khiin_Proto_Request()
         var keyEvent = Khiin_Proto_KeyEvent()
         
@@ -79,35 +75,24 @@ class KeyboardViewController: UIInputViewController {
             return
         }
         
-        var lenOutput: UInt = 0
-        var cmdOutput = UnsafeMutablePointer<UInt8>.allocate(capacity: 0)
-        
-        let result = bytes.withUnsafeBytes {
-            (cmdInput: UnsafeRawBufferPointer) -> Int32 in
-                return engine.sendCommand(
-                    (cmdInput.baseAddress?.assumingMemoryBound(to: UInt8.self))!,
-                    UInt(bytes.count),
-                    &cmdOutput,
-                    &lenOutput
-                )
+        let result = bytes.withUnsafeBytes { ptr in
+            let bufferPtr = ptr.bindMemory(to: UInt8.self)
+            return self.engine?.sendCommand(bufferPtr)
         }
         
-        if result != 0 {
-            print("Could not read result from engine")
+        guard let result = result else {
+            print("No result from engine")
             return
         }
         
-        let outputData = Data(
-            bytesNoCopy: cmdOutput,
-            count: Int(lenOutput),
-            deallocator: .custom({ (pointer, size) in
-                pointer.deallocate()
-            })
+        let resultData = Data(
+            bytes: result.as_ptr(),
+            count: result.len()
         )
         
         let cmdResponse: Khiin_Proto_Command? = {
             do {
-                let res = try Khiin_Proto_Command.init(serializedData: outputData)
+                let res = try Khiin_Proto_Command.init(serializedData: resultData)
                 return res
             } catch {
                 print("Unable to decode bytes from engine")
