@@ -16,8 +16,7 @@ mod ffi {
         #[swift_bridge(swift_name = "sendCommand")]
         fn send_command(
             &self,
-            cmd_input: *const u8,
-            len_input: usize,
+            cmd_input: &[u8],
         ) -> Option<Vec<u8>>;
     }
 }
@@ -41,14 +40,12 @@ impl EngineController {
 
     fn send_command(
         &self,
-        cmd_input: *const u8,
-        len_input: usize,
+        cmd_input: &[u8],
     ) -> Option<Vec<u8>> {
         let engine: &mut Engine =
             unsafe { &mut *(self.engine_ptr as *mut Engine) };
-        let bytes = unsafe { slice::from_raw_parts(cmd_input, len_input) };
 
-        engine.send_command_bytes(bytes).ok()
+        engine.send_command_bytes(cmd_input).ok()
     }
 }
 
