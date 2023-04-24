@@ -8,13 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		6410D78E29F5A4BE003FE21E /* KeyboardWrapperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64CCBC7129F55E9F00C926F9 /* KeyboardWrapperView.swift */; };
-		64420AA329F62CCD002B74FF /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 64420AA229F62CCD002B74FF /* SwiftProtobuf */; };
 		64420AAB29F62F7B002B74FF /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 64420AAA29F62F7B002B74FF /* SwiftProtobuf */; };
 		64420AAE29F62FB5002B74FF /* EngineBindings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 64D378DB29F4D19800D30F37 /* EngineBindings.framework */; };
 		64420AAF29F63077002B74FF /* config.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A2A4D429F62C0600E6D200 /* config.pb.swift */; };
 		64420AB029F63077002B74FF /* command.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A2A4D529F62C0600E6D200 /* command.pb.swift */; };
 		64420AB429F63BBD002B74FF /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 64420AB329F63BBD002B74FF /* SwiftProtobuf */; };
-		645BCF9829F4DE980066F34C /* EngineBindings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 64D378DB29F4D19800D30F37 /* EngineBindings.framework */; };
 		645BCFA029F4E2B20066F34C /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 645BCF9F29F4E2B20066F34C /* KeyboardViewController.swift */; };
 		645BCFA429F4E2B20066F34C /* Keyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 645BCF9D29F4E2B20066F34C /* Keyboard.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		6497E2BF29F58A1B009311B5 /* KeyboardHostingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6497E2BE29F58A1B009311B5 /* KeyboardHostingController.swift */; };
@@ -33,11 +31,7 @@
 		64D378CC29F4D18300D30F37 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 64D378CB29F4D18300D30F37 /* Assets.xcassets */; };
 		64D378D029F4D18300D30F37 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 64D378CF29F4D18300D30F37 /* Preview Assets.xcassets */; };
 		64D378E229F4D19800D30F37 /* EngineBindings.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 64D378DB29F4D19800D30F37 /* EngineBindings.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		64D796C729F60BF500ABB745 /* khiin.db in Resources */ = {isa = PBXBuildFile; fileRef = 64D796C629F60BF500ABB745 /* khiin.db */; };
-		64EDA29529F4DA6E00A873D0 /* cbindgen.toml in Resources */ = {isa = PBXBuildFile; fileRef = 64EDA29129F4DA6E00A873D0 /* cbindgen.toml */; };
 		64EDA29629F4DA6E00A873D0 /* khiin_swift.h in Headers */ = {isa = PBXBuildFile; fileRef = 64EDA29229F4DA6E00A873D0 /* khiin_swift.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		64EDA29729F4DA6E00A873D0 /* src in Resources */ = {isa = PBXBuildFile; fileRef = 64EDA29329F4DA6E00A873D0 /* src */; };
-		64EDA29829F4DA6E00A873D0 /* Cargo.toml in Resources */ = {isa = PBXBuildFile; fileRef = 64EDA29429F4DA6E00A873D0 /* Cargo.toml */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,20 +41,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 64D378DA29F4D19800D30F37;
 			remoteInfo = EngineBindings;
-		};
-		645BCFA229F4E2B20066F34C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 64D378BC29F4D18200D30F37 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 645BCF9C29F4E2B20066F34C;
-			remoteInfo = Keyboard;
-		};
-		64D378DF29F4D19800D30F37 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 64D378BC29F4D18200D30F37 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 64D378DA29F4D19800D30F37;
-			remoteInfo = KhiinBindings;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -131,8 +111,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				645BCF9829F4DE980066F34C /* EngineBindings.framework in Frameworks */,
-				64420AA329F62CCD002B74FF /* SwiftProtobuf in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -283,12 +261,9 @@
 			buildRules = (
 			);
 			dependencies = (
-				64D378E029F4D19800D30F37 /* PBXTargetDependency */,
-				645BCFA329F4E2B20066F34C /* PBXTargetDependency */,
 			);
 			name = Khiin;
 			packageProductDependencies = (
-				64420AA229F62CCD002B74FF /* SwiftProtobuf */,
 			);
 			productName = Khiin;
 			productReference = 64D378C429F4D18200D30F37 /* Khiin.app */;
@@ -377,7 +352,6 @@
 				64D378D029F4D18300D30F37 /* Preview Assets.xcassets in Resources */,
 				64CCBC6629F4E95B00C926F9 /* Settings.bundle in Resources */,
 				64D378CC29F4D18300D30F37 /* Assets.xcassets in Resources */,
-				64D796C729F60BF500ABB745 /* khiin.db in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -385,9 +359,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				64EDA29829F4DA6E00A873D0 /* Cargo.toml in Resources */,
-				64EDA29529F4DA6E00A873D0 /* cbindgen.toml in Resources */,
-				64EDA29729F4DA6E00A873D0 /* src in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -446,17 +417,6 @@
 			isa = PBXTargetDependency;
 			productRef = 64420AB129F63BB5002B74FF /* SwiftProtobuf */;
 		};
-		645BCFA329F4E2B20066F34C /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			platformFilter = ios;
-			target = 645BCF9C29F4E2B20066F34C /* Keyboard */;
-			targetProxy = 645BCFA229F4E2B20066F34C /* PBXContainerItemProxy */;
-		};
-		64D378E029F4D19800D30F37 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 64D378DA29F4D19800D30F37 /* EngineBindings */;
-			targetProxy = 64D378DF29F4D19800D30F37 /* PBXContainerItemProxy */;
-		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -475,10 +435,15 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "";
 				MARKETING_VERSION = 1.0;
-				OTHER_LDFLAGS = (
+				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"-lkhiin_swift",
-					"-L$(PROJECT_DIR)/../target/universal/debug",
+					"-L$(PROJECT_DIR)/../target/aarch64-apple-ios/debug",
+				);
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = (
+					"-lkhiin_swift",
+					"-L$(PROJECT_DIR)/../target/universal-ios/debug",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.edwardgreve.khiin.keyboard;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -506,10 +471,15 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
+				"LIBRARY_SEARCH_PATHS[arch=*]" = "";
 				MARKETING_VERSION = 1.0;
-				OTHER_LDFLAGS = (
+				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"-lkhiin_swift",
-					"-L$(PROJECT_DIR)/../target/universal/release",
+					"-L$(PROJECT_DIR)/../target/aarch64-apple-ios/release",
+				);
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = (
+					"-lkhiin_swift",
+					"-L$(PROJECT_DIR)/../target/universal-ios/release",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.edwardgreve.khiin.keyboard;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -662,12 +632,9 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = "";
 				MACOSX_DEPLOYMENT_TARGET = 13.2;
 				MARKETING_VERSION = 1.0;
-				OTHER_LDFLAGS = (
-					"-lkhiin_swift",
-					"-L$(PROJECT_DIR)/../target/universal/debug",
-				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.edwardgreve.khiin;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
@@ -705,12 +672,9 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				"LIBRARY_SEARCH_PATHS[arch=*]" = "";
 				MACOSX_DEPLOYMENT_TARGET = 13.2;
 				MARKETING_VERSION = 1.0;
-				OTHER_LDFLAGS = (
-					"-lkhiin_swift",
-					"-L$(PROJECT_DIR)/../target/universal/release",
-				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.edwardgreve.khiin;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
@@ -746,13 +710,18 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "";
 				MACOSX_DEPLOYMENT_TARGET = 13.2;
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++20";
-				OTHER_LDFLAGS = (
+				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"-lkhiin_swift",
-					"-L$(PROJECT_DIR)/../target/universal/debug",
+					"-L$(PROJECT_DIR)/../target/aarch64-apple-ios/debug",
+				);
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = (
+					"-lkhiin_swift",
+					"-L$(PROJECT_DIR)/../target/universal-ios/debug",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.edwardgreve.khiin.bindings;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
@@ -793,13 +762,18 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
+				"LIBRARY_SEARCH_PATHS[arch=*]" = "";
 				MACOSX_DEPLOYMENT_TARGET = 13.2;
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++20";
-				OTHER_LDFLAGS = (
+				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"-lkhiin_swift",
-					"-L$(PROJECT_DIR)/../target/universal/release",
+					"-L$(PROJECT_DIR)/../target/aarch64-apple-ios/release",
+				);
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = (
+					"-lkhiin_swift",
+					"-L$(PROJECT_DIR)/../target/universal-ios/release",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.edwardgreve.khiin.bindings;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
@@ -868,11 +842,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		64420AA229F62CCD002B74FF /* SwiftProtobuf */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 64420AA129F62CCD002B74FF /* XCRemoteSwiftPackageReference "swift-protobuf" */;
-			productName = SwiftProtobuf;
-		};
 		64420AA829F62F74002B74FF /* SwiftProtobuf */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 64420AA129F62CCD002B74FF /* XCRemoteSwiftPackageReference "swift-protobuf" */;

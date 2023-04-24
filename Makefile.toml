@@ -50,8 +50,8 @@ rm -rf swift/EngineBindings/generated
 dependencies = ["clean-db"]
 
 [tasks.build-mac-libs]
-command = "cargo"
-args = ["lipo", "--targets", "aarch64-apple-ios-sim,x86_64-apple-ios"]
+command = "sh"
+args = ["./swift/EngineBindings/build.sh"]
 
 [tasks.build-mac-bindings]
 dependencies = ["mac-builddirs"]

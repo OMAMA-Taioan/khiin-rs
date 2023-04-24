@@ -31,7 +31,7 @@ enable it. Note that when selecting the keyboard, it is a bit flaky and does not
 always load properly the first time, you may have to select it twice. (I am told
 this is not a problem on actual devices, but I do not have one for testing.)
 
-Note that you will also see a warning when building the project:
+Note that you maye also see a warning when building the project:
 
 ```
 Linking against a dylib which is not safe for use in application extensions:
@@ -39,42 +39,60 @@ Linking against a dylib which is not safe for use in application extensions:
 ```
 
 I have not yet figured out how to fix this warning, although it does not seem to
-prevent any problems and the app runs as expected.
+prevent any problems and the app runs as expected, and sometimes does not show
+up at all.
 
 ## Development Environment
 
+### Quickstart
+
+Just run this:
+
+```bash
+brew install swift-protobuf
+rustup target add aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
+cargo install --force cargo-make
+cargo install --force cbindgen
+cargo make
+```
+
+You are now ready to build the iOS app 😄
+
+### Details
+
 1. Use `cargo-make` for the commands listed in this document:
 
-```
+```bash
 cargo install --force cargo-make
 ```
 
-2. You **must** build and copy over the database for the app to run:
+2. Install the appropriate toolchains:
 
-```
-cargo make db-copy-mac
+```bash
+# For macOS
+rustup target add aarch64-apple-darwin x86_64-apple-darwin
+
+# For iOS
+rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
+
+# For iOS simulator
+rustup target add aarch64-apple-ios-sim x86_64-apple-ios
 ```
 
 3. Files in the `EngineBindings/generated` file are automatically generated as
 explained in this README. If you are not modifying the rust or protobuf code,
 you should not need to modify these files. If you do intend to make
-modifications, then you must install the dependencies and regenerate the files.
-The dependencies are:
+modifications, then you must install these dependencies to regenerate the files:
 
-- `cargo-lipo`: a cargo plugin for building mac/iOS universal binaries
 - `cbindgen`: a tool for creating the C header files used from Swift
 - `swift-protobuf`: Apple's Protobuf extension for Swift
 
-These may be installed as follows:
-
-```
-cargo install cargo-lipo
-rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
+```bash
 cargo install --force cbindgen
 brew install swift-protobuf
 ```
 
-Once everything is done, you must run `cargo make` to prepare everything for
+Once everything is done, you can run `cargo make` to prepare everything for
 building the mac/iOS apps. You should see an output similar to the following:
 
 ```
@@ -85,31 +103,29 @@ $ cargo make
 [cargo-make] INFO - Build File: Makefile.toml
 [cargo-make] INFO - Task: default
 [cargo-make] INFO - Profile: development
-[cargo-make] INFO - Execute Command: "cargo" "lipo" "--targets" "aarch64-apple-ios-sim,x86_64-apple-ios"
-[INFO  cargo_lipo::meta] Will build universal library for ["khiin_swift"]
-[INFO  cargo_lipo::lipo] Building "khiin_swift" for "aarch64-apple-ios-sim"
-    Finished dev [unoptimized + debuginfo] target(s) in 0.04s
-[INFO  cargo_lipo::lipo] Building "khiin_swift" for "x86_64-apple-ios"
-    Finished dev [unoptimized + debuginfo] target(s) in 0.04s
-[INFO  cargo_lipo::lipo] Creating universal library for khiin_swift
+[cargo-make] INFO - Execute Command: "sh" "./swift/EngineBindings/build.sh"
+    Finished dev [unoptimized + debuginfo] target(s) in 0.05s
+    Finished dev [unoptimized + debuginfo] target(s) in 0.05s
+    Finished dev [unoptimized + debuginfo] target(s) in 0.06s
+    Finished dev [unoptimized + debuginfo] target(s) in 0.05s
+    Finished dev [unoptimized + debuginfo] target(s) in 0.05s
 [cargo-make] INFO - Running Task: mac-builddirs
-[cargo-make] INFO - Execute Command: "cbindgen" "--config" "swift/EngineBindings/cbindgen.toml" "--crate" "khiin_swift" "--output" "swift/EngineBindings/generated/khiin_swift.h"
+[cargo-make] INFO - Execute Command: "cbindgen" "--config" // ...snip...
 [cargo-make] INFO - Running Task: build-mac-protos
-[cargo-make] INFO - Execute Command: "python3" "src/sql_gen.py" "-f" "data/frequency.csv" "-c" "data/conversions_all.csv" "-s" "data/syllables.txt" "-t" "-y" "data/symbols.tsv" "-e" "data/emoji.csv" "-o" "out/khiin_db.sql" "-d" "out/khiin.db"
+[cargo-make] INFO - Execute Command: "python3" "src/sql_gen.py" // ...snip...
 Building database, please wait...Output written to out/khiin_db.sql:
- - 12242 inputs ("frequency" table)
- - 25403 tokens ("conversions" table)
- - 1514 syllables ("syllables" table)
+    // ...snip...
 [cargo-make] INFO - Running Task: db-copy
 [cargo-make] INFO - Running Task: db-copy-mac
 [cargo-make] INFO - Running Task: db-copy-to-target
 [cargo-make] INFO - Execute Command: "cargo" "build" "--manifest-path=cli/Cargo.toml"
-    Finished dev [unoptimized + debuginfo] target(s) in 0.05s
-[cargo-make] INFO - Build Done in 4.89 seconds.
+    // ...snip...
+   Compiling khiin_protos v0.1.0 (/Users/ed/aiongg/khiin-rs/protos)
+   Compiling khiin v0.1.0 (/Users/ed/aiongg/khiin-rs/khiin)
+   Compiling khiin_cli v0.1.0 (/Users/ed/aiongg/khiin-rs/cli)
+    Finished dev [unoptimized + debuginfo] target(s) in 5.50s
+[cargo-make] INFO - Build Done in 11.15 seconds.
 ```
-
-Using `cargo lipo --release` with the same command will build the release
-version.
 
 ### XCode linker configuration
 
@@ -121,15 +137,19 @@ linker flags:
 
 - Khiin Project > Target > Build Settings > Linking > Other Linker Flags
 
-The debug and release flags should use the debug and release `khiin_swift.a` library files as appropriate:
+The debug and release flags should use the debug and release `khiin_swift.a`
+library files as appropriate:
 
 Debug:
 - -lkhiin_swift
-- -L$(PROJECT_DIR)/../target/universal/debug
+- -L$(PROJECT_DIR)/../target/universal-ios/debug (for simulator)
+- -L$(PROJECT_DIR)/../target/aarch64-apple-ios/debug (for iOS)
 
-Release
+Release:
 - -lkhiin_swift
-- L$(PROJECT_DIR)/../target/universal/release
+- -L$(PROJECT_DIR)/../target/universal-ios/release (for simulator)
+- -L$(PROJECT_DIR)/../target/aarch64-apple-ios/release (for iOS)
+
 
 Also under the Build Settings > Swift Compiler - General section, you must set
 the bridging header:
