@@ -42,3 +42,11 @@ pub extern "C" fn Rust_khiin_engine_send_command(
     std::mem::forget(res_bytes);
     0
 }
+
+#[no_mangle]
+pub extern "C" fn Rust_khiin_engine_shutdown(
+    engine_ptr: *mut c_void,
+) {
+    let engine_ptr = engine_ptr as *mut Engine;
+    unsafe { drop(Box::from_raw(engine_ptr)); }
+}

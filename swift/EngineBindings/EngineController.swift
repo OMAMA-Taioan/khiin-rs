@@ -11,6 +11,10 @@ class EngineController {
         print("Engine loaded with pointer")
     }
     
+    deinit {
+        Rust_khiin_engine_shutdown(self.engine_ptr)
+    }
+    
     func sendCommand(_ request: Khiin_Proto_Request) -> Khiin_Proto_Command? {
         var cmd = Khiin_Proto_Command()
         cmd.request = request

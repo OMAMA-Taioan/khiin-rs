@@ -18,4 +18,6 @@ int32_t Rust_khiin_engine_send_command(void *engine_ptr,
                                        uint8_t **cmd_output,
                                        size_t *len_output);
 
+void Rust_khiin_engine_shutdown(void *engine_ptr);
+
 #endif /* khiin_swift_bindings_h */
