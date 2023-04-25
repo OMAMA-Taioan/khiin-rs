@@ -1,4 +1,4 @@
-# Khiin iOS & macOS
+# Khíín for iOS & macOS
 
 Folders:
 

@@ -1,4 +1,4 @@
-# Khiin Android
+# Khíín for Android
 
 ## Development Environment
 
