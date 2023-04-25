@@ -4,6 +4,7 @@ Folders:
 
 - `Khiin`: Currently a blank app with a text field simply for testing the IME
 - `Keyboard`: The iOS Keyboard Extension (`.appex`) Bundle code
+- `KhiinIM`: The macOS Input Method
 - `Protos`: The generated `.pb.swift` protobuf glass files
 - `bridge`: A bridge module for Swift-Rust communication, using `swift-bridge`
   (Nb: we are currently using a custom fork until the changes get merged
@@ -47,6 +48,26 @@ Linking against a dylib which is not safe for use in application extensions:
 I have not yet figured out how to fix this warning, although it does not seem to
 prevent any problems and the app runs as expected, and sometimes does not show
 up at all.
+
+## iOS Notes
+
+- The iOS bundle identifier must start with something like `com.` or `org.`, and
+  maybe a few others. However, we cannot use arbitrary bundle identifiers, as
+  the original attempt to use `be.chiahpa` resulted in the IME not being
+  recognized by the system.
+
+## macOS Notes
+
+- The macOS Input Method bundle identifier **must** have `.inputmethod.` in the
+  **3rd** position. That is: `a.b.inputmethod.c` is a valid bundle identifier.
+  This is apparently not documented anywhere, but it was mentioned on some
+  obscure websites and in old header files.
+- I have not yet figured out a good way to rebuild the macOS target while logged
+  in as a user and testing it. So far it seems like we need to log out, delete
+  the old one, rebuild, then log out again to activate it. Hopefully there is a
+  better way...
+
+---
 
 ## Development Environment
 

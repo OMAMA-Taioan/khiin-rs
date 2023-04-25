@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleName</key>
+	<string>Khíín</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>ComponentInputModeDict</key>
+	<dict>
+		<key>tsInputModeListKey</key>
+		<dict>
+			<key>com.edwardgreve.inputmethod.khiin.KhiinIM</key>
+			<dict>
+				<key>TISIconLabels</key>
+				<dict>
+					<key>Primary</key>
+					<string>起引</string>
+				</dict>
+				<key>TISInputSourceID</key>
+				<string>$(PRODUCT_BUNDLE_IDENTIFIER).KhiinIM</string>
+				<key>TISIntendedLanguage</key>
+				<string>nan</string>
+				<key>tsInputModeAlternateMenuIconFileKey</key>
+				<string>menuicon.svg</string>
+				<key>tsInputModeDefaultStateKey</key>
+				<true/>
+				<key>tsInputModeIsVisibleKey</key>
+				<true/>
+				<key>tsInputModeKeyEquivalentModifiersKey</key>
+				<integer>4608</integer>
+				<key>tsInputModeMenuIconFileKey</key>
+				<string>menuicon.svg</string>
+				<key>tsInputModePaletteIconFileKey</key>
+				<string>menuicon.svg</string>
+				<key>tsInputModePrimaryInScriptKey</key>
+				<true/>
+				<key>tsInputMethodCharacterRepertoireKey</key>
+				<array>
+					<string>Latn</string>
+					<string>Hant</string>
+				</array>
+				<key>tsInputModeScriptKey</key>
+				<string>smUnicodeScript</string>
+			</dict>
+		</dict>
+		<key>tsVisibleInputModeOrderedArrayKey</key>
+		<array>
+			<string>$(PRODUCT_BUNDLE_IDENTIFIER).KhiinIM</string>
+		</array>
+	</dict>
+	<key>InputMethodConnectionName</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)_Connection</string>
+	<key>InputMethodServerControllerClass</key>
+	<string>$(PRODUCT_MODULE_NAME).KhiinInputController</string>
+	<key>LSBackgroundOnly</key>
+	<true/>
+	<key>NSPrincipalClass</key>
+	<string>$(PRODUCT_MODULE_NAME).KhiinIMApplication</string>
+	<key>tsInputMethodIconFileKey</key>
+	<string>menuicon.svg</string>
+</dict>
+</plist>
