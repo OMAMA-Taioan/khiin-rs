@@ -327,4 +327,7 @@ xcuserdata/
 
 # End of https://www.toptal.com/developers/gitignore/api/xcode
 
+swift/bridge/generated
+swift/bridge/KhiinBridge
+
 **/khiin.db

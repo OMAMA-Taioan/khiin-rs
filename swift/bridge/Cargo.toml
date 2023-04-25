@@ -1,0 +1,17 @@
+[package]
+name = "khiin_swift"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+khiin = { path = "../../khiin" }
+khiin_protos = { path = "../../protos" }
+# Until https://github.com/chinedufn/swift-bridge/pull/216 is merged
+swift-bridge = { git = "https://github.com/aiongg/swift-bridge.git", branch = "feature/214-rustvec-as-ptr" }
+
+[build-dependencies]
+# Until https://github.com/chinedufn/swift-bridge/pull/216 is merged
+swift-bridge-build = { git = "https://github.com/aiongg/swift-bridge.git", branch = "feature/214-rustvec-as-ptr" }
