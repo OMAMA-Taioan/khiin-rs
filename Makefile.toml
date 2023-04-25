@@ -47,7 +47,7 @@ dependencies = ["clean-db"]
 script_runner = "@shell"
 script = '''
 rm -rf swift/bridge/generated
-rm -rf swift/bridge/KhiinBridge
+rm -rf swift/KhiinBridge
 '''
 
 [tasks.build-swift-libs]
@@ -55,11 +55,23 @@ command = "sh"
 args = ["./swift/bridge/build.sh"]
 
 [tasks.build-swift-bridge]
-command = "cargo"
+dependencies = ["build-swift-libs"]
+cwd = "swift"
+command = "swift-bridge-cli"
 args = [
-    "build",
-    "-p",
-    "khiin_swift",
+    "create-package",
+    "--bridges-dir",
+    "./bridge/generated",
+    "--out-dir",
+    "KhiinBridge",
+    "--ios",
+    "../target/aarch64-apple-ios/debug/libkhiin_swift.a",
+    "--simulator",
+    "../target/universal-ios/debug/libkhiin_swift.a",
+    "--macos",
+    "../target/universal-macos/debug/libkhiin_swift.a",
+    "--name",
+    "KhiinBridge",
 ]
 
 [tasks.build-mac-protos]

@@ -3,14 +3,20 @@
 Folders:
 
 - `Khiin`: Currently a blank app with a text field simply for testing the IME
-- `EngineBindings`: A library containing the rust binding code and a Swift
-  wrapper class for using it in the apps
 - `Keyboard`: The iOS Keyboard Extension (`.appex`) Bundle code
+- `Protos`: The generated `.pb.swift` protobuf glass files
+- `bridge`: A bridge module for Swift-Rust communication, using `swift-bridge`
+  (Nb: we are currently using a custom fork until the changes get merged
+  upstream)
 
 The `Keyboard.appex` bundle will be embedded in the `Khiin.app` bundle for
 delivery onto the device. 
 
 ## XCode
+
+- **Note:** Set up your development environment before loading the project in
+  XCode, or XCode will complain about missing files (these are generated during
+  the setup)
 
 When running the iOS simulator, XCode can be very flaky with respect to
 rebuilding and running the latest code. If you need debugging (breakpoints and
@@ -51,12 +57,12 @@ Just run this:
 ```bash
 brew install swift-protobuf
 rustup target add aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
+cargo install --force swift-bridge-cli
 cargo install --force cargo-make
-cargo install --force cbindgen
 cargo make
 ```
 
-You are now ready to build the iOS app 😄
+You are now ready to build the apps in XCode 😄
 
 ### Details
 
@@ -79,21 +85,18 @@ rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
 rustup target add aarch64-apple-ios-sim x86_64-apple-ios
 ```
 
-3. Files in the `EngineBindings/generated` file are automatically generated as
-explained in this README. If you are not modifying the rust or protobuf code,
-you should not need to modify these files. If you do intend to make
-modifications, then you must install these dependencies to regenerate the files:
+3. Files in `Protos` are generated using Apple's `swift-protobuf` plugin.
 
 - `cbindgen`: a tool for creating the C header files used from Swift
 - `swift-protobuf`: Apple's Protobuf extension for Swift
 
 ```bash
-cargo install --force cbindgen
 brew install swift-protobuf
 ```
 
 Once everything is done, you can run `cargo make` to prepare everything for
-building the mac/iOS apps. You should see an output similar to the following:
+building the mac/iOS apps. The first time takes a little longer to build the
+libraries, but after that you should see an output similar to the following:
 
 ```
 $ cargo make
@@ -103,55 +106,50 @@ $ cargo make
 [cargo-make] INFO - Build File: Makefile.toml
 [cargo-make] INFO - Task: default
 [cargo-make] INFO - Profile: development
-[cargo-make] INFO - Execute Command: "sh" "./swift/EngineBindings/build.sh"
-    Finished dev [unoptimized + debuginfo] target(s) in 0.05s
-    Finished dev [unoptimized + debuginfo] target(s) in 0.05s
-    Finished dev [unoptimized + debuginfo] target(s) in 0.06s
-    Finished dev [unoptimized + debuginfo] target(s) in 0.05s
-    Finished dev [unoptimized + debuginfo] target(s) in 0.05s
-[cargo-make] INFO - Running Task: mac-builddirs
-[cargo-make] INFO - Execute Command: "cbindgen" "--config" // ...snip...
+[cargo-make] INFO - Execute Command: "sh" "./swift/bridge/build.sh"
+    Blocking waiting for file lock on build directory
+   Compiling khiin_swift v0.1.0 (...)
+    Finished dev [unoptimized + debuginfo] target(s) in 1.21s
+    // ...snip...
+[cargo-make] INFO - Execute Command: "swift-bridge-cli" "create-package" // ...snip...
 [cargo-make] INFO - Running Task: build-mac-protos
 [cargo-make] INFO - Execute Command: "python3" "src/sql_gen.py" // ...snip...
 Building database, please wait...Output written to out/khiin_db.sql:
-    // ...snip...
+ - 12242 inputs ("frequency" table)
+ - 25403 tokens ("conversions" table)
+ - 1514 syllables ("syllables" table)
 [cargo-make] INFO - Running Task: db-copy
 [cargo-make] INFO - Running Task: db-copy-mac
 [cargo-make] INFO - Running Task: db-copy-to-target
 [cargo-make] INFO - Execute Command: "cargo" "build" "--manifest-path=cli/Cargo.toml"
-    // ...snip...
-   Compiling khiin_protos v0.1.0 (/Users/ed/aiongg/khiin-rs/protos)
-   Compiling khiin v0.1.0 (/Users/ed/aiongg/khiin-rs/khiin)
-   Compiling khiin_cli v0.1.0 (/Users/ed/aiongg/khiin-rs/cli)
-    Finished dev [unoptimized + debuginfo] target(s) in 5.50s
-[cargo-make] INFO - Build Done in 11.15 seconds.
+    Finished dev [unoptimized + debuginfo] target(s) in 0.06s
+[cargo-make] INFO - Build Done in 10.44 seconds.
 ```
 
-### XCode linker configuration
+### Bridge Module
 
-This configuration should already be done, so you shouldn't need to change it
-unless you are editing the builds.
+The `bridge` module is compiled using `swift-bridge` into a `KhiinBridge` swift
+package that can be used in XCode directly. Building is a two-step process.
 
-In order to link to the `EngineBindings` target, other targets must add some
-linker flags:
+1. Use the `build.sh` (which uses `build.rs`) to produce the `libkhiin_swift.a`
+   binaries for each platform.
+2. Use the `swift-bridge-cli` tool to package the generated code and the
+   binaries into a Swift Package for use in XCode.
 
-- Khiin Project > Target > Build Settings > Linking > Other Linker Flags
+The package is generated to `swift/KhiinBridge`, and can be added to XCode as a
+normal local package dependency. The targets using this package must add a Build
+Phase for the package.
 
-The debug and release flags should use the debug and release `khiin_swift.a`
-library files as appropriate:
+- Right click the project, click `Add Packages...` -> `Add Local..` and select
+  the `KhiinBridge` folder
+- Navigate to the target -> `Build Phases` -> `Target Dependencies` and click
+  the `+` button, selecting `KhiinBridge
+- Repeat for `Link Binary With Libraries`
 
-Debug:
-- -lkhiin_swift
-- -L$(PROJECT_DIR)/../target/universal-ios/debug (for simulator)
-- -L$(PROJECT_DIR)/../target/aarch64-apple-ios/debug (for iOS)
+This configuration should already be done, so you shouldn't need to change it.
 
-Release:
-- -lkhiin_swift
-- -L$(PROJECT_DIR)/../target/universal-ios/release (for simulator)
-- -L$(PROJECT_DIR)/../target/aarch64-apple-ios/release (for iOS)
+The binaries produced by `bridge/build.sh` are:
 
-
-Also under the Build Settings > Swift Compiler - General section, you must set
-the bridging header:
-
-- `Objective-C Bridging Header: EngineBindings/generated/khiin_swift.h`
+- `target/universal-ios/(debug|release)/libkhiin_swift.a` - for the simulator
+- `target/aarch64-apple-ios/(debug|release)/libkhiin_swift.a` - for iOS devices
+- `target/universal-macos/(debug|release)/libkhiin_swift.a` - for macOS devices

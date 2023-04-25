@@ -25,7 +25,6 @@
 		64D378CA29F4D18200D30F37 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64D378C929F4D18200D30F37 /* ContentView.swift */; };
 		64D378CC29F4D18300D30F37 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 64D378CB29F4D18300D30F37 /* Assets.xcassets */; };
 		64D378D029F4D18300D30F37 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 64D378CF29F4D18300D30F37 /* Preview Assets.xcassets */; };
-		64D796C729F60BF500ABB745 /* khiin.db in Resources */ = {isa = PBXBuildFile; fileRef = 64D796C629F60BF500ABB745 /* khiin.db */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,11 +62,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		642E5C8C29F67C2C001246F1 /* KhiinBridge */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = KhiinBridge; path = bridge/KhiinBridge; sourceTree = "<group>"; };
 		645BCF9D29F4E2B20066F34C /* Keyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Keyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		645BCF9F29F4E2B20066F34C /* KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardViewController.swift; sourceTree = "<group>"; };
 		645BCFA129F4E2B20066F34C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		645BCFA929F4E3E50066F34C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		64609AB529F79776009ACAB2 /* KhiinBridge */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = KhiinBridge; sourceTree = "<group>"; };
 		646F622929F670CF00D469DD /* command.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = command.pb.swift; path = Protos/command.pb.swift; sourceTree = SOURCE_ROOT; };
 		646F622A29F670CF00D469DD /* config.pb.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = config.pb.swift; path = Protos/config.pb.swift; sourceTree = SOURCE_ROOT; };
 		6497E2BE29F58A1B009311B5 /* KeyboardHostingController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardHostingController.swift; sourceTree = "<group>"; };
@@ -99,7 +98,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				64420AA329F62CCD002B74FF /* SwiftProtobuf in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -109,7 +107,7 @@
 		642E5C8B29F67C2C001246F1 /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				642E5C8C29F67C2C001246F1 /* KhiinBridge */,
+				64609AB529F79776009ACAB2 /* KhiinBridge */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
@@ -202,8 +200,8 @@
 			buildRules = (
 			);
 			dependencies = (
+				64609AB729F79789009ACAB2 /* PBXTargetDependency */,
 				64CB5E1D29F78D0E00666D01 /* PBXTargetDependency */,
-				642E5C8E29F67C3C001246F1 /* PBXTargetDependency */,
 			);
 			name = Keyboard;
 			packageProductDependencies = (
@@ -326,15 +324,15 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		642E5C8E29F67C3C001246F1 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = 642E5C8D29F67C3C001246F1 /* SwiftProtobuf */;
-		};
 		645BCFA329F4E2B20066F34C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			platformFilter = ios;
 			target = 645BCF9C29F4E2B20066F34C /* Keyboard */;
 			targetProxy = 645BCFA229F4E2B20066F34C /* PBXContainerItemProxy */;
+		};
+		64609AB729F79789009ACAB2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			productRef = 64609AB629F79789009ACAB2 /* SwiftProtobuf */;
 		};
 		64CB5E1D29F78D0E00666D01 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -631,17 +629,12 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		64420AA229F62CCD002B74FF /* SwiftProtobuf */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 64420AA129F62CCD002B74FF /* XCRemoteSwiftPackageReference "swift-protobuf" */;
-			productName = SwiftProtobuf;
-		};
-		64420AA829F62F74002B74FF /* SwiftProtobuf */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 64420AA129F62CCD002B74FF /* XCRemoteSwiftPackageReference "swift-protobuf" */;
-			productName = SwiftProtobuf;
-		};
 		64420AAA29F62F7B002B74FF /* SwiftProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 64420AA129F62CCD002B74FF /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobuf;
+		};
+		64609AB629F79789009ACAB2 /* SwiftProtobuf */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 64420AA129F62CCD002B74FF /* XCRemoteSwiftPackageReference "swift-protobuf" */;
 			productName = SwiftProtobuf;
