@@ -14,7 +14,10 @@ pub extern "system" fn Java_be_chiahpa_khiin_EngineManager_load<'local>(
     _class: JClass<'local>,
     db_filename: JString<'local>,
 ) -> jlong {
+    #[cfg(target_os = "android")]
     android_log::init("KhiinEngine").unwrap();
+    #[cfg(not(target_os = "android"))]
+    env_logger::init();
     log::debug!("Trying to initialize Khiin Engine");
 
     let db_filename: String = env

@@ -4,7 +4,6 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.protobuf")
-//    id("org.mozilla.rust-android-gradle.rust-android")
     id("io.github.MatrixDev.android-rust")
 }
 
@@ -124,31 +123,3 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
-
-//cargo {
-//    module = "./src/main/rust"
-//    libname = "khiin_droid"
-//    targets = listOf("arm", "arm64", "x86", "x86_64")
-//    targetDirectory = "../../target"
-//}
-
-//project.afterEvaluate {
-//    val jniTargetDirs = mutableListOf<File>();
-//    tasks.withType(com.nishtahir.CargoBuildTask::class.java).forEach {
-//        jniTargetDirs.add(File("$buildDir/rustJniLibs", it.toolchain!!.folder))
-//    }
-//
-//    tasks.matching { it.name.matches("merge.*JniLibFolders".toRegex()) }
-//        .forEach { jniTargetDirs.forEach { dir -> it.inputs.dir(dir) } }
-//}
-
-//gradle.taskGraph.whenReady {
-//    val javaPreCompileDebugTask =
-//        project.tasks.findByName("javaPreCompileDebug")
-//    if (javaPreCompileDebugTask != null) {
-//        val cargoBuildTask = project.tasks.findByName("cargoBuild")
-//        if (cargoBuildTask != null) {
-//            javaPreCompileDebugTask.dependsOn(cargoBuildTask)
-//        }
-//    }
-//}

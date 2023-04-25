@@ -83,12 +83,28 @@ protoc --swift_out=../../swift/Protos *.proto
 '''
 
 [tasks.db-copy-mac]
+dependencies = ["db-copy"]
 condition = { files_exist = ["resources/khiin.db"] }
 script_runner = "@shell"
 script = '''
 cp resources/khiin.db swift/Khiin/khiin.db
 '''
+
+############
+# Android #
+############
+
+[tasks.build-droid]
+dependencies = ["db-copy-droid"]
+
+[tasks.db-copy-droid]
 dependencies = ["db-copy"]
+condition = { files_exist = ["resources/khiin.db"] }
+script_runner = "@shell"
+script = '''
+mkdir -p android/app/src/main/assets
+cp resources/khiin.db android/app/src/main/assets/khiin.db
+'''
 
 ############
 #  Linux   #
@@ -101,7 +117,6 @@ dependencies = ["build-cli"]
 command = "cargo"
 args = ["build", "--manifest-path=cli/Cargo.toml"]
 dependencies = ["db-copy-to-target"]
-
 
 ############
 # Database #
