@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.plugin.extraProperties
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -10,6 +8,7 @@ plugins {
 android {
     compileSdk = 33
     namespace = "be.chiahpa.khiin"
+    @Suppress("UnstableApiUsage")
     ndkVersion = "25.2.9519653"
 
     defaultConfig {
@@ -26,6 +25,7 @@ android {
         }
     }
 
+    @Suppress("UnstableApiUsage")
     sourceSets {
         getByName("main") {
             java.srcDir("src/main/proto")
@@ -37,6 +37,7 @@ android {
         getByName("release") {
             isMinifyEnabled = true
             proguardFiles(
+                @Suppress("UnstableApiUsage")
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
@@ -52,6 +53,7 @@ android {
         jvmTarget = "1.8"
     }
 
+    @Suppress("UnstableApiUsage")
     buildFeatures {
         compose = true
     }
@@ -76,7 +78,7 @@ androidRust {
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:3.21.12"
+        artifact = "com.google.protobuf:protoc:3.22.2"
     }
 
     generateProtoTasks {
@@ -94,15 +96,15 @@ protobuf {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.9.0")
+    implementation("androidx.core:core-ktx:1.10.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.8.0")
 
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
 
-    implementation("androidx.activity:activity-compose:1.6.1")
+    implementation("androidx.activity:activity-compose:1.7.1")
     implementation(platform("androidx.compose:compose-bom:2022.10.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
@@ -112,8 +114,8 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     protobuf(files("../../protos/src"))
-    implementation("com.google.protobuf:protobuf-javalite:3.21.12")
-    implementation("com.google.protobuf:protobuf-kotlin-lite:3.21.12")
+    implementation("com.google.protobuf:protobuf-javalite:3.22.2")
+    implementation("com.google.protobuf:protobuf-kotlin-lite:3.22.2")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
