@@ -16,6 +16,7 @@
 		646F622C29F670CF00D469DD /* config.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 646F622A29F670CF00D469DD /* config.pb.swift */; };
 		6497E2BF29F58A1B009311B5 /* KeyboardHostingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6497E2BE29F58A1B009311B5 /* KeyboardHostingController.swift */; };
 		64A2A4D029F624E000E6D200 /* khiin.db in Resources */ = {isa = PBXBuildFile; fileRef = 64D796C629F60BF500ABB745 /* khiin.db */; };
+		64CB5E1F29F78D1200666D01 /* KhiinBridge in Frameworks */ = {isa = PBXBuildFile; productRef = 64CB5E1E29F78D1200666D01 /* KhiinBridge */; };
 		64CCBC6629F4E95B00C926F9 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 64CCBC6529F4E95B00C926F9 /* Settings.bundle */; };
 		64CCBC7029F51FC200C926F9 /* KhiinColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64CCBC6E29F51F7500C926F9 /* KhiinColors.swift */; };
 		64CCBC7529F55F2D00C926F9 /* KhiinColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64CCBC6E29F51F7500C926F9 /* KhiinColors.swift */; };
@@ -26,7 +27,6 @@
 		64D378CC29F4D18300D30F37 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 64D378CB29F4D18300D30F37 /* Assets.xcassets */; };
 		64D378D029F4D18300D30F37 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 64D378CF29F4D18300D30F37 /* Preview Assets.xcassets */; };
 		64D796C729F60BF500ABB745 /* khiin.db in Resources */ = {isa = PBXBuildFile; fileRef = 64D796C629F60BF500ABB745 /* khiin.db */; };
-		64EC2AB529F6EA3B00C68FE6 /* KhiinBridge in Frameworks */ = {isa = PBXBuildFile; productRef = 64EC2AB429F6EA3B00C68FE6 /* KhiinBridge */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -92,7 +92,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				64420AAB29F62F7B002B74FF /* SwiftProtobuf in Frameworks */,
-				64EC2AB529F6EA3B00C68FE6 /* KhiinBridge in Frameworks */,
+				64CB5E1F29F78D1200666D01 /* KhiinBridge in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -203,13 +203,13 @@
 			buildRules = (
 			);
 			dependencies = (
-				64EC2AB329F6EA3700C68FE6 /* PBXTargetDependency */,
+				64CB5E1D29F78D0E00666D01 /* PBXTargetDependency */,
 				642E5C8E29F67C3C001246F1 /* PBXTargetDependency */,
 			);
 			name = Keyboard;
 			packageProductDependencies = (
 				64420AAA29F62F7B002B74FF /* SwiftProtobuf */,
-				64EC2AB429F6EA3B00C68FE6 /* KhiinBridge */,
+				64CB5E1E29F78D1200666D01 /* KhiinBridge */,
 			);
 			productName = Keyboard;
 			productReference = 645BCF9D29F4E2B20066F34C /* Keyboard.appex */;
@@ -339,9 +339,9 @@
 			target = 645BCF9C29F4E2B20066F34C /* Keyboard */;
 			targetProxy = 645BCFA229F4E2B20066F34C /* PBXContainerItemProxy */;
 		};
-		64EC2AB329F6EA3700C68FE6 /* PBXTargetDependency */ = {
+		64CB5E1D29F78D0E00666D01 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			productRef = 64EC2AB229F6EA3700C68FE6 /* KhiinBridge */;
+			productRef = 64CB5E1C29F78D0E00666D01 /* KhiinBridge */;
 		};
 /* End PBXTargetDependency section */
 
@@ -538,6 +538,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = "";
 				MACOSX_DEPLOYMENT_TARGET = 13.2;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.edwardgreve.khiin;
@@ -576,6 +577,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				"LIBRARY_SEARCH_PATHS[arch=*]" = "";
 				MACOSX_DEPLOYMENT_TARGET = 13.2;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.edwardgreve.khiin;
@@ -647,11 +649,11 @@
 			package = 64420AA129F62CCD002B74FF /* XCRemoteSwiftPackageReference "swift-protobuf" */;
 			productName = SwiftProtobuf;
 		};
-		64EC2AB229F6EA3700C68FE6 /* KhiinBridge */ = {
+		64CB5E1C29F78D0E00666D01 /* KhiinBridge */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = KhiinBridge;
 		};
-		64EC2AB429F6EA3B00C68FE6 /* KhiinBridge */ = {
+		64CB5E1E29F78D1200666D01 /* KhiinBridge */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = KhiinBridge;
 		};

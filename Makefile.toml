@@ -35,49 +35,39 @@ args = ["build", "--manifest-path=windows/settings/Cargo.toml"]
 
 [tasks.build-mac]
 dependencies = [
-    "build-mac-libs",
-    "build-mac-bindings",
+    "build-swift-libs",
+    "build-swift-bridge",
     "build-mac-protos",
     "db-copy-mac",
     "build-cli",
 ]
 
 [tasks.clean-mac]
+dependencies = ["clean-db"]
 script_runner = "@shell"
 script = '''
-rm -rf swift/EngineBindings/generated
+rm -rf swift/bridge/generated
+rm -rf swift/bridge/KhiinBridge
 '''
-dependencies = ["clean-db"]
 
-[tasks.build-mac-libs]
+[tasks.build-swift-libs]
+command = "sh"
+args = ["./swift/bridge/build.sh"]
+
+[tasks.build-swift-bridge]
 command = "cargo"
-args = ["lipo", "--targets", "aarch64-apple-ios-sim,x86_64-apple-ios"]
-
-[tasks.build-mac-bindings]
-dependencies = ["mac-builddirs"]
-command = "cbindgen"
 args = [
-    "--config",
-    "swift/EngineBindings/cbindgen.toml",
-    "--crate",
+    "build",
+    "-p",
     "khiin_swift",
-    "--output",
-    "swift/EngineBindings/generated/khiin_swift.h",
 ]
 
 [tasks.build-mac-protos]
-dependencies = ["mac-builddirs"]
 cwd = "protos/src"
 script_runner = "@shell"
 script = '''
 mkdir -p ../../swift/Protos
 protoc --swift_out=../../swift/Protos *.proto
-'''
-
-[tasks.mac-builddirs]
-script_runner = "@shell"
-script = '''
-mkdir -p swift/EngineBindings/generated
 '''
 
 [tasks.db-copy-mac]

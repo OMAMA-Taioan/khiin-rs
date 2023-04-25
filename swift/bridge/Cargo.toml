@@ -9,7 +9,9 @@ crate-type = ["staticlib"]
 [dependencies]
 khiin = { path = "../../khiin" }
 khiin_protos = { path = "../../protos" }
-swift-bridge = { path = "../../../swift-bridge" }
+# Until https://github.com/chinedufn/swift-bridge/pull/216 is merged
+swift-bridge = { git = "https://github.com/aiongg/swift-bridge.git", branch = "feature/214-rustvec-as-ptr" }
 
 [build-dependencies]
-swift-bridge-build = { path = "../../../swift-bridge/crates/swift-bridge-build" }
+# Until https://github.com/chinedufn/swift-bridge/pull/216 is merged
+swift-bridge-build = { git = "https://github.com/aiongg/swift-bridge.git", branch = "feature/214-rustvec-as-ptr" }
