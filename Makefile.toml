@@ -36,6 +36,7 @@ args = ["build", "--manifest-path=windows/settings/Cargo.toml"]
 [tasks.build-mac]
 dependencies = [
     "build-swift-libs",
+    "build-khiin-swift",
     "build-swift-bridge",
     "build-mac-protos",
     "db-copy-mac",
@@ -54,8 +55,13 @@ rm -rf swift/KhiinBridge
 command = "sh"
 args = ["./swift/bridge/build.sh"]
 
-[tasks.build-swift-bridge]
+[tasks.build-khiin-swift]
 dependencies = ["build-swift-libs"]
+command = "cargo"
+args = ["build", "--manifest-path=swift/bridge/Cargo.toml"]
+
+[tasks.build-swift-bridge]
+dependencies = ["build-swift-libs", "build-khiin-swift"]
 cwd = "swift"
 command = "swift-bridge-cli"
 args = [
