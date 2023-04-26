@@ -15,9 +15,8 @@ delivery onto the device.
 
 ## XCode
 
-- **Note:** Set up your development environment before loading the project in
-  XCode, or XCode will complain about missing files (these are generated during
-  the setup)
+The XCode project must be built with `xcodegen`, it does not get checked in to
+the repo. See instructions below.
 
 When running the iOS simulator, XCode can be very flaky with respect to
 rebuilding and running the latest code. If you need debugging (breakpoints and
@@ -55,6 +54,9 @@ up at all.
   maybe a few others. However, we cannot use arbitrary bundle identifiers, as
   the original attempt to use `be.chiahpa` resulted in the IME not being
   recognized by the system.
+- The `Khiin` package (the app) must have a `Settings.bundle` folder in order
+  for the Keyboard extension to show up in system settings on iOS. The settings
+  bundle does not need to have any properties or settings.
 
 ## macOS Notes
 
@@ -62,10 +64,36 @@ up at all.
   **3rd** position. That is: `a.b.inputmethod.c` is a valid bundle identifier.
   This is apparently not documented anywhere, but it was mentioned on some
   obscure websites and in old header files.
+- The `KhiinIM` package (macOS IME) needs to build its outputs into the
+  `/Library/Input Methods` folder if you want to be able to test it. This should
+  be configured already in the xcodeproj, but you must run `chmod 777
+  /Library/Input\/ Methods` for it to work. Tip from
+  [here](https://iosexample.com/inputmethodkit-sample-app-with-macos11-xcode13-swift5-5-in-2021/).
 - I have not yet figured out a good way to rebuild the macOS target while logged
   in as a user and testing it. So far it seems like we need to log out, delete
   the old one, rebuild, then log out again to activate it. Hopefully there is a
   better way...
+- Updates for the previous 2 points: the IME now builds using a build script, to
+  avoid Xcode as much as possible because everything Xcode touches seems to fail
+  miserably. The build script is in `swift/build-im.sh`, and it is rather
+  ridiculous: it cleans everything, so there is never any caching. Then it
+  builds the entire product into the `swift/.build` folder. Then it attempts to
+  copy over the `KhiinIM.app` bundle to a test user account, which the developer
+  should set up on their local machine, otherwise there is no good way to test
+  other than logging in and out every time. To run the script, you currently
+  need to `cd swift` and then run it manually, passing the name of the user
+  account to install it to, e.g.: `sh build-im.sh -u testuser`. To test, the
+  developer should then switch accounts (make an easy password and don't give
+  sudo priviledges, you'll need to type this password **a lot**), test the IME,
+  then **log out** (it is not enough to switch back, the testing user must fully
+  log out, or updates will not be applied).
+- We do not seem to be able to debug anything because Xcode gets in an infinite
+  loop and crashes. However, we are able to see logs. To watch the logs while
+  testing, run `tail -f ~/Library/Caches/KhiinIM/swiftybeaver.log` in your test
+  user account before starting to test the IME.
+- This is a horrendous developer workflow, painfully slow and susceptible to all
+  kinds of manual errors. If anyone knows of a better way to do this, **please
+  let me know**. Thank you.
 
 ---
 
@@ -76,11 +104,17 @@ up at all.
 Just run this:
 
 ```bash
-brew install swift-protobuf
+brew install swift-protobuf xcodegen
 rustup target add aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
 cargo install --force swift-bridge-cli
 cargo install --force cargo-make
 cargo make
+```
+
+For working on the macOS input method:
+
+```bash
+chmod 777 /Library\/ Input Methods
 ```
 
 You are now ready to build the apps in XCode 😄
@@ -171,6 +205,56 @@ This configuration should already be done, so you shouldn't need to change it.
 
 The binaries produced by `bridge/build.sh` are:
 
-- `target/universal-ios/(debug|release)/libkhiin_swift.a` - for the simulator
-- `target/aarch64-apple-ios/(debug|release)/libkhiin_swift.a` - for iOS devices
-- `target/universal-macos/(debug|release)/libkhiin_swift.a` - for macOS devices
+- `target/universal-ios/(debug|release)/libkhiin_swift.a` - for the simulator -
+`target/aarch64-apple-ios/(debug|release)/libkhiin_swift.a` - for iOS devices -
+`target/universal-macos/(debug|release)/libkhiin_swift.a` - for macOS devices
+
+---
+
+Instructions for recreating the "local swift package" setup for the bridge
+module, from [here](https://archive.ph/tzWkB)
+
+1. Build the actual `KhiinBridge` module using `cargo make`
+1. Create a temporary local git repository
+1. Paste the "file URL" for this local git repository into XCode
+1. Drag the actual `KhiinBridge` folder into the XCode project, it will override
+   the fake git repository
+1. Delete the local git repository
+1. Do not delete the reference to the (deleted/fake) local git repository in
+   XCode
+
+Here is a zsh/bash script (from the above URL) that accomplishes the above. Add
+this to ~/.zshrc, then type `temppack KhiinBridge` (from any folder), drag the
+real `KhiinBridge` folder over, then press `Y` at the command prompt.
+
+```bash
+temppack() {
+  if [ -z "$1" ] 
+    then
+      echo "Usage: temppack PackageName"
+  else
+    mkdir temppack
+    cd temppack 
+    mkdir $1
+    cd $1
+    swift package init --type library
+    git init
+    git add .
+    git commit -m "first"
+    echo ""
+    echo "file://$(pwd)" | pbcopy
+    echo "The repository path for $1 is now in your clipboard."
+    echo ""
+    [[ $BASH_VERSION ]] && read -p "Delete temp files?[Y/N]" -n 1 -r
+    [[ $ZSH_VERSION ]] && read -q "REPLY?Delete temp files?[Y/N]"
+    echo ""
+    cd ../..
+    if [[ $REPLY =~ ^[Yy]$ ]]
+    then
+      echo "Deleting temporary folder..."
+      rm -rf temppack 
+      echo "Done."
+    fi
+  fi
+}
+```

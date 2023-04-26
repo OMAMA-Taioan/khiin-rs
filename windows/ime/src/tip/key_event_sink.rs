@@ -121,7 +121,8 @@ impl KeyEventSink {
         }
 
         let composing = service.composing();
-        let special_key = key_event.to_khiin().special_key.enum_value_or_default();
+        let special_key =
+            key_event.to_khiin().special_key.enum_value_or_default();
 
         log::debug!("Composing: {}", composing);
         log::debug!("Special key: {:?}", special_key);

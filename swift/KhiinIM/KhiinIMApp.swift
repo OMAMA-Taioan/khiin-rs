@@ -1,5 +1,6 @@
 import AppKit
 import InputMethodKit
+import SwiftyBeaver
 
 final class KhiinIMApplication: NSApplication {
     private let appDelegate = AppDelegate()
@@ -10,15 +11,25 @@ final class KhiinIMApplication: NSApplication {
     }
     
     @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError() }
+    required init?(coder: NSCoder) {
+        // No need for implementation
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 @main
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate {    
     var server = IMKServer()
     var candidateWindow = IMKCandidates()
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        let log = SwiftyBeaver.self
+        let logUrl = URL(fileURLWithPath: "/tmp/khiin_im.log")
+        let file = FileDestination(logFileURL: logUrl)
+        log.addDestination(file)
+        
+        log.debug("Test logger")
+        
         self.server = IMKServer(
             name: Bundle.main
                 .infoDictionary?["InputMethodConnectionName"] as? String,
@@ -30,7 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             styleType: kIMKMain
         )
         
-        NSLog("Tried connection")
+        log.debug("Tried connection")
     }
     
     func applicationWillTerminate(_ notification: Notification) {

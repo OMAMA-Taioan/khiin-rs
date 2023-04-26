@@ -1,66 +1,93 @@
+#=====================================#
+#     cargo-make configuration        #
+#=====================================#
+
 [config]
 skip_core_tasks = true
 default_to_workspace = false
+
+#=====================================#
+#     All Platforms                   #
+#=====================================#
 
 [tasks.default]
 alias = "build"
 
 [tasks.clean]
-mac_alias = "clean-mac"
+dependencies = ["clean-db", "clean-swift"]
 
 [tasks.run]
 dependencies = ["build-cli"]
 command = "./target/debug/khiin_cli"
 
 [tasks.build]
-linux_alias = "build-linux"
-mac_alias = "build-mac"
-windows_alias = "build-windows"
-
-[tasks.build-windows]
-dependencies = ["build-cli", "build-win32-tip", "build-win32-settings"]
-
-[tasks.build-win32-tip]
-command = "cargo"
-args = ["build", "--manifest-path=windows/ime/Cargo.toml"]
-dependencies = ["db-copy-to-target"]
-
-[tasks.build-win32-settings]
-command = "cargo"
-args = ["build", "--manifest-path=windows/settings/Cargo.toml"]
-
-##################
-#    Mac & iOS   #
-##################
-
-[tasks.build-mac]
 dependencies = [
+    # All
+    "build-db",
+    "build-cli",
+
+    # Windows
+    "build-win32-tip",
+    "build-win32-settings",
+
+    # Mac
     "build-swift-libs",
     "build-khiin-swift",
     "build-swift-bridge",
-    "build-mac-protos",
-    "db-copy-mac",
-    "build-cli",
+    "build-swift-protos",
+    "copy-db-swift",
+    "xcodegen",
 ]
 
-[tasks.clean-mac]
+[tasks.build-cli]
+command = "cargo"
+args = ["build", "--manifest-path=cli/Cargo.toml"]
+dependencies = ["copy-db-to-target"]
+
+#=====================================#
+#     Windows                         #
+#=====================================#
+
+[tasks.build-win32-tip]
+condition = { platforms = ["windows"] }
+command = "cargo"
+args = ["build", "--manifest-path=windows/ime/Cargo.toml"]
+dependencies = ["copy-db-to-target"]
+
+[tasks.build-win32-settings]
+condition = { platforms = ["windows"] }
+command = "cargo"
+args = ["build", "--manifest-path=windows/settings/Cargo.toml"]
+
+#=====================================#
+#     macOS & iOS                     #
+#=====================================#
+
+[tasks.clean-swift]
+condition = { platforms = ["mac"] }
 dependencies = ["clean-db"]
 script_runner = "@shell"
 script = '''
-rm -rf swift/bridge/generated
+# rm -rf swift/bridge/generated
 rm -rf swift/KhiinBridge
+rm -rf swift/Khiin.xcodeproj
+rm -rf swift/Protos
 '''
 
 [tasks.build-swift-libs]
+condition = { platforms = ["mac"] }
 command = "sh"
 args = ["./swift/bridge/build.sh"]
 
 [tasks.build-khiin-swift]
-dependencies = ["build-swift-libs"]
+condition = { platforms = ["mac"] }
 command = "cargo"
 args = ["build", "--manifest-path=swift/bridge/Cargo.toml"]
+dependencies = ["build-swift-libs"]
 
 [tasks.build-swift-bridge]
+env = { "MACOSX_DEPLOYMENT_TARGET" = "12.0" }
+condition = { platforms = ["mac"] }
 dependencies = ["build-swift-libs", "build-khiin-swift"]
 cwd = "swift"
 command = "swift-bridge-cli"
@@ -80,7 +107,8 @@ args = [
     "KhiinBridge",
 ]
 
-[tasks.build-mac-protos]
+[tasks.build-swift-protos]
+condition = { platforms = ["mac"] }
 cwd = "protos/src"
 script_runner = "@shell"
 script = '''
@@ -88,23 +116,29 @@ mkdir -p ../../swift/Protos
 protoc --swift_out=../../swift/Protos *.proto
 '''
 
-[tasks.db-copy-mac]
-dependencies = ["db-copy"]
-condition = { files_exist = ["resources/khiin.db"] }
+[tasks.xcodegen]
+condition = { platforms = ["mac"] }
+dependencies = ["build-swift-protos", "copy-db-swift", "build-swift-bridge"]
+cwd = "swift"
+command = "xcodegen"
+
+[tasks.copy-db-swift]
+condition = { platforms = ["mac"], files_exist = ["resources/khiin.db"] }
+dependencies = ["copy-db"]
 script_runner = "@shell"
 script = '''
-cp resources/khiin.db swift/Khiin/khiin.db
+cp resources/khiin.db swift/Shared/khiin.db
 '''
 
-############
-# Android #
-############
+#=====================================#
+#     Android                         #
+#=====================================#
 
 [tasks.build-droid]
-dependencies = ["db-copy-droid"]
+dependencies = ["copy-db-droid"]
 
-[tasks.db-copy-droid]
-dependencies = ["db-copy"]
+[tasks.copy-db-droid]
+dependencies = ["copy-db"]
 condition = { files_exist = ["resources/khiin.db"] }
 script_runner = "@shell"
 script = '''
@@ -112,35 +146,23 @@ mkdir -p android/app/src/main/assets
 cp resources/khiin.db android/app/src/main/assets/khiin.db
 '''
 
-############
-#  Linux   #
-############
-
-[tasks.build-linux]
-dependencies = ["build-cli"]
-
-[tasks.build-cli]
-command = "cargo"
-args = ["build", "--manifest-path=cli/Cargo.toml"]
-dependencies = ["db-copy-to-target"]
-
-############
-# Database #
-############
+#=====================================#
+#     Database                        #
+#=====================================#
 
 [tasks.db-rebuild]
-dependencies = ["clean-db", "db-build"]
+dependencies = ["clean-db", "build-db"]
 
 [tasks.clean-db]
-condition = { files_exist = ["data/out/khiin.db"] }
 script_runner = "@shell"
 script = '''
-rm data/out/khiin.db
-rm resources/khiin.db
-rm target/debug/khiin.db
+rm -f data/out/khiin.db
+rm -f resources/khiin.db
+rm -f target/debug/khiin.db
+rm -f swift/Shared/khiin.db
 '''
 
-[tasks.db-build]
+[tasks.build-db]
 cwd = "data"
 condition = { files_not_exist = ["out/khiin.db"] }
 command = "python3"
@@ -163,62 +185,37 @@ args = [
     "out/khiin.db",
 ]
 
-[tasks.db-copy-to-target]
+[tasks.copy-db-to-target]
 condition = { files_exist = ["resources/khiin.db"] }
 script_runner = "@shell"
 script = '''
 mkdir -p target/debug
 cp resources/khiin.db target/debug/khiin.db
 '''
-dependencies = ["db-copy"]
+dependencies = ["copy-db"]
 
-[tasks.db-copy]
+[tasks.copy-db]
 condition = { files_not_exist = ["resources/khiin.db"] }
-dependencies = ["db-build"]
+dependencies = ["build-db"]
 script_runner = "@shell"
 script = '''
 mkdir -p resources
 cp data/out/khiin.db resources/khiin.db
 '''
-###########
-#  Tests  #
-###########
+
+#=====================================#
+#     Testing                         #
+#=====================================#
 
 [tasks.test]
 command = "cargo"
 args = ["test", "--manifest-path=khiin/Cargo.toml"]
 
-##############
-# Formatting #
-##############
+#=====================================#
+#     Formatting                      #
+#=====================================#
 
-[tasks.fmt]
-dependencies = ["format-cli", "format-khiin", "format-windows"]
-
-[tasks.format-cli]
+[tasks.format]
 command = "cargo"
 toolchain = "nightly"
-args = ["fmt", "--manifest-path=cli/Cargo.toml", "--", "--emit=files"]
-
-[tasks.format-khiin]
-command = "cargo"
-toolchain = "nightly"
-args = ["fmt", "--manifest-path=khiin/Cargo.toml", "--", "--emit=files"]
-
-[tasks.format-windows]
-dependencies = ["format-win32-ime", "format-win32-settings"]
-
-[tasks.format-win32-ime]
-command = "cargo"
-toolchain = "nightly"
-args = ["fmt", "--manifest-path=windows/ime/Cargo.toml", "--", "--emit=files"]
-
-[tasks.format-win32-settings]
-command = "cargo"
-toolchain = "nightly"
-args = [
-    "fmt",
-    "--manifest-path=windows/settings/Cargo.toml",
-    "--",
-    "--emit=files",
-]
+args = ["fmt", "--", "--emit=files"]

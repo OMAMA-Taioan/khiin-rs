@@ -1,0 +1,55 @@
+name: Khiin
+options:
+  bundleIdPrefix: com.edwardgreve
+packages:
+  KhiinBridge:
+    path: ./KhiinBridge
+  SwiftProtobuf:
+    url: https://github.com/apple/swift-protobuf
+    from: 1.21.0
+  SwiftyBeaver:
+    github: SwiftyBeaver/SwiftyBeaver
+    from: 2.0.0
+targets:
+  Khiin:
+    type: application
+    platform: iOS
+    deploymentTarget: 15.0
+    sources: [Khiin]
+    dependencies:
+      - target: Keyboard
+    settings:
+      base:
+        INFOPLIST_FILE: Khiin/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.edwardgreve.khiin
+  Keyboard:
+    platform: iOS
+    deploymentTarget: 15.0
+    type: app-extension
+    sources: [Keyboard, Protos, Shared]
+    dependencies:
+      - package: KhiinBridge
+      - package: SwiftProtobuf
+    settings:
+      base:
+        INFOPLIST_FILE: Keyboard/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.edwardgreve.khiin.keyboard
+  KhiinIM:
+    platform: macOS
+    deploymentTarget: 12.0
+    type: application
+    sources: [KhiinIM, Protos, Shared]
+    dependencies:
+      - package: KhiinBridge
+      - package: SwiftProtobuf
+      - package: SwiftyBeaver
+    settings:
+      base:
+        INFOPLIST_FILE: KhiinIM/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.edwardgreve.inputmethod.khiin
+    # postBuildScripts:
+    #   - script: "ditto \"${SCRIPT_INPUT_FILE_0}\" \"${SCRIPT_OUTPUT_FILE_0}\""
+    #     inputFiles:
+    #       - ${BUILT_PRODUCTS_DIR}/KhiinIM.app
+    #     outputFiles:
+    #       - "$HOME/Library/Input Methods/KhiinIM.app"

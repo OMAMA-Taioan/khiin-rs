@@ -4,6 +4,8 @@ set -e
 WORK_DIR=$(dirname $0)
 cd $WORK_DIR
 
+# IPHONEOS_DEPLOYMENT_TARGET=15.0
+# MACOSX_DEPLOYMENT_TARGET=12.0
 PKG_NAME="khiin_swift"
 
 # Build the project for the desired platforms:

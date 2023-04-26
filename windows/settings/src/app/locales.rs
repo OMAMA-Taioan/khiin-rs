@@ -3,8 +3,8 @@ use std::sync::Mutex;
 
 use once_cell::sync::Lazy;
 
-use crate::collection;
 use crate::app::resource::*;
+use crate::collection;
 
 #[derive(Clone, Copy)]
 pub enum Locale {

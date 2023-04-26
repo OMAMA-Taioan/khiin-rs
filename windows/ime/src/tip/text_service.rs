@@ -249,7 +249,9 @@ impl TextService {
     }
 
     pub fn composing(&self) -> bool {
-        self.composition_mgr.try_read().map_or(false, |c| c.composing())
+        self.composition_mgr
+            .try_read()
+            .map_or(false, |c| c.composing())
     }
 
     pub fn handle_composition(

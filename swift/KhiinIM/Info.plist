@@ -8,7 +8,9 @@
 	<string>Khíín</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
-	<key>ComponentInputModeDict</key>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<!-- <key>ComponentInputModeDict</key>
 	<dict>
 		<key>tsInputModeListKey</key>
 		<dict>
@@ -22,7 +24,7 @@
 				<key>TISInputSourceID</key>
 				<string>$(PRODUCT_BUNDLE_IDENTIFIER).KhiinIM</string>
 				<key>TISIntendedLanguage</key>
-				<string>nan</string>
+				<string>en</string>
 				<key>tsInputModeAlternateMenuIconFileKey</key>
 				<string>menuicon.svg</string>
 				<key>tsInputModeDefaultStateKey</key>
@@ -50,7 +52,7 @@
 		<array>
 			<string>$(PRODUCT_BUNDLE_IDENTIFIER).KhiinIM</string>
 		</array>
-	</dict>
+	</dict> -->
 	<key>InputMethodConnectionName</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)_Connection</string>
 	<key>InputMethodServerControllerClass</key>
