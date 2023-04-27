@@ -64,36 +64,11 @@ up at all.
   **3rd** position. That is: `a.b.inputmethod.c` is a valid bundle identifier.
   This is apparently not documented anywhere, but it was mentioned on some
   obscure websites and in old header files.
-- The `KhiinIM` package (macOS IME) needs to build its outputs into the
-  `/Library/Input Methods` folder if you want to be able to test it. This should
-  be configured already in the xcodeproj, but you must run `chmod 777
-  /Library/Input\/ Methods` for it to work. Tip from
-  [here](https://iosexample.com/inputmethodkit-sample-app-with-macos11-xcode13-swift5-5-in-2021/).
-- I have not yet figured out a good way to rebuild the macOS target while logged
-  in as a user and testing it. So far it seems like we need to log out, delete
-  the old one, rebuild, then log out again to activate it. Hopefully there is a
-  better way...
-- Updates for the previous 2 points: the IME now builds using a build script, to
-  avoid Xcode as much as possible because everything Xcode touches seems to fail
-  miserably. The build script is in `swift/build-im.sh`, and it is rather
-  ridiculous: it cleans everything, so there is never any caching. Then it
-  builds the entire product into the `swift/.build` folder. Then it attempts to
-  copy over the `KhiinIM.app` bundle to a test user account, which the developer
-  should set up on their local machine, otherwise there is no good way to test
-  other than logging in and out every time. To run the script, you currently
-  need to `cd swift` and then run it manually, passing the name of the user
-  account to install it to, e.g.: `sh build-im.sh -u testuser`. To test, the
-  developer should then switch accounts (make an easy password and don't give
-  sudo priviledges, you'll need to type this password **a lot**), test the IME,
-  then **log out** (it is not enough to switch back, the testing user must fully
-  log out, or updates will not be applied).
-- We do not seem to be able to debug anything because Xcode gets in an infinite
-  loop and crashes. However, we are able to see logs. To watch the logs while
-  testing, run `tail -f ~/Library/Caches/KhiinIM/swiftybeaver.log` in your test
-  user account before starting to test the IME.
-- This is a horrendous developer workflow, painfully slow and susceptible to all
-  kinds of manual errors. If anyone knows of a better way to do this, **please
-  let me know**. Thank you.
+- The KhiinIM build script (`cargo make build-khiinim`) will place the
+  `KhiinIM.app` bundle into `~/Library/Input Methods/`. OSX reads from this
+  folder to load input methods. The first time you build the IM, you need to log
+  out and log back in to refresh the available input methods. Subsequent builds
+  should "just work", but YMMV.
 
 ---
 
@@ -111,13 +86,10 @@ cargo install --force cargo-make
 cargo make
 ```
 
-For working on the macOS input method:
+You are now ready to build the apps:
 
-```bash
-chmod 777 /Library\/ Input Methods
-```
-
-You are now ready to build the apps in XCode 😄
+- The iOS app can be built in Xcode using the simulator directly.
+- The macOS input method must be built using `cargo make build-khiinim`
 
 ### Details
 

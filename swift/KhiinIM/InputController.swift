@@ -5,11 +5,10 @@ import SwiftyBeaver
 class KhiinInputController: IMKInputController {
     override func inputText(_ string: String!, client sender: Any!) -> Bool {
         let log = SwiftyBeaver.self
-//        let logUrl = URL(fileURLWithPath: "/tmp/khiin_im.log")
         let file = FileDestination()
         log.addDestination(file)
         
-        log.debug("Test log inputcontroller3")
+        log.debug("Test log inputcontroller5")
 
         guard let client = sender as? IMKTextInput else {
             return false

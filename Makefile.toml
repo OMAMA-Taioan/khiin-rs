@@ -65,12 +65,10 @@ args = ["build", "--manifest-path=windows/settings/Cargo.toml"]
 
 [tasks.clean-swift]
 condition = { platforms = ["mac"] }
-dependencies = ["clean-db"]
+dependencies = ["clean-db", "clean-xcodeproj"]
 script_runner = "@shell"
 script = '''
-# rm -rf swift/bridge/generated
 rm -rf swift/KhiinBridge
-rm -rf swift/Khiin.xcodeproj
 rm -rf swift/Protos
 '''
 
@@ -118,9 +116,39 @@ protoc --swift_out=../../swift/Protos *.proto
 
 [tasks.xcodegen]
 condition = { platforms = ["mac"] }
-dependencies = ["build-swift-protos", "copy-db-swift", "build-swift-bridge"]
+dependencies = [
+    "build-swift-protos",
+    "copy-db-swift",
+    "build-swift-bridge",
+]
 cwd = "swift"
 command = "xcodegen"
+
+[tasks.build-khiinim]
+dependencies = ["xcodegen"]
+condition = { platforms = ["mac"] }
+script_runner = "@shell"
+script = '''
+BUILD_DIR=$(pwd)/target/KhiinIM
+LIB_DIR=/Users/$(id -un)/Library
+killall -9 KhiinIM || true
+rm -rf $BUILD_DIR
+rm -rf $LIB_DIR/Input\ Methods/KhiinIM.app
+rm -rf $LIB_DIR/Containers/com.edwardgreve.inputmethod.KhiinIM
+rm -rf $LIB_DIR/Developer/Xcode/DerivedData/Khiin-*/
+cd swift
+xcodebuild -scheme KhiinIM build CONFIGURATION_BUILD_DIR=$BUILD_DIR
+cp -R $BUILD_DIR/KhiinIM.app $LIB_DIR/Input\ Methods/
+ls -al $LIB_DIR/Input\ Methods
+echo "View logs with:"
+echo "tail -f ~/Library/Caches/KhiinIM/swiftybeaver.log"
+'''
+
+[tasks.clean-xcodeproj]
+script_runner = "@shell"
+script = '''
+rm -rf swift/Khiin.xcodeproj
+'''
 
 [tasks.copy-db-swift]
 condition = { platforms = ["mac"], files_exist = ["resources/khiin.db"] }
