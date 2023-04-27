@@ -73,10 +73,10 @@ cargo install --force cargo-make
 cargo make
 ```
 
-You are now ready to build the apps:
+This will build all prereqs and the macOS input method. From here:
 
 - The iOS app can be built in Xcode using the simulator directly.
-- The macOS input method must be built using `cargo make build-khiinim`
+- To rebuild the macOS IM after making changes, run: `cargo make build-khiinim`
 
 ### Details
 
@@ -177,7 +177,5 @@ get very flaky and break the build process at any time, for unknown reasons. To
 fix this is very simple: close Xcode and re-build everything:
 
 ```bash
-cargo make clean
-cargo make
-cargo make build-khiinim
+cargo make clean && cargo make
 ```

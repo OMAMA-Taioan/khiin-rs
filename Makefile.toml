@@ -37,6 +37,7 @@ dependencies = [
     "build-swift-protos",
     "copy-db-swift",
     "xcodegen",
+    "build-khiinim",
 ]
 
 [tasks.build-cli]
@@ -125,8 +126,8 @@ cwd = "swift"
 command = "xcodegen"
 
 [tasks.build-khiinim]
-dependencies = ["xcodegen"]
 condition = { platforms = ["mac"] }
+dependencies = ["xcodegen"]
 script_runner = "@shell"
 script = '''
 BUILD_DIR=$(pwd)/target/KhiinIM
