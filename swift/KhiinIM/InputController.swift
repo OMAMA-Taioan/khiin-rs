@@ -3,12 +3,13 @@ import SwiftyBeaver
 
 @objc(InputController)
 class KhiinInputController: IMKInputController {
+    override func activateServer(_ sender: Any!) {
+        Logger.setup()
+        EngineController.instance.reset()
+    }
+    
     override func inputText(_ string: String!, client sender: Any!) -> Bool {
-        let log = SwiftyBeaver.self
-        let file = FileDestination()
-        log.addDestination(file)
-        
-        log.debug("Test log inputcontroller5")
+        log.debug("inputText: \(string ?? "n/a")")
 
         guard let client = sender as? IMKTextInput else {
             return false

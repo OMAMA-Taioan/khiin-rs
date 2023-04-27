@@ -141,7 +141,7 @@ xcodebuild -scheme KhiinIM build CONFIGURATION_BUILD_DIR=$BUILD_DIR
 cp -R $BUILD_DIR/KhiinIM.app $LIB_DIR/Input\ Methods/
 ls -al $LIB_DIR/Input\ Methods
 echo "View logs with:"
-echo "tail -f ~/Library/Caches/KhiinIM/swiftybeaver.log"
+echo "tail -f ~/Library/Caches/KhiinIM/khiin_im.log"
 '''
 
 [tasks.clean-xcodeproj]

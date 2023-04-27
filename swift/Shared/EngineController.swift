@@ -13,7 +13,7 @@ class EngineController {
         Bundle.main.path(
             forResource: Constants.dbFile, ofType: Constants.dbFileExt)
     }
-    
+
     private let engine: EngineBridge?
 
     init() {
@@ -30,11 +30,17 @@ class EngineController {
         self.engine = engine
     }
 
-    func handleChar(_ charCode: Int32) -> Khiin_Proto_Command? {
+    func reset() {
         guard let engine = self.engine else {
-            return nil
+            return
         }
 
+        var req = Khiin_Proto_Request()
+        req.type = .cmdReset
+        let _ = sendCommand(req)
+    }
+
+    func handleChar(_ charCode: Int32) -> Khiin_Proto_Command? {
         var req = Khiin_Proto_Request()
         var keyEvent = Khiin_Proto_KeyEvent()
 
@@ -42,29 +48,31 @@ class EngineController {
         keyEvent.keyCode = charCode
         req.keyEvent = keyEvent
 
-        let bytes: Data? = {
-            do {
-                var cmd = Khiin_Proto_Command()
-                cmd.request = req
-                let data = try cmd.serializedData()
-                return data
-            } catch {
-                return nil
-            }
-        }()
+        return sendCommand(req)
+    }
 
-        guard let bytes = bytes else {
+    func sendCommand(_ request: Khiin_Proto_Request) -> Khiin_Proto_Command? {
+        guard let engine = self.engine else {
+            log.debug("Engine not instantiated")
             return nil
         }
 
-        let result: RustVec<UInt8>? = bytes.withUnsafeBytes {
-            (ptr: UnsafeRawBufferPointer) -> RustVec<UInt8>? in
-            let bufferPointer = ptr.bindMemory(to: UInt8.self)
-            return engine.sendCommand(bufferPointer)
+        var cmd = Khiin_Proto_Command()
+        cmd.request = request
+
+        guard let bytes = try? cmd.serializedData() else {
+            log.debug("Unable to serialize data")
+            return nil
         }
 
-        guard let result = result else {
-            print("No result from engine")
+        guard
+            let result = bytes.withUnsafeBytes({
+                (ptr: UnsafeRawBufferPointer) -> RustVec<UInt8>? in
+                let bufferPointer = ptr.bindMemory(to: UInt8.self)
+                return engine.sendCommand(bufferPointer)
+            })
+        else {
+            log.debug("No result from engine")
             return nil
         }
 
@@ -73,24 +81,18 @@ class EngineController {
             count: result.len()
         )
 
-        let cmdResponse: Khiin_Proto_Command? = {
-            do {
-                let res = try Khiin_Proto_Command.init(
-                    serializedData: resultData)
-                return res
-            } catch {
-                print("Unable to decode bytes from engine")
-                return nil
-            }
-        }()
-
-        guard let cmd = cmdResponse else {
+        guard
+            let cmdResponse = try? Khiin_Proto_Command.init(
+                serializedData: resultData
+            )
+        else {
+            log.debug("Unable to decode bytes from engine")
             return nil
         }
 
-        print(
-            "Obtained response with \(cmd.response.candidateList.candidates.count) candidates"
-        )
-        return cmd
+        let count = cmdResponse.response.candidateList.candidates.count
+        log.debug("Obtained response with \(count) candidates")
+
+        return cmdResponse
     }
 }

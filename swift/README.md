@@ -5,15 +5,11 @@ Folders:
 - `Khiin`: Currently a blank app with a text field simply for testing the IME
 - `Keyboard`: The iOS Keyboard Extension (`.appex`) Bundle code
 - `KhiinIM`: The macOS Input Method
-- `Protos`: The generated `.pb.swift` protobuf glass files
+- `Shared`: Shared code between the iOS and macOS apps
 - `bridge`: A bridge module for Swift-Rust communication, using `swift-bridge`
-  (Nb: we are currently using a custom fork until the changes get merged
-  upstream)
+- `Protos`: The generated `.pb.swift` protobuf glass files
 
-The `Keyboard.appex` bundle will be embedded in the `Khiin.app` bundle for
-delivery onto the device. 
-
-## XCode
+## XCode Notes
 
 The XCode project must be built with `xcodegen`, it does not get checked in to
 the repo. See instructions below.
@@ -21,8 +17,8 @@ the repo. See instructions below.
 When running the iOS simulator, XCode can be very flaky with respect to
 rebuilding and running the latest code. If you need debugging (breakpoints and
 logging), you must have your Scheme set to run the `Keyboard` target, not the
-`Khiin` target. However, since the `Khiin` target contains the `Keyboard`
-target, I have found the best results by following these steps:
+`Khiin` target. However, since the `Khiin` target contains the `Keyboard` target
+as an embedded `.appex`, I have found the best results by following these steps:
 
 1. Work on iOS code in the `Keyboard` folder
 2. Build the `Khiin` target and run it on the simulator
@@ -37,19 +33,10 @@ enable it. Note that when selecting the keyboard, it is a bit flaky and does not
 always load properly the first time, you may have to select it twice. (I am told
 this is not a problem on actual devices, but I do not have one for testing.)
 
-Note that you maye also see a warning when building the project:
-
-```
-Linking against a dylib which is not safe for use in application extensions:
-/Users/.../SwiftProtobuf...
-```
-
-I have not yet figured out how to fix this warning, although it does not seem to
-prevent any problems and the app runs as expected, and sometimes does not show
-up at all.
-
 ## iOS Notes
 
+- The `Keyboard.appex` bundle will be embedded in the `Khiin.app` bundle for
+  delivery onto the device.
 - The iOS bundle identifier must start with something like `com.` or `org.`, and
   maybe a few others. However, we cannot use arbitrary bundle identifiers, as
   the original attempt to use `be.chiahpa` resulted in the IME not being
@@ -93,7 +80,7 @@ You are now ready to build the apps:
 
 ### Details
 
-1. Use `cargo-make` for the commands listed in this document:
+1. Use `cargo-make` to run all of the build steps.
 
 ```bash
 cargo install --force cargo-make
@@ -113,9 +100,6 @@ rustup target add aarch64-apple-ios-sim x86_64-apple-ios
 ```
 
 3. Files in `Protos` are generated using Apple's `swift-protobuf` plugin.
-
-- `cbindgen`: a tool for creating the C header files used from Swift
-- `swift-protobuf`: Apple's Protobuf extension for Swift
 
 ```bash
 brew install swift-protobuf
@@ -155,6 +139,8 @@ Building database, please wait...Output written to out/khiin_db.sql:
 
 ### Bridge Module
 
+`cargo make build-swift-bridge`:
+
 The `bridge` module is compiled using `swift-bridge` into a `KhiinBridge` swift
 package that can be used in XCode directly. Building is a two-step process.
 
@@ -177,56 +163,21 @@ This configuration should already be done, so you shouldn't need to change it.
 
 The binaries produced by `bridge/build.sh` are:
 
-- `target/universal-ios/(debug|release)/libkhiin_swift.a` - for the simulator -
-`target/aarch64-apple-ios/(debug|release)/libkhiin_swift.a` - for iOS devices -
-`target/universal-macos/(debug|release)/libkhiin_swift.a` - for macOS devices
+- `target/universal-ios/(debug|release)/libkhiin_swift.a` - for the simulator
+- `target/aarch64-apple-ios/(debug|release)/libkhiin_swift.a` - for iOS devices
+- `target/universal-macos/(debug|release)/libkhiin_swift.a` - for macOS devices
 
----
+### KhiinIM (macOS)
 
-Instructions for recreating the "local swift package" setup for the bridge
-module, from [here](https://archive.ph/tzWkB)
+`cargo make build-khiinim`
 
-1. Build the actual `KhiinBridge` module using `cargo make`
-1. Create a temporary local git repository
-1. Paste the "file URL" for this local git repository into XCode
-1. Drag the actual `KhiinBridge` folder into the XCode project, it will override
-   the fake git repository
-1. Delete the local git repository
-1. Do not delete the reference to the (deleted/fake) local git repository in
-   XCode
-
-Here is a zsh/bash script (from the above URL) that accomplishes the above. Add
-this to ~/.zshrc, then type `temppack KhiinBridge` (from any folder), drag the
-real `KhiinBridge` folder over, then press `Y` at the command prompt.
+The first time you run this command, you will need to log out and log back in to
+activate the IME. If you leave Xcode open while running this command, Xcode may
+get very flaky and break the build process at any time, for unknown reasons. To
+fix this is very simple: close Xcode and re-build everything:
 
 ```bash
-temppack() {
-  if [ -z "$1" ] 
-    then
-      echo "Usage: temppack PackageName"
-  else
-    mkdir temppack
-    cd temppack 
-    mkdir $1
-    cd $1
-    swift package init --type library
-    git init
-    git add .
-    git commit -m "first"
-    echo ""
-    echo "file://$(pwd)" | pbcopy
-    echo "The repository path for $1 is now in your clipboard."
-    echo ""
-    [[ $BASH_VERSION ]] && read -p "Delete temp files?[Y/N]" -n 1 -r
-    [[ $ZSH_VERSION ]] && read -q "REPLY?Delete temp files?[Y/N]"
-    echo ""
-    cd ../..
-    if [[ $REPLY =~ ^[Yy]$ ]]
-    then
-      echo "Deleting temporary folder..."
-      rm -rf temppack 
-      echo "Done."
-    fi
-  fi
-}
+cargo make clean
+cargo make
+cargo make build-khiinim
 ```

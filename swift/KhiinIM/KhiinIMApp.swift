@@ -23,12 +23,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var candidateWindow = IMKCandidates()
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let log = SwiftyBeaver.self
-        let logUrl = URL(fileURLWithPath: "/tmp/khiin_im.log")
-        let file = FileDestination(logFileURL: logUrl)
-        log.addDestination(file)
-        
-        log.debug("Test logger")
+        Logger.setup()
         
         self.server = IMKServer(
             name: Bundle.main
