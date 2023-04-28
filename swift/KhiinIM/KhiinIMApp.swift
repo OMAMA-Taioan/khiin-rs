@@ -4,12 +4,12 @@ import SwiftyBeaver
 
 final class KhiinIMApplication: NSApplication {
     private let appDelegate = AppDelegate()
-    
+
     override init() {
         super.init()
         self.delegate = appDelegate
     }
-    
+
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         // No need for implementation
@@ -18,27 +18,18 @@ final class KhiinIMApplication: NSApplication {
 }
 
 @main
-final class AppDelegate: NSObject, NSApplicationDelegate {    
-    var server = IMKServer()
-    var candidateWindow = IMKCandidates()
-    
+final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         Logger.setup()
-        
-        self.server = IMKServer(
-            name: Bundle.main
-                .infoDictionary?["InputMethodConnectionName"] as? String,
-            bundleIdentifier: Bundle.main.bundleIdentifier)
-        
-        self.candidateWindow = IMKCandidates(
-            server: self.server,
-            panelType: kIMKSingleRowSteppingCandidatePanel,
-            styleType: kIMKMain
-        )
-        
-        log.debug("Tried connection")
+
+        let name =
+            Bundle.main.infoDictionary?["InputMethodConnectionName"] as? String
+        let identifier = Bundle.main.bundleIdentifier
+        let _ = IMKServer(name: name, bundleIdentifier: identifier)
+
+        log.debug("IMKServer initialized")
     }
-    
+
     func applicationWillTerminate(_ notification: Notification) {
         // empty
     }

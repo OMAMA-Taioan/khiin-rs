@@ -40,12 +40,16 @@ class EngineController {
         let _ = sendCommand(req)
     }
 
-    func handleChar(_ charCode: Int32) -> Khiin_Proto_Command? {
+    func handleChar(_ char: Character) -> Khiin_Proto_Command? {
+        guard let charCode = char.asciiValue else {
+            return nil
+        }
+        
         var req = Khiin_Proto_Request()
         var keyEvent = Khiin_Proto_KeyEvent()
 
         req.type = .cmdSendKey
-        keyEvent.keyCode = charCode
+        keyEvent.keyCode = Int32(charCode)
         req.keyEvent = keyEvent
 
         return sendCommand(req)
