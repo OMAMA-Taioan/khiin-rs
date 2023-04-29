@@ -30,14 +30,16 @@ dependencies = [
     "build-win32-tip",
     "build-win32-settings",
 
-    # Mac
-    "build-swift-libs",
-    "build-khiin-swift",
+    # Swift (Shared)
     "build-swift-bridge",
     "build-swift-protos",
     "copy-db-swift",
+
+    # iOS
     "xcodegen",
-    "build-khiinim",
+
+    # macOS
+    "build-osx",
 ]
 
 [tasks.build-cli]

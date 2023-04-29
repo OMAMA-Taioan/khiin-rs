@@ -1,12 +1,17 @@
 import SwiftUI
+import SwiftyBeaver
 import UIKit
+import KhiinSwift
+
+let log = SwiftyBeaver.self
 
 class KeyboardViewController: UIInputViewController {
-    let engine = EngineController()
-
+    let engine = EngineController.instance
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setupInitialWidth()
+        log.addDestination(ConsoleDestination())
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -36,13 +41,13 @@ class KeyboardViewController: UIInputViewController {
     }
 
     func handleKey(key: Key) {
-        print("Handling key: \(key.label)")
+        log.debug("Handling key: \(key.label)")
 
         switch key.action {
         case .char(let c):
-            self.engine.handleChar(c)
+            let _ = self.engine.handleChar(c)
         default:
-            print("Not a char")
+            log.debug("Not a char")
         }
 
         self.textDocumentProxy.insertText(key.label)

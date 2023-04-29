@@ -1,4 +1,5 @@
 import SwiftUI
+import KhiinSwift
 
 struct KeyboardWrapperView: View {
     let controller: KeyboardViewController
@@ -21,7 +22,7 @@ struct KeyboardWrapperView: View {
                 CandidateBarView()
                     .frame(width: self.width, height: self.rowHeight)
                     .onAppear {
-                        print("CandidateBarView appeared")
+                        log.debug("CandidateBarView appeared")
                     }
                 KeyboardView(
                     controller: self.controller,
@@ -30,13 +31,13 @@ struct KeyboardWrapperView: View {
                 )
                 .background(colors.backgroundColor)
                 .onAppear {
-                    print("KeyboardView appeared")
+                    log.debug("KeyboardView appeared")
                 }
             }
             .padding(.all, 0)
             .background(colors.backgroundColor)
             .onAppear {
-                print("Hello world")
+                log.debug("KeyboardWrapper appeared")
             }
         }
     }
@@ -125,7 +126,7 @@ struct KeyboardView: View {
 
 enum KeyAction: Hashable, Equatable {
     case noop
-    case char(Int32)
+    case char(Character)
     case shift
     case space
     case backspace
@@ -140,8 +141,8 @@ struct Key: Hashable, Equatable {
     init(_ label: String, _ widthPct: CGFloat = 10, _ action: KeyAction = .noop) {
         self.label = label
         self.widthPct = widthPct
-        if let firstChar = label.unicodeScalars.first {
-            self.action = .char(Int32(firstChar.value))
+        if let firstChar = label.first {
+            self.action = .char(firstChar)
         } else {
             self.action = action
         }

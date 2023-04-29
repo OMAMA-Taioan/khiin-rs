@@ -1,14 +1,14 @@
 import SwiftUI
 
-enum KhiinColorScheme {
+public enum KhiinColorScheme {
     case dark
     case light
 }
 
-struct KhiinColors {
-    let backgroundColor: Color
+public struct KhiinColors {
+    public let backgroundColor: Color
     
-    init(_ colorScheme: KhiinColorScheme) {
+    public init(_ colorScheme: KhiinColorScheme) {
         switch colorScheme {
         case .light:
             self.backgroundColor = Color(red: 210/255, green: 213/255, blue: 219/255)

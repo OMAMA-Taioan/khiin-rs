@@ -8,6 +8,6 @@ class KeyboardViewModel: ObservableObject {
     }
     
     func handleKey(_ key: Key) {
-        print("Key pressed: \(key.label)")
+        log.debug("Key pressed: \(key.label)")
     }
 }
