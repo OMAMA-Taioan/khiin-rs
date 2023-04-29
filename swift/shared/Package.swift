@@ -3,15 +3,15 @@
 import PackageDescription
 
 let package = Package(
-    name: "khiin-swift",
-    defaultLocalization: "en",
+    name: "khiin-swift-shared",
     platforms: [
-        .macOS("13.0")
+        .macOS("13.0"),
+        .iOS("15.0")
     ],
     products: [
-        .executable(
-            name: "KhiinIM",
-            targets: ["KhiinIM"]
+        .library(
+            name: "KhiinSwift",
+            targets: ["KhiinSwift"]
         )
     ],
     dependencies: [
@@ -24,12 +24,12 @@ let package = Package(
             .upToNextMajor(from: "2.0.0")
         ),
         .package(
-            path: "KhiinBridge"
+            path: "../KhiinBridge"
         )
     ],
     targets: [
-        .executableTarget(
-            name: "KhiinIM",
+        .target(
+            name: "KhiinSwift",
             dependencies: [
                 "KhiinBridge",
                 "SwiftyBeaver",
@@ -39,11 +39,7 @@ let package = Package(
                 )
             ],
             path: ".",
-            exclude: [
-                "KhiinIM/Resources",
-                "Shared/khiin.db"
-            ],
-            sources: ["KhiinIM", "Shared", "Protos"]
+            sources: ["src"]
         )
     ]
 )

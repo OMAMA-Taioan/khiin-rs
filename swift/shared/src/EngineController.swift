@@ -1,13 +1,16 @@
 import KhiinBridge
 import SwiftUI
+import SwiftyBeaver
+
+let log = SwiftyBeaver.self
 
 struct Constants {
     static let dbFile: String = "khiin"
     static let dbFileExt: String = "db"
 }
 
-class EngineController {
-    static let instance = EngineController()
+public class EngineController {
+    public static let instance = EngineController()
 
     static func getDbPath() -> String? {
         Bundle.main.path(
@@ -30,13 +33,13 @@ class EngineController {
         self.engine = engine
     }
 
-    func reset() {
+    public func reset() {
         var req = Khiin_Proto_Request()
         req.type = .cmdReset
         let _ = sendCommand(req)
     }
 
-    func handleChar(_ char: Character) -> Khiin_Proto_Command? {
+    public func handleChar(_ char: Character) -> Khiin_Proto_Command? {
         guard let charCode = char.asciiValue else {
             return nil
         }
@@ -51,7 +54,7 @@ class EngineController {
         return sendCommand(req)
     }
 
-    func sendCommand(_ request: Khiin_Proto_Request) -> Khiin_Proto_Command? {
+    public func sendCommand(_ request: Khiin_Proto_Request) -> Khiin_Proto_Command? {
         guard let engine = self.engine else {
             log.debug("Engine not instantiated")
             return nil

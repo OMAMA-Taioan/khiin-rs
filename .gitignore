@@ -324,8 +324,8 @@ xcuserdata/
 swift/bridge/generated
 swift/KhiinBridge
 swift/Khiin.xcodeproj
-swift/Protos
-swift/.build
-swift/Package.resolved
+swift/shared/src/protos
+.build
+Package.resolved
 
 **/khiin.db

@@ -34,16 +34,3 @@ targets:
       base:
         INFOPLIST_FILE: Keyboard/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.edwardgreve.khiin.keyboard
-  KhiinIM:
-    platform: macOS
-    deploymentTarget: 12.0
-    type: application
-    sources: [KhiinIM, Protos, Shared]
-    dependencies:
-      - package: KhiinBridge
-      - package: SwiftProtobuf
-      - package: SwiftyBeaver
-    settings:
-      base:
-        INFOPLIST_FILE: KhiinIM/Resources/Info.plist
-        PRODUCT_BUNDLE_IDENTIFIER: com.edwardgreve.inputmethod.khiin

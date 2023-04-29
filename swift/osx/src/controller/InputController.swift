@@ -1,6 +1,7 @@
 import InputMethodKit
 import SwiftUI
 import SwiftyBeaver
+import KhiinSwift
 
 class KhiinInputController: IMKInputController {
     lazy var window: NSWindow? = nil

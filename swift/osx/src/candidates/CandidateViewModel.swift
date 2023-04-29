@@ -1,4 +1,5 @@
 import SwiftUI
+import KhiinSwift
 
 class CandidateViewModel: ObservableObject {
     @Published private(set) var currentCommand = Khiin_Proto_Command()

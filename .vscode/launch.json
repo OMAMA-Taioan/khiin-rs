@@ -94,6 +94,30 @@
             "args": [],
             "cwd": "${workspaceFolder:khiin-rs}/swift",
             "preLaunchTask": "swift: Build Release KhiinIM (swift)"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "name": "Debug KhiinIM (swift/osx)",
+            "program": "${workspaceFolder:khiin-rs}/swift/osx/.build/debug/KhiinIM",
+            "args": [],
+            "cwd": "${workspaceFolder:khiin-rs}/swift/osx",
+            "preLaunchTask": "swift: Build Debug KhiinIM (swift/osx)"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "name": "Release KhiinIM (swift/osx)",
+            "program": "${workspaceFolder:khiin-rs}/swift/osx/.build/release/KhiinIM",
+            "args": [],
+            "cwd": "${workspaceFolder:khiin-rs}/swift/osx",
+            "preLaunchTask": "swift: Build Release KhiinIM (swift/osx)"
         }
     ]
 }
