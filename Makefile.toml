@@ -137,7 +137,7 @@ protoc --swift_opt=Visibility=Public --swift_out=../../swift/shared/src/protos *
 [tasks.xcodegen]
 condition = { platforms = ["mac"] }
 dependencies = ["build-swift-protos", "copy-db-swift", "build-swift-bridge"]
-cwd = "swift"
+cwd = "swift/ios"
 command = "xcodegen"
 
 # [tasks.build-khiinim]
@@ -162,7 +162,7 @@ command = "xcodegen"
 [tasks.clean-xcodeproj]
 script_runner = "@shell"
 script = '''
-rm -rf swift/Khiin.xcodeproj
+rm -rf swift/ios/Khiin.xcodeproj
 '''
 
 [tasks.copy-db-swift]

@@ -4,16 +4,16 @@ Folder outline:
 
 ```
 swift/
-├── bridge/
+├── bridge/                     # Swift-Rust bridge module (rust)
 │   └── Cargo.toml
 ├── ios/
-│   ├── Keyboard/
-│   └── Khiin/
-├── osx/
+│   ├── Keyboard/               # Keyboard app extension (`.appex` Bundle)
+│   ├── Khiin/                  # Settings app (currently blank / for testing)
+│   └── project.yml             # `xcodegen` project config
+├── osx/                        # macOS input method swift package
 │   └── Package.swift
-├── shared/
-│   └── Package.swift
-└── project.yml
+└── shared/                     # Shared macOS/iOS code
+    └── Package.swift
 ```
 
 - `Khiin`: Currently a blank app with a text field simply for testing the IME
@@ -70,8 +70,9 @@ rustup target add aarch64-apple-ios-sim x86_64-apple-ios
 ```
 swift/
 ├── bridge/
-│   └── generated        # Rust bridge module
-├── Khiin.xcodeproj      # iOS app Xcode project
+│   └── generated        # Rust bridge module binaries
+├── ios/
+│   └── Khiin.xcodeproj  # iOS app Xcode project
 ├── KhiinBridge          # Swift package for bridge module
 ├── osx/
 │   ├── .build

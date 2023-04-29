@@ -3,9 +3,9 @@ options:
   bundleIdPrefix: com.edwardgreve
 packages:
   KhiinBridge:
-    path: ./KhiinBridge
+    path: ../KhiinBridge
   KhiinSwift:
-    path: ./shared
+    path: ../shared
   SwiftProtobuf:
     url: https://github.com/apple/swift-protobuf
     from: 1.21.0
@@ -17,23 +17,23 @@ targets:
     type: application
     platform: iOS
     deploymentTarget: 15.0
-    sources: [ios/Khiin]
+    sources: [Khiin]
     dependencies:
       - target: Keyboard
     settings:
       base:
-        INFOPLIST_FILE: ios/Khiin/Info.plist
+        INFOPLIST_FILE: Khiin/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.edwardgreve.khiin
   Keyboard:
     platform: iOS
     deploymentTarget: 15.0
     type: app-extension
-    sources: [ios/Keyboard, ../resources/khiin.db]
+    sources: [Keyboard, ../../resources/khiin.db]
     dependencies:
       - package: KhiinBridge
       - package: KhiinSwift
       - package: SwiftProtobuf
     settings:
       base:
-        INFOPLIST_FILE: ios/Keyboard/Info.plist
+        INFOPLIST_FILE: Keyboard/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.edwardgreve.khiin.keyboard

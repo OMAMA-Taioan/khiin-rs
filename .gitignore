@@ -323,7 +323,7 @@ xcuserdata/
 
 swift/bridge/generated
 swift/KhiinBridge
-swift/Khiin.xcodeproj
+swift/**/*.xcodeproj
 swift/shared/src/protos
 .build
 Package.resolved
