@@ -10,49 +10,6 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
-	<!-- <key>ComponentInputModeDict</key>
-	<dict>
-		<key>tsInputModeListKey</key>
-		<dict>
-			<key>com.edwardgreve.inputmethod.khiin.KhiinIM</key>
-			<dict>
-				<key>TISIconLabels</key>
-				<dict>
-					<key>Primary</key>
-					<string>起引</string>
-				</dict>
-				<key>TISInputSourceID</key>
-				<string>$(PRODUCT_BUNDLE_IDENTIFIER).KhiinIM</string>
-				<key>TISIntendedLanguage</key>
-				<string>en</string>
-				<key>tsInputModeAlternateMenuIconFileKey</key>
-				<string>menuicon.svg</string>
-				<key>tsInputModeDefaultStateKey</key>
-				<true/>
-				<key>tsInputModeIsVisibleKey</key>
-				<true/>
-				<key>tsInputModeKeyEquivalentModifiersKey</key>
-				<integer>4608</integer>
-				<key>tsInputModeMenuIconFileKey</key>
-				<string>menuicon.svg</string>
-				<key>tsInputModePaletteIconFileKey</key>
-				<string>menuicon.svg</string>
-				<key>tsInputModePrimaryInScriptKey</key>
-				<true/>
-				<key>tsInputMethodCharacterRepertoireKey</key>
-				<array>
-					<string>Latn</string>
-					<string>Hant</string>
-				</array>
-				<key>tsInputModeScriptKey</key>
-				<string>smUnicodeScript</string>
-			</dict>
-		</dict>
-		<key>tsVisibleInputModeOrderedArrayKey</key>
-		<array>
-			<string>$(PRODUCT_BUNDLE_IDENTIFIER).KhiinIM</string>
-		</array>
-	</dict> -->
 	<key>InputMethodConnectionName</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)_Connection</string>
 	<key>InputMethodServerControllerClass</key>

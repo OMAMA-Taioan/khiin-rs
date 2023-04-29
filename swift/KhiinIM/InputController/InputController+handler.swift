@@ -37,6 +37,7 @@ extension KhiinInputController {
             return true
         case .enter:
             let committed = self.commitCurrent()
+            self.candidateViewModel.reset()
             return committed
         default:
             log.debug("Event not handled")

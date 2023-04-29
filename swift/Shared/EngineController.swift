@@ -31,10 +31,6 @@ class EngineController {
     }
 
     func reset() {
-        guard let engine = self.engine else {
-            return
-        }
-
         var req = Khiin_Proto_Request()
         req.type = .cmdReset
         let _ = sendCommand(req)

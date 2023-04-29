@@ -52,10 +52,11 @@ extension KhiinInputController {
     }
 
     func windowFrame() -> CGRect {
+        let height: CGFloat = 24 * 9 + 8 * 2
         let origin = self.currentOrigin ?? self.currentClient?.position ?? .zero
-        let size = CGSize(width: 100, height: 200)
+        let size = CGSize(width: 500, height: height)
 
         return CGRect(
-            x: origin.x, y: origin.y, width: size.width, height: size.height)
+            x: origin.x, y: origin.y - height, width: size.width, height: size.height)
     }
 }
