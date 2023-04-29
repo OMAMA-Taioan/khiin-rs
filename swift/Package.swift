@@ -40,28 +40,10 @@ let package = Package(
             ],
             path: ".",
             exclude: [
-                "KhiinIM/Assets.xcassets",
-                "KhiinIM/Info.plist",
-                "KhiinIM/KhiinIM.entitlements",
-                "KhiinIM/Preview Content",
-                "KhiinIM/en.lproj",
-                "KhiinIM/main.svg",
-                "KhiinIM/menuicon.svg",
-                "KhiinIM/zh-Hant.lproj",
+                "KhiinIM/Resources",
                 "Shared/khiin.db"
             ],
-            sources: ["KhiinIM", "Shared", "Protos"],
-            resources: [
-                .copy("KhiinIM/Assets.xcassets"),
-                .copy("KhiinIM/Info.plist"),
-                .copy("KhiinIM/KhiinIM.entitlements"),
-                .copy("KhiinIM/Preview Content"),
-                .copy("KhiinIM/en.lproj"),
-                .copy("KhiinIM/main.svg"),
-                .copy("KhiinIM/menuicon.svg"),
-                .copy("KhiinIM/zh-Hant.lproj"),
-                .copy("Shared/khiin.db")
-            ]
+            sources: ["KhiinIM", "Shared", "Protos"]
         )
     ]
 )

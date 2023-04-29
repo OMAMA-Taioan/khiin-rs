@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>English</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.edwardgreve.inputmethod.khiin</string>
+	<key>CFBundleName</key>
+	<string>Khíín</string>
+	<key>CFBundleVersion</key>
+	<string>0.1.0</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1.0</string>
+	<key>CFBundleExecutable</key>
+	<string>KhiinIM</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleSignature</key>
+	<string>KhIn</string>
+	<key>CFBundleIconFile</key>
+    <string>AppIcon.icns</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>(c) 2023 Aiong Taigi, MIT License</string>
+	<key>CFBundleGetInfoString</key>
+	<string>KhiinIM 0.1.0, (c) 2023 Aiong Taigi, MIT License</string>
+	<key>InputMethodConnectionName</key>
+	<string>com.edwardgreve.inputmethod.khiin_Connection</string>
+	<key>InputMethodServerControllerClass</key>
+	<string>KhiinIM.KhiinInputController</string>
+	<key>LSBackgroundOnly</key>
+	<true/>
+	<key>NSPrincipalClass</key>
+	<string>KhiinIM.KhiinIMApplication</string>
+	<key>tsInputMethodIconFileKey</key>
+	<string>menuicon.svg</string>
+	<key>TISIconIsTemplate</key>
+	<true/>
+</dict>
+</plist>
