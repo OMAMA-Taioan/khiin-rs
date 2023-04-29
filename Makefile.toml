@@ -83,6 +83,13 @@ dependencies = ["copy-db", "build-swift-bridge", "build-swift-protos"]
 command = "sh"
 args = ["swift/osx/build.sh"]
 
+[tasks.watch-osx]
+condition = { platforms = ["mac"] }
+dependencies = ["copy-db", "build-swift-bridge", "build-swift-protos"]
+command = "sh"
+args = ["swift/osx/build.sh"]
+watch = { postpone = true, watch = ["./swift/osx", "./swift/shared"] }
+
 [tasks.build-swift-libs]
 condition = { platforms = ["mac"] }
 command = "sh"
