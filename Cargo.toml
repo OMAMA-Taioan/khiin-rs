@@ -5,6 +5,8 @@ members = [
     "khiin",
     "protos",
     "swift/bridge",
+    "windows/app",
+    "windows/app/src-tauri",
     "windows/ime",
     "windows/settings"
 ]

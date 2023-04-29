@@ -328,4 +328,8 @@ swift/shared/src/protos
 .build
 Package.resolved
 
+# Tauri
+windows/app/dist
+windows/app/src-tauri/icons
+
 **/khiin.db
