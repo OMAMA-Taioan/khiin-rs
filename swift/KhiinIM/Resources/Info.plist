@@ -36,6 +36,13 @@
 	<string>KhiinIM.KhiinIMApplication</string>
 	<key>tsInputMethodIconFileKey</key>
 	<string>menuicon.svg</string>
+	<key>tsInputMethodCharacterRepertoireKey</key>
+	<array>
+		<string>Latn</string>
+		<string>Hant</string>
+	</array>
+	<key>TISIntendedLanguage</key>
+	<string>taioanese</string>
 	<key>TISIconIsTemplate</key>
 	<true/>
 </dict>
