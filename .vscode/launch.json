@@ -53,7 +53,47 @@
             "cwd": "${workspaceFolder}/data",
             "program": "${workspaceFolder}/data/src/sql_gen.py",
             "console": "integratedTerminal",
-            "args": ["-f", "data/frequency.csv", "-c", "data/conversions_all.csv", "-s", "data/syllables.txt", "-t", "-y", "data/symbols.tsv", "-e", "data/emoji.csv", "-o", "out/khiin_db.sql", "-d", "out/khiin.db"]
+            "args": [
+                "-f",
+                "data/frequency.csv",
+                "-c",
+                "data/conversions_all.csv",
+                "-s",
+                "data/syllables.txt",
+                "-t",
+                "-y",
+                "data/symbols.tsv",
+                "-e",
+                "data/emoji.csv",
+                "-o",
+                "out/khiin_db.sql",
+                "-d",
+                "out/khiin.db"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "name": "Debug KhiinIM (swift)",
+            "program": "${workspaceFolder:khiin-rs}/swift/.build/debug/KhiinIM",
+            "args": [],
+            "cwd": "${workspaceFolder:khiin-rs}/swift",
+            "preLaunchTask": "swift: Build Debug KhiinIM (swift)"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "name": "Release KhiinIM (swift)",
+            "program": "${workspaceFolder:khiin-rs}/swift/.build/release/KhiinIM",
+            "args": [],
+            "cwd": "${workspaceFolder:khiin-rs}/swift",
+            "preLaunchTask": "swift: Build Release KhiinIM (swift)"
         }
     ]
 }

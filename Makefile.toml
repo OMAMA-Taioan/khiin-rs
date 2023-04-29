@@ -73,6 +73,12 @@ rm -rf swift/KhiinBridge
 rm -rf swift/Protos
 '''
 
+[tasks.build-swift]
+condition = { platforms = ["mac"] }
+cwd = "swift"
+command = "swift"
+args = ["build"]
+
 [tasks.build-swift-libs]
 condition = { platforms = ["mac"] }
 command = "sh"
@@ -134,7 +140,6 @@ BUILD_DIR=$(pwd)/target/KhiinIM
 LIB_DIR=/Users/$(id -un)/Library
 killall -9 KhiinIM || true
 rm -rf $BUILD_DIR
-rm -rf $LIB_DIR/Input\ Methods/KhiinIM.app
 rm -rf $LIB_DIR/Containers/com.edwardgreve.inputmethod.KhiinIM
 rm -rf $LIB_DIR/Developer/Xcode/DerivedData/Khiin-*/
 cd swift

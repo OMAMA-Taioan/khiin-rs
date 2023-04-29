@@ -326,5 +326,6 @@ swift/KhiinBridge
 swift/Khiin.xcodeproj
 swift/Protos
 swift/.build
+swift/Package.resolved
 
 **/khiin.db
