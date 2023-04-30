@@ -1,8 +1,9 @@
 [build]
-target = "./index.html"
+target = "./client/index.html"
 
 [watch]
 ignore = ["./src-tauri"]
+watch = ["./client"]
 
 [serve]
 address = "127.0.0.1"

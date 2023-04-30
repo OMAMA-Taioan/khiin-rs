@@ -1,7 +1,8 @@
 [workspace]
 members = [
-    "app",
+    "app/client",
     "app/src-tauri",
+    "app/settings",
     "android/rust",
     "cli",
     "khiin",

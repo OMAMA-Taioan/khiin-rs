@@ -1,0 +1,12 @@
+dist
+frontend
+target
+android/rust
+cli
+data
+khiin
+protos
+resources
+swift/bridge
+windows/ime
+windows/settings
