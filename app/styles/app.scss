@@ -1,0 +1,70 @@
+$text-color: #0f0f0f;
+$surface-bgcolor: #fafafa;
+$highlight-bgcolor: #eaeaea;
+$primary: #00d9c0;
+
+:root {
+    font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+
+    color: $text-color;
+    
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+    
+}
+
+.app-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: horizontal;
+}
+
+.side-menu {
+    background-color: $surface-bgcolor;
+    display: flex;
+    flex-direction: column;
+
+    .menu-label {
+        margin: 0;
+        font-variant-caps: all-small-caps;
+        padding: 1em;
+    }
+
+    .menu-list {
+        display: flex;
+        flex-direction: column;
+        list-style-type: none;
+        padding-inline-start: 0;
+        box-sizing: border-box;
+        margin: 0;
+
+        a {
+            display: block;
+            padding: 1em 2em 1em 2em;
+            text-decoration: none;
+            color: #0f0f0f;
+
+            &:hover {
+                background-color: $highlight-bgcolor;
+                transition: background-color 0.1s ease-in-out;
+            }
+
+            &.active {
+                background-color: $primary;
+                transition: background-color 0.2s ease-in-out;
+            }
+        }
+    }
+}
+
+.logo {
+    width: 6em;
+    height: 6em;
+}
+

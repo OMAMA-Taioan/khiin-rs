@@ -1,12 +1,12 @@
 [workspace]
 members = [
+    "app",
+    "app/src-tauri",
     "android/rust",
     "cli",
     "khiin",
     "protos",
     "swift/bridge",
-    "windows/app",
-    "windows/app/src-tauri",
     "windows/ime",
     "windows/settings"
 ]
