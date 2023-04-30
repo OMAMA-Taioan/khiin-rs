@@ -160,6 +160,7 @@ command = "xcodegen"
 # '''
 
 [tasks.clean-xcodeproj]
+condition = { platforms = ["mac"], files_exist = ["swift/ios/Khiin.xcodeproj"] }
 script_runner = "@shell"
 script = '''
 rm -rf swift/ios/Khiin.xcodeproj
