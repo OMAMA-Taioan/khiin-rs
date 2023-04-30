@@ -59,6 +59,7 @@ def poj_to_fhl_reading(text):
     text = re.sub(r' ', '-', text)
     return text
 
+
 def add_t1_t4(syllable: str) -> str:
     if syllable[-1].isdigit():
         return syllable
@@ -67,7 +68,11 @@ def add_t1_t4(syllable: str) -> str:
     else:
         return syllable + '1'
 
+
 def poj_to_khiin(syllable, strip_tones):
+    if syllable.isdigit():
+        return [[syllable], [syllable]]
+
     decomposed = unicodedata.normalize('NFD', syllable)
     for sub in ASCII_SUBS:
         decomposed = re.sub(sub[0], sub[1], decomposed)
