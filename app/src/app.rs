@@ -23,7 +23,9 @@ pub fn app() -> Html {
         <BrowserRouter>
             <main class="app-container">
                 <SideMenu />
-                <Switch<Route> render={switch_route} />
+                <div class="content">
+                    <Switch<Route> render={switch_route} />
+                </div>
             </main>
         </BrowserRouter>
     }
