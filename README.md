@@ -1,6 +1,27 @@
 # Khíín Taiwanese IME
 
-This is an in-progress Rust rewrite of the first (C++) version of Khíín.
+**Khíín** is a cross-platform input method for typing Taiwanese. We aim to
+support all major platforms, including Windows, Android, macOS, iOS, Linux, and
+the web. Our goal is simple: to provide an excellent Taiwanese typing
+experience.
+
+If you are interested in contributing, please open an issue!
+
+- [Khíín Taiwanese IME](#khíín-taiwanese-ime)
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [Help](#help)
+- [Development](#development)
+  - [Database](#database)
+  - [Khiin (Engine)](#khiin-engine)
+  - [App (Settings \& Guide)](#app-settings--guide)
+  - [Protobuf](#protobuf)
+  - [Windows App](#windows-app)
+  - [Android App](#android-app)
+  - [iOS \& macOS Apps](#ios--macos-apps)
+  - [Development CLI App](#development-cli-app)
+    - [Quickstart](#quickstart)
+
 
 ## Installation
 
@@ -17,6 +38,10 @@ khiin-rs/
 ├── android/
 │   ├── app         # Jetpack Compose Android app
 │   └── rust        # JNI glue library for khiin
+├── app/            # Settings & help app
+│   ├── client      # Yew frontend
+│   ├── settings    # Settings manager (Khiin.toml)
+│   └── src-tauri   # Tauri backend
 ├── cli             # Terminal application (for developers)
 ├── data            # SQLite db generator
 ├── khiin           # Cross-platform engine
@@ -27,7 +52,6 @@ khiin-rs/
 ├── windows/
 │   ├── ime/        # TSF library
 │   ├── res/        # Windows specific resources
-│   └── settings/   # Settings app
 └── Makefile.toml   # Cargo build tasks
 ```
 
@@ -87,6 +111,28 @@ to segment the user's input sequence (if they don't segment it themselves while
 typing), and then search for each segment in the conversion table, using the
 unigram and bigram records to sort the resulting options.
 
+## App (Settings & Guide)
+
+The app is a [Tauri](https://tauri.app/) & [Yew](https://yew.rs/) cross-platform
+app built in Rust. The goal here is to provide a consistent UI for managing
+settings on all desktop platforms, and to provide instructions for using the IME
+or other useful materials.
+
+To work on the app, you will need to install some cargo plugins. The easiest way
+to do that is to make a dummy tauri app in another folder, as the tauri plugin
+will walk you through installing the required components.
+
+```bash
+cargo install create-tauri-app
+```
+
+When complete, you should have `cargo-tauri`, `trunk`, `wasm-bindgen`, and
+`wasm-pack` installed. Then you can run the Khíín app for development with:
+
+```bash
+cargo tauri dev
+```
+
 ## Protobuf
 
 The engine and client applications communicate using protocol buffers. The
@@ -110,8 +156,6 @@ application that allows the user to configure the IME, and a basic WiX installer
 
 See the [README](windows/README.md) for more details.
 
----
-
 ## Android App
 
 The Android IME is currently in progress / unstable. It is a modern Jetpack
@@ -120,17 +164,13 @@ wrapper around `khiin` that communicates with the Android app via JNI.
 
 See the [README](android/README.md) for more details.
 
----
-
 ## iOS & macOS Apps
 
-The iOS app is currently in progress / unstable. Basic setup between the Khiin
-engine and the app is complete, so the remaining work is mainly to build out the
-UI. Development has not yet started on the macOS app.
+The iOS and macOS apps are currently in progress / unstable. Basic setup between
+the Khiin engine and the apps is complete, so the remaining work is mainly to
+build out the UI and hook up all of the engine wiring.
 
 See the [README](swift/README.md) for more details.
-
----
 
 ## Development CLI App
 
