@@ -4,10 +4,10 @@
 use std::env;
 use std::fs::File;
 use std::io::Read;
-use tauri::Manager;
+use tauri::{Manager, State};
 use tauri_plugin_log::LogTarget;
 
-use khiin_settings::Settings;
+use khiin_settings::{SettingsManager, AppSettings};
 
 #[derive(Clone, serde::Serialize)]
 struct Payload {
@@ -17,17 +17,28 @@ struct Payload {
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-fn load_settings() -> Option<Settings> {
+fn load_settings(state: State<SettingsManager>) -> AppSettings {
+    state.settings.clone()
+}
+
+#[tauri::command]
+fn set_font_size(size: u8, state: State<SettingsManager>) {
+    state.set_font_size(size);
+}
+
+fn load_settings_manager() -> SettingsManager {
     if let Ok(mut filename) = env::current_dir() {
         filename.set_file_name("Khiin.toml");
-        Settings::load_from_file(&filename)
-    } else {
-        None
+
+        if filename.exists() {
+            return SettingsManager::load_from_file(&filename);
+        }
     }
+
+    Default::default()
 }
 
 fn main() {
-    log::debug!("Testing logger");
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, argv, cwd| {
             println!("{}, {argv:?}, {cwd}", app.package_info().name);
@@ -37,7 +48,11 @@ fn main() {
         .plugin(tauri_plugin_log::Builder::default().targets([
             LogTarget::Stdout,
         ]).build())
-        .invoke_handler(tauri::generate_handler![load_settings])
+        .manage(load_settings_manager())
+        .invoke_handler(tauri::generate_handler![
+            load_settings,
+            set_font_size,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

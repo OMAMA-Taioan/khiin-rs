@@ -18,7 +18,7 @@ use crate::app::locales::set_locale;
 use crate::app::locales::Locales;
 use crate::app::routes::switch_route;
 use crate::app::routes::Route;
-use crate::app::wasm::invoke_load_settings;
+use crate::app::wasm::load_settings;
 
 #[function_component(App)]
 pub fn app() -> Html {
@@ -31,8 +31,8 @@ pub fn app() -> Html {
         use_effect(move || {
             spawn_local(async move {
                 log!("In thread");
-                let result = invoke_load_settings().await;
-                if result.app.colors == ColorScheme::Light {
+                let result = load_settings().await;
+                if result.candidates.colors == ColorScheme::Light {
                     log!("Recieved response OK");
                 }
             });
@@ -43,7 +43,7 @@ pub fn app() -> Html {
         <BrowserRouter>
             <main class="app-container">
                 <SideMenu />
-                <div class="content">
+                <div class="content-wrapper">
                     <Switch<Route> render={switch_route} />
                 </div>
             </main>

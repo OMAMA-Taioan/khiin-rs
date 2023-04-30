@@ -1,2 +1,3 @@
-[app]
+[candidates]
 colors = "light"
+font_size = 16

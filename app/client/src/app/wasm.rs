@@ -1,6 +1,8 @@
+use serde::{Serialize, Deserialize};
+use serde_wasm_bindgen::to_value;
 use wasm_bindgen::prelude::*;
 
-use khiin_settings::Settings;
+use khiin_settings::AppSettings;
 
 #[wasm_bindgen]
 extern "C" {
@@ -8,7 +10,17 @@ extern "C" {
     pub async fn invoke(cmd: &str, args: JsValue) -> JsValue;
 }
 
-pub async fn invoke_load_settings() -> Settings {
+pub async fn load_settings() -> AppSettings {
     let result = invoke("load_settings", Default::default()).await;
     result.into()
+}
+
+#[derive(Serialize, Deserialize)]
+struct FontSizeArgs {
+    size: u8,
+}
+
+pub async fn set_font_size(size: u8) {
+    let args = to_value(&FontSizeArgs { size }).unwrap();
+    invoke("set_font_size", args).await;
 }
