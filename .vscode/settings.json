@@ -6,5 +6,8 @@
     "rust-analyzer.rustfmt.extraArgs": [ "+nightly" ],
     "rust-analyzer.runnableEnv": {
         "RUST_LOG": "debug",
+    },
+    "svelte.plugin.svelte.compilerWarnings": {
+        "a11y-missing-attribute": "ignore"
     }
 }

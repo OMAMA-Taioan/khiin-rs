@@ -27,5 +27,6 @@
 }
 
 body {
-    font-family: "POJ ChhiuKi", Inter, Avenir, Helvetica, Arial, sans-serif;
+    font-family: "POJ ChhiuKi", Inter, Avenir, Helvetica, Arial,
+        "Microsoft Yahei", sans-serif;
 }
