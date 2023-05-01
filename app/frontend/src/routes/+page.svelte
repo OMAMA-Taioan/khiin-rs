@@ -5,7 +5,7 @@
 <h1>Khíín 台語打字法</h1>
 <img src="/app-icon.png" />
 <p>
-    Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation
+    Taiwanese input for the digital era.
 </p>
 <Settings />
 

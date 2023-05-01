@@ -1,7 +1,11 @@
 use std::fs::File;
+use std::fs::OpenOptions;
 use std::io::Read;
+use std::io::Write;
 use std::path::PathBuf;
 
+use anyhow::anyhow;
+use anyhow::Result;
 use serde::Deserialize;
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -15,14 +19,26 @@ pub enum ColorScheme {
     Dark,
 }
 
-#[derive(Default, Debug, Deserialize, Serialize, PartialEq, Clone)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
 pub struct CandidateSettings {
+    #[serde(default)]
     pub colors: ColorScheme,
+    #[serde(default)]
     pub font_size: u8,
+}
+
+impl Default for CandidateSettings {
+    fn default() -> Self {
+        Self {
+            colors: Default::default(),
+            font_size: 16,
+        }
+    }
 }
 
 #[derive(Default, Debug, Deserialize, Serialize, PartialEq, Clone)]
 pub struct AppSettings {
+    #[serde(default)]
     pub candidates: CandidateSettings,
 }
 
@@ -51,17 +67,25 @@ impl SettingsManager {
         }
     }
 
-    pub fn set_font_size(&self, size: u8) {
-        log::debug!("Setting font size to: {}", size);
-    }
-}
+    pub fn save_to_file(&self) -> Result<()> {
+        if let Ok(str) = toml::to_string(&self.settings) {
+            let mut file = OpenOptions::new()
+                .read(true)
+                .write(true)
+                .truncate(true)
+                .open(&self.filename)
+                .unwrap();
+            let result = file.write_all(str.as_bytes());
 
-impl From<JsValue> for AppSettings {
-    fn from(value: JsValue) -> Self {
-        serde_wasm_bindgen::from_value(value).unwrap_or_else(|err| {
-            log::debug!("Error deserializing to Settings object: {:?}", err);
-            Default::default()
-        })
+            if result.is_err() {
+                println!("Error: {}", result.unwrap_err());
+                return Err(anyhow!("failed"));
+            }
+
+            Ok(())
+        } else {
+            Err(anyhow!("Unable to save file"))
+        }
     }
 }
 

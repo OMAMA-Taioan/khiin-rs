@@ -1,6 +1,5 @@
 [workspace]
 members = [
-    "app/client",
     "app/src-tauri",
     "app/settings",
     "android/rust",
