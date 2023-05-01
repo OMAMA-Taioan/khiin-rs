@@ -74,9 +74,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "sourceLanguages": [
-                "swift"
-            ],
+            "sourceLanguages": ["swift"],
             "name": "Debug KhiinIM (swift)",
             "program": "${workspaceFolder:khiin-rs}/swift/.build/debug/KhiinIM",
             "args": [],
@@ -86,9 +84,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "sourceLanguages": [
-                "swift"
-            ],
+            "sourceLanguages": ["swift"],
             "name": "Release KhiinIM (swift)",
             "program": "${workspaceFolder:khiin-rs}/swift/.build/release/KhiinIM",
             "args": [],
@@ -98,9 +94,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "sourceLanguages": [
-                "swift"
-            ],
+            "sourceLanguages": ["swift"],
             "name": "Debug KhiinIM (swift/osx)",
             "program": "${workspaceFolder:khiin-rs}/swift/osx/.build/debug/KhiinIM",
             "args": [],
@@ -110,14 +104,25 @@
         {
             "type": "lldb",
             "request": "launch",
-            "sourceLanguages": [
-                "swift"
-            ],
+            "sourceLanguages": ["swift"],
             "name": "Release KhiinIM (swift/osx)",
             "program": "${workspaceFolder:khiin-rs}/swift/osx/.build/release/KhiinIM",
             "args": [],
             "cwd": "${workspaceFolder:khiin-rs}/swift/osx",
             "preLaunchTask": "swift: Build Release KhiinIM (swift/osx)"
+        },
+        {
+            "type": "lldb",
+            "cwd": "${workspaceFolder}/app",
+            "request": "launch",
+            "name": "Tauri Dev",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--manifest-path=${workspaceFolder:khiin-rs}/app/src-tauri/Cargo.toml",
+                    "--no-default-features"
+                ]
+            },
         }
     ]
 }

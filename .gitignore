@@ -89,8 +89,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
 parts/
 sdist/
 var/
@@ -332,4 +330,17 @@ Package.resolved
 app/dist
 app/src-tauri/icons
 
+# Svelte
+.DS_Store
+node_modules
+/app/build
+/app/frontend/.svelte-kit
+/package
+.env
+.env.*
+!.env.example
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Database
 **/khiin.db

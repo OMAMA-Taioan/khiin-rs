@@ -140,25 +140,6 @@ dependencies = ["build-swift-protos", "copy-db-swift", "build-swift-bridge"]
 cwd = "swift/ios"
 command = "xcodegen"
 
-# [tasks.build-khiinim]
-# condition = { platforms = ["mac"] }
-# dependencies = ["xcodegen"]
-# script_runner = "@shell"
-# script = '''
-# BUILD_DIR=$(pwd)/target/KhiinIM
-# LIB_DIR=/Users/$(id -un)/Library
-# killall -9 KhiinIM || true
-# rm -rf $BUILD_DIR
-# rm -rf $LIB_DIR/Containers/com.edwardgreve.inputmethod.KhiinIM
-# rm -rf $LIB_DIR/Developer/Xcode/DerivedData/Khiin-*/
-# cd swift
-# xcodebuild -scheme KhiinIM build CONFIGURATION_BUILD_DIR=$BUILD_DIR
-# cp -R $BUILD_DIR/KhiinIM.app $LIB_DIR/Input\ Methods/
-# ls -al $LIB_DIR/Input\ Methods
-# echo "View logs with:"
-# echo "tail -f ~/Library/Caches/KhiinIM/khiin_im.log"
-# '''
-
 [tasks.clean-xcodeproj]
 condition = { platforms = ["mac"], files_exist = ["swift/ios/Khiin.xcodeproj"] }
 script_runner = "@shell"

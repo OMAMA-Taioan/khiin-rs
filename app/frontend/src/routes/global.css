@@ -1,0 +1,31 @@
+@font-face {
+    src: url("/POJChhiuKi-Bold.woff2") format("woff2");
+    font-family: "POJ ChhiuKi";
+    font-style: normal;
+    font-weight: 700;
+}
+
+@font-face {
+    src: url("/POJChhiuKi-Italic.woff2") format("woff2");
+    font-family: "POJ ChhiuKi";
+    font-style: italic;
+    font-weight: 400;
+}
+
+@font-face {
+    src: url("/POJChhiuKi-Regular.woff2") format("woff2");
+    font-family: "POJ ChhiuKi";
+    font-style: normal;
+    font-weight: 400;
+}
+
+:root {
+    --text-color: #0f0f0f;
+    --surface-bgcolor: #fafafa;
+    --highlight-bgcolor: #eaeaea;
+    --primary: #00d9c0;
+}
+
+body {
+    font-family: "POJ ChhiuKi", Inter, Avenir, Helvetica, Arial, sans-serif;
+}

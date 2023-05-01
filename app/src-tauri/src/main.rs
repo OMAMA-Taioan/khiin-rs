@@ -28,7 +28,9 @@ fn set_font_size(size: u8, state: State<SettingsManager>) {
 
 fn load_settings_manager() -> SettingsManager {
     if let Ok(mut filename) = env::current_dir() {
-        filename.set_file_name("Khiin.toml");
+        filename.push("Khiin.toml");
+
+        log::debug!("{:?}", filename);
 
         if filename.exists() {
             return SettingsManager::load_from_file(&filename);
@@ -46,7 +48,9 @@ fn main() {
                 .unwrap();
         }))
         .plugin(tauri_plugin_log::Builder::default().targets([
+            LogTarget::LogDir,
             LogTarget::Stdout,
+            LogTarget::Webview,
         ]).build())
         .manage(load_settings_manager())
         .invoke_handler(tauri::generate_handler![

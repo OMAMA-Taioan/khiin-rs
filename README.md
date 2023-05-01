@@ -113,10 +113,10 @@ unigram and bigram records to sort the resulting options.
 
 ## App (Settings & Guide)
 
-The app is a [Tauri](https://tauri.app/) & [Yew](https://yew.rs/) cross-platform
-app built in Rust. The goal here is to provide a consistent UI for managing
-settings on all desktop platforms, and to provide instructions for using the IME
-or other useful materials.
+The app is a [Tauri](https://tauri.app/) & [Svelte](https://svelte.dev/)
+cross-platform app built in Rust & TypeScript. The goal here is to provide a
+consistent UI for managing settings on all desktop platforms, and to provide
+instructions for using the IME or other useful materials.
 
 To work on the app, you will need to install some cargo plugins. The easiest way
 to do that is to make a dummy tauri app in another folder, as the tauri plugin
@@ -126,12 +126,16 @@ will walk you through installing the required components.
 cargo install create-tauri-app
 ```
 
-When complete, you should have `cargo-tauri`, `trunk`, `wasm-bindgen`, and
-`wasm-pack` installed. Then you can run the Khíín app for development with:
+When complete, you should have `cargo-tauri`, `wasm-bindgen`, and `wasm-pack`
+installed. You also need `npm` and `node` (using node 18 LTS). Then you can run
+the Khíín app for development with:
 
 ```bash
 cargo tauri dev
 ```
+
+For debugging, run `npm run dev` in a separate terminal, and then launch the
+`Tauri Dev` launch configuration from VSCode.
 
 ## Protobuf
 
