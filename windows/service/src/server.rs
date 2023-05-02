@@ -1,3 +1,4 @@
+use anyhow::Error;
 use anyhow::Result;
 use futures::io::BufReader;
 use futures::AsyncWriteExt;
@@ -25,7 +26,7 @@ use crate::engine_handler::EngineHandler;
 use crate::engine_handler::EngineMessage;
 
 const MAX_CONNECTIONS: usize = 1;
-const NO_CONNECTION_TIMEOUT: u64 = 300;
+const NO_CONNECTION_TIMEOUT: u64 = 5;
 
 struct Shutdown {
     is_shutdown: bool,
@@ -173,15 +174,19 @@ impl SockerListener {
     }
 }
 
-pub async fn run(listener: LocalSocketListener, shutdown: impl Future) {
+pub async fn run(
+    listener: LocalSocketListener,
+    shutdown: impl Future,
+) -> Result<()> {
     let (notify_shutdown, _) = broadcast::channel(1);
     let (shutdown_complete_tx, mut shutdown_complete_rx) = mpsc::channel(1);
     let (engine_tx, engine_rx) = mpsc::channel(1);
 
     let mut engine_handler = EngineHandler::new(engine_rx);
 
-    tokio::spawn(async move {
-        engine_handler.run().await;
+    let engine_thread = tokio::spawn(async move {
+        engine_handler.run().await?;
+        Ok::<(), Error>(())
     });
 
     let mut server = SockerListener {
@@ -207,11 +212,14 @@ pub async fn run(listener: LocalSocketListener, shutdown: impl Future) {
     let SockerListener {
         shutdown_complete_tx,
         notify_shutdown,
+        engine_tx,
         ..
     } = server;
     drop(notify_shutdown);
     drop(shutdown_complete_tx);
-
+    drop(engine_tx);
     let _ = shutdown_complete_rx.recv().await;
+    let _ = engine_thread.await;
     log::debug!("Shutdown complete.");
+    Ok(())
 }
