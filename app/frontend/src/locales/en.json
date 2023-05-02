@@ -1,0 +1,40 @@
+{
+    "global": {
+        "title": "Khíín",
+        "nav": {
+            "home": "Home",
+            "about": "About",
+            "appearance": "Appearance",
+            "input-settings": "Input Settings",
+            "dictionary": "Dictionary",
+            "donate": "Donate",
+            "github": "Github"
+        }
+    },
+    "page": {
+        "home": {
+            "title": "Khíín Taiwanese Input Method Editor"
+        },
+        "appearance": {
+            "title": "Appearance",
+            "theme": "Theme",
+            "auto": "Auto",
+            "light": "Light",
+            "dark": "Dark",
+            "language": "UI Language",
+            "font-size": "Candidate Font Size",
+            "xs": "Extra Small",
+            "sm": "Small",
+            "md": "Medium",
+            "lg": "Large",
+            "xl": "Extra Large",
+            "font": "Candidate Font"
+        },
+        "input-settings": {
+            "title": "Input Settings"
+        },
+        "dictionary": {
+            "title": "Dictionary"
+        }
+    }
+}

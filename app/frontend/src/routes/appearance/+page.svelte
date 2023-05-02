@@ -1,54 +1,53 @@
 <script lang="ts">
-    import { settings, updateSettings } from "../store";
-
-    const updateFontSize = (e: Event) => {
-        const value = (e.target as HTMLInputElement).value;
-
-        updateSettings({
-            candidates: {
-                font_size: parseInt(value),
-            },
-        });
-    };
-
-    const defaultFontSize = 16;
-    const minFontSize = 12;
-    const maxFontSize = 32;
-    let fontSize: number;
-
-    let sliderRightPct: number;
-
-    $: {
-        fontSize = $settings?.candidates?.font_size || defaultFontSize;
-        sliderRightPct =
-            ((maxFontSize - fontSize) / (maxFontSize - minFontSize)) * 100;
-        console.log("Font size: ", fontSize);
-        console.log("Slider %", sliderRightPct);
+    import { _, locale } from "svelte-i18n" 
+    
+    function updateLanguage(event: Event) {
+        const target = event.target as HTMLSelectElement;
+        locale.set(target.value);
     }
 </script>
 
-<p>Hello</p>
-<p>Current color: {$settings?.candidates?.color}</p>
+<h1 class="text-3xl mb-3">{$_('page.appearance.title')}</h1>
 
-<div class="middle align">
-    <label class="slider large">
-        <input
-            type="range"
-            min="12"
-            max="32"
-            value={fontSize}
-            on:change={updateFontSize}
-        />
-        <span style="--pct:{sliderRightPct}%;" />
-        <div class="tooltip">{fontSize}</div>
-    </label>
+<div class="mt-8 max-w-md">
+    <div class="grid grid-cols-1 gap-6">
+        <label class="block">
+            <span class="text-gray-700">{$_('page.appearance.theme')}</span>
+            <select class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50">
+              <option>{$_('page.appearance.auto')}</option>
+              <option>{$_('page.appearance.light')}</option>
+              <option>{$_('page.appearance.dark')}</option>
+            </select>
+          </label>
+    <label class="block">
+        <span class="text-gray-700">{$_('page.appearance.language')}</span>
+        <select class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50" on:change={updateLanguage}>
+          <option value="en">English</option>
+          <option value="zh-TW">漢羅</option>
+          <option value="oan-TW">Lô-má-jī</option>
+        </select>
+      </label>
+      <label class="block">
+        <span class="text-gray-700">{$_('page.appearance.font-size')}</span>
+        <select class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50">
+            <option>{$_('page.appearance.xs')}</option>
+            <option>{$_('page.appearance.sm')}</option>
+            <option>{$_('page.appearance.md')}</option>
+            <option>{$_('page.appearance.lg')}</option>
+            <option>{$_('page.appearance.xl')}</option>
+          </select>
+      </label>
+      <label class="block">
+            <span class="text-gray-700">{$_('page.appearance.font')}</span>
+            <select class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50">
+                <option>Arial</option>
+                <option>Helvetica</option>
+                <option>黑體</option>
+            </select>  
+      </label>
+    </div>
 </div>
-
-<p>Current font size: {fontSize}</p>
-
-<style>
-    span {
-        left: 0%;
-        right: var(--pct);
-    }
-</style>
+<!-- - Theme (auto, dark, light)
+- UI language (english, hanlo, or lomaji)
+- Candidate font size (sliding scale from 12 to 32 would be ok, or something similar)
+- Candidate font (opening system font picker and select one) -->

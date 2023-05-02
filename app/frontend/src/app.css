@@ -1,3 +1,8 @@
+@import url("../node_modules/boxicons/css/boxicons.min.css");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @font-face {
     src: url("/POJChhiuKi-Bold.woff2") format("woff2");
     font-family: "POJ ChhiuKi";
@@ -29,4 +34,5 @@
 body {
     font-family: "POJ ChhiuKi", Inter, Avenir, Helvetica, Arial,
         "Microsoft Yahei", sans-serif;
+    background-color: var(--highlight-bgcolor);
 }

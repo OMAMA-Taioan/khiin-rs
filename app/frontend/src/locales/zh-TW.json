@@ -1,0 +1,40 @@
+{
+    "global": {
+        "title": "起引",
+        "nav": {
+            "home": "首頁",
+            "about": "關於",
+            "appearance": "外觀",
+            "input-settings": "輸入設定",
+            "dictionary": "字典",
+            "donate": "捐錢",
+            "github": "Github"
+        }
+    },
+    "page": {
+        "home": {
+            "title": "起引台語拍字法"
+        },
+        "appearance": {
+            "title": "外觀",
+            "theme": "主題",
+            "auto": "自動",
+            "light": "淺色模式",
+            "dark": "深色模式",
+            "language": "界面語言",
+            "font-size": "候選清單字體大小",
+            "xs": "特小",
+            "sm": "小",
+            "md": "中",
+            "lg": "大",
+            "xl": "特大",
+            "font": "候選清單字體"
+        },
+        "input-settings": {
+            "title": "輸入設定"
+        },
+        "dictionary": {
+            "title": "字典"
+        }
+    }
+}
