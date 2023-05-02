@@ -105,7 +105,7 @@ impl SocketHandler {
     }
 }
 
-struct SockerListener {
+struct SocketListener {
     listener: LocalSocketListener,
     limit_connections: Arc<Semaphore>,
     notify_shutdown: broadcast::Sender<()>,
@@ -114,7 +114,7 @@ struct SockerListener {
     engine_tx: mpsc::Sender<EngineMessage>,
 }
 
-impl SockerListener {
+impl SocketListener {
     async fn run(&mut self) -> Result<()> {
         let timeout = Duration::from_secs(NO_CONNECTION_TIMEOUT);
         let task_count = Arc::new(AtomicUsize::new(0));
@@ -189,7 +189,7 @@ pub async fn run(
         Ok::<(), Error>(())
     });
 
-    let mut server = SockerListener {
+    let mut server = SocketListener {
         listener,
         limit_connections: Arc::new(Semaphore::new(MAX_CONNECTIONS)),
         notify_shutdown,
@@ -209,7 +209,7 @@ pub async fn run(
         }
     }
 
-    let SockerListener {
+    let SocketListener {
         shutdown_complete_tx,
         notify_shutdown,
         engine_tx,
