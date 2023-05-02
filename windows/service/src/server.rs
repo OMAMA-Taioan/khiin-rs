@@ -1,9 +1,7 @@
-use anyhow::anyhow;
 use anyhow::Result;
 use futures::io::BufReader;
 use futures::AsyncWriteExt;
 use interprocess::local_socket::tokio::LocalSocketListener;
-use interprocess::local_socket::tokio::LocalSocketStream;
 use interprocess::local_socket::tokio::OwnedReadHalf;
 use interprocess::local_socket::tokio::OwnedWriteHalf;
 use khiin_protos::command::CommandType;
@@ -16,7 +14,6 @@ use tokio::sync::broadcast;
 use tokio::sync::mpsc;
 use tokio::sync::Semaphore;
 use tokio::time::sleep;
-use tokio::time::timeout;
 use tokio::time::Duration;
 use tokio_util::sync::CancellationToken;
 
