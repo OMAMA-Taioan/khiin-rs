@@ -12,14 +12,17 @@ use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use tokio::sync::broadcast;
 use tokio::sync::mpsc;
+use tokio::sync::oneshot;
 use tokio::sync::Semaphore;
 use tokio::time::sleep;
 use tokio::time::Duration;
 use tokio_util::sync::CancellationToken;
 
-use khiin::Engine;
 use khiin_protos::command::Command;
 use khiin_protos::helpers::parse_u32_delimited_bytes_async;
+
+use crate::engine_handler::EngineHandler;
+use crate::engine_handler::EngineMessage;
 
 const MAX_CONNECTIONS: usize = 1;
 const NO_CONNECTION_TIMEOUT: u64 = 300;
@@ -48,21 +51,17 @@ impl Shutdown {
     }
 }
 
-struct Handler {
+struct SocketHandler {
     reader: BufReader<OwnedReadHalf>,
     writer: OwnedWriteHalf,
     cancel_token: CancellationToken,
     shutdown: Shutdown,
     _shutdown_complete: mpsc::Sender<()>,
+    engine_tx: mpsc::Sender<EngineMessage>,
 }
 
-impl Handler {
+impl SocketHandler {
     async fn run(&mut self) -> Result<()> {
-        let mut dbfile = std::env::current_exe().unwrap();
-        dbfile.set_file_name("khiin.db");
-
-        let mut engine = Engine::new(dbfile.to_str().unwrap()).unwrap();
-
         while !self.shutdown.is_shutdown {
             let maybe_proto = tokio::select! {
                 res = parse_u32_delimited_bytes_async::<Command, _>(
@@ -89,25 +88,32 @@ impl Handler {
             }
 
             let bytes = proto.write_to_bytes()?;
-            let mut bytes = engine.send_command_bytes(&bytes)?;
-            let len = (bytes.len() as u32).to_le_bytes();
-            bytes.splice(..0, len.iter().cloned());
-            self.writer.write_all(&bytes).await?;
+
+            let (tx, rx) = oneshot::channel();
+
+            self.engine_tx.send((bytes, tx)).await?;
+
+            if let Ok(mut bytes) = rx.await {
+                let len = (bytes.len() as u32).to_le_bytes();
+                bytes.splice(..0, len.iter().cloned());
+                self.writer.write_all(&bytes).await?;
+            }
         }
 
         Ok(())
     }
 }
 
-struct Listener {
+struct SockerListener {
     listener: LocalSocketListener,
     limit_connections: Arc<Semaphore>,
     notify_shutdown: broadcast::Sender<()>,
     shutdown_complete_tx: mpsc::Sender<()>,
     cancel_token: CancellationToken,
+    engine_tx: mpsc::Sender<EngineMessage>,
 }
 
-impl Listener {
+impl SockerListener {
     async fn run(&mut self) -> Result<()> {
         let timeout = Duration::from_secs(NO_CONNECTION_TIMEOUT);
         let task_count = Arc::new(AtomicUsize::new(0));
@@ -141,12 +147,13 @@ impl Listener {
 
             let (reader, writer) = conn.into_split();
 
-            let mut handler = Handler {
+            let mut handler = SocketHandler {
                 reader: BufReader::new(reader),
                 writer,
                 cancel_token,
                 shutdown,
                 _shutdown_complete: self.shutdown_complete_tx.clone(),
+                engine_tx: self.engine_tx.clone(),
             };
 
             log::debug!("Spawning thread");
@@ -169,13 +176,21 @@ impl Listener {
 pub async fn run(listener: LocalSocketListener, shutdown: impl Future) {
     let (notify_shutdown, _) = broadcast::channel(1);
     let (shutdown_complete_tx, mut shutdown_complete_rx) = mpsc::channel(1);
+    let (engine_tx, engine_rx) = mpsc::channel(1);
 
-    let mut server = Listener {
+    let mut engine_handler = EngineHandler::new(engine_rx);
+
+    tokio::spawn(async move {
+        engine_handler.run().await;
+    });
+
+    let mut server = SockerListener {
         listener,
         limit_connections: Arc::new(Semaphore::new(MAX_CONNECTIONS)),
         notify_shutdown,
         shutdown_complete_tx,
         cancel_token: CancellationToken::new(),
+        engine_tx,
     };
 
     tokio::select! {
@@ -189,7 +204,7 @@ pub async fn run(listener: LocalSocketListener, shutdown: impl Future) {
         }
     }
 
-    let Listener {
+    let SockerListener {
         shutdown_complete_tx,
         notify_shutdown,
         ..
