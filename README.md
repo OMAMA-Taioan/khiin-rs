@@ -25,9 +25,15 @@ If you are interested in contributing, please open an issue!
 
 ## Installation
 
+TODO
+
 ## Usage
 
+TODO
+
 ## Help
+
+TODO
 
 ---
 
@@ -52,6 +58,7 @@ khiin-rs/
 ├── windows/
 │   ├── ime/        # TSF library
 │   ├── res/        # Windows specific resources
+│   └── service/    # Engine manager service
 └── Makefile.toml   # Cargo build tasks
 ```
 
@@ -155,8 +162,7 @@ tag each `Request` with an id, so that the client can associate the correct
 
 The Windows IME is mostly complete, although it is still missing a few key
 features for release. The app includes the IME itself, as well as a Settings
-application that allows the user to configure the IME, and a basic WiX installer
-(TODO).
+application that allows the user to configure the IME, and a basic WiX installer.
 
 See the [README](windows/README.md) for more details.
 

@@ -7,8 +7,8 @@
         "withGlobalTauri": true
     },
     "package": {
-        "productName": "khiin_windows_app",
-        "version": "0.0.0"
+        "productName": "khiin_app",
+        "version": "0.1.0"
     },
     "tauri": {
         "allowlist": {

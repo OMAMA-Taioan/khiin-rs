@@ -48,13 +48,6 @@
             "pid": "${command:pickMyProcess}"
         },
         {
-            "name": "Win:Settings",
-            "type": "cppvsdbg",
-            "request": "launch",
-            "program": "${workspaceRoot}/target/debug/khiin_settings.exe",
-            "cwd": "${workspaceRoot}"
-        },
-        {
             "name": "Db:Build",
             "type": "python",
             "request": "launch",
@@ -80,20 +73,20 @@
             ]
         },
         {
+            "name": "Mac:KhiinIM",
             "type": "lldb",
             "request": "launch",
             "sourceLanguages": ["swift"],
-            "name": "Debug KhiinIM (swift)",
             "program": "${workspaceFolder:khiin-rs}/swift/.build/debug/KhiinIM",
             "args": [],
             "cwd": "${workspaceFolder:khiin-rs}/swift",
             "preLaunchTask": "swift: Build Debug KhiinIM (swift)"
         },
         {
+            "name": "Mac:KhiinIM (Release)",
             "type": "lldb",
             "request": "launch",
             "sourceLanguages": ["swift"],
-            "name": "Release KhiinIM (swift)",
             "program": "${workspaceFolder:khiin-rs}/swift/.build/release/KhiinIM",
             "args": [],
             "cwd": "${workspaceFolder:khiin-rs}/swift",
@@ -120,10 +113,10 @@
             "preLaunchTask": "swift: Build Release KhiinIM (swift/osx)"
         },
         {
+            "name": "Tauri Dev",
             "type": "lldb",
             "cwd": "${workspaceFolder}/app",
             "request": "launch",
-            "name": "Tauri Dev",
             "cargo": {
                 "args": [
                     "build",

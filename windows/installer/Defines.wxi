@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Include>
+    <?define MfrName = "Khiin PJH" ?>
+    <!-- <?define VersionNumber = "!(bind.FileVersion.File_TipDll64)" ?> -->
+    
+    <?define GUID_ProductId = "82989410-728d-11ec-8c6e-e0d46491b35a" ?>
+    <?define GUID_UpgradeCode = "82989411-728d-11ec-8c6e-e0d46491b35a" ?>
+    <?define GUID_StartMenuShortcut = "82989412-728d-11ec-8c6e-e0d46491b35a" ?>
+    <?define GUID_RegistrySettings = "82989413-728d-11ec-8c6e-e0d46491b35a" ?>
+    <?define GUID_TipDll64 = "82989414-728d-11ec-8c6e-e0d46491b35a" ?>
+    <?define GUID_TipDll32 = "82989415-728d-11ec-8c6e-e0d46491b35a" ?>
+    <?define GUID_ServiceExe = "82989416-728d-11ec-8c6e-e0d46491b35a" ?>
+    <?define GUID_AppExe = "82989417-728d-11ec-8c6e-e0d46491b35a" ?>
+    <?define GUID_Database1 = "82989418-728d-11ec-8c6e-e0d46491b35a" ?>
+    <?define GUID_Database2 = "82989419-728d-11ec-8c6e-e0d46491b35a" ?>
+    <?define GUID_Config1 = "8298941a-728d-11ec-8c6e-e0d46491b35a" ?>
+    <?define GUID_Config2 = "8298941b-728d-11ec-8c6e-e0d46491b35a" ?>
+    <?define GUID_UserDb1 = "8298941c-728d-11ec-8c6e-e0d46491b35a" ?>
+    <?define GUID_UserDb2 = "8298941d-728d-11ec-8c6e-e0d46491b35a" ?>
+    
+    <!-- <?define BuildDir64 = "$(var.targetDir)\build\x64-$(var.tip.Configuration)" ?>
+    <?define BuildDir32 = "$(var.WorkspaceDir)out\build\x86-$(var.tip.Configuration)" ?>
+    <?define ResourceDir = "$(var.SolutionDir)..\resources" ?> -->
+    
+    <!-- <?if $(var.Platform) = x64 ?>
+    <?define Bitness = "(64 bit)" ?>
+    <?define Win64 = "yes" ?>
+    <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
+    <?else ?>
+    <?define Bitness = "(32 bit)" ?>
+    <?define Win64 = "no" ?>
+    <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
+    <?endif ?> -->
+    
+    <!-- <?define Source_TipDll64 = "$(var.BuildDir64)/$(var.tip.TargetFileName)" ?>
+    <?define Source_TipDll32 = "$(var.BuildDir32)/$(var.tip.TargetFileName)" ?>
+    <?define Source_SettingsExe = "$(var.BuildDir64)/$(var.settings.TargetFileName)" ?> -->
+
+    <!-- <?if $(var.Configuration) = Debug ?>
+        <?define Target_TipDll64 = "Khiin PJH (64 bit - Debug).dll" ?>
+        <?define Target_TipDll32 = "Khiin PJH (32 bit - Debug).dll" ?>
+        <?define Target_SettingsExe = "KhiinSettings (Debug).exe" ?>
+    <?else ?>
+        <?define Target_TipDll64 = "Khiin PJH (64 bit).dll" ?>
+        <?define Target_TipDll32 = "Khiin PJH (32 bit).dll" ?>
+        <?define Target_SettingsExe = "KhiinSettings.exe" ?>
+    <?endif ?> -->
+    
+    <!-- <?define Source_Database = "$(var.ResourceDir)/khiin.db" ?>
+    <?define Target_Database = "khiin.db" ?>
+
+    <?define Source_Config = "$(var.ResourceDir)/khiin_config.ini" ?>
+    <?define Target_Config = "khiin_config.ini" ?>
+
+    <?define Source_UserDb = "$(var.ResourceDir)/khiin_userdb.txt" ?>
+    <?define Target_UserDb = "khiin_userdb.txt" ?>
+    
+    <?define Source_LicenseRtf_EN = "$(var.ResourceDir)/license.rtf" ?>
+    <?define Source_UIDialogBmp = "../../design/graphic-01.png" ?>
+    
+    <?define Source_Icon = "../../design/icon.ico" ?> -->
+</Include>

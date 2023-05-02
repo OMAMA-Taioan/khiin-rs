@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <?include Defines.wxi ?>
+    <Fragment>
+        <ComponentGroup Id="CG_DllRegistration" Directory="TARGETDIR">
+            <Component Id="Khiin64CLSIDRegistration" Guid="{1FC29E45-23DB-4593-9FED-B2318A4D8013}" KeyPath="yes" Win64="yes">
+                <RegistryKey Key="Software\Classes\CLSID\{829893F6-728D-11EC-8C6E-E0D46491B35A}" Root="HKLM">
+                    <RegistryValue Value="Khiin Taiwanese IME" Type="string" />
+                </RegistryKey>
+                <RegistryKey Key="Software\Classes\CLSID\{829893F6-728D-11EC-8C6E-E0D46491B35A}\InprocServer32" Root="HKLM">
+                    <RegistryValue Value="[INSTALLDIR64]$(var.Target_TipDll64)" Type="string" />
+                    <RegistryValue Name="ThreadingModel" Value="Apartment" Type="string" />
+                </RegistryKey>
+            </Component>
+            <Component Id="Khiin32CLSIDRegistration" Guid="{4010C93A-83B7-41C4-8BAC-9DFA1A50BBB2}" KeyPath="yes" Win64="no">
+                <RegistryKey Key="Software\Classes\CLSID\{829893F6-728D-11EC-8C6E-E0D46491B35A}" Root="HKLM">
+                    <RegistryValue Value="Khiin Taiwanese IME" Type="string" />
+                </RegistryKey>
+                <RegistryKey Key="Software\Classes\CLSID\{829893F6-728D-11EC-8C6E-E0D46491B35A}\InprocServer32" Root="HKLM">
+                    <RegistryValue Value="[INSTALLDIR32]$(var.Target_TipDll32)" Type="string" />
+                    <RegistryValue Name="ThreadingModel" Value="Apartment" Type="string" />
+                </RegistryKey>
+            </Component>
+            <Component Id="TIPLanguageProfileRegistration" Guid="{6B86BC46-3B52-4183-9A82-08479E21DB8A}" KeyPath="yes" Win64="yes">
+                <RegistryKey Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}" Root="HKLM">
+                    <RegistryValue Name="Enable" Value="1" Type="string" />
+                </RegistryKey>
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Category" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Category\{046B8C80-1647-40F7-9B21-B93B81AABC1B}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Category\{046B8C80-1647-40F7-9B21-B93B81AABC1B}\{829893F6-728D-11EC-8C6E-E0D46491B35A}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Category\{13A016DF-560B-46CD-947A-4C3AF1E0E35D}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Category\{13A016DF-560B-46CD-947A-4C3AF1E0E35D}\{829893F6-728D-11EC-8C6E-E0D46491B35A}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Category\{25504FB4-7BAB-4BC1-9C69-CF81890F0EF5}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Category\{25504FB4-7BAB-4BC1-9C69-CF81890F0EF5}\{829893F6-728D-11EC-8C6E-E0D46491B35A}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Category\{34745C63-B2F0-4784-8B67-5E12C8701A31}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Category\{34745C63-B2F0-4784-8B67-5E12C8701A31}\{829893F6-728D-11EC-8C6E-E0D46491B35A}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Category\{364215D9-75BC-11D7-A6EF-00065B84435C}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Category\{364215D9-75BC-11D7-A6EF-00065B84435C}\{829893F6-728D-11EC-8C6E-E0D46491B35A}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Category\{49D2F9CF-1F5E-11D7-A6D3-00065B84435C}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Category\{49D2F9CF-1F5E-11D7-A6D3-00065B84435C}\{829893F6-728D-11EC-8C6E-E0D46491B35A}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Category\{CCF05DD7-4A87-11D7-A6E2-00065B84435C}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Category\{CCF05DD7-4A87-11D7-A6E2-00065B84435C}\{829893F6-728D-11EC-8C6E-E0D46491B35A}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Item" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Item\{829893F6-728D-11EC-8C6E-E0D46491B35A}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Item\{829893F6-728D-11EC-8C6E-E0D46491B35A}\{046B8C80-1647-40F7-9B21-B93B81AABC1B}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Item\{829893F6-728D-11EC-8C6E-E0D46491B35A}\{13A016DF-560B-46CD-947A-4C3AF1E0E35D}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Item\{829893F6-728D-11EC-8C6E-E0D46491B35A}\{25504FB4-7BAB-4BC1-9C69-CF81890F0EF5}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Item\{829893F6-728D-11EC-8C6E-E0D46491B35A}\{34745C63-B2F0-4784-8B67-5E12C8701A31}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Item\{829893F6-728D-11EC-8C6E-E0D46491B35A}\{364215D9-75BC-11D7-A6EF-00065B84435C}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Item\{829893F6-728D-11EC-8C6E-E0D46491B35A}\{49D2F9CF-1F5E-11D7-A6D3-00065B84435C}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Item\{829893F6-728D-11EC-8C6E-E0D46491B35A}\{CCF05DD7-4A87-11D7-A6E2-00065B84435C}" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\LanguageProfile" Root="HKLM" />
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\LanguageProfile\0x00000404" Root="HKLM" />
+                <RegistryKey Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\LanguageProfile\0x00000404\{829893F7-728D-11EC-8C6E-E0D46491B35A}" Root="HKLM">
+                    <RegistryValue Name="IconFile" Value="[INSTALLDIR64]$(var.Target_TipDll64)" Type="string" />
+                    <RegistryValue Name="IconIndex" Value="0" Type="integer" />
+                    <RegistryValue Name="Display Description" Value="@[INSTALLDIR64]$(var.Target_TipDll64),-101" Type="string" />
+                    <RegistryValue Name="Description" Value="Khiin Taiwanese IME" Type="string" />
+                </RegistryKey>
+            </Component>
+        </ComponentGroup>
+    </Fragment>
+</Wix>

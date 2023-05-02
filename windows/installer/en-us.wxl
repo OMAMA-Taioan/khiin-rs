@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization Culture="en-us" Codepage="65001" xmlns="http://schemas.microsoft.com/wix/2006/localization">
+
+    <String Id="ApplicationName">Khíín PJH</String>
+    <String Id="ManufacturerName">Khíín</String>
+    <String Id="DowngradeErrorMessage">A newer version of Khíín PJH is already installed.</String>
+
+    <String Id="WelcomeEulaDlgTitle" Overridable="yes">Install [ProductName]</String>
+    
+    <!-- Firewall extension fix -->
+    <String Id="msierrFirewallCannotConnect" Overridable="yes">Cannot connect to Windows Firewall.  ([2]   [3]   [4]   [5])</String>
+    <String Id="WixSchedFirewallExceptionsInstall" Overridable="yes">Configuring Windows Firewall</String>
+    <String Id="WixSchedFirewallExceptionsUninstall" Overridable="yes">Configuring Windows Firewall</String>
+    <String Id="WixRollbackFirewallExceptionsInstall" Overridable="yes">Rolling back Windows Firewall configuration</String>
+    <String Id="WixExecFirewallExceptionsInstall" Overridable="yes">Installing Windows Firewall configuration</String>
+    <String Id="WixRollbackFirewallExceptionsUninstall" Overridable="yes">Rolling back Windows Firewall configuration</String>
+    <String Id="WixExecFirewallExceptionsUninstall" Overridable="yes">Uninstalling Windows Firewall configuration</String>
+</WixLocalization>

@@ -6,8 +6,9 @@ all Windows methods and COM object implementation/handling.
 -   `windows/ime`: a Windows Text Services Framework (TSF) DLL application that
     provides the actual input method implementation.
 -   `windows/service`: an executable application that manages the Khiin engine
-    and IME<>Engine communication
--   `windows/installer`: TODO
+    and IME↔Engine communication.
+-   `windows/installer`: a WiX installer that installs all required files and
+    registers the input method with Windows.
 
 ## Development
 
