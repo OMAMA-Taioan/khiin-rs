@@ -1,0 +1,40 @@
+{
+    "global": {
+        "title": "Khíín",
+        "nav": {
+            "home": "Thâu-ia̍h",
+            "about": "Kóan-ûi",
+            "appearance": "Gōa-koan",
+            "input-settings": "Su-ji̍p siat-tēng",
+            "dictionary": "Jī-tián",
+            "donate": "Kià-hù",
+            "github": "Github"
+        }
+    },
+    "page": {
+        "home": {
+            "title": "Khí-ín Tâi-gí phah jī hoat"
+        },
+        "appearance": {
+            "title": "Gōa-koan",
+            "theme": "Chú-tê",
+            "auto": "Chū-tōng",
+            "light": "Chhián-sek",
+            "dark": "Chhim-sek",
+            "language": "Kài-bīn gí-giân",
+            "font-size": "Hāu-soán chheng-toaⁿ jī-thé tōa-sè",
+            "xs": "Te̍k-sè",
+            "sm": "Sè",
+            "md": "Tiong",
+            "lg": "Tōa",
+            "xl": "Te̍k-tōa",
+            "font": "Hāu-soán chheng-toaⁿ jī-thé"
+        },
+        "input-settings": {
+            "title": "Su-ji̍p siat-tēng"
+        },
+        "dictionary": {
+            "title": "Jī-tián"
+        }
+    }
+}
