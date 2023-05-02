@@ -40,6 +40,7 @@
       <label class="block">
             <span class="text-gray-700">{$_('page.appearance.font')}</span>
             <select class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50">
+                <!-- TODO: Local these fonts -->
                 <option>Arial</option>
                 <option>Helvetica</option>
                 <option>黑體</option>
@@ -47,7 +48,3 @@
       </label>
     </div>
 </div>
-<!-- - Theme (auto, dark, light)
-- UI language (english, hanlo, or lomaji)
-- Candidate font size (sliding scale from 12 to 32 would be ok, or something similar)
-- Candidate font (opening system font picker and select one) -->

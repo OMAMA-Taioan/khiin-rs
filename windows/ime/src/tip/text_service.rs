@@ -46,7 +46,7 @@ use khiin_protos::config::AppConfig;
 use khiin_protos::config::BoolValue;
 
 use crate::dll::DllModule;
-use crate::engine::AsyncEngine;
+use crate::engine::EngineCoordinator;
 use crate::engine::MessageHandler;
 use crate::fail;
 use crate::locales::set_locale;
@@ -131,7 +131,7 @@ pub struct TextService {
     pub render_factory: Arc<RenderFactory>,
 
     // Data
-    async_engine: RefCell<Option<AsyncEngine>>,
+    engine_coordinator: RefCell<Option<EngineCoordinator>>,
     message_handler: RefCell<Option<HWND>>,
     context_cache: Rc<RefCell<HashMap<u32, ITfContext>>>,
 }
@@ -186,7 +186,7 @@ impl TextService {
             composition_mgr: Arc::new(RwLock::new(CompositionMgr::new()?)),
             render_factory: Arc::new(RenderFactory::new()?),
             message_handler: RefCell::new(None),
-            async_engine: RefCell::new(None),
+            engine_coordinator: RefCell::new(None),
             context_cache: Rc::new(RefCell::new(HashMap::new())),
         })
     }
@@ -307,9 +307,10 @@ impl TextService {
         let id = command.request.id;
         self.context_cache.borrow_mut().insert(id, context.clone());
 
-        if let Some(x) = self.async_engine.borrow().as_ref() {
-            let tx = x.sender();
-            tx.send(command).map_err(|_| fail!())
+        if let Some(x) = self.engine_coordinator.borrow().as_ref() {
+            x.send_command(command).map_err(|_| fail!())
+            // let tx = x.sender();
+            // tx.send(command).map_err(|_| fail!())
         } else {
             Ok(())
         }
@@ -402,9 +403,9 @@ impl TextService {
         let handler = Arc::new(MessageHandler::new(self.this()));
         let handle =
             MessageHandler::create(handler, DllModule::global().module)?;
-        let async_engine = AsyncEngine::run(dbfile, handle)?;
+        let engine = EngineCoordinator::new(handle)?;
         self.message_handler.replace(Some(handle));
-        self.async_engine.replace(Some(async_engine));
+        self.engine_coordinator.replace(Some(engine));
         Ok(())
     }
 
@@ -414,8 +415,8 @@ impl TextService {
             DestroyWindow(handle);
             MessageHandler::unregister_class(DllModule::global().module);
         }
-        let async_engine = self.async_engine.replace(None);
-        async_engine.unwrap().shutdown()?;
+        let engine = self.engine_coordinator.replace(None);
+        engine.unwrap().shutdown()?;
         Ok(())
     }
 

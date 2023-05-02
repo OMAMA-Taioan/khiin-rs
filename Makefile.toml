@@ -28,7 +28,7 @@ dependencies = [
 
     # Windows
     "build-win32-tip",
-    "build-win32-settings",
+    "build-win32-service",
 
     # Swift (Shared)
     "build-swift-bridge",
@@ -51,16 +51,20 @@ dependencies = ["copy-db-to-target"]
 #     Windows                         #
 #=====================================#
 
+[tasks.build-win32]
+condition = { platforms = ["windows"] }
+dependencies = ["build-win32-tip", "build-win32-service"]
+
 [tasks.build-win32-tip]
 condition = { platforms = ["windows"] }
 command = "cargo"
 args = ["build", "--manifest-path=windows/ime/Cargo.toml"]
 dependencies = ["copy-db-to-target"]
 
-[tasks.build-win32-settings]
+[tasks.build-win32-service]
 condition = { platforms = ["windows"] }
 command = "cargo"
-args = ["build", "--manifest-path=windows/settings/Cargo.toml"]
+args = ["build", "--manifest-path=windows/service/Cargo.toml"]
 
 #=====================================#
 #     macOS & iOS                     #

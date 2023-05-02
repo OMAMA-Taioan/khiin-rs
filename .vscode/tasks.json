@@ -4,13 +4,13 @@
         {
             "type": "cargo",
             "command": "make",
-            "args": ["build-all"],
+            "args": ["build-win32"],
             "problemMatcher": ["$rustc"],
             "group": {
                 "kind": "build",
                 "isDefault": false
             },
-            "label": "cargo:build:windows:ime"
+            "label": "build-win32"
         },
         {
             "type": "cargo",

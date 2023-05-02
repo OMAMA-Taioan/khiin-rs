@@ -10,8 +10,9 @@ build = "build.rs"
 crate-type = ["lib"]
 
 [dependencies]
-protobuf = "3.2.0"
+protobuf.workspace = true
+futures.workspace = true
 
 [build-dependencies]
-protobuf-codegen = "3.2.0"
-protoc-bin-vendored = "3.0.0"
+protobuf-codegen.workspace = true
+protoc-bin-vendored.workspace = true
