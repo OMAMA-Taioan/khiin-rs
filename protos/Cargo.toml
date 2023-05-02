@@ -11,6 +11,7 @@ crate-type = ["lib"]
 
 [dependencies]
 protobuf = "3.2.0"
+futures = "0.3.28"
 
 [build-dependencies]
 protobuf-codegen = "3.2.0"

@@ -44,7 +44,7 @@ fn update_settings(
     if let Ok(settings_update) = serde_json::from_str::<AppSettings>(settings) {
         if let Ok(mut writer) = state.store.write() {
             let prev_settings = writer.settings.clone();
-            writer.settings = settings_update.merge(prev_settings.clone());
+            // writer.settings = settings_update.merge(prev_settings.clone());
             if let Ok(_) = writer.save_to_file() {
                 emit_settings(&writer.settings, window);
             } else {

@@ -23,8 +23,16 @@
             "name": "Win:Notepad",
             "type": "cppvsdbg",
             "request": "launch",
-            "preLaunchTask": "cargo:build:windows:ime",
+            "preLaunchTask": "build-win32",
             "program": "C:\\Windows\\System32\\notepad.exe",
+            "cwd": "${workspaceRoot}"
+        },
+        {
+            "name": "Win:Service",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "preLaunchTask": "build-win32",
+            "program": "${workspaceRoot}/target/debug/khiin_service.exe",
             "cwd": "${workspaceRoot}"
         },
         {
@@ -123,6 +131,13 @@
                     "--no-default-features"
                 ]
             },
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Notepad/Service",
+            "configurations": ["Win:Notepad", "Win:Service"],
+            "stopAll": true
         }
     ]
 }

@@ -8,5 +8,6 @@ members = [
     "protos",
     "swift/bridge",
     "windows/ime",
+    "windows/service",
     "windows/settings"
 ]

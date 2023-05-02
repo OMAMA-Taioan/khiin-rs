@@ -21,6 +21,9 @@ rand = "0.8.5"
 stdext = "0.3.1"
 khiin = { path = "../../khiin" }
 khiin_protos = { path = "../../protos" }
+tokio = { version = "1.28.0", features = ["full"] }
+futures = "0.3.28"
+interprocess = { version = "1.2.1", features = ["tokio_support"] }
 
 [dependencies.windows]
 version = "0.48.0"
