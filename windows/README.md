@@ -3,11 +3,11 @@
 The Windows applications make heavy use of Microsoft's `windows-rs` crate for
 all Windows methods and COM object implementation/handling.
 
-- `windows/ime`: a Windows Text Services Framework (TSF) DLL application that
-  provides the actual input method implementation.
-- `windows/settings`: a basic Settings application (using Win32 PropSheets) that
-  allows the user to configure the settings for the IME.
-- `windows/installer`: TODO
+-   `windows/ime`: a Windows Text Services Framework (TSF) DLL application that
+    provides the actual input method implementation.
+-   `windows/service`: an executable application that manages the Khiin engine
+    and IME<>Engine communication
+-   `windows/installer`: TODO
 
 ## Development
 
@@ -88,13 +88,13 @@ error-prone, writing a TSF library is still no easy task. We referred to at
 least half a dozen different open source TSF IMEs throughout development, since
 Microsoft documentation is imprecise or out of date in many areas.
 
-- [mozc/tip](https://chromium.googlesource.com/external/mozc/+/master/src/win32/tip)
-- [microsoft/Windows-classic-samples](https://github.com/microsoft/Windows-classic-samples/tree/main/Samples/Win7Samples/winui/input/tsf/textservice)
-- [dinhngtu/VietType](https://github.com/dinhngtu/VietType)
-- [chewing/windows-chewing-tsf](https://github.com/chewing/windows-chewing-tsf)
-- [EasyIME/libIME2](https://github.com/EasyIME/libIME2)
-- [rime/weasel](https://github.com/rime/weasel/)
-- [keymanapp/keyman](https://github.com/keymanapp/keyman/tree/master/windows/src/engine/kmtip)
+-   [mozc/tip](https://chromium.googlesource.com/external/mozc/+/master/src/win32/tip)
+-   [microsoft/Windows-classic-samples](https://github.com/microsoft/Windows-classic-samples/tree/main/Samples/Win7Samples/winui/input/tsf/textservice)
+-   [dinhngtu/VietType](https://github.com/dinhngtu/VietType)
+-   [chewing/windows-chewing-tsf](https://github.com/chewing/windows-chewing-tsf)
+-   [EasyIME/libIME2](https://github.com/EasyIME/libIME2)
+-   [rime/weasel](https://github.com/rime/weasel/)
+-   [keymanapp/keyman](https://github.com/keymanapp/keyman/tree/master/windows/src/engine/kmtip)
 
 Hopefully this application will also serve as a good reference point for others
 who wish to build Windows TSF IMEs.
@@ -104,23 +104,23 @@ Essentially, we implement the required COM interfaces to be able to receive
 keystrokes from the operating system and then put our resulting text into the
 currently focused text input. Sounds simple, but there is a lot going on.
 
-- `TextService`: implements the main TSF interface `ITfTextInputProcessorEx`,
-  among others. Also the main interface used to pass messages between different
-  parts of the program.
-- `EngineCoordinator`: connects to the actual processing `Engine` from the
-  `khiin` crate.
-- `CompositionMgr`: manipulates the in-line "pre-edit" text shown at the caret
-  position in an application, including decorations like underlines for
-  different states of input
-- `CandidateListUI`: prepares data for and controls display of the
-  `CandidateWindow`
-- `KeyEventSink`: collect key events from the system, including regular keys and
-  "preserved keys" (a.k.a. keyboard shortcuts registered with TSF)
-- `EditSession`: obtains the `TfEditCookie` (session token). A new session token
-  is required for every interaction with the composition. (Namely: setting,
-  clearing, or measuring text, etc.)
-- `KhiinClassFactory`: creates a `TextService` when the DLL is initialized by
-  TSF
+-   `TextService`: implements the main TSF interface `ITfTextInputProcessorEx`,
+    among others. Also the main interface used to pass messages between different
+    parts of the program.
+-   `EngineCoordinator`: connects to the actual processing `Engine` from the
+    `khiin` crate.
+-   `CompositionMgr`: manipulates the in-line "pre-edit" text shown at the caret
+    position in an application, including decorations like underlines for
+    different states of input
+-   `CandidateListUI`: prepares data for and controls display of the
+    `CandidateWindow`
+-   `KeyEventSink`: collect key events from the system, including regular keys and
+    "preserved keys" (a.k.a. keyboard shortcuts registered with TSF)
+-   `EditSession`: obtains the `TfEditCookie` (session token). A new session token
+    is required for every interaction with the composition. (Namely: setting,
+    clearing, or measuring text, etc.)
+-   `KhiinClassFactory`: creates a `TextService` when the DLL is initialized by
+    TSF
 
 There are many other classes, most of which provide some minor but required
 function, some of which don't seem to be required but are found in most example
@@ -134,17 +134,12 @@ develop Windows 7/8 support, feel free to work on it but it might be a big
 project for a small (and shrinking) user base. The Windows app includes a 32-bit
 DLL only to support 32-bit applications on 64-bit Windows 10.
 
-### Settings App
+### Service Executable
 
-The settings app is a basic [property
-sheet](https://docs.microsoft.com/en-us/windows/win32/controls/property-sheets)
-application, with a few dialog boxes and standard Win32 controls.
-
-Most settings are saved in `khiin_config.ini`, which is then read by the DLL to
-load the configuration options.
-
-Some settings are saved in the registry, but we will migrate these so that
-everything is saved in the `ini`.
+The service executable (`khiin_service.exe`) runs in the background when the IME
+starts up. The IME and the service communicate through named pipes using
+[`interprocess`](https://docs.rs/interprocess/latest/interprocess/). The service
+will automatically shut down after a few minutes of inactivity.
 
 ### WiX Installer
 
