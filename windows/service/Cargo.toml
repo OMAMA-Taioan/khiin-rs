@@ -6,13 +6,13 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.71"
-futures = "0.3.28"
-interprocess = { version = "1.2.1", features = ["tokio_support"] }
-tokio = { version = "1.28.0", features = ["full"] }
-protobuf = "3.2.0"
-khiin = { path = "../../khiin" }
-khiin_protos = { path = "../../protos" }
-log = "0.4.17"
-win_dbg_logger = "0.1.0"
-tokio-util = "0.7.8"
+anyhow.workspace = true
+futures.workspace = true
+interprocess = { workspace = true, features = ["tokio_support"] }
+tokio = { workspace = true, features = ["full"] }
+protobuf.workspace = true
+khiin.workspace = true
+khiin_protos.workspace = true
+log.workspace = true
+win_dbg_logger.workspace = true
+tokio-util.workspace = true

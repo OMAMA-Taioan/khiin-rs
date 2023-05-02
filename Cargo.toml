@@ -10,3 +10,27 @@ members = [
     "windows/ime",
     "windows/service",
 ]
+
+[workspace.dependencies]
+anyhow = "1.0"
+env_logger = "0.10.0"
+futures = "0.3.28"
+interprocess = "1.2.1"
+log = "0.4.17"
+num = "0.4.0"
+once_cell = "1.17.1"
+protobuf = "3.2.0"
+protobuf-codegen = "3.2.0"
+protoc-bin-vendored = "3.0.0"
+rand = "0.8.5"
+regex = "1.7.3"
+rusqlite = "0.29.0"
+serde = "1.0"
+tokio = "1.28.0"
+tokio-util = "0.7.8"
+toml = "0.7.3"
+win_dbg_logger = "0.1.0"
+
+khiin = { path = "./khiin" }
+khiin_protos = { path = "./protos" }
+khiin_settings = { path = './app/settings' }

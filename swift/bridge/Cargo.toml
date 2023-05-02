@@ -7,8 +7,8 @@ edition = "2021"
 crate-type = ["staticlib"]
 
 [dependencies]
-khiin = { path = "../../khiin" }
-khiin_protos = { path = "../../protos" }
+khiin.workspace = true
+khiin_protos.workspace = true
 # Using github until next version is released
 swift-bridge = { git = "https://github.com/chinedufn/swift-bridge.git", branch = "master" }
 
