@@ -17,7 +17,7 @@ db_file=../../resources/khiin.db
 
 # Prepare icon assets
 rm -rf $icon_dir
-mkdir $icon_dir
+mkdir -p $icon_dir
 icon_src=$assets_dir/main_icon_512.png
 sips -z 16 16     $icon_src --out $icon_dir/icon_16x16.png
 sips -z 32 32     $icon_src --out $icon_dir/icon_16x16@2x.png
