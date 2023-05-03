@@ -31,7 +31,22 @@
             "font": "Candidate Font"
         },
         "input-settings": {
-            "title": "Input Settings"
+            "title": "Input Settings",
+            "default-input-mode": "Default Input Mode",
+            "convert-double-hyphen": "Convert double hyphen to khin dot",
+            "convert-c-to-ch": "Convert C to Ch",
+            "auto-capitalization": "Auto-capitalization",
+            "input-mode": "Input Mode",
+            "tone-mode": "Tone Mode",
+            "temporarily-disable": "Temporarily disable",
+            "switch-mode": "Switch mode",
+            "auto": "Auto",
+            "numeric": "Numeric",
+            "telex": "Telex",
+            "shift": "Shift",
+            "ctrl-space": "Ctrl+Space",
+            "alt-backtick": "Alt+Backtick",
+            "alt-space": "Alt+Space"
         },
         "dictionary": {
             "title": "Dictionary"

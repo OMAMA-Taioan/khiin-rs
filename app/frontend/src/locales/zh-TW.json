@@ -30,8 +30,23 @@
             "xl": "特大",
             "font": "候選清單字體"
         },
-        "input-settings": {
-            "title": "輸入設定"
+        "input": {
+            "title": "輸入設定",
+            "default-input-mode": "預設輸入模式",
+            "convert-double-hyphen": "將雙破折號換成輕聲符號",
+            "convert-c-to-ch": "將C換成Ch",
+            "auto-capitalization": "自動大寫",
+            "input-mode": "輸入模式",
+            "tone-mode": "聲調模式",
+            "temporarily-disable": "暫時停用",
+            "switch-mode": "切換模式",
+            "auto": "自動",
+            "numeric": "數字",
+            "telex": "Telex",
+            "shift": "Shift",
+            "ctrl-space": "Ctrl+Space",
+            "alt-backtick": "Alt+反引號",
+            "alt-space": "Alt+Space"
         },
         "dictionary": {
             "title": "字典"
