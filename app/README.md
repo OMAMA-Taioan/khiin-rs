@@ -8,16 +8,25 @@ configure the IME and set up their custom dictionary.
 This app is built with [Tauri](https://tauri.app/) and
 [Svelte](https://svelte.dev/).
 
-Prerequisites: `tauri-cli`, `node` and `npm`
+Prerequisites: `node` and `npm`
 
 Quick start:
 
 ```bash
-cargo install --force tauri-cli
-cargo tauri icon app/frontend/static/app-icon.png
-cargo tauri dev
+cargo make tauri-dev
 ```
 
+Note: the first build can take quite a while if you don't have `tauri-cli`
+already and need to build it.
+
+Or if you want to do it step by step:
+
+```bash
+cargo install --force tauri-cli
+cargo tauri icon app/frontend/static/app-icon.png
+(cd app/frontend && npm i)
+cargo tauri dev
+```
 
 For debugging, run `npm run dev` in a separate terminal, and then launch the
 `Tauri Dev` launch configuration from VSCode.

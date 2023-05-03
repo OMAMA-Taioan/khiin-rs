@@ -48,6 +48,33 @@ args = ["build", "--manifest-path=cli/Cargo.toml"]
 dependencies = ["copy-db-to-target"]
 
 #=====================================#
+#     Tauri App                       #
+#=====================================#
+
+[tasks.npm-install]
+cwd = "app/frontend"
+command = "npm"
+args = ["install"]
+
+[tasks.install-tauri-cli]
+install_script = "cargo install tauri-cli"
+
+[tasks.tauri-icon]
+dependencies = ["install-tauri-cli"]
+condition = { files_modified = { input = [
+    "app/frontend/static/app-icon.png",
+], output = [
+    "app/src-tauri/icons/*",
+] } }
+command = "cargo"
+args = ["tauri", "icon", "app/frontend/static/app-icon.png"]
+
+[tasks.tauri-dev]
+dependencies = ["npm-install", "tauri-icon", "install-tauri-cli"]
+command = "cargo"
+args = ["tauri", "dev"]
+
+#=====================================#
 #     Windows                         #
 #=====================================#
 
