@@ -24,15 +24,8 @@
     font-weight: 400;
 }
 
-:root {
-    --text-color: #0f0f0f;
-    --surface-bgcolor: #fafafa;
-    --highlight-bgcolor: #eaeaea;
-    --primary: #00d9c0;
-}
-
 body {
     font-family: "POJ ChhiuKi", Inter, Avenir, Helvetica, Arial,
         "Microsoft Yahei", sans-serif;
-    background-color: var(--highlight-bgcolor);
+    background-color: #ffffff;
 }

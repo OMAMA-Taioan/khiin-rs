@@ -1,0 +1,55 @@
+{
+    "global": {
+        "title": "起引",
+        "nav": {
+            "home": "頭頁",
+            "about": "關係",
+            "appearance": "外皮",
+            "input-settings": "打字設定",
+            "dictionary": "字典",
+            "donate": "Donate",
+            "github": "GitHub"
+        }
+    },
+    "page": {
+        "home": {
+            "title": "起引台語打字法"
+        },
+        "appearance": {
+            "title": "外皮",
+            "theme": "色水",
+            "auto": "自動",
+            "light": "光色",
+            "dark": "暗色",
+            "language": "界面語言",
+            "font-size": "揀字寸尺",
+            "xs": "卡細",
+            "sm": "細",
+            "md": "中",
+            "lg": "大",
+            "xl": "卡大",
+            "font": "揀字字骨"
+        },
+        "input": {
+            "title": "打字設定",
+            "default-input-mode": "打字模式",
+            "convert-double-hyphen": "双連字符換輕点",
+            "convert-c-to-ch": "c 換 ch",
+            "auto-capitalization": "自動大寫",
+            "input-mode": "打字模式",
+            "tone-mode": "打調模式",
+            "temporarily-disable": "暫時停用",
+            "switch-mode": "切換模式",
+            "auto": "自動",
+            "numeric": "數字",
+            "telex": "Telex",
+            "shift": "Shift",
+            "ctrl-space": "Ctrl + Space",
+            "alt-backtick": "Alt + Backtick",
+            "alt-space": "Alt + Space"
+        },
+        "dictionary": {
+            "title": "字典"
+        }
+    }
+}

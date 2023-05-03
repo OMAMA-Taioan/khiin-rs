@@ -1,13 +1,13 @@
-import { init, addMessages } from 'svelte-i18n';
-import en from '../locales/en.json';
-import zh_TW from '../locales/zh-TW.json';
-import oan_TW from '../locales/oan-TW.json';
+import { init, addMessages } from "svelte-i18n";
+import en from "../locales/en.json";
+import oan_Han from "../locales/oan_Han.json";
+import oan_Latn from "../locales/oan_Latn.json";
 
-addMessages('en', en);
-addMessages('zh-TW', zh_TW);
-addMessages('oan-TW', oan_TW);
+addMessages("en", en);
+addMessages("oan_Han", oan_Han);
+addMessages("oan_Latn", oan_Latn);
 
 init({
-  fallbackLocale: 'en',
-  initialLocale: 'zh-TW',
+    fallbackLocale: "en",
+    initialLocale: "oan_Han",
 });

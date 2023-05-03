@@ -23,8 +23,8 @@
               <span class="text-gray-700">{$_('page.appearance.language')}</span>
               <select class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50" on:change={updateLanguage}>
                 <option value="en">English</option>
-                <option value="zh-TW">漢羅</option>
-                <option value="oan-TW">Lô-má-jī</option>
+                <option value="oan_Han">漢羅</option>
+                <option value="oan_Latn">Lômájī</option>
               </select>
             </label>
             <label class="block">
