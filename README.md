@@ -125,24 +125,7 @@ cross-platform app built in Rust & TypeScript. The goal here is to provide a
 consistent UI for managing settings on all desktop platforms, and to provide
 instructions for using the IME or other useful materials.
 
-To work on the app, you will need to install some cargo plugins. The easiest way
-to do that is to make a dummy tauri app in another folder, as the tauri plugin
-will walk you through installing the required components.
-
-```bash
-cargo install create-tauri-app
-```
-
-When complete, you should have `cargo-tauri`, `wasm-bindgen`, and `wasm-pack`
-installed. You also need `npm` and `node` (using node 18 LTS). Then you can run
-the Khíín app for development with:
-
-```bash
-cargo tauri dev
-```
-
-For debugging, run `npm run dev` in a separate terminal, and then launch the
-`Tauri Dev` launch configuration from VSCode.
+See the [README](app/README.md) for more details.
 
 ## Protobuf
 
