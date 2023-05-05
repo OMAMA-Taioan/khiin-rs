@@ -1,10 +1,9 @@
 use anyhow::Result;
 
-use crate::config::InputType;
-
-use crate::data::Database;
+use crate::config::ToneMode;
 use crate::data::Segmenter;
 use crate::data::Trie;
+use crate::db::Database;
 
 pub(crate) struct Dictionary {
     word_trie: Trie,
@@ -12,9 +11,9 @@ pub(crate) struct Dictionary {
 }
 
 impl Dictionary {
-    pub fn new(db: &Database, input_type: InputType) -> Result<Self> {
+    pub fn new(db: &Database, tone_mode: ToneMode) -> Result<Self> {
         log::debug!("Initializing Dictionary");
-        let inputs = db.all_words_by_freq(input_type)?;
+        let inputs = db.all_words_by_freq(tone_mode.into())?;
         log::debug!("Database query successful");
 
         let word_trie = Trie::new(&inputs)?;
@@ -28,7 +27,7 @@ impl Dictionary {
         })
     }
 
-    pub fn find_words_by_prefix(&self, query: &str) -> Vec<u32> {
+    pub fn find_words_by_prefix(&self, query: &str) -> Vec<i64> {
         self.word_trie.find_words_by_prefix(query)
     }
 
@@ -65,23 +64,24 @@ impl Dictionary {
 
 #[cfg(test)]
 mod tests {
+
     use crate::tests::get_db;
 
     use super::*;
 
     fn setup() -> Dictionary {
         let db = get_db();
-        Dictionary::new(&db, InputType::Numeric).unwrap()
+        Dictionary::new(&db, ToneMode::Numeric).unwrap()
     }
 
     #[test_log::test]
     fn it_loads() {
         let db = get_db();
-        let dict = Dictionary::new(&db, InputType::Numeric);
+        let dict = Dictionary::new(&db, ToneMode::Numeric);
         assert!(dict.is_ok());
     }
 
-    #[test]
+    #[test_log::test]
     fn it_finds_words_by_prefix() {
         let dict = setup();
         let ids = dict.find_words_by_prefix("goa");
@@ -120,7 +120,7 @@ mod tests {
             "gou tui tiunn kin ku ka siok the kiong e chuliau chite siaulianke \
              si sim chong ba pih lai koe sin e i e sithe kui bin long si \
              baksai kap phinn kou che bengbeng si ti koe sin chincheng siutioh \
-             chin toa e thong khou");
+             chin toa e thongkhou");
 
         // Best time: 1.75 seconds
         // for _ in 0..1000 {

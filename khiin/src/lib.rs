@@ -1,6 +1,7 @@
 // temporary
 #![allow(unused)]
 
+pub mod db;
 pub mod engine;
 
 pub use crate::engine::Engine;

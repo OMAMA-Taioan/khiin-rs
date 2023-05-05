@@ -3,7 +3,7 @@ use anyhow::Result;
 use regex::Regex;
 
 use crate::buffer::BufferElement;
-use crate::data::models::Conversion;
+use crate::db::models::KeyConversion;
 use crate::input::Syllable;
 
 const SYL_SEPS: [char; 2] = ['-', ' '];
@@ -36,7 +36,7 @@ pub(crate) enum Khiin {
 #[derive(Debug, Clone)]
 pub(crate) struct KhiinElem {
     value: Vec<Khiin>,
-    candidate: Option<Conversion>,
+    candidate: Option<KeyConversion>,
     converted: bool,
     selected: bool,
 }
@@ -77,7 +77,10 @@ impl KhiinElem {
         syls
     }
 
-    pub fn from_conversion(raw_input: &str, conv: &Conversion) -> Result<Self> {
+    pub fn from_conversion(
+        raw_input: &str,
+        conv: &KeyConversion,
+    ) -> Result<Self> {
         let mut elems = Vec::new();
         let target = conv.input.as_str();
         let mut raw = raw_input;
@@ -245,7 +248,7 @@ impl BufferElement for KhiinElem {
         todo!()
     }
 
-    fn candidate(&self) -> Option<&Conversion> {
+    fn candidate(&self) -> Option<&KeyConversion> {
         self.candidate.as_ref()
     }
 

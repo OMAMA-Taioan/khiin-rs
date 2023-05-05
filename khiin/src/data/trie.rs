@@ -4,36 +4,38 @@ use anyhow::Result;
 use qp_trie::wrapper::BString;
 use qp_trie::Trie as QpTrie;
 
-use crate::data::models::KeySequence;
+use crate::db::models::KeySequence;
+
+type WordTrie = QpTrie<BString, Vec<i64>>;
 
 pub(crate) struct Trie {
-    qp_trie: QpTrie<BString, Vec<u32>>,
+    qp_trie: WordTrie,
 }
 
 impl Trie {
     pub fn new(inputs: &Vec<KeySequence>) -> Result<Self> {
-        let mut qp_trie: QpTrie<BString, Vec<u32>> = QpTrie::new();
+        let mut qp_trie: WordTrie = QpTrie::new();
 
         for word in inputs.iter() {
-            if let Some(ids) = qp_trie.get_mut_str(&word.key_sequence) {
-                ids.push(word.id);
+            if let Some(ids) = qp_trie.get_mut_str(&word.keys) {
+                ids.push(word.input_id);
             } else {
-                let v = vec![word.id];
-                qp_trie.insert_str(&word.key_sequence, v);
+                let v = vec![word.input_id];
+                qp_trie.insert_str(&word.keys, v);
             }
         }
 
         Ok(Self { qp_trie })
     }
 
-    pub fn find_words_by_prefix(&self, query: &str) -> Vec<u32> {
+    pub fn find_words_by_prefix(&self, query: &str) -> Vec<i64> {
         let mut result = HashSet::new();
         for (_, vec) in self.qp_trie.iter_prefix_str(query) {
             for v in vec {
                 result.insert(v.clone());
             }
         }
-        let mut v: Vec<u32> = result.iter().map(|&ea| ea).collect();
+        let mut v: Vec<i64> = result.iter().map(|&ea| ea).collect();
         v.sort_unstable();
         v
     }
@@ -51,7 +53,7 @@ trait Walker<'a> {
     fn get_keys_str(&self, query: &'a str) -> Vec<&'a str>;
 }
 
-impl<'a> Walker<'a> for QpTrie<BString, Vec<u32>> {
+impl<'a> Walker<'a> for WordTrie {
     fn get_keys_str(&self, query: &'a str) -> Vec<&'a str> {
         let mut found: Vec<&str> = Vec::new();
 
@@ -74,6 +76,8 @@ impl<'a> Walker<'a> for QpTrie<BString, Vec<u32>> {
 
 #[cfg(test)]
 mod tests {
+    use crate::db::models::InputType;
+
     use super::*;
 
     fn get_trie(words: Vec<&str>) -> Trie {
@@ -81,8 +85,9 @@ mod tests {
             .into_iter()
             .enumerate()
             .map(|(i, w)| KeySequence {
-                id: (i + 1) as u32,
-                key_sequence: w.to_string(),
+                input_id: (i + 1) as i64,
+                keys: w.to_string(),
+                input_type: InputType::Numeric,
                 n_syls: 1,
                 p: 0.0,
             })

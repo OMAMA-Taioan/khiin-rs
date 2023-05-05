@@ -1,10 +1,11 @@
 use std::ops::Deref;
 use std::ops::DerefMut;
 
+use khiin_ji::IsHanji;
+
 use crate::buffer::BufferElement;
 use crate::buffer::BufferElementEnum;
 use crate::buffer::Spacer;
-use crate::input::unicode::IsHanji;
 
 #[derive(Default, Debug, Clone)]
 pub(crate) struct Buffer {

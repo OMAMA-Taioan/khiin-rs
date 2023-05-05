@@ -10,18 +10,27 @@ crate-type = ["lib"]
 
 [dependencies]
 anyhow.workspace = true
-bit-vec = "0.6.3"
-enum_dispatch = "0.3.11"
+bit-vec.workspace = true
+csv.workspace = true
+enum_dispatch.workspace = true
+itertools.workspace = true
+khiin_data.workspace = true
+khiin_ji.workspace = true
 khiin_protos.workspace = true
-lazy-regex = "2.5.0"
 log.workspace = true
 once_cell.workspace = true
 protobuf.workspace = true
-qp-trie = "0.8.1"
+qp-trie.workspace = true
 regex.workspace = true
 rusqlite = { workspace = true, features = [ "backup", "bundled" ] }
-unicode-normalization = "0.1.22"
+rusqlite_migration.workspace = true
+serde = { workspace = true, features = ["derive"] }
+unicode-normalization.workspace = true
 
 [dev-dependencies]
 env_logger.workspace = true
-test-log = "0.2.11"
+test-log.workspace = true
+
+[features]
+default = []
+db_cli = []

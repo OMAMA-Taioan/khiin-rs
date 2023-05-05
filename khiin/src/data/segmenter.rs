@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 use bit_vec::BitVec;
 
-use crate::data::models::KeySequence;
+use crate::db::models::KeySequence;
 
 /// A number 0.0 or greater. If set to 0.0, all words will be treated equally
 /// regardless of frequency. The higher the number, the more heavily weighted
@@ -72,11 +72,11 @@ impl Segmenter {
         let mut cost_map = HashMap::new();
 
         for word in words_by_frequency.into_iter() {
-            if cost_map.contains_key(&word.key_sequence) {
+            if cost_map.contains_key(&word.keys) {
                 continue;
             }
 
-            let word_len = word.key_sequence.chars().count();
+            let word_len = word.keys.chars().count();
             max_word_length = std::cmp::max(max_word_length, word_len);
 
             let p = if word.p <= 0.0 {
@@ -90,7 +90,7 @@ impl Segmenter {
             let bias = (word_len as f64).powf(LETTER_COUNT_BIAS);
             let syl_bias = (word.n_syls as f64).powf(SYLLABLE_COUNT_BIAS);
             cost = cost / bias * syl_bias;
-            cost_map.insert(word.key_sequence, cost);
+            cost_map.insert(word.keys, cost);
         }
 
         if let Some((min, max)) = min_max(&cost_map) {
@@ -208,13 +208,13 @@ fn segment_min_cost(
         for j in i.saturating_sub(max_word_len)..i {
             let chunk = &input[j..i];
 
-            log::trace!("chunk: {}", chunk);
+            log::debug!("chunk: {}", chunk);
 
             if !cost_map.contains_key(chunk) {
                 continue;
             }
 
-            log::trace!("chunk cost: {}", cost_map.get(chunk).unwrap());
+            log::debug!("chunk cost: {}", cost_map.get(chunk).unwrap());
 
             curr_cost = costs[j].0 + cost_map.get(chunk).unwrap();
             if curr_cost <= min_cost {
@@ -254,6 +254,8 @@ fn segment_min_cost(
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
+
+    use crate::db::models::InputType;
 
     use crate::collection;
 
@@ -309,8 +311,9 @@ mod tests {
         ]
         .iter()
         .map(|(keys, syls)| KeySequence {
-            id: 0,
-            key_sequence: keys.to_string(),
+            input_id: 0,
+            keys: keys.to_string(),
+            input_type: InputType::Numeric,
             n_syls: *syls,
             p: 0.01,
         })

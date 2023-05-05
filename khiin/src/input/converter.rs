@@ -6,8 +6,8 @@ use crate::buffer::BufferElementEnum;
 use crate::buffer::KhiinElem;
 use crate::buffer::StringElem;
 use crate::config::Config;
-use crate::data::Database;
 use crate::data::Dictionary;
+use crate::db::Database;
 use crate::engine::EngInner;
 use crate::input::parser::SectionType;
 
@@ -43,7 +43,7 @@ fn candidates_for_splittable(
     });
 
     let candidates =
-        db.find_conversions_for_words(conf.input_type(), &words)?;
+        db.find_conversions_for_words(conf.tone_mode().into(), &words)?;
 
     let result = candidates
         .into_iter()
@@ -101,7 +101,7 @@ fn convert_section(
     let words = engine.dict.segment(section)?;
     for word in words {
         let conversions = engine.db.find_conversions(
-            engine.conf.input_type(),
+            engine.conf.tone_mode().into(),
             word.as_str(),
             Some(1),
         )?;

@@ -19,7 +19,7 @@ protobuf.workspace = true
 win_dbg_logger.workspace = true
 rand.workspace = true
 serde = { workspace = true, features = ["derive"] }
-stdext = "0.3.1"
+stdext.workspace = true
 toml.workspace = true
 tokio = { workspace = true, features = ["full"] }
 
@@ -27,7 +27,7 @@ khiin.workspace = true
 khiin_protos.workspace = true
 
 [dependencies.windows]
-version = "0.48.0"
+workspace = true
 features = [
     "implement",
     "Foundation_Numerics",
@@ -58,4 +58,4 @@ features = [
 ]
 
 [build-dependencies]
-embed-resource = "2.1.1"
+embed-resource.workspace = true

@@ -1,8 +1,9 @@
 use std::ops::Deref;
 use std::ops::DerefMut;
 
+use crate::db::models::KeyConversion;
+
 use crate::buffer::BufferElement;
-use crate::data::models::Conversion;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StringElem {
@@ -90,7 +91,7 @@ impl BufferElement for StringElem {
         // noop
     }
 
-    fn candidate(&self) -> Option<&Conversion> {
+    fn candidate(&self) -> Option<&KeyConversion> {
         None
     }
 

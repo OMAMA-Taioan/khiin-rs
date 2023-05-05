@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "build db",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/target/debug/khiin_db_cli",
+            "args": ["-c", "data/data/conversions_all.csv", "-f", "data/data/frequency.csv", "-o", "test.db"]
+        },
+        {
             "name": "Dev CLI",
             "type": "lldb",
             "request": "launch",

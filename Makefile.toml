@@ -45,7 +45,6 @@ dependencies = [
 [tasks.build-cli]
 command = "cargo"
 args = ["build", "--manifest-path=cli/Cargo.toml"]
-dependencies = ["copy-db-to-target"]
 
 #=====================================#
 #     Tauri App                       #
@@ -86,7 +85,6 @@ dependencies = ["build-win32-tip", "build-win32-service"]
 condition = { platforms = ["windows"] }
 command = "cargo"
 args = ["build", "--manifest-path=windows/ime/Cargo.toml"]
-dependencies = ["copy-db-to-target"]
 
 [tasks.build-win32-service]
 condition = { platforms = ["windows"] }
@@ -206,57 +204,42 @@ cp resources/khiin.db android/app/src/main/assets/khiin.db
 #     Database                        #
 #=====================================#
 
-[tasks.db-rebuild]
+[tasks.build-db-cli]
+command = "cargo"
+args = ["build", "--manifest-path=khiin/dbgen/Cargo.toml"]
+
+[tasks.rebuild-db]
 dependencies = ["clean-db", "build-db", "copy-db"]
 
 [tasks.clean-db]
 script_runner = "@shell"
 script = '''
-rm -f data/out/khiin.db
 rm -f resources/khiin.db
 rm -f target/debug/khiin.db
 rm -f swift/Shared/khiin.db
 '''
 
 [tasks.build-db]
-cwd = "data"
-condition = { files_not_exist = ["out/khiin.db"] }
-command = "python3"
+condition = { files_not_exist = ["resources/khiin.db"] }
+command = "cargo"
 args = [
-    "src/sql_gen.py",
-    "-f",
-    "data/frequency.csv",
+    "run",
+    "--manifest-path=khiin/dbgen/Cargo.toml",
+    "--",
     "-c",
-    "data/conversions_all.csv",
-    "-s",
-    "data/syllables.txt",
-    "-t",
-    "-y",
-    "data/symbols.tsv",
-    "-e",
-    "data/emoji.csv",
+    "data/data/conversions_all.csv",
+    "-f",
+    "data/data/frequency.csv",
     "-o",
-    "out/khiin_db.sql",
-    "-d",
-    "out/khiin.db",
+    "resources/khiin.db",
 ]
 
-[tasks.copy-db-to-target]
-condition = { files_exist = ["resources/khiin.db"] }
+[tasks.copy-db]
+dependencies = ["build-db"]
 script_runner = "@shell"
 script = '''
 mkdir -p target/debug
 cp resources/khiin.db target/debug/khiin.db
-'''
-dependencies = ["copy-db"]
-
-[tasks.copy-db]
-condition = { files_not_exist = ["resources/khiin.db"] }
-dependencies = ["build-db"]
-script_runner = "@shell"
-script = '''
-mkdir -p resources
-cp data/out/khiin.db resources/khiin.db
 '''
 
 #=====================================#

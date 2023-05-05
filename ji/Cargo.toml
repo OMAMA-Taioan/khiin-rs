@@ -1,0 +1,11 @@
+[package]
+name = "khiin_ji"
+version = "0.1.0"
+edition = "2021"
+authors = ["Ko An Iong <aiongtaigi@gmail.com"]
+publish = false
+
+[dependencies]
+once_cell.workspace = true
+regex.workspace = true
+unicode-normalization = "0.1.22"

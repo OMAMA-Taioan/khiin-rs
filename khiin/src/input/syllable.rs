@@ -2,12 +2,12 @@ use std::default;
 
 use unicode_normalization::UnicodeNormalization;
 
-use crate::input::lomaji::get_tone_position;
-use crate::input::lomaji::key_to_tone;
-use crate::input::lomaji::strip_khin;
-use crate::input::lomaji::strip_tone_diacritic;
-use crate::input::lomaji::tone_to_char;
-use crate::input::Tone;
+use khiin_ji::lomaji::get_tone_position;
+use khiin_ji::lomaji::key_to_tone;
+use khiin_ji::lomaji::strip_khin;
+use khiin_ji::lomaji::strip_tone_diacritic;
+use khiin_ji::lomaji::tone_to_char;
+use khiin_ji::Tone;
 
 #[derive(Default, Debug, PartialEq, Clone)]
 pub(crate) struct Syllable {

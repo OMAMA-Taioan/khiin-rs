@@ -4,7 +4,10 @@ members = [
     "app/settings",
     "android/rust",
     "cli",
+    "data",
+    "ji",
     "khiin",
+    "khiin/dbgen",
     "protos",
     "swift/bridge",
     "windows/ime",
@@ -13,24 +16,41 @@ members = [
 
 [workspace.dependencies]
 anyhow = "1.0"
+bit-vec = "0.6.3"
+clap = "4.2.7"
+crossterm = "0.26.1"
+csv = "1.2.1"
+embed-resource = "2.1.1"
+enum_dispatch = "0.3.11"
 env_logger = "0.10.0"
 futures = "0.3.28"
 interprocess = "1.2.1"
+itertools = "0.10.5"
 log = "0.4.17"
 num = "0.4.0"
 once_cell = "1.17.1"
 protobuf = "3.2.0"
 protobuf-codegen = "3.2.0"
 protoc-bin-vendored = "3.0.0"
+qp-trie = "0.8.1"
 rand = "0.8.5"
 regex = "1.7.3"
 rusqlite = "0.29.0"
+rusqlite_migration = "1.0.2"
 serde = "1.0"
+simple_logger = "4.1.0"
+stdext = "0.3.1"
+test-log = "0.2.11"
 tokio = "1.28.0"
 tokio-util = "0.7.8"
 toml = "0.7.3"
+unicode-normalization = "0.1.22"
+unicode-width = "0.1.10"
 win_dbg_logger = "0.1.0"
+windows = "0.48.0"
 
 khiin = { path = "./khiin" }
+khiin_data = { path = "./data" }
+khiin_ji = { path = "./ji" }
 khiin_protos = { path = "./protos" }
 khiin_settings = { path = './app/settings' }

@@ -20,7 +20,7 @@ pub async fn main() -> Result<()> {
 
     if let Ok(listener) = LocalSocketListener::bind(name) {
         log::debug!("Begin listening on: {}", name);
-        server::run(listener, tokio::signal::ctrl_c()).await;
+        server::run(listener, tokio::signal::ctrl_c()).await?;
     }
 
     Ok(())

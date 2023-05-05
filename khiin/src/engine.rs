@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+use std::path::Path;
 use std::path::PathBuf;
 
 use anyhow::anyhow;
@@ -10,9 +12,9 @@ use khiin_protos::command::*;
 
 use crate::buffer::BufferMgr;
 use crate::config::Config;
-use crate::config::InputType;
-use crate::data::database::Database;
+use crate::config::ToneMode;
 use crate::data::dictionary::Dictionary;
+use crate::db::Database;
 
 pub struct Engine {
     buffer_mgr: BufferMgr,
@@ -26,16 +28,13 @@ pub(crate) struct EngInner {
 }
 
 impl Engine {
-    pub fn new(filename: &str) -> Option<Engine> {
-        let path = PathBuf::from(filename);
-        if !path.exists() {
-            log::debug!("Database file not found: {}", filename);
-            return None;
-        }
-
-        let db = Database::new(&path).ok()?;
-        log::debug!("Database loaded from: {}", filename);
-        let dict = Dictionary::new(&db, InputType::Numeric).ok()?;
+    pub fn new<P>(filename: P) -> Option<Engine>
+    where
+        P: AsRef<Path> + Debug + Clone,
+    {
+        let db = Database::new(filename.clone()).ok()?;
+        log::debug!("Database loaded from: {:?}", filename);
+        let dict = Dictionary::new(&db, ToneMode::Numeric).ok()?;
         log::debug!("Dictionary initialized");
 
         Some(Engine {

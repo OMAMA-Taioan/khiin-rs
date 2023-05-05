@@ -1,3 +1,5 @@
+use crate::db::models::InputType;
+
 #[derive(Copy, Clone)]
 pub enum InputMode {
     Continuous,
@@ -6,15 +8,24 @@ pub enum InputMode {
 }
 
 #[derive(Copy, Clone)]
-pub enum InputType {
+pub enum ToneMode {
     Numeric,
     Telex,
+}
+
+impl Into<InputType> for ToneMode {
+    fn into(self) -> InputType {
+        match self {
+            ToneMode::Numeric => InputType::Numeric,
+            ToneMode::Telex => InputType::Telex,
+        }
+    }
 }
 
 pub struct Config {
     enabled: bool,
     input_mode: InputMode,
-    input_type: InputType,
+    tone_mode: ToneMode,
 }
 
 impl Config {
@@ -22,7 +33,7 @@ impl Config {
         Self {
             enabled: false,
             input_mode: InputMode::Continuous,
-            input_type: InputType::Numeric,
+            tone_mode: ToneMode::Numeric,
         }
     }
 
@@ -30,7 +41,7 @@ impl Config {
         self.input_mode
     }
 
-    pub fn input_type(&self) -> InputType {
-        self.input_type
+    pub fn tone_mode(&self) -> ToneMode {
+        self.tone_mode
     }
 }

@@ -1,5 +1,6 @@
+use khiin_ji::ToByteLen;
+
 use crate::data::dictionary::Dictionary;
-use crate::input::ToByteLen;
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum SectionType {

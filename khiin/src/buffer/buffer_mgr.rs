@@ -18,8 +18,8 @@ use crate::buffer::Buffer;
 use crate::buffer::BufferElement;
 use crate::config::Config;
 use crate::config::InputMode;
-use crate::data::Database;
 use crate::data::Dictionary;
+use crate::db::Database;
 use crate::engine::EngInner;
 use crate::input::converter::convert_all;
 use crate::input::converter::get_candidates;
@@ -351,8 +351,9 @@ impl Debug for BufferMgr {
 
 #[cfg(test)]
 mod tests {
+    use khiin_ji::contains_hanji;
+
     use super::*;
-    use crate::input::unicode::*;
     use crate::tests::*;
     use crate::utils::Unique;
 

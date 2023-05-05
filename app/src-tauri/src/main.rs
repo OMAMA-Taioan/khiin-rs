@@ -26,10 +26,7 @@ struct Payload {
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-fn load_settings(
-    state: State<SettingsStore>,
-    window: tauri::Window,
-) {
+fn load_settings(state: State<SettingsStore>, window: tauri::Window) {
     if let Ok(reader) = state.store.read() {
         emit_settings(&reader.settings, window);
     }

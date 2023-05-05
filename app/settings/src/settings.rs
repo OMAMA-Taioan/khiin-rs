@@ -8,7 +8,6 @@ use anyhow::anyhow;
 use anyhow::Result;
 use serde::Deserialize;
 use serde::Serialize;
-use wasm_bindgen::prelude::*;
 
 #[derive(Default, Debug, Deserialize, Serialize, PartialEq, Clone)]
 #[serde(rename_all = "lowercase")]

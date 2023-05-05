@@ -1,11 +1,11 @@
 use once_cell::sync::Lazy;
 use regex::Regex;
 use std::collections::HashMap;
+use std::vec;
 use unicode_normalization::UnicodeNormalization;
 
 use crate::collection;
-
-use super::Tone;
+use crate::Tone;
 
 const TONE_CHAR_MAP: Lazy<HashMap<Tone, char>> = Lazy::new(|| {
     collection!(
@@ -42,6 +42,15 @@ const DIGIT_TONE_MAP: Lazy<HashMap<char, Tone>> = Lazy::new(|| {
         '7' => Tone::T7,
         '8' => Tone::T8,
         '9' => Tone::T9,
+    )
+});
+
+const POJ_INPUT_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
+    collection!(
+        "o\u{0358}" => "ou",
+        "O\u{0358}" => "Ou",
+        "\u{207f}" => "nn",
+        "\u{1d3a}" => "NN",
     )
 });
 
@@ -110,6 +119,21 @@ pub fn strip_tone_diacritic(syl: &str) -> (String, Tone) {
     }
 
     (stripped, tone)
+}
+
+pub fn poj_syl_to_key_sequences(syl: &str) -> (String, String, String) {
+    let (stripped, tone) = strip_tone_diacritic(syl);
+
+    let stripped = POJ_INPUT_MAP
+        .iter()
+        .fold(stripped, |agg, (pat, repl)| agg.replace(pat, repl));
+
+    let mut numeric = stripped.clone();
+    numeric.push(NUMERIC_TONE_CHARS[tone as i32 as usize]);
+    let mut telex = stripped.clone();
+    telex.push(TELEX_TONE_CHARS[tone as i32 as usize]);
+
+    return (numeric, telex, stripped);
 }
 
 pub fn strip_khin(syl: &mut String) -> bool {

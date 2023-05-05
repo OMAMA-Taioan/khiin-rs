@@ -1,8 +1,11 @@
-use crate::input::unicode::HANJI_CUTOFF;
+use khiin_ji::HANJI_CUTOFF;
+
+use super::InputType;
 
 #[derive(Debug, Clone)]
-pub struct Conversion {
+pub struct KeyConversion {
     pub key_sequence: String,
+    pub input_type: InputType,
     pub input: String,
     pub input_id: u32,
     pub output: String,
@@ -11,15 +14,7 @@ pub struct Conversion {
     pub annotation: Option<String>,
 }
 
-#[derive(Debug, Clone)]
-pub struct KeySequence {
-    pub id: u32,
-    pub key_sequence: String,
-    pub n_syls: usize,
-    pub p: f64,
-}
-
-impl Conversion {
+impl KeyConversion {
     /// Attempts to align input and output syllables in a 1-to-1 mapping, taking
     /// each Hanji to be a syllable, and otherwise splitting by space characters
     /// as per the standard database format. Returns `None` if the alignment is
@@ -64,7 +59,20 @@ impl Conversion {
 
 #[cfg(test)]
 mod tests {
-    use crate::tests::mock_conversion;
+    use super::*;
+
+    fn mock_conversion(input: &str, output: &str) -> KeyConversion {
+        KeyConversion {
+            key_sequence: String::new(),
+            input_type: InputType::Numeric,
+            input: input.into(),
+            input_id: 0,
+            output: output.into(),
+            weight: 0,
+            category: None,
+            annotation: None,
+        }
+    }
 
     #[test]
     fn it_aligns_syllables() {

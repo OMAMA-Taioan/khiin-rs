@@ -1,4 +1,4 @@
-use crate::data::models::Conversion;
+use crate::db::models::KeyConversion;
 
 use super::BufferElement;
 #[derive(Debug, Clone)]
@@ -73,7 +73,7 @@ impl BufferElement for Spacer {
         // Not impl
     }
 
-    fn candidate(&self) -> Option<&Conversion> {
+    fn candidate(&self) -> Option<&KeyConversion> {
         None
     }
 
