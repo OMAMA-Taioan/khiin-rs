@@ -74,23 +74,19 @@ khiin-rs/
 │   ├── data/
 │   │   ├── conversions_all.csv
 │   │   └── frequency.csv
-│   └── src/
-│       ├── sql_gen.py
-│       └── tables.py
+│   └── Cargo.toml
+│
+│
 ```
         
-You must build `khiin.db` before most things will work. The build command is
-included in `launch.json`. If you run the command directly from VS Code, the
-resulting `khiin.db` database file will be placed into the `resources`
-directory. The rust libraries copy the file from this directory into the
-`target` directory for use during testing and debugging.
+The engine library embeds the CSVs and produces the database at first run. For inspection of the database, use the CLI tool included in the engine crate. See below for details.
 
 - `frequency.csv` contains the romanized wordlist with a rough frequency count
   for each item based on the available corpus.
 - `conversions_all.csv` contains the possible outputs (both romanized or hanji)
   for a given word, plus additional information.
 
-The python scripts convert the romanized wordlist into ASCII key sequences,
+The database generator converts the romanized wordlist into ASCII key sequences,
 accounting for users who decide to type tones or not, and builds tables for
 numeric and telex input sequences, as well as a table listing the probability of
 each word based on the frequency counts.
@@ -182,7 +178,7 @@ setting up the CLI app independently of any other client applications.
 
 ### Quickstart
 
-- `python3` must be installed and available in the system path
+
 - All commands should be run from the root `khiin-rs` directory
 
 Install rust:
@@ -202,7 +198,7 @@ Clone this repo and build it:
 ```
 git clone https://github.com/aiongg/khiin-rs.git
 cd khiin-rs
-cargo make
+cargo make build-cli
 ```
 
 Run the terminal application:
@@ -214,5 +210,5 @@ Run the terminal application:
 To rebuild the database after an update, run:
 
 ```
-cargo make db-rebuild
+cargo make rebuild-db
 ```
