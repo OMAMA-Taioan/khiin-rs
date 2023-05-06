@@ -1,5 +1,7 @@
 # Khíín Taiwanese IME
 
+![CI Build & Test](https://github.com/aiongg/khiin-rs/actions/workflows/ci.yml/badge.svg?branch=master)
+
 **Khíín** is a cross-platform input method for typing Taiwanese. We aim to
 support all major platforms, including Windows, Android, macOS, iOS, Linux, and
 the web. Our goal is simple: to provide an excellent Taiwanese typing
@@ -45,16 +47,18 @@ khiin-rs/
 │   ├── app         # Jetpack Compose Android app
 │   └── rust        # JNI glue library for khiin
 ├── app/            # Settings & help app
-│   ├── client      # Yew frontend
+│   ├── frontned    # Svelte frontend
 │   ├── settings    # Settings manager (Khiin.toml)
 │   └── src-tauri   # Tauri backend
-├── cli             # Terminal application (for developers)
-├── data            # SQLite db generator
-├── khiin           # Cross-platform engine
-├── protos          # Protobuf definitions
+├── cli/            # Terminal application (for developers)
+├── data/           # CSV databases (Provided by Tâi Jī Siā)
+├── ji/             # Taiwanese script handling library
+├── khiin/          # Cross-platform engine library
+│   └── dbgen/      # CLI tool to generate the DB
+├── protos/         # Protobuf definitions
 ├── resources/
 │   └── khiin.db    # Generated db file
-├── swift           # iOS and macOS applications
+├── swift/          # iOS and macOS applications
 ├── windows/
 │   ├── ime/        # TSF library
 │   ├── res/        # Windows specific resources
