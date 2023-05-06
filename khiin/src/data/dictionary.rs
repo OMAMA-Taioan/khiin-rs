@@ -13,7 +13,7 @@ pub(crate) struct Dictionary {
 impl Dictionary {
     pub fn new(db: &Database, tone_mode: ToneMode) -> Result<Self> {
         log::debug!("Initializing Dictionary");
-        let inputs = db.all_words_by_freq(tone_mode.into())?;
+        let inputs = db.select_all_words_by_freq(tone_mode.into())?;
         log::debug!("Database query successful");
 
         let word_trie = Trie::new(&inputs)?;
@@ -114,22 +114,20 @@ mod tests {
         let input = "goutuitiunnkinkukasiokthekiongechuliauchitesiaulian\
             kesisimchongbapihlaikoesineiesithekuibinlongsibaksaikapphinn\
             kouchebengbengsitikoesinchinchengsiutiohchintoaethongkhou";
+        let expected =
+            "gou tui tiunn kin ku ka siok the kiong e chuliau chite siaulianke \
+            si sim chong ba pih lai koe sin e i e sithe kui bin long si \
+            baksai kap phinn kou che bengbeng si ti koe sin chincheng siutioh \
+            chin toa e thongkhou";
+
         let result = dict.segment(input).expect("Could not segment text");
         assert!(result.len() > 20);
-        assert_eq!(result.join(" ").as_str(),
-            "gou tui tiunn kin ku ka siok the kiong e chuliau chite siaulianke \
-             si sim chong ba pih lai koe sin e i e sithe kui bin long si \
-             baksai kap phinn kou che bengbeng si ti koe sin chincheng siutioh \
-             chin toa e thongkhou");
+        assert_eq!(result.join(" ").as_str(), expected);
 
         // Best time: 1.75 seconds
         // for _ in 0..1000 {
         //     let result = dict.segment(input).expect("Could not segment text");
-        //     assert_eq!(result.join(" ").as_str(),
-        //     "gou tui tiunn kin ku ka siok the kiong e chuliau chite siaulianke \
-        //      si sim chong ba pih lai koe sin e i e sithe kui bin long si \
-        //      baksai kap phinn kou che bengbeng si ti koe sin chincheng siutioh \
-        //      chin toa e thong khou");
+        //     assert_eq!(result.join(" ").as_str(), expected);
         // }
     }
 }

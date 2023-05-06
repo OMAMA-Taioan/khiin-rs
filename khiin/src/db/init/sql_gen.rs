@@ -35,8 +35,7 @@ pub(crate) fn insert_inputs(
     inputs: Vec<Input>,
 ) -> Result<()> {
     let tx = conn.transaction()?;
-    let mut stmt =
-        tx.prepare(include_str!("../sql/insert_inputs.sql"))?;
+    let mut stmt = tx.prepare(include_str!("../sql/insert_inputs.sql"))?;
 
     for input in inputs {
         stmt.execute(params![
@@ -58,8 +57,7 @@ pub(crate) fn insert_conversions(
     conversions: Vec<Conversion>,
 ) -> Result<()> {
     let tx = conn.transaction()?;
-    let mut stmt =
-        tx.prepare(include_str!("../sql/insert_conversions.sql"))?;
+    let mut stmt = tx.prepare(include_str!("../sql/insert_conversions.sql"))?;
 
     for row in conversions {
         stmt.execute(params![

@@ -43,7 +43,7 @@ fn candidates_for_splittable(
     });
 
     let candidates =
-        db.find_conversions_for_words(conf.tone_mode().into(), &words)?;
+        db.select_conversions_for_multiple(conf.tone_mode().into(), &words)?;
 
     let result = candidates
         .into_iter()
@@ -100,7 +100,7 @@ fn convert_section(
 
     let words = engine.dict.segment(section)?;
     for word in words {
-        let conversions = engine.db.find_conversions(
+        let conversions = engine.db.select_conversions(
             engine.conf.tone_mode().into(),
             word.as_str(),
             Some(1),

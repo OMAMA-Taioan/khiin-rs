@@ -8,6 +8,7 @@ use anyhow::Result;
 use once_cell::sync::Lazy;
 use rusqlite::backup::Progress;
 use rusqlite::named_params;
+use rusqlite::params_from_iter;
 use rusqlite::Connection;
 use rusqlite::DatabaseName;
 use rusqlite::Row;
@@ -97,7 +98,7 @@ impl Database {
         Ok(())
     }
 
-    pub fn all_words_by_freq(
+    pub fn select_all_words_by_freq(
         &self,
         input_type: InputType,
     ) -> Result<Vec<KeySequence>> {
@@ -108,13 +109,13 @@ impl Database {
         let mut rows = stmt.query([input_type as i64])?;
 
         while let Some(row) = rows.next()? {
-            result.push(get_key_sequence_row(row)?);
+            result.push(row.try_into()?);
         }
 
         Ok(result)
     }
 
-    pub fn find_conversions(
+    pub fn select_conversions(
         &self,
         input_type: InputType,
         query: &str,
@@ -125,30 +126,26 @@ impl Database {
                 include_str!("sql/select_conversions.sql"),
                 limit = format!("limit {}", n)
             ),
-            None => format!(
-                include_str!("sql/select_conversions.sql"),
-                limit = ""
-            ),
+            None => {
+                format!(include_str!("sql/select_conversions.sql"), limit = "")
+            },
         };
 
         let mut stmt = self.conn.prepare(&sql)?;
-        let rows = stmt.query_map(
-            named_params! {
-                ":query": query,
-                ":input_type": input_type as i64,
-            },
-            |row| get_conversion_row(row),
-        )?;
+        let mut rows = stmt.query(named_params! {
+            ":query": query,
+            ":input_type": input_type as i64,
+        })?;
 
         let mut result = Vec::new();
-        for row in rows {
-            result.push(row?);
+        while let Some(row) = rows.next()? {
+            result.push(row.try_into()?);
         }
 
         Ok(result)
     }
 
-    pub fn find_conversions_for_words(
+    pub fn select_conversions_for_multiple(
         &self,
         input_type: InputType,
         words: &Vec<&str>,
@@ -162,37 +159,45 @@ impl Database {
         log::trace!("{}", sql);
         log::trace!("{:?}", words);
         let mut stmt = self.conn.prepare(&sql)?;
-        let mut rows = stmt.query(rusqlite::params_from_iter(words))?;
+        let mut rows = stmt.query(params_from_iter(words))?;
         let mut result = Vec::new();
         while let Some(row) = rows.next()? {
-            result.push(get_conversion_row(row)?)
+            result.push(row.try_into()?)
         }
 
         Ok(result)
     }
 }
 
-fn get_key_sequence_row(row: &Row) -> rusqlite::Result<KeySequence> {
-    Ok(KeySequence {
-        input_id: row.get("input_id")?,
-        keys: row.get("key_sequence")?,
-        input_type: row.get("input_type")?,
-        n_syls: row.get("n_syls")?,
-        p: row.get("p")?,
-    })
+impl TryFrom<&Row<'_>> for KeySequence {
+    type Error = rusqlite::Error;
+
+    fn try_from(row: &Row<'_>) -> std::result::Result<Self, Self::Error> {
+        Ok(KeySequence {
+            input_id: row.get("input_id")?,
+            keys: row.get("key_sequence")?,
+            input_type: row.get("input_type")?,
+            n_syls: row.get("n_syls")?,
+            p: row.get("p")?,
+        })
+    }
 }
 
-fn get_conversion_row(row: &Row) -> rusqlite::Result<KeyConversion> {
-    Ok(KeyConversion {
-        key_sequence: row.get("key_sequence")?,
-        input_type: row.get("input_type")?,
-        input: row.get("input")?,
-        input_id: row.get("input_id")?,
-        output: row.get("output")?,
-        weight: row.get("weight")?,
-        category: row.get("category")?,
-        annotation: row.get("annotation")?,
-    })
+impl TryFrom<&Row<'_>> for KeyConversion {
+    type Error = rusqlite::Error;
+
+    fn try_from(row: &Row<'_>) -> std::result::Result<Self, Self::Error> {
+        Ok(KeyConversion {
+            key_sequence: row.get("key_sequence")?,
+            input_type: row.get("input_type")?,
+            input: row.get("input")?,
+            input_id: row.get("input_id")?,
+            output: row.get("output")?,
+            weight: row.get("weight")?,
+            category: row.get("category")?,
+            annotation: row.get("annotation")?,
+        })
+    }
 }
 
 // from rusqlite docs
@@ -261,7 +266,7 @@ mod tests {
     #[test_log::test]
     fn it_loads_results() {
         let db = Database::new(&debug_db_path()).expect("Could not load DB");
-        let res = db.all_words_by_freq(InputType::Numeric);
+        let res = db.select_all_words_by_freq(InputType::Numeric);
         assert!(res.is_ok());
         let res = res.unwrap();
         assert!(res.len() > 100);
@@ -277,7 +282,7 @@ mod tests {
     fn it_finds_conversions() {
         let db = get_db();
         let res = db
-            .find_conversions(InputType::Numeric, "ho2", None)
+            .select_conversions(InputType::Numeric, "ho2", None)
             .unwrap();
         assert!(res.len() >= 2);
         assert!(res.iter().any(|row| row.output == "好"));
@@ -291,7 +296,7 @@ mod tests {
         let db = get_db();
         let words = vec!["ho", "hong"];
         let res = db
-            .find_conversions_for_words(InputType::Numeric, &words)
+            .select_conversions_for_multiple(InputType::Numeric, &words)
             .unwrap();
         assert!(res.len() >= 20);
     }
