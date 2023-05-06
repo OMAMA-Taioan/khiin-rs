@@ -1,0 +1,54 @@
+on:
+  push:
+    branches:
+      - "master"
+  pull_request:
+    branches:
+      - "master"
+
+name: CI
+
+env:
+  CARGO_MAKE_VERSION: "0.36.7"
+  SWIFT_VERSION: "5.8.0"
+
+jobs:
+  ci:
+    name: CI Build & Test
+    strategy:
+      matrix:
+        os: ["ubuntu-22.04", "macos-13", "windows-2022"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+      - uses: davidB/rust-cargo-make@v1
+        with:
+          version: ${{ env.CARGO_MAKE_VERSION }}
+
+      # macos specific steps
+      - uses: swift-actions/setup-swift@v1
+        if: matrix.os == 'macos-13'
+        with:
+          swift-version: ${{ env.SWIFT_VERSION }}
+      - name: Install dependencies
+        if: matrix.os == 'macos-13'
+        run: |
+          brew update
+          brew install swift-protobuf xcodegen
+          cargo install --force swift-bridge-cli
+      - name: Install build targets
+        if: matrix.os == 'macos-13'
+        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
+
+      # windows specific steps
+      - name: Install build targets
+        if: matrix.os == 'windows-2022'
+        run: rustup target add x86_64-pc-windows-msvc i686-pc-windows-msvc
+
+      - name: Build
+        run: cargo make
+      - name: Test
+        run: cargo make test

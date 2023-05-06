@@ -4,8 +4,9 @@ set -e
 work_dir=$(dirname $0)
 cd $work_dir
 
+triple=arm64-apple-macosx
 build_dir=.build
-build_output_dir=$build_dir/arm64-apple-macosx/debug
+build_output_dir=$build_dir/$triple/debug
 assets_dir=assets
 bundle_dir=$build_dir/KhiinIM.app
 contents_dir=$bundle_dir/Contents
@@ -33,7 +34,7 @@ icns_file=$build_dir/AppIcon.icns
 
 
 # Build the application
-swift build
+swift build --triple $triple
 
 # Bundle it into KhiinIM.app
 rm -rf $bundle_dir
