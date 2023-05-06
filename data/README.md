@@ -27,38 +27,28 @@ following constraints:
 - frequency: UNIQUE(input)
 - conversions: UNIQUE(input, output), FOREIGN KEY(input) ON frequency(input)
 
-Run the script `sql_gen.py` to generate the database file. View
-detailed instructions with `-h`:
+## Building the DB
 
-```
-python3 src/sql_gen.py -h
-```
+The `khiin` library will automatically build the SQLite database using these
+CSVs during first run. The SQLite file will be saved into the user's app data
+directory. There is also a simple CLI tool for building the database during
+development.
 
-### Build the full DB:
+To build the database using all default options:
 
-```
-mkdir out
-python3 src/sql_gen.py \
-    -j \
-    -f data/frequency.csv \
-    -c data/conversions_all.csv \
-    -s data/syllables.txt \
-    -y data/symbols.tsv \
-    -e data/emoji.csv \
-    -o out/khiin_db.sql \
-    -d out/khiin.db
+```bash
+cargo make build-db
+
+# Or, after the first build:
+cargo make rebuild-db
 ```
 
-### Build the test DB:
+This will output the database into the `resources` folder for inspection. For
+more options, you can build the CLI tool directly, and run it to see the options:
 
-```
-mkdir out
-python3 src/sql_gen.py \
-    -x -j \
-    -f data/frequency.csv \
-    -c data/conversions_sample.csv \
-    -o out/khiin_test_db.sql \
-    -d out/khiin_test.db
+```bash
+cargo make build-db-cli
+./target/debug/khiin_db_cli -h
 ```
 
 ## Emoji
