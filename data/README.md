@@ -67,10 +67,4 @@ The emoji table is taken directly from Unicode's [Full Emoji List, v14.0](https:
 
 ## FHL & CIN output
 
-After generating your `khiin.db`, run the script to build FHL and CIN output files. The file `TalmageOverride.db` should be placed in `%APPDATA%\FHL TaigiIME\IMTalmage` on Windows or similar location on Mac. The CIN file can be used with 萊姆中文輸入法 - LIME IME, which is no longer available on the store but APKs are available online.
-
-```
-python3 -i out/khiin.db \
-        -o out/TalmageOverride.db \
-        -c out/khiin.cin
-```
+Note: Not yet available with the rust dbgen tool. If you need it, revert back to [4e79459](https://github.com/aiongg/khiin-rs/tree/4e79459e4cf595580d1579dc0d87a2455f1a1b78/data)
