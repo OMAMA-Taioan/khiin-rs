@@ -93,10 +93,9 @@
             "sourceLanguages": [
                 "swift"
             ],
-            "program": "${workspaceFolder:khiin-rs}/swift/.build/debug/KhiinPJH",
+            "program": "${workspaceFolder:khiin-rs}/swift/osx/.build/debug/KhiinPJH",
             "args": [],
-            "cwd": "${workspaceFolder:khiin-rs}/swift",
-            "preLaunchTask": "swift: Build Debug KhiinPJH (swift)"
+            "cwd": "${workspaceFolder:khiin-rs}/swift"
         },
         {
             "name": "Mac:KhiinPJH (Release)",

@@ -12,20 +12,16 @@ struct Constants {
 public class EngineController {
     public static let instance = EngineController()
 
-    static func getDbPath() -> String? {
-        Bundle.main.path(
-            forResource: Constants.dbFile, ofType: Constants.dbFileExt)
-    }
-
     private let engine: EngineBridge?
 
     init() {
-        guard let dbpath = EngineController.getDbPath() else {
+        guard let dbpath = getDatabaseFilePath() else {
             self.engine = nil
             return
         }
 
         guard let engine = EngineBridge.new(dbpath) else {
+            log.debug("No engine")
             self.engine = nil
             return
         }
@@ -43,7 +39,7 @@ public class EngineController {
         guard let charCode = char.asciiValue else {
             return nil
         }
-        
+
         var req = Khiin_Proto_Request()
         var keyEvent = Khiin_Proto_KeyEvent()
 
@@ -54,7 +50,9 @@ public class EngineController {
         return sendCommand(req)
     }
 
-    public func sendCommand(_ request: Khiin_Proto_Request) -> Khiin_Proto_Command? {
+    public func sendCommand(_ request: Khiin_Proto_Request)
+        -> Khiin_Proto_Command?
+    {
         guard let engine = self.engine else {
             log.debug("Engine not instantiated")
             return nil

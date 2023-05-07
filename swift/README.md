@@ -178,10 +178,17 @@ VSCode) for a better development experience.
 The first time you run this command, you will need to log out and log back in to
 activate the IME. During development, it is recommended to use the `watch`
 version of the command, which will run in the background and update the package
-every time you change the code:
+every time you change the code.
 
 ```bash
+cargo make build-osx # Run once first
 cargo make watch-osx
+```
+
+Log output can be seen in another terminal with:
+
+```bash
+tail -f ~/Library/Caches/KhiinPJH/khiin_im.log
 ```
 
 ### macOS Notes

@@ -150,12 +150,16 @@ args = ["swift/osx/build.sh"]
 
 [tasks.watch-osx]
 category = "Dev"
-description = "Watch and rebuild the macOS IME on change"
+description = "Watch and rebuild the macOS IME on change. Run build-osx before watching."
 condition = { platforms = ["mac"] }
-dependencies = ["copy-db", "build-swift-bridge", "build-swift-protos"]
-command = "sh"
-args = ["swift/osx/build.sh"]
 watch = { postpone = true, watch = ["./swift/osx", "./swift/shared"] }
+script_runner = "@shell"
+script = '''
+cd swift/osx
+swift build --triple arm64-apple-macosx
+killall -9 KhiinPJH || true
+cp .build/arm64-apple-macosx/debug/KhiinPJH ~/Library/Input\ Methods/KhiinPJH.app/Contents/MacOS/KhiinPJH
+'''
 
 [tasks.build-swift-bridge]
 category = "Build"
