@@ -6,43 +6,57 @@
 skip_core_tasks = true
 default_to_workspace = false
 
+[env.development]
+RELEASE_MODE = "debug"
+
+[env.release]
+RELEASE_MODE = "release"
+
 #=====================================#
 #     All Platforms                   #
 #=====================================#
 
 [tasks.default]
+description = "Default build task"
 alias = "build"
 
 [tasks.clean]
+category = "Clean"
 dependencies = ["clean-db", "clean-swift"]
 
 [tasks.run]
+category = "Dev"
+description = "Run the terminal IME (useful for development)"
 dependencies = ["build-cli"]
 command = "./target/debug/khiin_cli"
 
 [tasks.build]
+category = "Build"
+description = '''
+Builds the database, terminal IME, and (platform-dependent) windows/mac IMEs
+'''
+dependencies = ["build-common"]
+
+[tasks.build-common]
+category = "Build"
+dependencies = ["build-db", "build-cli"]
+
+[tasks.build.windows]
+dependencies = ["build-common", "build-win32-tip", "build-win32-service"]
+
+[tasks.build.mac]
 dependencies = [
-    # All
-    "build-db",
-    "build-cli",
-
-    # Windows
-    "build-win32-tip",
-    "build-win32-service",
-
-    # Swift (Shared)
+    "build-common",
     "build-swift-bridge",
     "build-swift-protos",
     "copy-db-swift",
-
-    # iOS
     "xcodegen",
-
-    # macOS
     "build-osx",
 ]
 
 [tasks.build-cli]
+category = "Build"
+description = "Build the terminal IME"
 command = "cargo"
 args = ["build", "--manifest-path=cli/Cargo.toml"]
 
@@ -51,14 +65,19 @@ args = ["build", "--manifest-path=cli/Cargo.toml"]
 #=====================================#
 
 [tasks.npm-install]
+category = "Build"
+description = "Install npm dependencies for the Tauri app frontend"
 cwd = "app/frontend"
 command = "npm"
 args = ["install"]
 
 [tasks.install-tauri-cli]
+private = true
 install_script = "cargo install tauri-cli"
 
 [tasks.tauri-icon]
+category = "Build"
+description = "Build app icons for the Tauri app"
 dependencies = ["install-tauri-cli"]
 condition = { files_modified = { input = [
     "app/frontend/static/app-icon.png",
@@ -69,6 +88,8 @@ command = "cargo"
 args = ["tauri", "icon", "app/frontend/static/app-icon.png"]
 
 [tasks.tauri-dev]
+category = "Dev"
+description = "Run Tauri in development mode"
 dependencies = ["npm-install", "tauri-icon", "install-tauri-cli"]
 command = "cargo"
 args = ["tauri", "dev"]
@@ -78,15 +99,21 @@ args = ["tauri", "dev"]
 #=====================================#
 
 [tasks.build-win32]
+category = "Build"
+description = "Build Windows applications"
 condition = { platforms = ["windows"] }
 dependencies = ["build-win32-tip", "build-win32-service"]
 
 [tasks.build-win32-tip]
+category = "Build"
+description = "Build the IME (TSF DLL)"
 condition = { platforms = ["windows"] }
 command = "cargo"
 args = ["build", "--manifest-path=windows/ime/Cargo.toml"]
 
 [tasks.build-win32-service]
+category = "Build"
+description = "Build the engine manager service executable"
 condition = { platforms = ["windows"] }
 command = "cargo"
 args = ["build", "--manifest-path=windows/service/Cargo.toml"]
@@ -96,6 +123,8 @@ args = ["build", "--manifest-path=windows/service/Cargo.toml"]
 #=====================================#
 
 [tasks.clean-swift]
+category = "Clean"
+description = "Remove all swift build files"
 condition = { platforms = ["mac"] }
 dependencies = ["clean-db", "clean-xcodeproj"]
 script_runner = "@shell"
@@ -109,67 +138,52 @@ rm -rf swift/shared/Package.resolved
 '''
 
 [tasks.build-osx]
+category = "Build"
+description = "Build the macOS IME"
 condition = { platforms = ["mac"] }
 dependencies = ["copy-db", "build-swift-bridge", "build-swift-protos"]
 command = "sh"
 args = ["swift/osx/build.sh"]
 
 [tasks.watch-osx]
+category = "Dev"
+description = "Watch and rebuild the macOS IME on change"
 condition = { platforms = ["mac"] }
 dependencies = ["copy-db", "build-swift-bridge", "build-swift-protos"]
 command = "sh"
 args = ["swift/osx/build.sh"]
 watch = { postpone = true, watch = ["./swift/osx", "./swift/shared"] }
 
-[tasks.build-swift-libs]
+[tasks.build-swift-bridge]
+category = "Build"
+description = "Build swift bridge library for all targets"
 condition = { platforms = ["mac"] }
 command = "sh"
 args = ["./swift/bridge/build.sh"]
 
-[tasks.build-khiin-swift]
-condition = { platforms = ["mac"] }
-command = "cargo"
-args = ["build", "--manifest-path=swift/bridge/Cargo.toml"]
-dependencies = ["build-swift-libs"]
-
-[tasks.build-swift-bridge]
-env = { "MACOSX_DEPLOYMENT_TARGET" = "12.0" }
-condition = { platforms = ["mac"] }
-dependencies = ["build-swift-libs", "build-khiin-swift"]
-cwd = "swift"
-command = "swift-bridge-cli"
-args = [
-    "create-package",
-    "--bridges-dir",
-    "./bridge/generated",
-    "--out-dir",
-    "KhiinBridge",
-    "--ios",
-    "../target/aarch64-apple-ios/debug/libkhiin_swift.a",
-    "--simulator",
-    "../target/universal-ios/debug/libkhiin_swift.a",
-    "--macos",
-    "../target/universal-macos/debug/libkhiin_swift.a",
-    "--name",
-    "KhiinBridge",
-]
-
 [tasks.build-swift-protos]
+category = "Build"
+description = "Build swift proto files"
 condition = { platforms = ["mac"] }
 cwd = "protos/src"
 script_runner = "@shell"
 script = '''
 mkdir -p ../../swift/shared/src/protos
-protoc --swift_opt=Visibility=Public --swift_out=../../swift/shared/src/protos *.proto
+protoc --swift_opt=Visibility=Public \
+       --swift_out=../../swift/shared/src/protos *.proto
 '''
 
 [tasks.xcodegen]
+category = "Build"
+description = "Generate the iOS xcodeproj"
 condition = { platforms = ["mac"] }
 dependencies = ["build-swift-protos", "copy-db-swift", "build-swift-bridge"]
 cwd = "swift/ios"
 command = "xcodegen"
 
 [tasks.clean-xcodeproj]
+category = "Clean"
+description = "Delete the iOS xcodeproj"
 condition = { platforms = ["mac"], files_exist = ["swift/ios/Khiin.xcodeproj"] }
 script_runner = "@shell"
 script = '''
@@ -177,6 +191,7 @@ rm -rf swift/ios/Khiin.xcodeproj
 '''
 
 [tasks.copy-db-swift]
+category = "Build"
 condition = { platforms = ["mac"], files_exist = ["resources/khiin.db"] }
 dependencies = ["copy-db"]
 script_runner = "@shell"
@@ -189,9 +204,11 @@ cp resources/khiin.db swift/Shared/khiin.db
 #=====================================#
 
 [tasks.build-droid]
+category = "Build"
 dependencies = ["copy-db-droid"]
 
 [tasks.copy-db-droid]
+category = "Build"
 dependencies = ["copy-db"]
 condition = { files_exist = ["resources/khiin.db"] }
 script_runner = "@shell"
@@ -205,13 +222,16 @@ cp resources/khiin.db android/app/src/main/assets/khiin.db
 #=====================================#
 
 [tasks.build-db-cli]
+category = "Build"
 command = "cargo"
 args = ["build", "--manifest-path=khiin/dbgen/Cargo.toml"]
 
 [tasks.rebuild-db]
+category = "Build"
 dependencies = ["clean-db", "build-db", "copy-db"]
 
 [tasks.clean-db]
+category = "Clean"
 script_runner = "@shell"
 script = '''
 rm -f resources/khiin.db
@@ -220,6 +240,8 @@ rm -f swift/Shared/khiin.db
 '''
 
 [tasks.build-db]
+category = "Build"
+description = "Build khiin.db using the dbgen CLI tool"
 condition = { files_not_exist = ["resources/khiin.db"] }
 command = "cargo"
 args = [
@@ -235,6 +257,8 @@ args = [
 ]
 
 [tasks.copy-db]
+category = "Build"
+description = "Move khiin.db to the target folder"
 dependencies = ["build-db"]
 script_runner = "@shell"
 script = '''
@@ -247,6 +271,7 @@ cp resources/khiin.db target/debug/khiin.db
 #=====================================#
 
 [tasks.test]
+category = "Test"
 command = "cargo"
 args = ["test", "--manifest-path=khiin/Cargo.toml"]
 
@@ -255,6 +280,7 @@ args = ["test", "--manifest-path=khiin/Cargo.toml"]
 #=====================================#
 
 [tasks.format]
+category = "Format"
 command = "cargo"
 toolchain = "nightly"
 args = ["fmt", "--", "--emit=files"]

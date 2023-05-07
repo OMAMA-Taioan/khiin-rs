@@ -66,6 +66,16 @@ khiin-rs/
 └── Makefile.toml   # Cargo build tasks
 ```
 
+All development tasks are defined in [`Makefile.toml`](Makefile.toml), which
+requires `cargo-make`:
+
+```bash
+cargo install --force cargo-make
+
+# Show all available build tasks
+cargo make --list-all-steps
+```
+
 ## Database
 
 ```
@@ -75,11 +85,11 @@ khiin-rs/
 │   │   ├── conversions_all.csv
 │   │   └── frequency.csv
 │   └── Cargo.toml
-│
-│
 ```
-        
-The engine library embeds the CSVs and produces the database at first run. For inspection of the database, use the CLI tool included in the engine crate. See below for details.
+
+The engine library embeds the CSVs and produces the database at first run. For
+inspection of the database, use the CLI tool included in the engine crate. See
+[data/README.md](data/README.md) for details.
 
 - `frequency.csv` contains the romanized wordlist with a rough frequency count
   for each item based on the available corpus.
@@ -87,9 +97,9 @@ The engine library embeds the CSVs and produces the database at first run. For i
   for a given word, plus additional information.
 
 The database generator converts the romanized wordlist into ASCII key sequences,
-accounting for users who decide to type tones or not, and builds tables for
-numeric and telex input sequences, as well as a table listing the probability of
-each word based on the frequency counts.
+including with and without tones, and builds tables for numeric and telex input
+sequences, as well as a table listing the probability of each word based on the
+frequency counts.
 
 The database is continually updated with user data during use, to improve
 candidate prediction based on a simple N-gram model that currently uses 1-gram
@@ -147,7 +157,7 @@ The Windows IME is mostly complete, although it is still missing a few key
 features for release. The app includes the IME itself, as well as a Settings
 application that allows the user to configure the IME, and a basic WiX installer.
 
-See the [README](windows/README.md) for more details.
+See the [windows/README.md](windows/README.md) for more details.
 
 ## Android App
 
@@ -155,7 +165,7 @@ The Android IME is currently in progress / unstable. It is a modern Jetpack
 Compose app written in Kotlin. The `android/rust` folder contains a small
 wrapper around `khiin` that communicates with the Android app via JNI.
 
-See the [README](android/README.md) for more details.
+See the [android/README.md](android/README.md) for more details.
 
 ## iOS & macOS Apps
 
@@ -163,7 +173,7 @@ The iOS and macOS apps are currently in progress / unstable. Basic setup between
 the Khiin engine and the apps is complete, so the remaining work is mainly to
 build out the UI and hook up all of the engine wiring.
 
-See the [README](swift/README.md) for more details.
+See the [swift/README.md](swift/README.md) for more details.
 
 ## Development CLI App
 
@@ -177,7 +187,6 @@ used in the various client applications. Follow the quickstart guide below for
 setting up the CLI app independently of any other client applications.
 
 ### Quickstart
-
 
 - All commands should be run from the root `khiin-rs` directory
 

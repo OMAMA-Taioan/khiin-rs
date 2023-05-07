@@ -9,7 +9,14 @@
             "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/target/debug/khiin_db_cli",
-            "args": ["-c", "data/data/conversions_all.csv", "-f", "data/data/frequency.csv", "-o", "test.db"]
+            "args": [
+                "-c",
+                "data/data/conversions_all.csv",
+                "-f",
+                "data/data/frequency.csv",
+                "-o",
+                "test.db"
+            ]
         },
         {
             "name": "Dev CLI",
@@ -80,44 +87,52 @@
             ]
         },
         {
-            "name": "Mac:KhiinIM",
+            "name": "Mac:KhiinPJH",
             "type": "lldb",
             "request": "launch",
-            "sourceLanguages": ["swift"],
-            "program": "${workspaceFolder:khiin-rs}/swift/.build/debug/KhiinIM",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "program": "${workspaceFolder:khiin-rs}/swift/.build/debug/KhiinPJH",
             "args": [],
             "cwd": "${workspaceFolder:khiin-rs}/swift",
-            "preLaunchTask": "swift: Build Debug KhiinIM (swift)"
+            "preLaunchTask": "swift: Build Debug KhiinPJH (swift)"
         },
         {
-            "name": "Mac:KhiinIM (Release)",
+            "name": "Mac:KhiinPJH (Release)",
             "type": "lldb",
             "request": "launch",
-            "sourceLanguages": ["swift"],
-            "program": "${workspaceFolder:khiin-rs}/swift/.build/release/KhiinIM",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "program": "${workspaceFolder:khiin-rs}/swift/.build/release/KhiinPJH",
             "args": [],
             "cwd": "${workspaceFolder:khiin-rs}/swift",
-            "preLaunchTask": "swift: Build Release KhiinIM (swift)"
+            "preLaunchTask": "swift: Build Release KhiinPJH (swift)"
         },
         {
             "type": "lldb",
             "request": "launch",
-            "sourceLanguages": ["swift"],
-            "name": "Debug KhiinIM (swift/osx)",
-            "program": "${workspaceFolder:khiin-rs}/swift/osx/.build/debug/KhiinIM",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "name": "Debug KhiinPJH (swift/osx)",
+            "program": "${workspaceFolder:khiin-rs}/swift/osx/.build/debug/KhiinPJH",
             "args": [],
             "cwd": "${workspaceFolder:khiin-rs}/swift/osx",
-            "preLaunchTask": "swift: Build Debug KhiinIM (swift/osx)"
+            "preLaunchTask": "swift: Build Debug KhiinPJH (swift/osx)"
         },
         {
             "type": "lldb",
             "request": "launch",
-            "sourceLanguages": ["swift"],
-            "name": "Release KhiinIM (swift/osx)",
-            "program": "${workspaceFolder:khiin-rs}/swift/osx/.build/release/KhiinIM",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "name": "Release KhiinPJH (swift/osx)",
+            "program": "${workspaceFolder:khiin-rs}/swift/osx/.build/release/KhiinPJH",
             "args": [],
             "cwd": "${workspaceFolder:khiin-rs}/swift/osx",
-            "preLaunchTask": "swift: Build Release KhiinIM (swift/osx)"
+            "preLaunchTask": "swift: Build Release KhiinPJH (swift/osx)"
         },
         {
             "name": "Tauri Dev",
@@ -130,7 +145,31 @@
                     "--manifest-path=${workspaceFolder:khiin-rs}/app/src-tauri/Cargo.toml",
                     "--no-default-features"
                 ]
-            },
+            }
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "name": "Debug KhiinPJH (swift/osx)",
+            "program": "${workspaceFolder:khiin-rs}/swift/osx/.build/debug/KhiinPJH",
+            "args": [],
+            "cwd": "${workspaceFolder:khiin-rs}/swift/osx",
+            "preLaunchTask": "swift: Build Debug KhiinPJH (swift/osx)"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "sourceLanguages": [
+                "swift"
+            ],
+            "name": "Release KhiinPJH (swift/osx)",
+            "program": "${workspaceFolder:khiin-rs}/swift/osx/.build/release/KhiinPJH",
+            "args": [],
+            "cwd": "${workspaceFolder:khiin-rs}/swift/osx",
+            "preLaunchTask": "swift: Build Release KhiinPJH (swift/osx)"
         }
     ],
     "compounds": [

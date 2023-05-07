@@ -161,7 +161,7 @@ this is not a problem on actual devices, but I do not have one for testing.)
 
 ---
 
-## KhiinIM (macOS)
+## KhiinPJH (macOS)
 
 ```bash
 cargo make build-osx
@@ -171,7 +171,7 @@ The macOS input method is a normal OSX application. For an improved developer
 experience, the input method is packaged for
 [SPM](https://docs.swift.org/package-manager/PackageDescription/PackageDescription.html),
 and a build script (`swift/osx/build.sh`) places all of the necessary items into
-the `KhiinIM.app` bundle folder, installed in `~/Library/Input Methods`. This
+the `KhiinPJH.app` bundle folder, installed in `~/Library/Input Methods`. This
 obviates the need for Xcode, and makes it possible to use other editors (namely
 VSCode) for a better development experience.
 

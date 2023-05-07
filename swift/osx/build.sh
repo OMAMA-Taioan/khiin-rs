@@ -4,11 +4,19 @@ set -e
 work_dir=$(dirname $0)
 cd $work_dir
 
+if [ "$RELEASE_MODE" = "release" ]; then
+    BUILD_DIR="release"
+    BUILD_FLAG="release"
+else
+    BUILD_DIR="debug"
+    BUILD_FLAG="debug"
+fi
+
+app_name=KhiinPJH
 triple=arm64-apple-macosx
-build_dir=.build
-build_output_dir=$build_dir/$triple/debug
+build_dir=.build/$triple/$BUILD_DIR
 assets_dir=assets
-bundle_dir=$build_dir/KhiinIM.app
+bundle_dir=$build_dir/$app_name.app
 contents_dir=$bundle_dir/Contents
 bin_dir=$contents_dir/MacOS
 res_dir=$contents_dir/Resources
@@ -32,17 +40,16 @@ cp                $icon_src       $icon_dir/icon_512x512.png
 iconutil -c icns $icon_dir
 icns_file=$build_dir/AppIcon.icns
 
-
 # Build the application
-swift build --triple $triple
+swift build --configuration $BUILD_FLAG --triple $triple
 
-# Bundle it into KhiinIM.app
+# Bundle it into .app
 rm -rf $bundle_dir
 mkdir -p $bundle_dir
 mkdir -p $contents_dir
 mkdir -p $bin_dir
 mkdir -p $res_dir
-cp $build_output_dir/KhiinIM    $bin_dir
+cp $build_dir/$app_name         $bin_dir
 cp $assets_dir/Info.plist       $contents_dir
 cp $assets_dir/PkgInfo          $contents_dir
 cp $icns_file                   $res_dir
@@ -53,8 +60,8 @@ cp -r $assets_dir/zh-Hant.lproj $res_dir
 cp $db_file                     $res_dir
 
 # Move it to the user's input method folder
-killall -9 KhiinIM || true
+killall -9 $app_name || true
 cp -r $bundle_dir "$im_dir"
 ls -la "$im_dir"
-echo "KhiinIM.app successfully installed to ~/Library/Input Methods"
+echo "$app_name.app successfully installed to ~/Library/Input Methods"
 echo "You may need to log out and in to see it in the System Settings."

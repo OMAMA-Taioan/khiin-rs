@@ -10,8 +10,8 @@ let package = Package(
     ],
     products: [
         .executable(
-            name: "KhiinIM",
-            targets: ["KhiinIM"]
+            name: "KhiinPJH",
+            targets: ["KhiinPJH"]
         )
     ],
     dependencies: [
@@ -32,7 +32,7 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "KhiinIM",
+            name: "KhiinPJH",
             dependencies: [
                 "KhiinBridge",
                 "SwiftyBeaver",

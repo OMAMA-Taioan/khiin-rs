@@ -15,7 +15,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>0.1.0</string>
 	<key>CFBundleExecutable</key>
-	<string>KhiinIM</string>
+	<string>KhiinPJH</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleSignature</key>
@@ -25,15 +25,15 @@
 	<key>NSHumanReadableCopyright</key>
 	<string>(c) 2023 Aiong Taigi, MIT License</string>
 	<key>CFBundleGetInfoString</key>
-	<string>KhiinIM 0.1.0, (c) 2023 Aiong Taigi, MIT License</string>
+	<string>KhiinPJH 0.1.0, (c) 2023 Aiong Taigi, MIT License</string>
 	<key>InputMethodConnectionName</key>
 	<string>com.edwardgreve.inputmethod.khiin_Connection</string>
 	<key>InputMethodServerControllerClass</key>
-	<string>KhiinIM.KhiinInputController</string>
+	<string>KhiinPJH.KhiinInputController</string>
 	<key>LSBackgroundOnly</key>
 	<true/>
 	<key>NSPrincipalClass</key>
-	<string>KhiinIM.KhiinIMApplication</string>
+	<string>KhiinPJH.KhiinIMApplication</string>
 	<key>tsInputMethodIconFileKey</key>
 	<string>menuicon.svg</string>
 	<key>tsInputMethodCharacterRepertoireKey</key>
