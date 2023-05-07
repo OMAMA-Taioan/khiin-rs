@@ -17,8 +17,7 @@ jobs:
     name: Build & Test
     strategy:
       matrix:
-        os: ["macos-latest"]
-        # os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -50,24 +49,14 @@ jobs:
         run: rustup target add x86_64-pc-windows-msvc i686-pc-windows-msvc
 
       - name: Build
-        run: cargo make build-osx
-      # - name: Test
-        # run: cargo make test
-
-      - name: pwd
-        if: matrix.os == 'macos-latest'
-        run: pwd
-      - name: ls
-        if: matrix.os == 'macos-latest'
-        run: |
-          ls -lha
-          ls -lha swift
-          ls -lha swift/osx
-          ls -lha swift/osx/.build
-          ls -lha swift/osx/.build/debug
-
+        run: cargo make
+        
+      # upload osx installer package
       - uses: actions/upload-artifact@v3
         if: matrix.os == 'macos-latest'
         with:
           name: macos-installer
-          path: swift/osx/.build/debug/KhiinPJH.pkg
+          path: swift/osx/.build/artifacts/debug/KhiinPJH.pkg
+        
+      - name: Test
+        run: cargo make test

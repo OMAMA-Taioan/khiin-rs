@@ -13,7 +13,7 @@ else
 fi
 
 app_name=KhiinPJH
-build_dir=.build/$BUILD_DIR
+build_dir=.build/artifacts/$BUILD_DIR
 universal_dir=.build/universal-macosx/$BUILD_DIR
 assets_dir=assets
 bundle_dir=$build_dir/$app_name.app
@@ -42,13 +42,13 @@ iconutil -c icns $iconset_dir
 icns_file=$icon_dir/AppIcon.icns
 
 # Build the application
-# swift build --configuration $BUILD_FLAG --triple arm64-apple-macosx
+swift build --configuration $BUILD_FLAG --triple arm64-apple-macosx
 swift build --configuration $BUILD_FLAG --triple x86_64-apple-macosx
 mkdir -p $universal_dir
 lipo \
+    .build/arm64-apple-macosx/$BUILD_DIR/$app_name \
     .build/x86_64-apple-macosx/$BUILD_DIR/$app_name -create -output \
     $universal_dir/$app_name
-    # .build/arm64-apple-macosx/$BUILD_DIR/$app_name \
 
 # Bundle it into .app
 rm -rf $bundle_dir
@@ -81,5 +81,3 @@ pkgbuild \
     --install-location "/tmp/KhiinPJH.app" \
     --scripts assets/scripts \
     "$build_dir/KhiinPJH.pkg"
-
-pwd
