@@ -1,7 +1,7 @@
 /* Localized versions of Info.plist keys */
 
-com.edwardgreve.inputmethod.khiin = "Khíín Taiwanese IME";
-com.edwardgreve.inputmethod.khiin.KhiinPJH = "Khíín";
+app.khiin.inputmethod.khiin = "Khíín Taiwanese IME";
+app.khiin.inputmethod.khiin.KhiinPJH = "Khíín";
 
 CFBundleName = "Khíín";
 CFBundleDisplayName = "Khíín Taiwanese IME";

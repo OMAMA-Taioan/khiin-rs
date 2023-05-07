@@ -1,0 +1,13 @@
+#!/bin/bash
+
+user=$(/usr/bin/stat -f "%Su" /dev/console)
+
+# Stop the running instances
+osascript -e 'tell application id "app.khiin.inputmethod.khiin" to if it is running then quit'
+/usr/bin/sudo -u "${user}" osascript -e 'tell application id "app.khiin.inputmethod.khiin" to if it is running then quit'
+
+mkdir -p "/Users/${user}/Library/Input Methods"
+chown -R ${user}:staff /tmp/KhiinPJH.app
+mv /tmp/KhiinPJH.app "/Users/${user}/Library/Input Methods/KhiinPJH.app"
+
+exit 0

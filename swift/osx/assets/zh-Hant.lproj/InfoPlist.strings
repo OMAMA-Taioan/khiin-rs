@@ -1,7 +1,7 @@
 /* Localized versions of Info.plist keys */
 
-com.edwardgreve.inputmethod.khiin = "起引台語打字法";
-com.edwardgreve.inputmethod.khiin.KhiinPJH = "起引";
+app.khiin.inputmethod.khiin = "起引台語打字法";
+app.khiin.inputmethod.khiin.KhiinPJH = "起引";
 
 CFBundleName = "起引";
 CFBundleDisplayName = "起引台語打字法";

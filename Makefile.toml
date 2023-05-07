@@ -6,6 +6,9 @@
 skip_core_tasks = true
 default_to_workspace = false
 
+[env]
+VERSION = "0.1.0"
+
 [env.development]
 RELEASE_MODE = "debug"
 

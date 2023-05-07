@@ -7,7 +7,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>English</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.edwardgreve.inputmethod.khiin</string>
+	<string>app.khiin.inputmethod.khiin</string>
 	<key>CFBundleName</key>
 	<string>Khíín</string>
 	<key>CFBundleVersion</key>
@@ -27,7 +27,7 @@
 	<key>CFBundleGetInfoString</key>
 	<string>KhiinPJH 0.1.0, (c) 2023 Aiong Taigi, MIT License</string>
 	<key>InputMethodConnectionName</key>
-	<string>com.edwardgreve.inputmethod.khiin_Connection</string>
+	<string>app.khiin.inputmethod.khiin_Connection</string>
 	<key>InputMethodServerControllerClass</key>
 	<string>KhiinPJH.KhiinInputController</string>
 	<key>LSBackgroundOnly</key>

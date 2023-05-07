@@ -1,6 +1,6 @@
 name: Khiin
 options:
-  bundleIdPrefix: com.edwardgreve
+  bundleIdPrefix: app.khiin
 packages:
   KhiinBridge:
     path: ../KhiinBridge
@@ -23,7 +23,7 @@ targets:
     settings:
       base:
         INFOPLIST_FILE: Khiin/Info.plist
-        PRODUCT_BUNDLE_IDENTIFIER: com.edwardgreve.khiin
+        PRODUCT_BUNDLE_IDENTIFIER: app.khiin.khiin
   Keyboard:
     platform: iOS
     deploymentTarget: 15.0
@@ -36,4 +36,4 @@ targets:
     settings:
       base:
         INFOPLIST_FILE: Keyboard/Info.plist
-        PRODUCT_BUNDLE_IDENTIFIER: com.edwardgreve.khiin.keyboard
+        PRODUCT_BUNDLE_IDENTIFIER: app.khiin.khiin.keyboard
