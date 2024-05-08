@@ -22,6 +22,7 @@ serde = { workspace = true, features = ["derive"] }
 stdext.workspace = true
 toml.workspace = true
 tokio = { workspace = true, features = ["full"] }
+windows-core.workspace = true
 
 khiin.workspace = true
 khiin_protos.workspace = true
@@ -49,6 +50,7 @@ features = [
     "Win32_System_Ole",
     "Win32_System_SystemServices",
     "Win32_System_Registry",
+    "Win32_System_Variant",
     "Win32_System_WindowsProgramming",
     "Win32_UI_Controls",
     "Win32_UI_HiDpi",

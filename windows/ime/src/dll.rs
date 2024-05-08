@@ -1,23 +1,24 @@
 use log::warn;
 use once_cell::sync::OnceCell;
 use win_dbg_logger::rust_win_dbg_logger_init_debug;
+use windows::Win32::Foundation::HINSTANCE;
 
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
-use windows::core::ComInterface;
-use windows::Win32::Foundation::FALSE;
-use windows::Win32::Foundation::S_FALSE;
 
+use windows::core::w;
+use windows::core::Interface;
 use windows::core::Result;
 use windows::core::GUID;
 use windows::core::HRESULT;
-use windows::w;
 use windows::Win32::Foundation::BOOL;
 use windows::Win32::Foundation::CLASS_E_CLASSNOTAVAILABLE;
 use windows::Win32::Foundation::E_UNEXPECTED;
+use windows::Win32::Foundation::FALSE;
 use windows::Win32::Foundation::HMODULE;
 use windows::Win32::Foundation::HWND;
+use windows::Win32::Foundation::S_FALSE;
 use windows::Win32::Foundation::S_OK;
 use windows::Win32::System::Com::IClassFactory;
 use windows::Win32::System::SystemServices::DLL_PROCESS_ATTACH;

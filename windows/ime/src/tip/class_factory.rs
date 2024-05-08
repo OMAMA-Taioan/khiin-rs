@@ -6,7 +6,7 @@ use log::debug;
 use log::warn;
 use windows::core::implement;
 use windows::core::AsImpl;
-use windows::core::ComInterface;
+use windows::core::Interface;
 use windows::core::Error;
 use windows::core::IUnknown;
 use windows::core::Result;
@@ -63,7 +63,7 @@ impl IClassFactory_Impl for KhiinClassFactory {
 
         let text_service: ITfTextInputProcessor = TextService::new()?.into();
 
-        let it: &TextService = text_service.as_impl();
+        let it: &TextService = unsafe { text_service.as_impl() };
         it.set_this(text_service.clone());
 
         *ppvobject = unsafe { core::mem::transmute(text_service) };

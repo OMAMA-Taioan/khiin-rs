@@ -7,7 +7,7 @@ use khiin_protos::command::EditState;
 use khiin_protos::command::EditState::ES_COMPOSING;
 use windows::core::implement;
 use windows::core::AsImpl;
-use windows::core::ComInterface;
+use windows::core::Interface;
 use windows::core::Error;
 use windows::core::Result;
 use windows::core::BSTR;
@@ -83,7 +83,7 @@ impl CandidateListUI {
         }
         .into();
 
-        let this = elem.as_impl();
+        let this = unsafe { elem.as_impl() };
         this.begin_ui_elem(elem.clone())?;
         Ok(elem)
     }
@@ -153,7 +153,7 @@ impl CandidateListUI {
     }
 
     fn ui_elem_mgr(&self) -> Result<ITfUIElementMgr> {
-        let service = self.tip.as_impl();
+        let service = unsafe { self.tip.as_impl() };
         service.threadmgr().cast()
     }
 
@@ -337,16 +337,22 @@ impl ITfCandidateListUIElementBehavior_Impl for CandidateListUI {
         {
             winerr!(E_INVALIDARG)
         } else {
-            self.tip.as_impl().on_candidate_selected(nindex)
+            unsafe {
+                self.tip.as_impl().on_candidate_selected(nindex)
+            }
         }
     }
 
     fn Finalize(&self) -> Result<()> {
-        self.tip.as_impl().commit_composition()
+        unsafe {
+            self.tip.as_impl().commit_composition()
+        }
     }
 
     fn Abort(&self) -> Result<()> {
-        self.tip.as_impl().reset()
+        unsafe {
+            self.tip.as_impl().reset()
+        }
     }
 }
 

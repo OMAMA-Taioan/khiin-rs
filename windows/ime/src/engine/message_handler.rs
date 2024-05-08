@@ -6,14 +6,17 @@ use std::sync::Arc;
 use windows::core::AsImpl;
 use windows::core::Result;
 use windows::core::PCWSTR;
+use windows::Win32::Foundation::GetLastError;
 use windows::Win32::Foundation::BOOL;
 use windows::Win32::Foundation::FALSE;
+use windows::Win32::Foundation::HINSTANCE;
 use windows::Win32::Foundation::HMODULE;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::LRESULT;
 use windows::Win32::Foundation::WPARAM;
 use windows::Win32::Graphics::Gdi::HBRUSH;
+use windows::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows::Win32::UI::TextServices::ITfTextInputProcessor;
 use windows::Win32::UI::WindowsAndMessaging::CreateWindowExW;
 use windows::Win32::UI::WindowsAndMessaging::DefWindowProcW;
@@ -63,9 +66,11 @@ impl MessageHandler {
     ) -> Result<()> {
         match message {
             WM_KHIIN_COMMAND => {
-                let cmd: Arc<Command> =
-                    unsafe { Arc::from_raw(transmute(lparam)) };
-                self.tip.as_impl().handle_command(cmd)?;
+                unsafe {
+                    let cmd: Arc<Command> = Arc::from_raw(transmute(lparam));
+                    self.tip.as_impl().handle_command(cmd)?;
+                }
+
                 Ok(())
             },
             _ => Err(fail!()),
@@ -78,9 +83,7 @@ impl MessageHandler {
             let class_name = Self::WINDOW_CLASS_NAME.to_pcwstr();
             let mut wc = WNDCLASSEXW::default();
 
-            if GetClassInfoExW(module, *class_name, &mut wc)
-                != BOOL::from(false)
-            {
+            if GetClassInfoExW(module, *class_name, &mut wc).is_ok() {
                 // already registered
                 return true;
             }
@@ -90,7 +93,7 @@ impl MessageHandler {
                 style: WNDCLASS_STYLES::default(),
                 lpfnWndProc: Some(Self::wndproc),
                 cbClsExtra: 0,
-                hInstance: module,
+                hInstance: module.into(),
                 lpszClassName: *class_name,
                 hIcon: HICON::default(),
                 hIconSm: HICON::default(),
@@ -110,19 +113,18 @@ impl MessageHandler {
             let class_name = Self::WINDOW_CLASS_NAME.to_pcwstr();
             let mut wc = WNDCLASSEXW::default();
 
-            if GetClassInfoExW(module, *class_name, &mut wc)
-                == BOOL::from(false)
-            {
+            if GetClassInfoExW(module, *class_name, &mut wc).is_ok() {
                 // already unregistered
                 return true;
             }
 
-            UnregisterClassW(*class_name, module).0 != 0
+            UnregisterClassW(*class_name, module).is_ok()
         }
     }
 
     pub fn create(this: Arc<Self>, module: HMODULE) -> Result<HWND> {
         unsafe {
+            let instance = GetModuleHandleW(None)?;
             let class_name = Self::WINDOW_CLASS_NAME.to_pcwstr();
             if !Self::register_class(module) {
                 return Err(fail!());
@@ -148,6 +150,7 @@ impl MessageHandler {
             if IsWindow(handle) != FALSE {
                 Ok(handle)
             } else {
+                let err = GetLastError();
                 Err(fail!())
             }
         }

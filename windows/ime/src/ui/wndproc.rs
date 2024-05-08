@@ -58,9 +58,7 @@ where
             let class_name = Self::WINDOW_CLASS_NAME.to_pcwstr();
             let mut wc = WNDCLASSEXW::default();
 
-            if GetClassInfoExW(module, *class_name, &mut wc)
-                != BOOL::from(false)
-            {
+            if GetClassInfoExW(module, *class_name, &mut wc).is_ok() {
                 // already registered
                 return true;
             }
@@ -70,7 +68,7 @@ where
                 style: CS_HREDRAW | CS_VREDRAW | CS_IME,
                 lpfnWndProc: Some(Self::wndproc),
                 cbClsExtra: 0,
-                hInstance: module,
+                hInstance: module.into(),
                 lpszClassName: *class_name,
                 hIcon: HICON::default(),
                 hIconSm: HICON::default(),
@@ -92,14 +90,12 @@ where
             let class_name = Self::WINDOW_CLASS_NAME.to_pcwstr();
             let mut wc = WNDCLASSEXW::default();
 
-            if GetClassInfoExW(module, *class_name, &mut wc)
-                == BOOL::from(false)
-            {
+            if GetClassInfoExW(module, *class_name, &mut wc).is_ok() {
                 // already unregistered
                 return true;
             }
 
-            UnregisterClassW(*class_name, module).0 != 0
+            UnregisterClassW(*class_name, module).is_ok()
         }
     }
 

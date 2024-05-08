@@ -6,11 +6,11 @@ use std::sync::Arc;
 use khiin_protos::command::CommandType;
 use khiin_protos::command::Preedit;
 use khiin_protos::command::SegmentStatus;
-use windows::core::ComInterface;
+use windows::core::Interface;
 use windows::core::Result;
 use windows::Win32::Foundation::FALSE;
-use windows::Win32::System::Com::VARIANT;
-use windows::Win32::System::Com::VT_I4;
+use windows::core::VARIANT;
+use windows::Win32::System::Variant::VT_I4;
 use windows::Win32::UI::TextServices::ITfComposition;
 use windows::Win32::UI::TextServices::ITfCompositionSink;
 use windows::Win32::UI::TextServices::ITfContext;
@@ -155,12 +155,13 @@ impl CompositionMgr {
                     std::ptr::null(),
                 )?;
                 let mut variant = VARIANT::default();
+                let &(mut var) = variant.as_raw();
                 let atom = attr_atoms
                     .get(&status)
                     .unwrap_or(&TF_INVALID_GUIDATOM)
                     .clone();
-                (*variant.Anonymous.Anonymous).vt = VT_I4;
-                (*variant.Anonymous.Anonymous).Anonymous.lVal = atom as i32;
+                var.Anonymous.Anonymous.vt = VT_I4.0;
+                var.Anonymous.Anonymous.Anonymous.lVal = atom as i32;
                 prop.SetValue(ec, &seg_range, &variant)?;
             }
 

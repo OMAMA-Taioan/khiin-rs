@@ -7,7 +7,7 @@ use std::sync::RwLock;
 use khiin_protos::config::AppConfig;
 use windows::core::implement;
 use windows::core::AsImpl;
-use windows::core::ComInterface;
+use windows::core::Interface;
 use windows::core::IUnknown;
 use windows::core::Result;
 use windows::core::BSTR;
@@ -96,7 +96,7 @@ impl LangBarIndicator {
         threadmgr: ITfThreadMgr,
         button: ITfLangBarItemButton,
     ) -> Result<()> {
-        let indicator: &LangBarIndicator = button.as_impl();
+        let indicator: &LangBarIndicator = unsafe { button.as_impl() };
         if indicator.added.get() {
             return Ok(());
         }
@@ -108,7 +108,7 @@ impl LangBarIndicator {
     }
 
     pub fn remove_item(&self, button: ITfLangBarItemButton) -> Result<()> {
-        let indicator: &LangBarIndicator = button.as_impl();
+        let indicator: &LangBarIndicator = unsafe { button.as_impl() };
 
         if !indicator.added.get() {
             return Ok(());
@@ -199,7 +199,7 @@ impl ITfLangBarItemButton_Impl for LangBarIndicator {
         prcarea: *const RECT,
     ) -> Result<()> {
         match click {
-            TF_LBI_CLK_LEFT => self.tip.as_impl().toggle_enabled(),
+            TF_LBI_CLK_LEFT => unsafe { self.tip.as_impl().toggle_enabled() },
             TF_LBI_CLK_RIGHT => self.popup.show(pt.into()),
             _ => Ok(()),
         }

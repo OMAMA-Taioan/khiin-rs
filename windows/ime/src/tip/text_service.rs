@@ -11,7 +11,7 @@ use log::debug as d;
 use protobuf::MessageField;
 use windows::core::implement;
 use windows::core::AsImpl;
-use windows::core::ComInterface;
+use windows::core::Interface;
 use windows::core::IUnknown;
 use windows::core::Result;
 use windows::core::GUID;
@@ -290,7 +290,7 @@ impl TextService {
             .clone()
             .ok_or(fail!())?;
 
-        let cand_ui = cand_ui.as_impl();
+        let cand_ui = unsafe { cand_ui.as_impl() };
         cand_ui.notify_command(context, command, rect)
     }
 
@@ -338,7 +338,7 @@ impl TextService {
                 .clone()
                 .ok_or(fail!())?;
 
-            let cand_ui = cand_ui.as_impl();
+            let cand_ui = unsafe { cand_ui.as_impl() };
             cand_ui.notify_command(context, command, Default::default());
         } else {
             open_edit_session(self.clientid.get()?, context.clone(), |ec| {
@@ -545,11 +545,11 @@ impl TextService {
         let sink = KeyEventSink::new(self.this(), self.threadmgr());
         let sink: ITfKeyEventSink = sink.into();
         self.key_event_sink.replace(Some(sink));
-        self.key_event_sink().as_impl().advise()
+        unsafe { self.key_event_sink().as_impl().advise() }
     }
 
     fn deinit_key_event_sink(&self) -> Result<()> {
-        let _ = self.key_event_sink().as_impl().unadvise();
+        let _ = unsafe { self.key_event_sink().as_impl() }.unadvise();
         self.key_event_sink.replace(None);
         Ok(())
     }
@@ -598,7 +598,7 @@ impl TextService {
     fn deinit_lang_bar_indicator(&self) -> Result<()> {
         let button = self.lang_bar_indicator().clone();
         let indicator = button.clone();
-        let indicator = indicator.as_impl();
+        let indicator = unsafe { indicator.as_impl() };
         let _ = indicator.shutdown(button);
         // logging?
         self.lang_bar_indicator.replace(None);
@@ -619,7 +619,7 @@ impl TextService {
     fn deinit_candidate_ui(&self) -> Result<()> {
         {
             let cand_ui = (&*self.candidate_list_ui.borrow()).clone().unwrap();
-            let cand_ui = cand_ui.as_impl();
+            let cand_ui = unsafe { cand_ui.as_impl() };
             cand_ui.shutdown()?;
         }
         self.candidate_list_ui.replace(None);
@@ -678,7 +678,7 @@ impl ITfDisplayAttributeProvider_Impl for TextService {
         guid: *const GUID,
     ) -> Result<ITfDisplayAttributeInfo> {
         let guid = unsafe { *guid };
-        let disp_attrs = self.enum_disp_attr_info.as_impl();
+        let disp_attrs = unsafe { self.enum_disp_attr_info.as_impl() };
 
         match disp_attrs.by_guid(guid) {
             Some(attr) => Ok(attr.into()),

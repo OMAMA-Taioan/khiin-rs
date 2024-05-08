@@ -48,7 +48,8 @@ toml = "0.7.3"
 unicode-normalization = "0.1.22"
 unicode-width = "0.1.10"
 win_dbg_logger = "0.1.0"
-windows = "0.48.0"
+windows = "0.56.0"
+windows-core = "0.56.0"
 
 khiin = { path = "./khiin" }
 khiin_data = { path = "./data" }
