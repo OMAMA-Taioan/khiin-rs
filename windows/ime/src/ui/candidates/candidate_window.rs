@@ -95,7 +95,7 @@ pub struct CandidateWindow {
 
 impl CandidateWindow {
     pub fn new(tip: ITfTextInputProcessor) -> Result<Self> {
-        let service = tip.as_impl();
+        let service = unsafe { tip.as_impl() };
         let factory = service.render_factory.clone();
         let window = WindowData::new(factory)?;
         let color = D2D1_COLOR_F::default();

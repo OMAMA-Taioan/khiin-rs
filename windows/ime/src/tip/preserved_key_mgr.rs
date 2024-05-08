@@ -1,5 +1,5 @@
 use windows::core::AsImpl;
-use windows::core::ComInterface;
+use windows::core::Interface;
 use windows::core::Result;
 use windows::core::GUID;
 use windows::Win32::UI::Input::KeyboardAndMouse::MOD_ALT;
@@ -62,12 +62,12 @@ impl PreservedKeyMgr {
     }
 
     fn keystroke_mgr(&self) -> Result<ITfKeystrokeMgr> {
-        let service = self.tip.as_impl();
+        let service = unsafe { self.tip.as_impl() };
         service.threadmgr().cast()
     }
 
     fn preserve_key(&self, pk: PreservedKey) -> Result<()> {
-        let service = self.tip.as_impl();
+        let service = unsafe { self.tip.as_impl() };
         let desc: &str = &pk.desc;
         let pchdesc = desc.to_utf16_nul();
         unsafe {

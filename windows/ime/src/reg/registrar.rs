@@ -1,7 +1,7 @@
-use windows::core::ComInterface;
+use windows::core::w;
+use windows::core::Interface;
 use windows::core::Result;
 use windows::core::GUID;
-use windows::w;
 use windows::Win32::Globalization::LocaleNameToLCID;
 use windows::Win32::System::Registry::HKEY_CLASSES_ROOT;
 use windows::Win32::UI::TextServices::CLSID_TF_CategoryMgr;

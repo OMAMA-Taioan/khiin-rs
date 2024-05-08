@@ -24,12 +24,13 @@ pub trait Hwnd {
 impl Hwnd for HWND {
     fn contains_pt(&self, pt: Point<i32>) -> bool {
         let mut rect = RECT::default();
-        let err = unsafe { GetClientRect(*self, &mut rect) };
-        if err != FALSE {
+        let res = unsafe { GetClientRect(*self, &mut rect) };
+
+        if res.is_err() {
+            false
+        } else {
             let rect: Rect<i32> = rect.into();
             rect.contains(pt)
-        } else {
-            false
         }
     }
 

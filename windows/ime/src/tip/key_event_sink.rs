@@ -3,7 +3,7 @@ use std::cell::Cell;
 use khiin_protos::command::SpecialKey;
 use windows::core::implement;
 use windows::core::AsImpl;
-use windows::core::ComInterface;
+use windows::core::Interface;
 use windows::core::Result;
 use windows::core::GUID;
 use windows::Win32::Foundation::BOOL;
@@ -62,7 +62,9 @@ pub fn handle_key(
     let mut cmd = Command::new();
     cmd.request = Some(req).into();
 
-    tip.as_impl().send_command(context, cmd)
+    unsafe {
+        tip.as_impl().send_command(context, cmd)
+    }
 }
 
 #[implement(ITfKeyEventSink)]
@@ -85,7 +87,7 @@ impl KeyEventSink {
         let sink: ITfKeyEventSink =
             KeyEventSink::new(self.tip.clone(), self.threadmgr.clone()).into();
         let keystroke_mgr: ITfKeystrokeMgr = self.threadmgr.cast()?;
-        let service: &TextService = self.tip.as_impl();
+        let service: &TextService = unsafe { self.tip.as_impl() };
 
         unsafe {
             keystroke_mgr.AdviseKeyEventSink(
@@ -100,7 +102,7 @@ impl KeyEventSink {
 
     pub fn unadvise(&self) -> Result<()> {
         let keystroke_mgr: ITfKeystrokeMgr = self.threadmgr.cast()?;
-        let service: &TextService = self.tip.as_impl();
+        let service: &TextService = unsafe { self.tip.as_impl() };
 
         unsafe {
             keystroke_mgr.UnadviseKeyEventSink(service.clientid()?)?;
@@ -114,7 +116,7 @@ impl KeyEventSink {
         _context: ITfContext,
         key_event: &KeyEvent,
     ) -> Result<BOOL> {
-        let service = self.tip.as_impl();
+        let service = unsafe { self.tip.as_impl() };
 
         if !service.enabled()? {
             return Ok(FALSE);
@@ -156,7 +158,7 @@ impl KeyEventSink {
         context: ITfContext,
         key_event: KeyEvent,
     ) -> Result<BOOL> {
-        let service = self.tip.as_impl();
+        let service = unsafe { self.tip.as_impl() };
 
         if !service.enabled()? {
             return Ok(FALSE);

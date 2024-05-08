@@ -1,18 +1,18 @@
 use std::marker::PhantomData;
 
-use windows::core::ComInterface;
+use windows::core::Interface;
 use windows::core::IUnknown;
 use windows::core::Result;
 use windows::Win32::UI::TextServices::ITfSource;
 use windows::Win32::UI::TextServices::TF_INVALID_COOKIE;
 
-pub struct SinkMgr<T: ComInterface> {
+pub struct SinkMgr<T: Interface> {
     _marker: PhantomData<T>,
     source: Option<ITfSource>,
     cookie: u32,
 }
 
-impl<T: ComInterface> SinkMgr<T> {
+impl<T: Interface> SinkMgr<T> {
     pub fn new() -> Self {
         Self {
             _marker: Default::default(),

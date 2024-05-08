@@ -1,12 +1,13 @@
+use std::borrow::BorrowMut;
 use std::ffi::c_void;
 
-use windows::core::ComInterface;
+use windows::core::Interface;
 use windows::core::IUnknown;
 use windows::core::Result;
 use windows::core::GUID;
 use windows::Win32::Foundation::ERROR_INVALID_PARAMETER;
-use windows::Win32::System::Com::VARIANT;
-use windows::Win32::System::Com::VT_I4;
+use windows::core::VARIANT;
+use windows::Win32::System::Variant::VT_I4;
 use windows::Win32::UI::TextServices::ITfCompartment;
 use windows::Win32::UI::TextServices::ITfCompartmentMgr;
 use windows::Win32::UI::TextServices::ITfThreadMgr;
@@ -80,19 +81,24 @@ impl Compartment {
     }
 
     pub fn set_value(&self, value: u32) -> Result<()> {
-        let mut variant = VARIANT::default();
+        let &(mut variant) = VARIANT::default().as_raw();
+
+        variant.Anonymous.Anonymous.vt = VT_I4.0;
+        variant.Anonymous.Anonymous.Anonymous.lVal = value as i32;
+
+        let v = unsafe { VARIANT::from_raw(variant) };
+
         unsafe {
-            (*variant.Anonymous.Anonymous).vt = VT_I4;
-            (*variant.Anonymous.Anonymous).Anonymous.lVal = value as i32;
-            self.compartment()?.SetValue(self.clientid, &variant)
+            self.compartment()?.SetValue(self.clientid, &v)
         }
     }
 
     pub fn get_value(&self) -> Result<u32> {
         unsafe {
             let variant = self.compartment()?.GetValue()?;
-            if variant.Anonymous.Anonymous.vt == VT_I4 {
-                Ok(variant.Anonymous.Anonymous.Anonymous.lVal as u32)
+
+            if variant.as_raw().Anonymous.Anonymous.vt == VT_I4.0 {
+                Ok(variant.as_raw().Anonymous.Anonymous.Anonymous.lVal as u32)
             } else {
                 winerr!(ERROR_INVALID_PARAMETER)
             }

@@ -1,6 +1,6 @@
 use log::debug as d;
 
-use windows::core::ComInterface;
+use windows::core::Interface;
 use windows::core::Result;
 use windows::Win32::Foundation::BOOL;
 use windows::Win32::Foundation::RECT;
@@ -125,7 +125,7 @@ unsafe fn parent_window_origin(view: ITfContextView) -> Result<RECT> {
     };
     let found = GetWindowRect(handle, &mut rect);
 
-    Ok(if found.0 != 0 {
+    Ok(if found.is_ok() {
         RECT {
             left: rect.left,
             top: rect.top,

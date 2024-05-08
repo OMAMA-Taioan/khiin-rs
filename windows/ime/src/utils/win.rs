@@ -1,4 +1,4 @@
-use windows::core::ComInterface;
+use windows::core::Interface;
 use windows::core::Result;
 use windows::core::GUID;
 use windows::Win32::Foundation::HMODULE;
@@ -11,7 +11,7 @@ use windows::Win32::System::LibraryLoader::GetModuleFileNameW;
 
 use crate::fail;
 
-pub fn co_create_inproc<T: ComInterface>(clsid: &GUID) -> Result<T> {
+pub fn co_create_inproc<T: Interface>(clsid: &GUID) -> Result<T> {
     let iface: T =
         unsafe { CoCreateInstance(clsid, None, CLSCTX_INPROC_SERVER)? };
     Ok(iface)

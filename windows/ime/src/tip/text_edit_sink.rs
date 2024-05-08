@@ -1,3 +1,4 @@
+use windows::core;
 use windows::core::implement;
 use windows::core::Result;
 use windows::Win32::UI::TextServices::ITfContext;
