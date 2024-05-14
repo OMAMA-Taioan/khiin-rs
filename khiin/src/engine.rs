@@ -98,12 +98,16 @@ impl Engine {
                     self.buffer_mgr.insert(&self.inner, ch)?;
                 }
             },
-            SpecialKey::SK_SPACE => {},
+            SpecialKey::SK_SPACE => {
+                self.buffer_mgr.focus_next_candidate(&self.inner)?;
+            },
             SpecialKey::SK_ENTER => {
                 return self.on_commit(req);
             },
             SpecialKey::SK_ESC => {},
-            SpecialKey::SK_BACKSPACE => {},
+            SpecialKey::SK_BACKSPACE => {
+                self.buffer_mgr.pop(&self.inner)?;
+            },
             SpecialKey::SK_TAB => {},
             SpecialKey::SK_LEFT => {},
             SpecialKey::SK_RIGHT => {},

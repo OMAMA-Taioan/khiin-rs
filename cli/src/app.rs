@@ -228,8 +228,15 @@ pub fn run(stdout: &mut Stdout) -> Result<()> {
                 blank_display(stdout)?;
                 continue;
             },
+            KeyCode::Backspace => {
+                if !raw_input.is_empty() {
+                    raw_input.pop();
+                }
+            },
             KeyCode::Char(c) => {
-                raw_input.push(c);
+                if c != ' ' {
+                    raw_input.push(c);
+                }
             },
             _ => {},
         }
