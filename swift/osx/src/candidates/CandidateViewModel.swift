@@ -17,4 +17,44 @@ class CandidateViewModel: ObservableObject {
 
         self.currentCommand = res
     }
+
+    func handleBackspace() {
+        let engine = EngineController.instance
+
+        guard let res = engine.handleSpecialKey(.skBackspace) else {
+            return
+        }
+
+        self.currentCommand = res
+    }
+
+    func handleSpace() {
+        let engine = EngineController.instance
+
+        guard let res = engine.handleSpecialKey(.skSpace) else {
+            return
+        }
+
+        self.currentCommand = res
+    }
+
+    func handleArrowUp() {
+        let engine = EngineController.instance
+
+        guard let res = engine.handleSpecialKey(.skUp) else {
+            return
+        }
+
+        self.currentCommand = res
+    }
+
+    func handleArrowDown() {
+        let engine = EngineController.instance
+
+        guard let res = engine.handleSpecialKey(.skDown) else {
+            return
+        }
+
+        self.currentCommand = res
+    }
 }

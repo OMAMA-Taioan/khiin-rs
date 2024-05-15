@@ -50,6 +50,19 @@ public class EngineController {
         return sendCommand(req)
     }
 
+    public func handleSpecialKey(_ key: Khiin_Proto_SpecialKey)
+        -> Khiin_Proto_Command?
+    {
+        var req = Khiin_Proto_Request()
+        var keyEvent = Khiin_Proto_KeyEvent()
+
+        req.type = .cmdSendKey
+        keyEvent.specialKey = key
+        req.keyEvent = keyEvent
+
+        return sendCommand(req)
+    }
+
     public func sendCommand(_ request: Khiin_Proto_Request)
         -> Khiin_Proto_Command?
     {
