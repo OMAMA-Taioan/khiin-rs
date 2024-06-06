@@ -13,6 +13,11 @@ use crate::input::parser::SectionType;
 
 use super::parse_longest_from_start;
 use super::parse_whole_input;
+use super::Syllable;
+
+use khiin_ji::lomaji::has_tone_letter;
+use khiin_ji::lomaji::strip_tone_diacritic;
+use khiin_ji::Tone;
 
 pub(crate) fn get_candidates(
     engine: &EngInner,
@@ -87,6 +92,37 @@ pub(crate) fn convert_all(
         }
     }
 
+    Ok(composition)
+}
+
+pub(crate) fn convert_to_telex(
+    engine: &EngInner,
+    raw_buffer: &str,
+    key: char,
+) -> Result<Buffer> {
+    let (stripped, tone) = strip_tone_diacritic(raw_buffer);
+
+    let mut word: Syllable = Syllable::new();
+    word.raw_body = stripped.to_string();
+    word.raw_input = stripped.to_string();
+
+    if tone != Tone::T1 || has_tone_letter(raw_buffer) {
+        match key {
+            's' => word.tone = Tone::T2,
+            'f' => word.tone = Tone::T3,
+            'l' => word.tone = Tone::T5,
+            'x' => word.tone = Tone::T6,
+            'j' => word.tone = Tone::T7,
+            'w' => word.tone = Tone::T9,
+            'y' => word.khin = true,
+            _ => word.raw_body.push(key),
+        }
+    } else {
+        word.raw_body.push(key);
+    }
+
+    let mut composition = Buffer::new();
+    composition.push(StringElem::from(word.compose()).into());
     Ok(composition)
 }
 

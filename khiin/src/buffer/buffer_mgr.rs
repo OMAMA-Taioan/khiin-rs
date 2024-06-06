@@ -22,6 +22,7 @@ use crate::data::Dictionary;
 use crate::db::Database;
 use crate::engine::EngInner;
 use crate::input::converter::convert_all;
+use crate::input::converter::convert_to_telex;
 use crate::input::converter::get_candidates;
 use crate::utils::CharSubstr;
 
@@ -153,12 +154,10 @@ impl BufferMgr {
     }
 
     pub fn insert(&mut self, engine: &EngInner, ch: char) -> Result<()> {
-        self.edit_state = EditState::ES_COMPOSING;
-
         match engine.conf.input_mode() {
             InputMode::Continuous => self.insert_continuous(engine, ch),
             InputMode::SingleWord => self.insert_single_word(ch),
-            InputMode::Manual => self.insert_manual(ch),
+            InputMode::Manual => self.insert_manual(engine, ch),
         }
     }
 
@@ -177,6 +176,7 @@ impl BufferMgr {
     }
 
     fn insert_continuous(&mut self, engine: &EngInner, ch: char) -> Result<()> {
+        self.edit_state = EditState::ES_COMPOSING;
         debug!("BufferMgr::insert_continuous ({})", ch);
         let mut composition = self.composition.raw_text();
         composition.push(ch);
@@ -237,8 +237,21 @@ impl BufferMgr {
         Err(anyhow!("Not implemented"))
     }
 
-    fn insert_manual(&mut self, ch: char) -> Result<()> {
-        Err(anyhow!("Not implemented"))
+    fn insert_manual(&mut self, engine: &EngInner, ch: char) -> Result<()> {
+        debug!("BufferMgr::insert_manual ({})", ch);
+        if ch == 'd' && self.edit_state == EditState::ES_COMPOSING {
+            self.edit_state = EditState::ES_EMPTY;
+            return Ok(());
+        }
+
+        let mut raw_input = self.composition.raw_text();
+        
+        self.composition = convert_to_telex(engine, &raw_input, ch)?;
+        self.char_caret = self.composition.display_char_count();
+
+        self.edit_state = EditState::ES_COMPOSING;
+
+        Ok(())
     }
 
     fn pop_manual(&mut self) -> Result<()> {

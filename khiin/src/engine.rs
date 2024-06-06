@@ -9,9 +9,11 @@ use anyhow::Result;
 use protobuf::Message;
 
 use khiin_protos::command::*;
+use khiin_protos::config::AppInputMode;
 
 use crate::buffer::BufferMgr;
 use crate::config::Config;
+use crate::config::InputMode;
 use crate::config::ToneMode;
 use crate::data::dictionary::Dictionary;
 use crate::db::Database;
@@ -96,6 +98,9 @@ impl Engine {
                 let ch = ascii_char_from_i32(req.key_event.key_code);
                 if let Some(ch) = ch {
                     self.buffer_mgr.insert(&self.inner, ch)?;
+                    if self.buffer_mgr.edit_state() == EditState::ES_EMPTY {
+                        return self.on_commit(req);
+                    }
                 }
             },
             SpecialKey::SK_SPACE => {
@@ -159,8 +164,14 @@ impl Engine {
         Err(anyhow!("Not implemented"))
     }
 
-    fn on_switch_input_mode(&self, req: Request) -> Result<Response> {
-        Err(anyhow!("Not implemented"))
+    fn on_switch_input_mode(&mut self, req: Request) -> Result<Response> {
+        self.buffer_mgr.reset();
+        match req.config.input_mode.enum_value_or_default() {
+            AppInputMode::CONTINUOUS => self.inner.conf.set_input_mode(InputMode::Continuous),
+            AppInputMode::SINGLE_WORD => self.inner.conf.set_input_mode(InputMode::SingleWord),
+            AppInputMode::MANUAL => self.inner.conf.set_input_mode(InputMode::Manual),
+        }
+        Ok(Response::new())
     }
 
     fn on_place_cursor(&self, req: Request) -> Result<Response> {

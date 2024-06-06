@@ -25,11 +25,10 @@ message KeyConfiguration {
     BoolValue use_digits_as_fallback = 14;
 }
 
-enum InputMode {
-    IM_UNSPECIFIED = 0;
-    IM_CONTINUOUS = 1;
-    IM_BASIC = 2;
-    IM_PRO = 3;
+enum AppInputMode {
+    CONTINUOUS = 0;
+    SINGLE_WORD = 1;
+    MANUAL = 2;
 }
 
 enum DefaultPunctuation {
@@ -41,7 +40,7 @@ enum DefaultPunctuation {
 message AppConfig {
     BoolValue ime_enabled = 1;
     KeyConfiguration key_config = 2;
-    InputMode input_mode = 3;
+    AppInputMode input_mode = 3;
     BoolValue telex_enabled = 4;
     BoolValue dotted_khin = 5;
     BoolValue autokhin = 6;

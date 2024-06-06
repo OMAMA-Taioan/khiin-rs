@@ -5,6 +5,8 @@ use khiin::Engine;
 use khiin_protos::command::Command;
 use khiin_protos::command::CommandType;
 use khiin_protos::command::Request;
+use khiin_protos::config::AppConfig;
+use khiin_protos::config::AppInputMode;
 use protobuf::Message;
 
 use crate::keys::translate_keys;
@@ -21,6 +23,23 @@ impl EngineCtrl {
 
     pub fn send_key(&mut self, key: CTKeyEvent) -> Result<Command> {
         let cmd = build_command(key);
+        self.send_command(cmd)
+    }
+
+    pub fn send_switch_mode_command(
+        &mut self,
+        mode: &AppInputMode,
+    ) -> Result<Command> {
+        let mut config: AppConfig = AppConfig::new();
+        config.input_mode = (*mode).into();
+
+        let mut req = Request::new();
+        req.type_ = CommandType::CMD_SWITCH_INPUT_MODE.into();
+        req.config = Some(config).into();
+
+        let mut cmd = Command::new();
+        cmd.request = Some(req).into();
+
         self.send_command(cmd)
     }
 

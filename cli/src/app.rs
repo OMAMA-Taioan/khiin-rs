@@ -21,6 +21,7 @@ use crossterm::terminal::ClearType;
 use crossterm::terminal::EnterAlternateScreen;
 use khiin_protos::command::Command;
 use khiin_protos::command::SegmentStatus;
+use khiin_protos::config::AppInputMode;
 use unicode_width::UnicodeWidthStr;
 
 use crate::engine_ctrl::EngineCtrl;
@@ -37,16 +38,22 @@ fn clear(stdout: &mut Stdout) -> Result<()> {
     Ok(())
 }
 
-fn blank_display(stdout: &mut Stdout) -> Result<()> {
-    clear(stdout)?;
-    update_display(stdout, "", "", 0, "", &Vec::new())?;
+fn blank_display(stdout: &mut Stdout, mode: &AppInputMode) -> Result<()> {
+    let input_mode = match mode {
+        AppInputMode::CONTINUOUS => "Auto",
+        AppInputMode::SINGLE_WORD => "Single Word",
+        AppInputMode::MANUAL => "Manual",
+    };
+    update_display(stdout, &input_mode, "", "", "", 0, "", &Vec::new())?;
     Ok(())
 }
 
 fn update_display(
     stdout: &mut Stdout,
+    mode: &str,
     raw: &str,
     display: &str,
+    committed: &str,
     caret: usize,
     attrs: &str,
     cands: &Vec<String>,
@@ -57,23 +64,31 @@ fn update_display(
         MoveTo(2, 2),
         Print("Khíín Phah Jī Hoat"),
         MoveTo(2, 4),
-        Print(format!("Raw input:  {}", raw)),
+        Print(format!("Input mode:  {}", mode)),
         MoveTo(2, 6),
-        Print(format!("User sees:  {}", display)),
-        MoveTo(14, 7),
-        Print(format!("{}", attrs)),
+        Print(format!("Raw input:  {}", raw)),
         MoveTo(2, 8),
+        Print(format!("Committed:  {}", committed)),
+        MoveTo(2, 10),
+        Print(format!("User sees:  {}", display)),
+        MoveTo(14, 11),
+        Print(format!("{}", attrs)),
+        MoveTo(2, 12),
         Print(format!("Candidates:")),
     )?;
 
     for (i, cand) in cands.iter().enumerate() {
-        execute!(stdout, MoveTo(15, 8 + i as u16), Print(format!("{}", cand)))?;
+        execute!(
+            stdout,
+            MoveTo(15, 12 + i as u16),
+            Print(format!("{}", cand))
+        )?;
     }
 
     draw_footer(stdout)?;
     execute!(
         stdout,
-        MoveTo(14 + caret as u16, 6),
+        MoveTo(14 + caret as u16, 10),
         Show,
         SetCursorStyle::BlinkingBar
     )?;
@@ -120,7 +135,13 @@ fn get_candidate_page(cmd: &Command) -> Vec<String> {
     ret
 }
 
-fn draw_ime(stdout: &mut Stdout, raw_input: &str, cmd: Command) -> Result<()> {
+fn draw_ime(
+    stdout: &mut Stdout,
+    raw_input: &str,
+    done_buffer: &mut String,
+    cmd: Command,
+    mode: &AppInputMode,
+) -> Result<()> {
     let mut disp_buffer = String::new();
     let mut attr_buffer = String::new();
 
@@ -158,11 +179,24 @@ fn draw_ime(stdout: &mut Stdout, raw_input: &str, cmd: Command) -> Result<()> {
     }
 
     let cands = get_candidate_page(&cmd);
+    let input_mode = match mode {
+        AppInputMode::CONTINUOUS => "Auto",
+        AppInputMode::SINGLE_WORD => "Single Word",
+        AppInputMode::MANUAL => "Manual",
+    };
+
+    if cmd.response.committed {
+        done_buffer.push_str(&disp_buffer);
+        disp_buffer.clear();
+        caret = 0;
+    }
 
     update_display(
         stdout,
+        &input_mode,
         &raw_input,
         &disp_buffer,
+        done_buffer,
         caret,
         &attr_buffer,
         &cands,
@@ -171,7 +205,16 @@ fn draw_ime(stdout: &mut Stdout, raw_input: &str, cmd: Command) -> Result<()> {
 
 fn draw_footer(stdout: &mut Stdout) -> Result<()> {
     let (_, rows) = size()?;
-    let help = vec!["<Esc>: Quit", "<Enter>: Clear"];
+
+    let alt_key_str = if cfg!(target_os = "macos") {
+        "<Option>"
+    } else {
+        "<Alt>"
+    };
+
+    let switch_help = format!("{} + i: Switch mode", alt_key_str);
+    let help = vec!["<Esc>: Quit", "<Enter>: Clear", &switch_help];
+
     let max_len = help.iter().map(|s| s.chars().count()).max().unwrap_or(0) + 4;
 
     let formatted: Vec<String> = help
@@ -201,15 +244,15 @@ pub fn run(stdout: &mut Stdout) -> Result<()> {
     enable_raw_mode()?;
 
     let mut engine = EngineCtrl::new(get_db_filename()?)?;
+    let mut mode: AppInputMode = AppInputMode::MANUAL;
 
-    blank_display(stdout)?;
+    engine.send_switch_mode_command(&mode)?;
+    blank_display(stdout, &mode)?;
 
     let mut raw_input = String::new();
-    let mut disp_buffer = String::new();
+    let mut done_buffer = String::new();
 
     loop {
-        disp_buffer.clear();
-
         let key = read_key()?;
 
         if key.kind != KeyEventKind::Press {
@@ -220,12 +263,27 @@ pub fn run(stdout: &mut Stdout) -> Result<()> {
             break;
         }
 
+        if key.code == KeyCode::Char('i')
+            && key.modifiers == crossterm::event::KeyModifiers::ALT
+        {
+            if mode == AppInputMode::CONTINUOUS {
+                mode = AppInputMode::MANUAL;
+            } else {
+                mode = AppInputMode::CONTINUOUS;
+            }
+            raw_input.clear();
+            done_buffer.clear();
+            let cmd = engine.send_switch_mode_command(&mode)?;
+            draw_ime(stdout, &raw_input, &mut done_buffer, cmd, &mode)?;
+            continue;
+        }
+
         match key.code {
             KeyCode::Enter => {
                 raw_input.clear();
-                disp_buffer.clear();
+                done_buffer.clear();
                 engine.reset()?;
-                blank_display(stdout)?;
+                blank_display(stdout, &mode)?;
                 continue;
             },
             KeyCode::Backspace => {
@@ -242,7 +300,10 @@ pub fn run(stdout: &mut Stdout) -> Result<()> {
         }
 
         let cmd = engine.send_key(key)?;
-        draw_ime(stdout, &raw_input, cmd)?;
+        if cmd.response.committed {
+            raw_input.clear();
+        }
+        draw_ime(stdout, &raw_input, &mut done_buffer, cmd, &mode)?;
     }
 
     clear(stdout)?;

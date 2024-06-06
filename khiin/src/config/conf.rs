@@ -44,4 +44,14 @@ impl Config {
     pub fn tone_mode(&self) -> ToneMode {
         self.tone_mode
     }
+
+    // set input_mode
+    pub fn set_input_mode(&mut self, mode: InputMode) {
+        self.input_mode = mode;
+    }
+
+    // set tone_mode
+    pub fn set_tone_mode(&mut self, mode: ToneMode) {
+        self.tone_mode = mode;
+    }
 }
