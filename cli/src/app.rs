@@ -41,7 +41,7 @@ fn clear(stdout: &mut Stdout) -> Result<()> {
 fn blank_display(stdout: &mut Stdout, mode: &AppInputMode) -> Result<()> {
     let input_mode = match mode {
         AppInputMode::CONTINUOUS => "Auto",
-        AppInputMode::SINGLE_WORD => "Single Word",
+        AppInputMode::CLASSIC => "Classic",
         AppInputMode::MANUAL => "Manual",
     };
     update_display(stdout, &input_mode, "", "", "", 0, "", &Vec::new())?;
@@ -181,7 +181,7 @@ fn draw_ime(
     let cands = get_candidate_page(&cmd);
     let input_mode = match mode {
         AppInputMode::CONTINUOUS => "Auto",
-        AppInputMode::SINGLE_WORD => "Single Word",
+        AppInputMode::CLASSIC => "Classic",
         AppInputMode::MANUAL => "Manual",
     };
 

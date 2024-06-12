@@ -27,7 +27,7 @@ message KeyConfiguration {
 
 enum AppInputMode {
     CONTINUOUS = 0;
-    SINGLE_WORD = 1;
+    CLASSIC = 1;
     MANUAL = 2;
 }
 

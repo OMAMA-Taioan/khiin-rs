@@ -156,7 +156,7 @@ impl BufferMgr {
     pub fn insert(&mut self, engine: &EngInner, ch: char) -> Result<()> {
         match engine.conf.input_mode() {
             InputMode::Continuous => self.insert_continuous(engine, ch),
-            InputMode::SingleWord => self.insert_single_word(ch),
+            InputMode::Classic => self.insert_classic(ch),
             InputMode::Manual => self.insert_manual(engine, ch),
         }
     }
@@ -170,7 +170,7 @@ impl BufferMgr {
 
         match engine.conf.input_mode() {
             InputMode::Continuous => self.pop_continuous(engine),
-            InputMode::SingleWord => self.pop_single_word(),
+            InputMode::Classic => self.pop_classic(),
             InputMode::Manual => self.pop_manual(),
         }
     }
@@ -229,11 +229,11 @@ impl BufferMgr {
         Ok(())
     }
 
-    fn insert_single_word(&mut self, ch: char) -> Result<()> {
+    fn insert_classic(&mut self, ch: char) -> Result<()> {
         Err(anyhow!("Not implemented"))
     }
 
-    fn pop_single_word(&mut self) -> Result<()> {
+    fn pop_classic(&mut self) -> Result<()> {
         Err(anyhow!("Not implemented"))
     }
 

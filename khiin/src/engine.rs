@@ -168,7 +168,7 @@ impl Engine {
         self.buffer_mgr.reset();
         match req.config.input_mode.enum_value_or_default() {
             AppInputMode::CONTINUOUS => self.inner.conf.set_input_mode(InputMode::Continuous),
-            AppInputMode::SINGLE_WORD => self.inner.conf.set_input_mode(InputMode::SingleWord),
+            AppInputMode::CLASSIC => self.inner.conf.set_input_mode(InputMode::Classic),
             AppInputMode::MANUAL => self.inner.conf.set_input_mode(InputMode::Manual),
         }
         Ok(Response::new())

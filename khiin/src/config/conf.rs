@@ -3,7 +3,7 @@ use crate::db::models::InputType;
 #[derive(Copy, Clone)]
 pub enum InputMode {
     Continuous,
-    SingleWord,
+    Classic,
     Manual,
 }
 
