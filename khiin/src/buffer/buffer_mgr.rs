@@ -165,7 +165,7 @@ impl BufferMgr {
         if self.edit_state == EditState::ES_EMPTY {
             return Ok(());
         }
-        
+
         self.edit_state = EditState::ES_COMPOSING;
 
         match engine.conf.input_mode() {
@@ -196,7 +196,11 @@ impl BufferMgr {
         self.build_composition_continuous(engine, composition)
     }
 
-    fn build_composition_continuous(&mut self, engine: &EngInner, composition: String) -> Result<()> {
+    fn build_composition_continuous(
+        &mut self,
+        engine: &EngInner,
+        composition: String,
+    ) -> Result<()> {
         assert!(composition.is_ascii());
 
         self.composition = convert_all(engine, &composition)?;
@@ -245,7 +249,7 @@ impl BufferMgr {
         }
 
         let mut raw_input = self.composition.raw_text();
-        
+
         self.composition = convert_to_telex(engine, &raw_input, ch)?;
         self.char_caret = self.composition.display_char_count();
 
@@ -255,7 +259,22 @@ impl BufferMgr {
     }
 
     fn pop_manual(&mut self) -> Result<()> {
-        Err(anyhow!("Not implemented"))
+        debug!("BufferMgr::pop_manual ");
+        let mut raw_input = self.composition.raw_text();
+        raw_input.pop();
+
+        if raw_input.is_empty() {
+            return self.reset();
+        }
+
+        let mut composition: Buffer = Buffer::new();
+        composition.push(StringElem::from(raw_input).into());
+        self.composition = composition;
+        self.char_caret = self.composition.display_char_count();
+
+        self.edit_state = EditState::ES_COMPOSING;
+
+        Ok(())
     }
 
     pub fn focus_next_candidate(&mut self, engine: &EngInner) -> Result<()> {

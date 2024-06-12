@@ -288,7 +288,7 @@ pub fn run(stdout: &mut Stdout) -> Result<()> {
             },
             KeyCode::Backspace => {
                 if !raw_input.is_empty() {
-                    raw_input.pop();
+                    raw_input.push_str("<Back>")
                 }
             },
             KeyCode::Char(c) => {
