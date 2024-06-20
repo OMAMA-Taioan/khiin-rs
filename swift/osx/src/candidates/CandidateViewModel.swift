@@ -57,4 +57,15 @@ class CandidateViewModel: ObservableObject {
 
         self.currentCommand = res
     }
+
+    func changeInputMode() {
+        let engine = EngineController.instance
+
+        guard let res = engine.changeInputMode() else {
+            return
+        }
+
+        self.currentCommand = res
+        
+    }
 }

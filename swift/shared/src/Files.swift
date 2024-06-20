@@ -26,3 +26,12 @@ func getDatabaseFilePath() -> String? {
 
     return nil
 }
+
+func getSettingFilePath() -> String? {
+    if let dataDir = getAppDataDir() {
+        return dataDir.appendingPathComponent("settings.toml").absoluteURL
+            .path(percentEncoded: false)
+    }
+
+    return nil
+}

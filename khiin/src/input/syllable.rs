@@ -28,10 +28,18 @@ impl Syllable {
     }
 
     pub fn compose(&self) -> String {
-        let mut ret = self.raw_body.replace("nn", "ⁿ").replace("ou", "o͘");
+        let mut ret: String = self
+            .raw_body
+            .replace("nn", "ⁿ")
+            .replace("nN", "ⁿ")
+            .replace("Nn", "ⁿ")
+            .replace("NN", "ᴺ")
+            .replace("ou", "o͘");
 
         if self.khin {
-            ret.insert(0, '·');
+            // ret.insert(0, '·');
+            ret.insert(0, '-');
+            ret.insert(1, '-');
         }
 
         if self.tone == Tone::None {

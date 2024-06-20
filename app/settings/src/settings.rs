@@ -34,11 +34,104 @@ impl Default for CandidateSettings {
         }
     }
 }
+const INPUT_MODE_DEFAULT: &str = "continuous";
+const TONE_MODE_DEFAULT: &str = "telex";
+const T2_DEFAULT: char = 's';
+const T3_DEFAULT: char = 'f';
+const T5_DEFAULT: char = 'l';
+const T6_DEFAULT: char = 'x';
+const T7_DEFAULT: char = 'j';
+const T8_DEFAULT: char = 'j';
+const T9_DEFAULT: char = 'w';
+const KHIN_DEFAULT: char = 'q';
+
+#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
+pub struct InputSettings {
+    #[serde(default = "default_input_mode")]
+    pub input_mode: String,
+    #[serde(default = "default_tone_mode")]
+    pub tone_mode: String,
+    #[serde(default = "default_t2")]
+    pub t2: char,
+    #[serde(default = "default_t3")]
+    pub t3: char,
+    #[serde(default = "default_t5")]
+    pub t5: char,
+    #[serde(default = "default_t6")]
+    pub t6: char,
+    #[serde(default = "default_t7")]
+    pub t7: char,
+    #[serde(default = "default_t8")]
+    pub t8: char,
+    #[serde(default = "default_t9")]
+    pub t9: char,
+    #[serde(default = "default_khin")]
+    pub khin: char,
+}
+
+fn default_input_mode() -> String {
+    INPUT_MODE_DEFAULT.to_string()
+}
+
+fn default_tone_mode() -> String {
+    TONE_MODE_DEFAULT.to_string()
+}
+
+fn default_t2() -> char {
+    T2_DEFAULT
+}
+
+fn default_t3() -> char {
+    T3_DEFAULT
+}
+
+fn default_t5() -> char {
+    T5_DEFAULT
+}
+
+fn default_t6() -> char {
+    T6_DEFAULT
+}
+
+fn default_t7() -> char {
+    T7_DEFAULT
+}
+
+fn default_t8() -> char {
+    T8_DEFAULT
+}
+
+fn default_t9() -> char {
+    T9_DEFAULT
+}
+
+fn default_khin() -> char {
+    KHIN_DEFAULT
+}
+
+impl Default for InputSettings {
+    fn default() -> Self {
+        Self {
+            input_mode: INPUT_MODE_DEFAULT.to_string(),
+            tone_mode: TONE_MODE_DEFAULT.to_string(),
+            t2: T2_DEFAULT,
+            t3: T3_DEFAULT,
+            t5: T5_DEFAULT,
+            t6: T6_DEFAULT,
+            t7: T7_DEFAULT,
+            t8: T8_DEFAULT,
+            t9: T9_DEFAULT,
+            khin: KHIN_DEFAULT,
+        }
+    }
+}
 
 #[derive(Default, Debug, Deserialize, Serialize, PartialEq, Clone)]
 pub struct AppSettings {
     #[serde(default)]
     pub candidates: CandidateSettings,
+    #[serde(default)]
+    pub input_settings: InputSettings,
 }
 
 #[derive(Default, Debug, Deserialize, Serialize, PartialEq)]
@@ -49,14 +142,20 @@ pub struct SettingsManager {
 
 impl SettingsManager {
     pub fn load_from_file(filename: &PathBuf) -> Self {
-        let mut file = File::open(filename).unwrap();
-        let mut contents = String::new();
-        file.read_to_string(&mut contents).unwrap();
-
-        if let Ok(settings) = toml::from_str::<AppSettings>(&contents) {
-            SettingsManager {
-                settings,
-                filename: filename.clone(),
+        if let Ok(mut file) = File::open(filename) {
+            let mut contents = String::new();
+            file.read_to_string(&mut contents).unwrap();
+    
+            if let Ok(settings) = toml::from_str::<AppSettings>(&contents) {
+                SettingsManager {
+                    settings,
+                    filename: filename.clone(),
+                }
+            } else {
+                SettingsManager {
+                    settings: AppSettings::default(),
+                    filename: filename.clone(),
+                }
             }
         } else {
             SettingsManager {
@@ -99,11 +198,20 @@ mod tests {
             [candidates]
             colors = "auto"
             font_size = 24
+
+            [input_settings]
+            input_mode = "manual"
+            tone_mode = "numeric"
+            t3 = "c"
         "#,
         )
         .unwrap();
 
         assert_eq!(settings.candidates.colors, ColorScheme::Auto);
         assert_eq!(settings.candidates.font_size, 24);
+        assert_eq!(settings.input_settings.input_mode, "manual");
+        assert_eq!(settings.input_settings.tone_mode, "numeric");
+        assert_eq!(settings.input_settings.t2, 's');
+        assert_eq!(settings.input_settings.t3, 'c');
     }
 }

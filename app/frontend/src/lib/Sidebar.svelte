@@ -50,7 +50,7 @@
         <li class="mt-auto">
             <SidebarItem
                 target="_blank"
-                route="https://github.com/aiongg/khiin-rs"
+                route="https://github.com/OMAMA-Taioan/khiin-rs"
                 iconClass="bxl-github"
                 label={$_("global.nav.github")}
             />

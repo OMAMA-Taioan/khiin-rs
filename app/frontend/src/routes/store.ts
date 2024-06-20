@@ -12,6 +12,18 @@ interface AppSettings {
         color?: string;
         font_size?: number;
     };
+    input_settings?: {
+        input_mode?: string;
+        tone_mode?: string;
+        t2?: string;
+        t3?: string;
+        t5?: string;
+        t6?: string;
+        t7?: string;
+        t8?: string;
+        t9?: string;
+        khin?: string;
+    };
 }
 
 export const settings = writable<AppSettings>({
