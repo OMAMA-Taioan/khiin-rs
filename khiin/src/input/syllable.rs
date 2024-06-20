@@ -18,7 +18,7 @@ pub(crate) struct Syllable {
 }
 
 impl Syllable {
-    pub fn spacer() -> Self {
+    pub fn new() -> Self {
         Self {
             raw_input: String::new(),
             raw_body: String::new(),

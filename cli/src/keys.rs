@@ -28,7 +28,11 @@ pub fn translate_keys(key: CTKeyEvent) -> KhiEvent {
     };
 
     ret.key_code = char;
-    ret.special_key = special_key.into();
+    ret.special_key = if char == ' ' as i32 {
+        SpecialKey::SK_SPACE.into()
+    } else {
+        special_key.into()
+    };
 
     ret
 }

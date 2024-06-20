@@ -1,5 +1,4 @@
 import InputMethodKit
-import SwiftUI
 import SwiftyBeaver
 import KhiinSwift
 
@@ -29,12 +28,18 @@ class KhiinInputController: IMKInputController {
         self.window?.setFrame(.zero, display: true)
     }
 
+    func isEdited() -> Bool {
+        return self.candidateViewModel.currentCommand.response.editState != .esEmpty
+    }
+
     func commitCurrent() -> Bool {
-        let candidates = self.candidateViewModel
+        let candList = self.candidateViewModel
             .currentCommand
             .response
             .candidateList
-            .candidates
+
+        let candidates = candList.candidates
+        let focus = Int(candList.focused)
         
         guard candidates.count > 0 else {
             return false
@@ -43,11 +48,74 @@ class KhiinInputController: IMKInputController {
         guard let client = self.currentClient else {
             return false
         }
-        
-        client.insert(candidates[0].value)
+
+        client.insert(candidates[focus < 0 ? 0 : focus].value)
         EngineController.instance.reset()
         self.window?.setFrame(.zero, display: true)
         return true
+    }
+
+    func currentDisplayText() -> String {
+    
+        // Khiin_Proto_Preedit
+        let preedit = self.candidateViewModel
+            .currentCommand
+            .response
+            .preedit
+        
+        var disp_buffer = ""
+        // var attr_buffer = ""
+
+        // var char_count = 0
+        // var caret = 0
+
+        for segment in preedit.segments {
+            log.debug("segment: \(segment)")
+            var disp_seg = ""
+
+            // if preedit.caret == char_count {
+            //     caret = disp_buffer.count + disp_seg.count
+            // }
+
+            for ch in segment.value {
+                disp_seg.append(ch)
+                // char_count += 1
+            }
+
+            // let attr: Character
+            // switch segment.status {
+            // case .ssUnmarked:
+            //     attr = " "
+            // case .ssComposing:
+            //     attr = "┄"
+            // case .ssConverted:
+            //     attr = "─"
+            // case .ssFocused:
+            //     attr = "━"
+            // default:
+            //     attr = " "
+            // }
+
+            // let seg_width = disp_seg.count
+            // let seg_attr = String(repeating: String(attr), count: seg_width)
+            disp_buffer.append(disp_seg)
+            // attr_buffer.append(seg_attr)
+            log.debug("disp_buffer: \(disp_buffer)")
+        }
+
+        // if preedit.caret == char_count {
+        //     caret = disp_buffer.count
+        // }
+
+        return disp_buffer
+
+    }
+
+    func reset() {
+        self.candidateViewModel.reset()
+        self.window?.setFrame(.zero, display: true)
+        self.resetWindow()
+        EngineController.instance.reset()
     }
 
     //    override func inputText(_ string: String!, client sender: Any!) -> Bool {

@@ -7,7 +7,7 @@ struct CandidateView: View {
     var body: some View {
         let candList = self.viewModel.currentCommand.response.candidateList
         let candidates = candList.candidates
-        let focus = 2
+        let focus = Int(candList.focused) + 1
 
         ZStack {
             VStack(alignment: .leading, spacing: 0) {
