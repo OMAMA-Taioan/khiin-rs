@@ -22,6 +22,7 @@ use crate::data::Dictionary;
 use crate::db::Database;
 use crate::engine::EngInner;
 use crate::input::converter::convert_all;
+use crate::input::converter::convert_to_telex;
 use crate::input::converter::get_candidates;
 use crate::utils::CharSubstr;
 
@@ -144,6 +145,7 @@ impl BufferMgr {
     }
 
     pub fn reset(&mut self) -> Result<()> {
+        self.edit_state = EditState::ES_EMPTY;
         self.composition.clear();
         self.candidates.clear();
         self.focused_cand_idx = None;
@@ -152,20 +154,53 @@ impl BufferMgr {
     }
 
     pub fn insert(&mut self, engine: &EngInner, ch: char) -> Result<()> {
+        match engine.conf.input_mode() {
+            InputMode::Continuous => self.insert_continuous(engine, ch),
+            InputMode::Classic => self.insert_classic(ch),
+            InputMode::Manual => self.insert_manual(engine, ch),
+        }
+    }
+
+    pub fn pop(&mut self, engine: &EngInner) -> Result<()> {
+        if self.edit_state == EditState::ES_EMPTY {
+            return Ok(());
+        }
+
         self.edit_state = EditState::ES_COMPOSING;
 
         match engine.conf.input_mode() {
-            InputMode::Continuous => self.insert_continuous(engine, ch),
-            InputMode::SingleWord => self.insert_single_word(ch),
-            InputMode::Manual => self.insert_manual(ch),
+            InputMode::Continuous => self.pop_continuous(engine),
+            InputMode::Classic => self.pop_classic(),
+            InputMode::Manual => self.pop_manual(),
         }
     }
 
     fn insert_continuous(&mut self, engine: &EngInner, ch: char) -> Result<()> {
+        self.edit_state = EditState::ES_COMPOSING;
         debug!("BufferMgr::insert_continuous ({})", ch);
         let mut composition = self.composition.raw_text();
         composition.push(ch);
 
+        self.build_composition_continuous(engine, composition)
+    }
+
+    fn pop_continuous(&mut self, engine: &EngInner) -> Result<()> {
+        debug!("BufferMgr::pop_continuous ");
+        let mut composition = self.composition.raw_text();
+        composition.pop();
+
+        if composition.is_empty() {
+            return self.reset();
+        }
+
+        self.build_composition_continuous(engine, composition)
+    }
+
+    fn build_composition_continuous(
+        &mut self,
+        engine: &EngInner,
+        composition: String,
+    ) -> Result<()> {
         assert!(composition.is_ascii());
 
         self.composition = convert_all(engine, &composition)?;
@@ -193,15 +228,53 @@ impl BufferMgr {
         self.composition.autospace();
         self.char_caret = self.composition.display_char_count();
 
+        self.reset_focus();
+
         Ok(())
     }
 
-    fn insert_single_word(&mut self, ch: char) -> Result<()> {
+    fn insert_classic(&mut self, ch: char) -> Result<()> {
         Err(anyhow!("Not implemented"))
     }
 
-    fn insert_manual(&mut self, ch: char) -> Result<()> {
+    fn pop_classic(&mut self) -> Result<()> {
         Err(anyhow!("Not implemented"))
+    }
+
+    fn insert_manual(&mut self, engine: &EngInner, ch: char) -> Result<()> {
+        debug!("BufferMgr::insert_manual ({})", ch);
+        if ch == 'd' && self.edit_state == EditState::ES_COMPOSING {
+            self.edit_state = EditState::ES_EMPTY;
+            return Ok(());
+        }
+
+        let mut raw_input = self.composition.raw_text();
+
+        self.composition = convert_to_telex(engine, &raw_input, ch)?;
+        self.char_caret = self.composition.display_char_count();
+
+        self.edit_state = EditState::ES_COMPOSING;
+
+        Ok(())
+    }
+
+    fn pop_manual(&mut self) -> Result<()> {
+        debug!("BufferMgr::pop_manual ");
+        let mut raw_input = self.composition.raw_text();
+        raw_input.pop();
+
+        if raw_input.is_empty() {
+            return self.reset();
+        }
+
+        let mut composition: Buffer = Buffer::new();
+        composition.push(StringElem::from(raw_input).into());
+        self.composition = composition;
+        self.char_caret = self.composition.display_char_count();
+
+        self.edit_state = EditState::ES_COMPOSING;
+
+        Ok(())
     }
 
     pub fn focus_next_candidate(&mut self, engine: &EngInner) -> Result<()> {
@@ -229,6 +302,11 @@ impl BufferMgr {
 
         self.focus_candidate(engine, to_focus);
         Ok(())
+    }
+
+    fn reset_focus(&mut self) {
+        self.focused_cand_idx = None;
+        self.focused_elem_idx = 0;
     }
 
     // When focusing a candidate, we must construct the new composition to be

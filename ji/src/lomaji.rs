@@ -93,6 +93,10 @@ pub fn get_tone_position(syllable: &str) -> Option<usize> {
     None
 }
 
+pub fn has_tone_letter(syllable: &str) -> bool {
+    TONE_LETTER_PATTERNS.iter().any(|(pat, _)| pat.is_match(syllable))
+}
+
 pub fn tone_char_to_index(ch: char) -> Option<usize> {
     NUMERIC_TONE_CHARS.iter().position(|&c| c == ch)
 }
