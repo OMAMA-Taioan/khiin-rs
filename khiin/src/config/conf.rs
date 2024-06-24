@@ -7,7 +7,7 @@ pub enum InputMode {
     Manual,
 }
 
-#[derive(Copy, Clone)]
+#[derive(PartialEq, Copy, Clone)]
 pub enum ToneMode {
     Numeric,
     Telex,
@@ -22,10 +22,21 @@ impl Into<InputType> for ToneMode {
     }
 }
 
+pub struct KeyConfig {
+    pub t2: char,
+    pub t3: char,
+    pub t5: char,
+    pub t6: char,
+    pub t7: char,
+    pub t8: char,
+    pub t9: char,
+    pub khin: char,
+}
 pub struct Config {
     enabled: bool,
     input_mode: InputMode,
     tone_mode: ToneMode,
+    key_config: KeyConfig,
 }
 
 impl Config {
@@ -33,7 +44,17 @@ impl Config {
         Self {
             enabled: false,
             input_mode: InputMode::Continuous,
-            tone_mode: ToneMode::Numeric,
+            tone_mode: ToneMode::Telex,
+            key_config: KeyConfig {
+                t2: 's',
+                t3: 'f',
+                t5: 'l',
+                t6: 'x',
+                t7: 'j',
+                t8: 'j',
+                t9: 'w',
+                khin: 'q',
+            },
         }
     }
 
@@ -43,6 +64,66 @@ impl Config {
 
     pub fn tone_mode(&self) -> ToneMode {
         self.tone_mode
+    }
+
+    pub fn t2(&self) -> char {
+        if self.tone_mode == ToneMode::Numeric {
+            '2'
+        } else {
+            self.key_config.t2
+        }
+    }
+
+    pub fn t3(&self) -> char {
+        if self.tone_mode == ToneMode::Numeric {
+            '3'
+        } else {
+            self.key_config.t3
+        }
+    }
+
+    pub fn t5(&self) -> char {
+        if self.tone_mode == ToneMode::Numeric {
+            '5'
+        } else {
+            self.key_config.t5
+        }
+    }
+
+    pub fn t6(&self) -> char {
+        if self.tone_mode == ToneMode::Numeric {
+            '6'
+        } else {
+            self.key_config.t6
+        }
+    }
+
+    pub fn t7(&self) -> char {
+        if self.tone_mode == ToneMode::Numeric {
+            '7'
+        } else {
+            self.key_config.t7
+        }
+    }
+    
+    pub fn t8(&self) -> char {
+        if self.tone_mode == ToneMode::Numeric {
+            '8'
+        } else {
+            self.key_config.t8
+        }
+    }
+
+    pub fn t9(&self) -> char {
+        if self.tone_mode == ToneMode::Numeric {
+            '9'
+        } else {
+            self.key_config.t9
+        }
+    }
+
+    pub fn khin(&self) -> char {
+        self.key_config.khin
     }
 
     // set input_mode

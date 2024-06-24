@@ -13,19 +13,54 @@ public class EngineController {
     public static let instance = EngineController()
 
     private let engine: EngineBridge?
+    private var config: Khiin_Proto_AppConfig?
 
     init() {
+
         guard let dbpath = getDatabaseFilePath() else {
+            self.config = nil
+            self.engine = nil
+            return
+        }
+
+        guard let settingsPath = getSettingFilePath() else {
+            self.config = nil
             self.engine = nil
             return
         }
 
         guard let engine = EngineBridge.new(dbpath) else {
             log.debug("No engine")
+            self.config = nil
             self.engine = nil
             return
         }
 
+
+        guard let settings = engine.loadSettings(settingsPath) else {
+            log.debug("No setting data loaded from engine")
+            self.config = nil
+            self.engine = nil
+            return
+        }
+
+        let settingData = Data(
+            bytes: settings.as_ptr(),
+            count: settings.len()
+        )
+
+        guard
+            let config = try? Khiin_Proto_AppConfig.init(
+                serializedData: settingData
+            )
+        else {
+            log.debug("Unable to decode config from engine")
+            self.config = nil
+            self.engine = nil
+            return
+        }
+
+        self.config = config
         self.engine = engine
     }
 
@@ -33,6 +68,32 @@ public class EngineController {
         var req = Khiin_Proto_Request()
         req.type = .cmdReset
         let _ = sendCommand(req)
+    }
+
+    public func isManualMode() -> Bool {
+        if (self.config == nil) {
+            return false
+        }
+        return self.config?.inputMode == .manual
+    }
+
+    public func changeInputMode() -> Khiin_Proto_Command? {
+        if (self.config == nil) {
+            log.debug("Config not instantiated")
+            return nil
+        }
+        
+        if (self.config?.inputMode == .continuous) {
+            self.config?.inputMode = .manual;
+        } else {
+            self.config?.inputMode = .continuous
+        }
+
+        var req = Khiin_Proto_Request()
+        req.type = .cmdSwitchInputMode
+        req.config = self.config!
+        
+        return sendCommand(req)
     }
 
     public func handleChar(_ char: Character) -> Khiin_Proto_Command? {

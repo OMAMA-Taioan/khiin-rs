@@ -32,16 +32,36 @@ class KhiinInputController: IMKInputController {
         return self.candidateViewModel.currentCommand.response.editState != .esEmpty
     }
 
-    func commitCurrent() -> Bool {
-        let candList = self.candidateViewModel
-            .currentCommand
-            .response
-            .candidateList
+    func isCommited() -> Bool {
+        return self.candidateViewModel.currentCommand.response.committed;
+    }
 
-        let candidates = candList.candidates
-        let focus = Int(candList.focused)
-        
-        guard candidates.count > 0 else {
+    func isManualMode() -> Bool {
+        return EngineController.instance.isManualMode();
+    }
+
+    func commitCurrent() -> Bool {
+        var commitText = ""
+        if (isManualMode()) {
+            commitText = currentDisplayText();
+        } else {
+            let candList = self.candidateViewModel
+                .currentCommand
+                .response
+                .candidateList
+
+            let candidates = candList.candidates
+            let focus = Int(candList.focused)
+            
+            guard candidates.count > 0 else {
+                return false
+            }
+
+            commitText = candidates[focus < 0 ? 0 : focus].value
+        }
+
+
+        if (commitText.isEmpty) {
             return false
         }
         
@@ -49,7 +69,7 @@ class KhiinInputController: IMKInputController {
             return false
         }
 
-        client.insert(candidates[focus < 0 ? 0 : focus].value)
+        client.insert(commitText)
         EngineController.instance.reset()
         self.window?.setFrame(.zero, display: true)
         return true

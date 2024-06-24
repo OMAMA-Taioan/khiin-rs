@@ -206,14 +206,7 @@ fn draw_ime(
 fn draw_footer(stdout: &mut Stdout) -> Result<()> {
     let (_, rows) = size()?;
 
-    let alt_key_str = if cfg!(target_os = "macos") {
-        "<Option>"
-    } else {
-        "<Alt>"
-    };
-
-    let switch_help = format!("{} + i: Switch mode", alt_key_str);
-    let help = vec!["<Esc>: Quit", "<Enter>: Clear", &switch_help];
+    let help = vec!["<Esc>: Quit", "<Enter>: Clear", "<Tab>: Switch mode"];
 
     let max_len = help.iter().map(|s| s.chars().count()).max().unwrap_or(0) + 4;
 
@@ -263,9 +256,7 @@ pub fn run(stdout: &mut Stdout) -> Result<()> {
             break;
         }
 
-        if key.code == KeyCode::Char('i')
-            && key.modifiers == crossterm::event::KeyModifiers::ALT
-        {
+        if key.code == KeyCode::Tab {
             if mode == AppInputMode::CONTINUOUS {
                 mode = AppInputMode::MANUAL;
             } else {

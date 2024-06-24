@@ -5,6 +5,7 @@ use crate::buffer::BufferElement;
 use crate::buffer::BufferElementEnum;
 use crate::buffer::KhiinElem;
 use crate::buffer::StringElem;
+use crate::config;
 use crate::config::Config;
 use crate::data::Dictionary;
 use crate::db::Database;
@@ -107,15 +108,30 @@ pub(crate) fn convert_to_telex(
     word.raw_input = stripped.to_string();
 
     if tone != Tone::T1 || has_tone_letter(raw_buffer) {
-        match key {
-            's' => word.tone = Tone::T2,
-            'f' => word.tone = Tone::T3,
-            'l' => word.tone = Tone::T5,
-            'x' => word.tone = Tone::T6,
-            'j' => word.tone = Tone::T7,
-            'w' => word.tone = Tone::T9,
-            'y' => word.khin = true,
-            _ => word.raw_body.push(key),
+        if (key == engine.conf.t2()) {
+            word.tone = Tone::T2;
+        } else if (key == engine.conf.t3()) {
+            word.tone = Tone::T3
+        } else if (key == engine.conf.t5()) {
+            word.tone = Tone::T5
+        } else if (key == engine.conf.t6()) {
+            word.tone = Tone::T6
+        } else if (key == engine.conf.t7()) {
+            word.tone = Tone::T7
+        } else if (key == engine.conf.t9()) {
+            word.tone = Tone::T9
+        } else if (key == engine.conf.t8()) {
+            word.tone = Tone::T8
+        } else if (key == engine.conf.khin()) {
+            word.khin = true
+        } else {
+            word.raw_body.push(key)
+        }
+        if (key == engine.conf.t8() && word.tone != Tone::T8) {
+            // shared T8 key
+            if word.raw_body.ends_with(&['p', 't', 'k', 'h']) {
+                word.tone = Tone::T8;
+            }
         }
     } else {
         word.raw_body.push(key);
