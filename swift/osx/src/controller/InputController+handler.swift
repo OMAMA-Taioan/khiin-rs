@@ -35,8 +35,11 @@ extension KhiinInputController {
 
         switch event.keyCode.representative {
             case .alphabet(var char):
-                if (char == "n" && modifiers.contains(.shift) && self.isManualMode()) {
-                    char = "N"
+                if (self.isManualMode()) {
+                    if (modifiers.contains(.shift) != modifiers.contains(.capsLock)) {
+                        // shif xor caplocks
+                        char = char.uppercased();
+                    }
                 }
                 self.candidateViewModel.handleChar(char)
                 if (self.isCommited()) {
@@ -48,6 +51,11 @@ extension KhiinInputController {
                 }
                 return true
             case .number(let num):
+                if (self.isManualMode()) {
+                    _ = self.commitCurrent();
+                    self.candidateViewModel.reset()
+                    return false;
+                }
                 self.candidateViewModel.handleChar(String(num))
                 self.resetWindow()
                 return true
@@ -58,28 +66,55 @@ extension KhiinInputController {
         if (!self.isEdited()) {
             return false
         }
-
-        switch event.keyCode.representative {
-            case .enter:
-                let committed = self.commitCurrent()
-                self.candidateViewModel.reset()
-                return committed
-            case .backspace:
-                self.candidateViewModel.handleBackspace()
-            case .escape:
-                self.reset()
-                client.clearMarkedText()
-                return true
-            case .space:
-                self.candidateViewModel.handleSpace()
-            case .arrow(Direction.up):
-                self.candidateViewModel.handleArrowUp()
-            case .arrow(Direction.down):
-                self.candidateViewModel.handleArrowDown()
-            default:
-                log.debug("Event not handled")
-                self.resetWindow()
-                return false
+        
+        if (self.isManualMode()) {
+            switch event.keyCode.representative {
+                case .enter:
+                    fallthrough
+                case .space:
+                    fallthrough
+                case .punctuation:
+                    fallthrough
+                case .arrow:
+                    fallthrough
+                case .tab:
+                    _ = self.commitCurrent();
+                    self.candidateViewModel.reset()
+                    return false;
+                case .backspace:
+                    self.candidateViewModel.handleBackspace()
+                case .escape:
+                    self.reset()
+                    client.clearMarkedText()
+                    return true
+                default:
+                    log.debug("Event not handled")
+                    self.resetWindow()
+                    return false
+            }
+        } else {
+            switch event.keyCode.representative {
+                case .enter:
+                    let committed = self.commitCurrent()
+                    self.candidateViewModel.reset()
+                    return committed
+                case .backspace:
+                    self.candidateViewModel.handleBackspace()
+                case .escape:
+                    self.reset()
+                    client.clearMarkedText()
+                    return true
+                case .space:
+                    self.candidateViewModel.handleSpace()
+                case .arrow(Direction.up):
+                    self.candidateViewModel.handleArrowUp()
+                case .arrow(Direction.down):
+                    self.candidateViewModel.handleArrowDown()
+                default:
+                    log.debug("Event not handled")
+                    self.resetWindow()
+                    return false
+            }
         }
 
         if (self.isEdited()) {

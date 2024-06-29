@@ -106,37 +106,49 @@ pub(crate) fn convert_to_telex(
     let mut word: Syllable = Syllable::new();
     word.raw_body = stripped.to_string();
     word.raw_input = stripped.to_string();
-
+    
+    let mut tone_char: char = key.to_ascii_lowercase();
     if tone != Tone::T1 || has_tone_letter(raw_buffer) {
-        if (key == engine.conf.t2()) {
+        if (tone_char == engine.conf.t2()) {
             word.tone = Tone::T2;
-        } else if (key == engine.conf.t3()) {
+        } else if (tone_char == engine.conf.t3()) {
             word.tone = Tone::T3
-        } else if (key == engine.conf.t5()) {
+        } else if (tone_char == engine.conf.t5()) {
             word.tone = Tone::T5
-        } else if (key == engine.conf.t6()) {
+        } else if (tone_char == engine.conf.t6()) {
             word.tone = Tone::T6
-        } else if (key == engine.conf.t7()) {
+        } else if (tone_char == engine.conf.t7()) {
             word.tone = Tone::T7
-        } else if (key == engine.conf.t9()) {
+        } else if (tone_char == engine.conf.t9()) {
             word.tone = Tone::T9
-        } else if (key == engine.conf.t8()) {
+        } else if (tone_char == engine.conf.t8()) {
             word.tone = Tone::T8
-        } else if (key == engine.conf.khin()) {
-            word.khin = true
+        } else if (tone_char == engine.conf.khin()) {
+            tone_char = get_tone_char(engine, &tone);
+            word.tone = tone;
+            word.khin = true;
         } else {
-            word.raw_body.push(key)
+            tone_char = get_tone_char(engine, &tone);
+            word.tone = tone;
+            if key != ' ' {
+                word.raw_body.push(key);
+            }
         }
-        if (key == engine.conf.t8() && word.tone != Tone::T8) {
+        if (tone_char == engine.conf.t8()) {
             // shared T8 key
-            if word.raw_body.ends_with(&['p', 't', 'k', 'h']) {
+            word.tone = get_shared_t8_tone(engine);
+            if word.raw_body.ends_with(&['p', 't', 'k', 'h', 'P', 'T', 'K', 'H']) {
                 word.tone = Tone::T8;
             }
         }
     } else {
-        word.raw_body.push(key);
+        if key != ' ' {
+            word.raw_body.push(key);
+        }
     }
-
+    if (word.tone == Tone::T1) {
+        word.tone = Tone::None
+    }
     let mut composition = Buffer::new();
     composition.push(StringElem::from(word.compose()).into());
     Ok(composition)
@@ -165,6 +177,39 @@ fn convert_section(
     }
 
     Ok(ret)
+}
+
+fn get_tone_char(engine: &EngInner, tone: &Tone) -> char {
+    match tone {
+        Tone::None => ' ',
+        Tone::T1 => ' ',
+        Tone::T2 => engine.conf.t2(),
+        Tone::T3 => engine.conf.t3(),
+        Tone::T4 => ' ',
+        Tone::T5 => engine.conf.t5(),
+        Tone::T6 => engine.conf.t6(),
+        Tone::T7 => engine.conf.t7(),
+        Tone::T8 => engine.conf.t8(),
+        Tone::T9 => engine.conf.t9(),
+    }
+}
+
+fn get_shared_t8_tone(engine: &EngInner) -> Tone {
+    let t8_char = engine.conf.t8();
+    if (t8_char == engine.conf.t2()) {
+        return Tone::T2;
+    } else if (t8_char == engine.conf.t3()) {
+        return Tone::T3;
+    } else if (t8_char == engine.conf.t5()) {
+        return Tone::T5;
+    } else if (t8_char == engine.conf.t6()) {
+        return Tone::T6;
+    } else if (t8_char == engine.conf.t7()) {
+        return Tone::T7;
+    } else if (t8_char == engine.conf.t9()) {
+        return Tone::T9;
+    }
+    return Tone::T8;
 }
 
 #[cfg(test)]

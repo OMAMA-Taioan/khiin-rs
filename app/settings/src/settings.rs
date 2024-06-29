@@ -34,7 +34,7 @@ impl Default for CandidateSettings {
         }
     }
 }
-const INPUT_MODE_DEFAULT: &str = "continuous";
+const INPUT_MODE_DEFAULT: &str = "manual";
 const TONE_MODE_DEFAULT: &str = "telex";
 const T2_DEFAULT: char = 's';
 const T3_DEFAULT: char = 'f';
@@ -43,7 +43,7 @@ const T6_DEFAULT: char = 'x';
 const T7_DEFAULT: char = 'j';
 const T8_DEFAULT: char = 'j';
 const T9_DEFAULT: char = 'w';
-const KHIN_DEFAULT: char = 'q';
+const KHIN_DEFAULT: char = 'v';
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
 pub struct InputSettings {

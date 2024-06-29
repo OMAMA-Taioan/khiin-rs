@@ -171,7 +171,7 @@ impl BufferMgr {
         match engine.conf.input_mode() {
             InputMode::Continuous => self.pop_continuous(engine),
             InputMode::Classic => self.pop_classic(),
-            InputMode::Manual => self.pop_manual(),
+            InputMode::Manual => self.pop_manual(engine),
         }
     }
 
@@ -243,22 +243,28 @@ impl BufferMgr {
 
     fn insert_manual(&mut self, engine: &EngInner, ch: char) -> Result<()> {
         debug!("BufferMgr::insert_manual ({})", ch);
-        if ch == 'd' && self.edit_state == EditState::ES_COMPOSING {
+        let mut key = ch;
+        if ch.to_ascii_lowercase() == engine.conf.done() && self.edit_state == EditState::ES_COMPOSING {
             self.edit_state = EditState::ES_EMPTY;
             return Ok(());
+        } else if ch.to_ascii_lowercase() == engine.conf.hyphon() && self.edit_state == EditState::ES_COMPOSING {
+            key = '-';
+            self.edit_state = EditState::ES_EMPTY;
+        } else if ch.to_ascii_lowercase() == engine.conf.khin() {
+            self.edit_state = EditState::ES_EMPTY;
+        } else {
+            self.edit_state = EditState::ES_COMPOSING;
         }
 
         let mut raw_input = self.composition.raw_text();
 
-        self.composition = convert_to_telex(engine, &raw_input, ch)?;
+        self.composition = convert_to_telex(engine, &raw_input, key)?;
         self.char_caret = self.composition.display_char_count();
-
-        self.edit_state = EditState::ES_COMPOSING;
 
         Ok(())
     }
 
-    fn pop_manual(&mut self) -> Result<()> {
+    fn pop_manual(&mut self, engine: &EngInner) -> Result<()> {
         debug!("BufferMgr::pop_manual ");
         let mut raw_input = self.composition.raw_text();
         raw_input.pop();
@@ -266,10 +272,7 @@ impl BufferMgr {
         if raw_input.is_empty() {
             return self.reset();
         }
-
-        let mut composition: Buffer = Buffer::new();
-        composition.push(StringElem::from(raw_input).into());
-        self.composition = composition;
+        self.composition = convert_to_telex(engine, &raw_input, ' ')?;
         self.char_caret = self.composition.display_char_count();
 
         self.edit_state = EditState::ES_COMPOSING;

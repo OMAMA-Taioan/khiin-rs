@@ -31,6 +31,8 @@ pub struct KeyConfig {
     pub t8: char,
     pub t9: char,
     pub khin: char,
+    pub hyphon: char,
+    pub done: char,
 }
 pub struct Config {
     enabled: bool,
@@ -43,7 +45,7 @@ impl Config {
     pub fn new() -> Self {
         Self {
             enabled: false,
-            input_mode: InputMode::Continuous,
+            input_mode: InputMode::Manual,
             tone_mode: ToneMode::Telex,
             key_config: KeyConfig {
                 t2: 's',
@@ -53,7 +55,9 @@ impl Config {
                 t7: 'j',
                 t8: 'j',
                 t9: 'w',
-                khin: 'q',
+                khin: 'v',
+                hyphon: 'y',
+                done: 'd',
             },
         }
     }
@@ -124,6 +128,14 @@ impl Config {
 
     pub fn khin(&self) -> char {
         self.key_config.khin
+    }
+
+    pub fn hyphon(&self) -> char {
+        self.key_config.hyphon
+    }
+
+    pub fn done(&self) -> char {
+        self.key_config.done
     }
 
     // set input_mode

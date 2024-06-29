@@ -34,7 +34,10 @@ impl Syllable {
             .replace("nN", "ⁿ")
             .replace("Nn", "ⁿ")
             .replace("NN", "ᴺ")
-            .replace("ou", "o͘");
+            .replace("ou", "o͘")
+            .replace("oU", "o͘")
+            .replace("Ou", "O͘")
+            .replace("OU", "O͘");
 
         if self.khin {
             // ret.insert(0, '·');
