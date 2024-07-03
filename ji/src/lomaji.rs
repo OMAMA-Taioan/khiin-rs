@@ -6,28 +6,29 @@ use unicode_normalization::UnicodeNormalization;
 
 use crate::collection;
 use crate::Tone;
+use crate::unicode::*;
 
 const TONE_CHAR_MAP: Lazy<HashMap<Tone, char>> = Lazy::new(|| {
     collection!(
-        Tone::T2 => '\u{0301}',
-        Tone::T3 => '\u{0300}',
-        Tone::T5 => '\u{0302}',
-        Tone::T6 => '\u{030C}',
-        Tone::T7 => '\u{0304}',
-        Tone::T8 => '\u{030D}',
-        Tone::T9 => '\u{0306}',
+        Tone::T2 => TONE_2,
+        Tone::T3 => TONE_3,
+        Tone::T5 => TONE_5,
+        Tone::T6 => TONE_6,
+        Tone::T7 => TONE_7,
+        Tone::T8 => TONE_8,
+        Tone::T9 => TONE_9,
     )
 });
 
 const CHAR_TONE_MAP: Lazy<HashMap<char, Tone>> = Lazy::new(|| {
     collection!(
-        '\u{0301}' => Tone::T2,
-        '\u{0300}' => Tone::T3,
-        '\u{0302}' => Tone::T5,
-        '\u{0303}' => Tone::T6,
-        '\u{0304}' => Tone::T7,
-        '\u{030D}' => Tone::T8,
-        '\u{0306}' => Tone::T9,
+        TONE_2 => Tone::T2,
+        TONE_3 => Tone::T3,
+        TONE_5 => Tone::T5,
+        TONE_6 => Tone::T6,
+        TONE_7 => Tone::T7,
+        TONE_8 => Tone::T8,
+        TONE_9 => Tone::T9,
     )
 });
 
