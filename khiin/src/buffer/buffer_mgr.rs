@@ -247,9 +247,6 @@ impl BufferMgr {
         if ch.to_ascii_lowercase() == engine.conf.done() && self.edit_state == EditState::ES_COMPOSING {
             self.edit_state = EditState::ES_EMPTY;
             return Ok(());
-        } else if ch.to_ascii_lowercase() == engine.conf.hyphon() && self.edit_state == EditState::ES_COMPOSING {
-            key = '-';
-            self.edit_state = EditState::ES_EMPTY;
         } else if ch.to_ascii_lowercase() == engine.conf.khin() {
             self.edit_state = EditState::ES_EMPTY;
         } else {
@@ -258,7 +255,22 @@ impl BufferMgr {
 
         let mut raw_input = self.composition.raw_text();
 
-        self.composition = convert_to_telex(engine, &raw_input, key)?;
+        if ch.to_ascii_lowercase() == engine.conf.hyphon() && self.edit_state == EditState::ES_COMPOSING {
+            if raw_input.ends_with("--") {
+                let len = raw_input.len();
+                raw_input.replace_range(len-2..len, "");
+                raw_input.push(ch);
+                self.edit_state = EditState::ES_EMPTY;
+            } else {
+                raw_input.push('-');
+            }
+            
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+        } else {
+            self.composition = convert_to_telex(engine, &raw_input, key)?;
+        }
+
         self.char_caret = self.composition.display_char_count();
 
         Ok(())

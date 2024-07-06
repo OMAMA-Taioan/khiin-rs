@@ -8,6 +8,7 @@ use khiin_protos::command::Request;
 use khiin_protos::config::AppConfig;
 use khiin_protos::config::AppInputMode;
 use khiin_protos::config::BoolValue;
+use khiin_protos::config::KeyConfiguration;
 use khiin_settings::SettingsManager;
 use protobuf::Message;
 
@@ -70,6 +71,18 @@ impl EngineBridge {
         let mut telex_enabled = BoolValue::new();
         telex_enabled.value = settings.input_settings.tone_mode == "telex";
         config.telex_enabled = Some(telex_enabled).into();
+        
+        let mut key_config = KeyConfiguration::new();
+        key_config.telex_t2 = settings.input_settings.t2.to_string();
+        key_config.telex_t3 = settings.input_settings.t3.to_string();
+        key_config.telex_t5 = settings.input_settings.t5.to_string();
+        key_config.telex_t6 = settings.input_settings.t6.to_string();
+        key_config.telex_t7 = settings.input_settings.t7.to_string();
+        key_config.telex_t8 = settings.input_settings.t8.to_string();
+        key_config.telex_t9 = settings.input_settings.t9.to_string();
+        key_config.telex_khin = settings.input_settings.khin.to_string();
+        key_config.alt_hyphen = settings.input_settings.hyphon.to_string();
+        config.key_config = Some(key_config).into();
 
         let mut req = Request::new();
         req.type_ = CommandType::CMD_SET_CONFIG.into();

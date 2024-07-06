@@ -56,8 +56,8 @@ impl Config {
                 t8: 'j',
                 t9: 'w',
                 khin: 'v',
-                hyphon: 'y',
-                done: 'd',
+                hyphon: 'd',
+                done: 'r',
             },
         }
     }

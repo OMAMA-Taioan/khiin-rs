@@ -12,7 +12,6 @@ extension KhiinInputController {
         let shouldIgnoreCurrentEvent: Bool =
             !changeInputMode && (modifiers.contains(.command) || modifiers.contains(.option))
         
-        guard !shouldIgnoreCurrentEvent else { return false }
         guard let client: IMKTextInput = sender as? IMKTextInput else {
             return false
         }
@@ -25,18 +24,29 @@ extension KhiinInputController {
         if clientID != currentClientID {
             currentClient = client
         }
-
+    
         if (changeInputMode) {
             self.candidateViewModel.changeInputMode()
             self.reset()
             client.clearMarkedText()
             return true
+        } else if (shouldIgnoreCurrentEvent) {
+            if (self.isManualMode()) {
+                _ = self.commitCurrent();
+                self.candidateViewModel.reset()
+            }
+            return false;
         }
 
         switch event.keyCode.representative {
             case .alphabet(var char):
                 if (self.isManualMode()) {
-                    if (modifiers.contains(.shift) != modifiers.contains(.capsLock)) {
+                    if self.currentDisplayText().hasSuffix("--") && char != self.getHyphenKey() {
+                        _ = self.commitCurrent();
+                        self.candidateViewModel.reset()
+                    } 
+                    
+                    if (modifiers.contains(.shift) || modifiers.contains(.capsLock)) {
                         // shif xor caplocks
                         char = char.uppercased();
                     }
@@ -83,6 +93,9 @@ extension KhiinInputController {
                     return false;
                 case .backspace:
                     self.candidateViewModel.handleBackspace()
+                    _ = self.commitCurrent();
+                    self.candidateViewModel.reset()
+                    return true;
                 case .escape:
                     self.reset()
                     client.clearMarkedText()

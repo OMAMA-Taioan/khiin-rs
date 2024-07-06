@@ -39,6 +39,15 @@ impl Syllable {
             .replace("Ou", "O͘")
             .replace("OU", "O͘");
 
+        // move 'ⁿ' to end
+        if ret.contains("ⁿ") && !ret.ends_with("ⁿ") {
+            ret = ret.replace("ⁿ", "");
+            ret.push_str("ⁿ")
+        }
+        if ret.contains("ᴺ") && !ret.ends_with("ᴺ") {
+            ret = ret.replace("ᴺ", "");
+            ret.push_str("ᴺ")
+        }
         if self.khin {
             // ret.insert(0, '·');
             ret.insert(0, '-');
@@ -56,7 +65,7 @@ impl Syllable {
             }
         }
 
-        self.raw_body.to_owned()
+        return ret;
     }
 
     pub fn from_raw(raw_input: &str) -> Self {

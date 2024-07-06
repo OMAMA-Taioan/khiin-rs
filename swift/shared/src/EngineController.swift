@@ -36,7 +36,6 @@ public class EngineController {
             return
         }
 
-
         guard let settings = engine.loadSettings(settingsPath) else {
             log.debug("No setting data loaded from engine")
             self.config = nil
@@ -68,6 +67,13 @@ public class EngineController {
         var req = Khiin_Proto_Request()
         req.type = .cmdReset
         let _ = sendCommand(req)
+    }
+
+    public func hyphenKey() -> String {
+        if (self.config == nil) {
+            return ""
+        }
+        return self.config?.keyConfig.altHyphen ?? ""
     }
 
     public func isManualMode() -> Bool {

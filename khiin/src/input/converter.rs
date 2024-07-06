@@ -106,7 +106,7 @@ pub(crate) fn convert_to_telex(
     let mut word: Syllable = Syllable::new();
     word.raw_body = stripped.to_string();
     word.raw_input = stripped.to_string();
-    
+
     let mut tone_char: char = key.to_ascii_lowercase();
     if tone != Tone::T1 || has_tone_letter(raw_buffer) {
         if (tone_char == engine.conf.t2()) {
@@ -137,7 +137,13 @@ pub(crate) fn convert_to_telex(
         if (tone_char == engine.conf.t8()) {
             // shared T8 key
             word.tone = get_shared_t8_tone(engine);
-            if word.raw_body.ends_with(&['p', 't', 'k', 'h', 'P', 'T', 'K', 'H']) {
+            let lower_str = word
+                .raw_body
+                .to_lowercase()
+                .replace("ⁿ", "")
+                .replace("ᴺ", "")
+                .replace("nn", "");
+            if lower_str.ends_with(&['p', 't', 'k', 'h']) {
                 word.tone = Tone::T8;
             }
         }
@@ -146,9 +152,7 @@ pub(crate) fn convert_to_telex(
             word.raw_body.push(key);
         }
     }
-    if (word.tone == Tone::T1) {
-        word.tone = Tone::None
-    }
+
     let mut composition = Buffer::new();
     composition.push(StringElem::from(word.compose()).into());
     Ok(composition)
