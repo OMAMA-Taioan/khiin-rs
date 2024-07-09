@@ -106,6 +106,7 @@ pub(crate) fn convert_to_telex(
     let mut word: Syllable = Syllable::new();
     word.raw_body = stripped.to_string();
     word.raw_input = stripped.to_string();
+    word.raw_input.push(key);
 
     let mut tone_char: char = key.to_ascii_lowercase();
     if tone != Tone::T1 || has_tone_letter(raw_buffer) {

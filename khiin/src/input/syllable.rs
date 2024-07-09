@@ -1,5 +1,6 @@
 use std::default;
 
+use regex::Regex;
 use unicode_normalization::UnicodeNormalization;
 
 use khiin_ji::lomaji::get_tone_position;
@@ -30,15 +31,21 @@ impl Syllable {
     pub fn compose(&self) -> String {
         let mut ret: String = self
             .raw_body
-            .replace("nn", "ⁿ")
-            .replace("nN", "ⁿ")
-            .replace("Nn", "ⁿ")
-            .replace("NN", "ᴺ")
             .replace("ou", "o͘")
             .replace("oU", "o͘")
             .replace("Ou", "O͘")
             .replace("OU", "O͘");
 
+        // to handle NASAL
+        let re_single_nasal: Regex =
+            Regex::new(r"(?i)[aeiouptkhm]nn$").unwrap();
+        if re_single_nasal.is_match(&ret) {
+            ret = ret
+                .replace("nn", "ⁿ")
+                .replace("nN", "ⁿ")
+                .replace("Nn", "ⁿ")
+                .replace("NN", "ᴺ")
+        }
         // move 'ⁿ' to end
         if ret.contains("ⁿ") && !ret.ends_with("ⁿ") {
             ret = ret.replace("ⁿ", "");
@@ -54,7 +61,10 @@ impl Syllable {
             ret.insert(1, '-');
         }
 
-        if self.tone == Tone::None {
+        if self.tone == Tone::None
+            || self.tone == Tone::T1
+            || self.tone == Tone::T4
+        {
             return ret;
         }
 
@@ -65,7 +75,7 @@ impl Syllable {
             }
         }
 
-        return ret;
+        self.raw_input.to_owned()
     }
 
     pub fn from_raw(raw_input: &str) -> Self {

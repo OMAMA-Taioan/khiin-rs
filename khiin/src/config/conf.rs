@@ -109,7 +109,7 @@ impl Config {
             self.key_config.t7
         }
     }
-    
+
     pub fn t8(&self) -> char {
         if self.tone_mode == ToneMode::Numeric {
             '8'
@@ -136,6 +136,34 @@ impl Config {
 
     pub fn done(&self) -> char {
         self.key_config.done
+    }
+
+    pub fn is_reserved_char(&self, ch: char) -> bool {
+        if ch == self.key_config.khin {
+            true
+        } else if ch == self.key_config.hyphon {
+            true
+        } else if ch == self.key_config.done {
+            true
+        } else if self.tone_mode == ToneMode::Numeric {
+            false
+        } else if ch == self.key_config.t2 {
+            true
+        } else if ch == self.key_config.t3 {
+            true
+        } else if ch == self.key_config.t5 {
+            true
+        } else if ch == self.key_config.t6 {
+            true
+        } else if ch == self.key_config.t7 {
+            true
+        } else if ch == self.key_config.t8 {
+            true
+        } else if ch == self.key_config.t9 {
+            true
+        } else {
+            false
+        }
     }
 
     // set input_mode

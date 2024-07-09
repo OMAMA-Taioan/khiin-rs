@@ -1,3 +1,4 @@
+use lazy_static::lazy_static;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use std::collections::HashMap;
@@ -5,8 +6,8 @@ use std::vec;
 use unicode_normalization::UnicodeNormalization;
 
 use crate::collection;
-use crate::Tone;
 use crate::unicode::*;
+use crate::Tone;
 
 const TONE_CHAR_MAP: Lazy<HashMap<Tone, char>> = Lazy::new(|| {
     collection!(
@@ -57,7 +58,7 @@ const POJ_INPUT_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
 
 const TONE_LETTER_PATTERNS: Lazy<Vec<(Regex, usize)>> = Lazy::new(|| {
     vec![
-        (Regex::new("(?i)o[ae][ptkhmn]").unwrap(), 1),
+        (Regex::new("(?i)o[ae][ptkhmni]").unwrap(), 1),
         (Regex::new("(?i)o").unwrap(), 0),
         (Regex::new("(?i)a").unwrap(), 0),
         (Regex::new("(?i)e").unwrap(), 0),
@@ -74,7 +75,22 @@ const NUMERIC_TONE_CHARS: [char; 10] =
 const TELEX_TONE_CHARS: [char; 10] =
     ['0', '1', 's', 'f', '4', 'l', '6', 'j', 'j', 'w'];
 
-const T4_SUFFIXES: &[&str] = &["h", "p", "t", "k", "hnn", "h\u{207f}"];
+const T4_SUFFIXES: &[&str] = &["h", "p", "t", "k", "hnn", "h\u{207f}", "h\u{1d3a}"];
+
+lazy_static! {
+    static ref RE_LEGAL_LOMAJI: Regex= Regex::new(r"^\u{00b7}?((chh|[ckpt]h|[bhgjklmnpst])?(iau|io\u{0358}|oai|a[iu]|i[aou]|o[ae\u{0358}]|ui|[aeiou])?(ng|[mnptkh])?|(chh|[ckpt]h|[hkmnpst])ng?|(ng|m)h?)(n|\u{207f}|\u{1d3a})?$").unwrap();
+}
+
+pub fn is_legal_lomaji(str: &str) -> bool {
+    let mut stripped = String::new();
+
+    for ch in str.to_lowercase().nfd() {
+        if !CHAR_TONE_MAP.contains_key(&ch) && ch != '-' && ch != '\u{207f}' && ch != '\u{1d3a}' {
+            stripped.push(ch)
+        }
+    }
+    return RE_LEGAL_LOMAJI.is_match(&stripped)
+}
 
 pub fn tone_to_char(tone: &Tone) -> Option<char> {
     TONE_CHAR_MAP.get(tone).map(|&c| c)
@@ -95,7 +111,9 @@ pub fn get_tone_position(syllable: &str) -> Option<usize> {
 }
 
 pub fn has_tone_letter(syllable: &str) -> bool {
-    TONE_LETTER_PATTERNS.iter().any(|(pat, _)| pat.is_match(syllable))
+    TONE_LETTER_PATTERNS
+        .iter()
+        .any(|(pat, _)| pat.is_match(syllable))
 }
 
 pub fn tone_char_to_index(ch: char) -> Option<usize> {
@@ -165,6 +183,7 @@ mod tests {
         assert_eq!(get_tone_position("khou").unwrap(), 2);
         assert_eq!(get_tone_position("beh").unwrap(), 1);
         assert_eq!(get_tone_position("phainn").unwrap(), 2);
+        assert_eq!(get_tone_position("khoai").unwrap(), 3);
         assert_eq!(get_tone_position("xyz"), None);
     }
 

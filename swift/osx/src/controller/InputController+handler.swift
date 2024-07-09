@@ -26,6 +26,9 @@ extension KhiinInputController {
         }
     
         if (changeInputMode) {
+            if (self.isManualMode()) {
+                _ = self.commitCurrent();
+            }
             self.candidateViewModel.changeInputMode()
             self.reset()
             client.clearMarkedText()
@@ -41,7 +44,7 @@ extension KhiinInputController {
         switch event.keyCode.representative {
             case .alphabet(var char):
                 if (self.isManualMode()) {
-                    if self.currentDisplayText().hasSuffix("--") && char != self.getHyphenKey() {
+                    if self.currentDisplayText().hasSuffix("-") && char != self.getHyphenKey() {
                         _ = self.commitCurrent();
                         self.candidateViewModel.reset()
                     } 

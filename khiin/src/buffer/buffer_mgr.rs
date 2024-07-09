@@ -4,6 +4,7 @@ use std::fmt::Debug;
 use anyhow::anyhow;
 use anyhow::Result;
 
+use khiin_ji::lomaji::is_legal_lomaji;
 use khiin_protos::command::preedit::Segment;
 use khiin_protos::command::Candidate;
 use khiin_protos::command::CandidateList;
@@ -244,7 +245,9 @@ impl BufferMgr {
     fn insert_manual(&mut self, engine: &EngInner, ch: char) -> Result<()> {
         debug!("BufferMgr::insert_manual ({})", ch);
         let mut key = ch;
-        if ch.to_ascii_lowercase() == engine.conf.done() && self.edit_state == EditState::ES_COMPOSING {
+        if ch.to_ascii_lowercase() == engine.conf.done()
+            && self.edit_state == EditState::ES_COMPOSING
+        {
             self.edit_state = EditState::ES_EMPTY;
             return Ok(());
         } else if ch.to_ascii_lowercase() == engine.conf.khin() {
@@ -254,17 +257,32 @@ impl BufferMgr {
         }
 
         let mut raw_input = self.composition.raw_text();
-
-        if ch.to_ascii_lowercase() == engine.conf.hyphon() && self.edit_state == EditState::ES_COMPOSING {
+        let mut now_input = self.composition.raw_text();
+        if (!engine.conf.is_reserved_char(ch.to_ascii_lowercase())
+            && !(now_input.to_lowercase().ends_with("o")
+                && ch.to_ascii_lowercase() == 'u')
+            && !(now_input.to_lowercase().ends_with("n")
+                && ch.to_ascii_lowercase() == 'n'))
+        {
+            now_input.push(ch);
+        }
+        if !is_legal_lomaji(&now_input) {
+            self.edit_state = EditState::ES_EMPTY;
+            self.composition = Buffer::new();
+            raw_input.push(ch);
+            self.composition.push(StringElem::from(raw_input).into());
+        } else if ch.to_ascii_lowercase() == engine.conf.hyphon()
+            && self.edit_state == EditState::ES_COMPOSING
+        {
             if raw_input.ends_with("--") {
                 let len = raw_input.len();
-                raw_input.replace_range(len-2..len, "");
+                raw_input.replace_range(len - 2..len, "");
                 raw_input.push(ch);
                 self.edit_state = EditState::ES_EMPTY;
             } else {
                 raw_input.push('-');
             }
-            
+
             self.composition = Buffer::new();
             self.composition.push(StringElem::from(raw_input).into());
         } else {
