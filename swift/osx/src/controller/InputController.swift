@@ -41,6 +41,10 @@ class KhiinInputController: IMKInputController {
         return self.candidateViewModel.currentCommand.response.committed;
     }
 
+    func isIllegal() -> Bool {
+        return self.candidateViewModel.currentCommand.response.editState == .esIllegal
+    }
+
     func isManualMode() -> Bool {
         return EngineController.instance.isManualMode();
     }

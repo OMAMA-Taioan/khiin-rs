@@ -44,10 +44,10 @@ extension KhiinInputController {
         switch event.keyCode.representative {
             case .alphabet(var char):
                 if (self.isManualMode()) {
-                    if self.currentDisplayText().hasSuffix("-") && char != self.getHyphenKey() {
+                    if self.currentDisplayText().hasSuffix("-") && char != self.getHyphenKey() && !self.isIllegal() {
                         _ = self.commitCurrent();
                         self.candidateViewModel.reset()
-                    } 
+                    }
                     
                     if (modifiers.contains(.shift) || modifiers.contains(.capsLock)) {
                         // shif xor caplocks
@@ -96,9 +96,6 @@ extension KhiinInputController {
                     return false;
                 case .backspace:
                     self.candidateViewModel.handleBackspace()
-                    _ = self.commitCurrent();
-                    self.candidateViewModel.reset()
-                    return true;
                 case .escape:
                     self.reset()
                     client.clearMarkedText()

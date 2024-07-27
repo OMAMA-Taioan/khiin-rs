@@ -38,23 +38,30 @@ impl Syllable {
 
         // to handle NASAL
         let re_single_nasal: Regex =
-            Regex::new(r"(?i)[aeiouptkhm]nn$").unwrap();
+            Regex::new(r"(?i)[aeiouptkhmo͘]nn$").unwrap();
         if re_single_nasal.is_match(&ret) {
             ret = ret
                 .replace("nn", "ⁿ")
                 .replace("nN", "ⁿ")
                 .replace("Nn", "ⁿ")
-                .replace("NN", "ᴺ")
+                .replace("NN", "ᴺ");
         }
         // move 'ⁿ' to end
         if ret.contains("ⁿ") && !ret.ends_with("ⁿ") {
             ret = ret.replace("ⁿ", "");
-            ret.push_str("ⁿ")
+            ret.push_str("ⁿ");
         }
         if ret.contains("ᴺ") && !ret.ends_with("ᴺ") {
             ret = ret.replace("ᴺ", "");
-            ret.push_str("ᴺ")
+            ret.push_str("ᴺ");
         }
+        ret = ret
+                .replace("Oᴺ", "O͘ᴺ")
+                .replace("Oⁿ", "O͘ⁿ")
+                .replace("oⁿ", "o͘ⁿ")
+                .replace("OHᴺ", "O͘Hᴺ")
+                .replace("Ohⁿ", "O͘hⁿ")
+                .replace("ohⁿ", "o͘hⁿ");
         if self.khin {
             // ret.insert(0, '·');
             ret.insert(0, '-');

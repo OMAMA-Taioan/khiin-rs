@@ -64,6 +64,7 @@ const TONE_LETTER_PATTERNS: Lazy<Vec<(Regex, usize)>> = Lazy::new(|| {
         (Regex::new("(?i)e").unwrap(), 0),
         (Regex::new("(?i)u").unwrap(), 0),
         (Regex::new("(?i)i").unwrap(), 0),
+        (Regex::new("(?i)ng").unwrap(), 0),
         (Regex::new("(?i)n").unwrap(), 0),
         (Regex::new("(?i)m").unwrap(), 0),
     ]

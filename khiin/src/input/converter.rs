@@ -100,41 +100,41 @@ pub(crate) fn convert_to_telex(
     engine: &EngInner,
     raw_buffer: &str,
     key: char,
-) -> Result<Buffer> {
+) -> (Result<Buffer>, bool) {
     let (stripped, tone) = strip_tone_diacritic(raw_buffer);
 
+    let tone_char = tone_to_char(engine, &tone);
+    if tone_char != ' ' && tone_char == key.to_ascii_lowercase() {
+        // duplicate tone characters
+        let mut composition = Buffer::new();
+        let mut raw_input = stripped.to_string();
+        raw_input.push(key);
+        composition.push(StringElem::from(raw_input).into());
+        return (Ok(composition), false);
+    }
     let mut word: Syllable = Syllable::new();
     word.raw_body = stripped.to_string();
     word.raw_input = stripped.to_string();
     word.raw_input.push(key);
 
-    let mut tone_char: char = key.to_ascii_lowercase();
+    
     if tone != Tone::T1 || has_tone_letter(raw_buffer) {
-        if (tone_char == engine.conf.t2()) {
-            word.tone = Tone::T2;
-        } else if (tone_char == engine.conf.t3()) {
-            word.tone = Tone::T3
-        } else if (tone_char == engine.conf.t5()) {
-            word.tone = Tone::T5
-        } else if (tone_char == engine.conf.t6()) {
-            word.tone = Tone::T6
-        } else if (tone_char == engine.conf.t7()) {
-            word.tone = Tone::T7
-        } else if (tone_char == engine.conf.t9()) {
-            word.tone = Tone::T9
-        } else if (tone_char == engine.conf.t8()) {
-            word.tone = Tone::T8
-        } else if (tone_char == engine.conf.khin()) {
-            tone_char = get_tone_char(engine, &tone);
-            word.tone = tone;
-            word.khin = true;
-        } else {
-            tone_char = get_tone_char(engine, &tone);
-            word.tone = tone;
-            if key != ' ' {
-                word.raw_body.push(key);
+        word.tone = char_to_tone(engine, key.to_ascii_lowercase());
+        if (word.tone == Tone::None) {
+            let mut tone_char: char = key.to_ascii_lowercase();
+            if (tone_char == engine.conf.khin()) {
+                tone_char = tone_to_char(engine, &tone);
+                word.tone = tone;
+                word.khin = true;
+            } else {
+                tone_char = tone_to_char(engine, &tone);
+                word.tone = tone;
+                if key != ' ' {
+                    word.raw_body.push(key);
+                }
             }
         }
+
         if (tone_char == engine.conf.t8()) {
             // shared T8 key
             word.tone = get_shared_t8_tone(engine);
@@ -153,10 +153,13 @@ pub(crate) fn convert_to_telex(
             word.raw_body.push(key);
         }
     }
+    let syllable = word.compose();
+    let (stripped, tone) = strip_tone_diacritic(&syllable);
+    let ret = engine.dict.is_illegal_syllable(&stripped);
 
     let mut composition = Buffer::new();
-    composition.push(StringElem::from(word.compose()).into());
-    Ok(composition)
+    composition.push(StringElem::from(syllable).into());
+    (Ok(composition), ret)
 }
 
 fn convert_section(
@@ -184,7 +187,7 @@ fn convert_section(
     Ok(ret)
 }
 
-fn get_tone_char(engine: &EngInner, tone: &Tone) -> char {
+fn tone_to_char(engine: &EngInner, tone: &Tone) -> char {
     match tone {
         Tone::None => ' ',
         Tone::T1 => ' ',
@@ -196,6 +199,26 @@ fn get_tone_char(engine: &EngInner, tone: &Tone) -> char {
         Tone::T7 => engine.conf.t7(),
         Tone::T8 => engine.conf.t8(),
         Tone::T9 => engine.conf.t9(),
+    }
+}
+
+fn char_to_tone(engine: &EngInner, ch: char) -> Tone {
+    if ch == engine.conf.t2() {
+        Tone::T2
+    } else if ch == engine.conf.t3() {
+        Tone::T3
+    } else if ch == engine.conf.t5() {
+        Tone::T5
+    } else if ch == engine.conf.t6() {
+        Tone::T6
+    } else if ch == engine.conf.t7() {
+        Tone::T7
+    } else if ch == engine.conf.t9() {
+        Tone::T9
+    } else if ch == engine.conf.t8() {
+        Tone::T8
+    } else {
+        Tone::None
     }
 }
 

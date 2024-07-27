@@ -244,8 +244,14 @@ impl BufferMgr {
 
     fn insert_manual(&mut self, engine: &EngInner, ch: char) -> Result<()> {
         debug!("BufferMgr::insert_manual ({})", ch);
+        let mut raw_input = self.composition.raw_text();
         let mut key = ch;
-        if ch.to_ascii_lowercase() == engine.conf.done()
+        if self.edit_state == EditState::ES_ILLEGAL {
+            raw_input.push(ch);
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+            return Ok(());
+        } else if ch.to_ascii_lowercase() == engine.conf.done()
             && self.edit_state == EditState::ES_COMPOSING
         {
             self.edit_state = EditState::ES_EMPTY;
@@ -256,29 +262,14 @@ impl BufferMgr {
             self.edit_state = EditState::ES_COMPOSING;
         }
 
-        let mut raw_input = self.composition.raw_text();
-        let mut now_input = self.composition.raw_text();
-        if (!engine.conf.is_reserved_char(ch.to_ascii_lowercase())
-            && !(now_input.to_lowercase().ends_with("o")
-                && ch.to_ascii_lowercase() == 'u')
-            && !(now_input.to_lowercase().ends_with("n")
-                && ch.to_ascii_lowercase() == 'n'))
-        {
-            now_input.push(ch);
-        }
-        if !is_legal_lomaji(&now_input) {
-            self.edit_state = EditState::ES_EMPTY;
-            self.composition = Buffer::new();
-            raw_input.push(ch);
-            self.composition.push(StringElem::from(raw_input).into());
-        } else if ch.to_ascii_lowercase() == engine.conf.hyphon()
+        if ch.to_ascii_lowercase() == engine.conf.hyphon()
             && self.edit_state == EditState::ES_COMPOSING
         {
             if raw_input.ends_with("--") {
                 let len = raw_input.len();
                 raw_input.replace_range(len - 2..len, "");
                 raw_input.push(ch);
-                self.edit_state = EditState::ES_EMPTY;
+                self.edit_state = EditState::ES_ILLEGAL;
             } else {
                 raw_input.push('-');
             }
@@ -286,7 +277,11 @@ impl BufferMgr {
             self.composition = Buffer::new();
             self.composition.push(StringElem::from(raw_input).into());
         } else {
-            self.composition = convert_to_telex(engine, &raw_input, key)?;
+            let (ret_com, ret) = convert_to_telex(engine, &raw_input, key);
+            if ret == false {
+                self.edit_state = EditState::ES_ILLEGAL
+            }
+            self.composition = ret_com?;
         }
 
         self.char_caret = self.composition.display_char_count();
@@ -301,11 +296,16 @@ impl BufferMgr {
 
         if raw_input.is_empty() {
             return self.reset();
+        } else if self.edit_state == EditState::ES_ILLEGAL {
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+        } else {
+            let (ret_com, _) = convert_to_telex(engine, &raw_input, ' ');
+            self.composition = ret_com?;
+            self.edit_state = EditState::ES_COMPOSING;
         }
-        self.composition = convert_to_telex(engine, &raw_input, ' ')?;
-        self.char_caret = self.composition.display_char_count();
 
-        self.edit_state = EditState::ES_COMPOSING;
+        self.char_caret = self.composition.display_char_count();
 
         Ok(())
     }
@@ -399,6 +399,7 @@ impl BufferMgr {
             EditState::ES_COMPOSING => "Composing",
             EditState::ES_CONVERTED => "Converted",
             EditState::ES_SELECTING => "Selecting",
+            EditState::ES_ILLEGAL => "Illegal",
         };
 
         display_text.push(sep);
