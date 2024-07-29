@@ -9,24 +9,27 @@
     // import { listen, type UnlistenFn } from '@tauri-apps/api/event'
     import { onMount, onDestroy } from "svelte";
     import { isLoading } from "svelte-i18n";
+    import { settings } from "./store.js";
 
-    // Settings type example
-    type Settings = {
-        font_size?: number;
-        font?: string;
-        dark_mode?: boolean;
-    };
+    async function loadSettings() {
+        try {
+            const db_settings = await invoke('load_settings');
+            settings.set(JSON.parse(db_settings));
+        } catch (error) {
+            console.error('Error loading settings:', error);
+        }
+    }
+    loadSettings();
 
-    export let settings: Settings = {};
     export let loaded = true;
     // export let unlisten: UnlistenFn;
 
     // Add window event listener
-    async function updateSetting(settings: Settings) {
-        settings = await invoke("updateSetting", {
-            settings: JSON.stringify(settings),
-        });
-    }
+    // async function updateSetting(settings: Settings) {
+    //     settings = await invoke("updateSetting", {
+    //         settings: JSON.stringify(settings),
+    //     });
+    // }
 
     async function subscribe() {
         // unlisten = await listen('khiin-settings', (event: any) => {

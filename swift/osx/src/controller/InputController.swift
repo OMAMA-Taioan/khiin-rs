@@ -33,6 +33,21 @@ class KhiinInputController: IMKInputController {
         self.window?.setFrame(.zero, display: true)
     }
 
+    override func menu() -> NSMenu! {
+        // 创建自定义菜单项
+        let settingMenuItem = NSMenuItem(
+            title: "Settings..",
+            action: #selector(self.openSettingApp),
+            keyEquivalent: ""
+        )
+        settingMenuItem.target = self
+        
+        let khiinMenu = NSMenu();
+        khiinMenu.addItem(settingMenuItem)
+
+        return khiinMenu;
+    }
+
     func isEdited() -> Bool {
         return self.candidateViewModel.currentCommand.response.editState != .esEmpty
     }
@@ -151,6 +166,28 @@ class KhiinInputController: IMKInputController {
         EngineController.instance.reset()
     }
 
+    @objc func openSettingApp() {
+        let mainBundle = Bundle.main
+        let appPath = mainBundle.bundleURL.appendingPathComponent("Contents/Applications/khiin_helper.app").path
+
+        guard let bundle = Bundle(path: appPath),
+            let executablePath = bundle.executableURL?.path else {
+            log.debug("Can't find helper app.")
+            return
+        }
+        
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: executablePath)
+        
+        do {
+            try process.run()
+            process.waitUntilExit()
+
+            log.debug("Run helper exit code:\(process.terminationStatus)")
+        } catch {
+            log.debug("Run helper error:\(error)")
+        }
+    }
     //    override func inputText(_ string: String!, client sender: Any!) -> Bool {
     //        log.debug("inputText: \(string ?? "n/a")")
     //

@@ -7,7 +7,7 @@
         "withGlobalTauri": true
     },
     "package": {
-        "productName": "khiin_app",
+        "productName": "khiin_helper",
         "version": "0.1.0"
     },
     "tauri": {

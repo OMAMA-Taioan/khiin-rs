@@ -1,5 +1,5 @@
 [package]
-name = "khiin_app"
+name = "khiin_helper"
 version = "0.1.0"
 description = "Khíín Desktop Companion App"
 authors = ["Ko An Ióng"]
@@ -20,6 +20,7 @@ serde_json.workspace = true
 tauri = { version = "1.6.3", features = ["shell-open"] }
 tauri-plugin-single-instance = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 tauri-plugin-log = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
+dirs = "5.0.1"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

@@ -1,6 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use dirs::data_dir;
 use std::env;
 use std::fs::File;
 use std::io::Read;
@@ -26,9 +27,11 @@ struct Payload {
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-fn load_settings(state: State<SettingsStore>, window: tauri::Window) {
+fn load_settings(state: State<SettingsStore>, window: tauri::Window) -> Result<String, String> {
     if let Ok(reader) = state.store.read() {
-        emit_settings(&reader.settings, window);
+        serde_json::to_string(&reader.settings).map_err(|e| e.to_string())
+    } else {
+        serde_json::to_string(&AppSettings::default()).map_err(|e| e.to_string())
     }
 }
 
@@ -40,13 +43,9 @@ fn update_settings(
 ) {
     if let Ok(settings_update) = serde_json::from_str::<AppSettings>(settings) {
         if let Ok(mut writer) = state.store.write() {
-            let prev_settings = writer.settings.clone();
-            // writer.settings = settings_update.merge(prev_settings.clone());
-            if let Ok(_) = writer.save_to_file() {
-                emit_settings(&writer.settings, window);
-            } else {
-                emit_settings(&prev_settings, window);
-            }
+            // let prev_settings = writer.settings.clone();
+            writer.settings = settings_update;
+            writer.save_to_file();
         }
     }
 }
@@ -56,16 +55,14 @@ fn emit_settings(settings: &AppSettings, window: tauri::Window) {
 }
 
 fn load_settings_manager() -> SettingsStore {
-    if let Ok(mut filename) = env::current_dir() {
-        filename.push("Khiin.toml");
+    if let Some(mut filename) = data_dir() {
+        filename.push("app.khiin.KhiinPJH/settings.toml");
 
-        log::debug!("{:?}", filename);
+        log::debug!("load_settings_manager {:?}", filename);
 
-        if filename.exists() {
-            return SettingsStore {
-                store: RwLock::new(SettingsManager::load_from_file(&filename)),
-            };
-        }
+        return SettingsStore {
+            store: RwLock::new(SettingsManager::load_from_file(&filename)),
+        };
     }
 
     Default::default()

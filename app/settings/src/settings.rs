@@ -186,6 +186,7 @@ impl SettingsManager {
             let mut file = OpenOptions::new()
                 .read(true)
                 .write(true)
+                .create(true)
                 .truncate(true)
                 .open(&self.filename)
                 .unwrap();

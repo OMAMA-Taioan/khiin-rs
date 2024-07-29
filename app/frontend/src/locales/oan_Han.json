@@ -41,6 +41,8 @@
             "temporarily-disable": "暫時停用",
             "switch-mode": "切換模式",
             "auto": "自動",
+            "classic":"傳統",
+            "manual": "自由",
             "numeric": "數字",
             "telex": "Telex",
             "shift": "Shift",

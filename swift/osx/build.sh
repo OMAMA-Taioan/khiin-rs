@@ -20,10 +20,12 @@ bundle_dir=$build_dir/$app_name.app
 contents_dir=$bundle_dir/Contents
 bin_dir=$contents_dir/MacOS
 res_dir=$contents_dir/Resources
+app_dir=$contents_dir/Applications
 icon_dir=.build/icons
 iconset_dir=$icon_dir/AppIcon.iconset
 im_dir="/Users/$(id -un)/Library/Input Methods/"
 db_file=../../resources/khiin.db
+helper_app=../../target/$BUILD_DIR/bundle/macos/khiin_helper.app
 
 # Prepare icon assets
 rm -rf $iconset_dir
@@ -56,6 +58,7 @@ mkdir -p $bundle_dir
 mkdir -p $contents_dir
 mkdir -p $bin_dir
 mkdir -p $res_dir
+mkdir -p $app_dir
 cp $universal_dir/$app_name         $bin_dir
 cp $assets_dir/Info.plist           $contents_dir
 cp $assets_dir/PkgInfo              $contents_dir
@@ -65,7 +68,11 @@ cp $assets_dir/menuicon.svg         $res_dir
 cp -r $assets_dir/en.lproj          $res_dir
 cp -r $assets_dir/zh-Hant.lproj     $res_dir
 cp $db_file                         $res_dir
-
+if [ -d $helper_app ]; then
+    cp -r $helper_app $app_dir
+else
+    echo "warning: please build helper_app"
+fi
 # Move it to the user's input method folder
 killall -9 $app_name || true
 cp -r $bundle_dir "$im_dir"
