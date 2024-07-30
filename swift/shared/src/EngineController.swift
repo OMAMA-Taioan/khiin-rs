@@ -69,6 +69,34 @@ public class EngineController {
         let _ = sendCommand(req)
     }
 
+    public func reloadSettings() {
+        guard let settingsPath = getSettingFilePath() else {
+            return
+        }
+
+        guard let settings = self.engine?.loadSettings(settingsPath) else {
+            log.debug("No setting data loaded from engine")
+            return
+        }
+
+        let settingData = Data(
+            bytes: settings.as_ptr(),
+            count: settings.len()
+        )
+
+        guard
+            let config = try? Khiin_Proto_AppConfig.init(
+                serializedData: settingData
+            )
+        else {
+            log.debug("Unable to decode config from engine")
+            return
+        }
+
+        self.config = config
+        log.debug("reload settings, now input mode : \(String(describing:self.config?.inputMode))")
+    }
+
     public func hyphenKey() -> String {
         if (self.config == nil) {
             return ""

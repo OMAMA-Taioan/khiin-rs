@@ -64,13 +64,23 @@ extension KhiinInputController {
                 }
                 return true
             case .number(let num):
-                if (self.isManualMode()) {
-                    _ = self.commitCurrent();
-                    self.candidateViewModel.reset()
-                    return false;
-                }
+                // if (self.isManualMode()) {
+                //     _ = self.commitCurrent();
+                //     self.candidateViewModel.reset()
+                //     return false;
+                // }
                 self.candidateViewModel.handleChar(String(num))
-                self.resetWindow()
+                if (self.isManualMode()) {
+                    if (self.isCommited()) {
+                        client.insert(self.currentDisplayText())
+                        self.reset()
+                    } else {
+                        self.resetWindow()
+                        client.mark(self.currentDisplayText())
+                    }
+                } else {
+                    self.resetWindow()
+                }
                 return true
             default:
                 log.debug("key is special key")

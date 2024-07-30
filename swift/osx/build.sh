@@ -71,7 +71,7 @@ cp $db_file                         $res_dir
 if [ -d $helper_app ]; then
     cp -r $helper_app $app_dir
 else
-    echo "warning: please build helper_app"
+    echo "warning: please build helper_app $helper_app"
 fi
 # Move it to the user's input method folder
 killall -9 $app_name || true

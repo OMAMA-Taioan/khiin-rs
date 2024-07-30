@@ -182,7 +182,7 @@ class KhiinInputController: IMKInputController {
         do {
             try process.run()
             process.waitUntilExit()
-
+            EngineController.instance.reloadSettings()
             log.debug("Run helper exit code:\(process.terminationStatus)")
         } catch {
             log.debug("Run helper error:\(error)")
