@@ -18,6 +18,7 @@ use super::Syllable;
 
 use khiin_ji::lomaji::has_tone_letter;
 use khiin_ji::lomaji::strip_tone_diacritic;
+use khiin_ji::lomaji::strip_khin;
 use khiin_ji::Tone;
 
 pub(crate) fn get_candidates(
@@ -103,11 +104,19 @@ pub(crate) fn convert_to_telex(
 ) -> (Result<Buffer>, bool) {
     let (stripped, tone) = strip_tone_diacritic(raw_buffer);
 
-    let tone_char = tone_to_char(engine, &tone);
-    if tone_char != ' ' && tone_char == key.to_ascii_lowercase() {
+    let pre_tone_char = tone_to_char(engine, &tone);
+    if pre_tone_char != ' ' && pre_tone_char == key.to_ascii_lowercase() {
         // duplicate tone characters
         let mut composition = Buffer::new();
         let mut raw_input = stripped.to_string();
+        raw_input.push(key);
+        composition.push(StringElem::from(raw_input).into());
+        return (Ok(composition), false);
+    } else if (raw_buffer.starts_with("--") && key.to_ascii_lowercase() == engine.conf.khin()) {
+        // duplicate khin characters
+        let mut composition = Buffer::new();
+        let mut raw_input = stripped.to_string();
+        raw_input.drain(0..2);
         raw_input.push(key);
         composition.push(StringElem::from(raw_input).into());
         return (Ok(composition), false);
@@ -117,11 +126,10 @@ pub(crate) fn convert_to_telex(
     word.raw_input = stripped.to_string();
     word.raw_input.push(key);
 
-    
     if tone != Tone::T1 || has_tone_letter(raw_buffer) {
-        word.tone = char_to_tone(engine, key.to_ascii_lowercase());
+        let mut tone_char: char = key.to_ascii_lowercase();
+        word.tone = char_to_tone(engine, tone_char);
         if (word.tone == Tone::None) {
-            let mut tone_char: char = key.to_ascii_lowercase();
             if (tone_char == engine.conf.khin()) {
                 tone_char = tone_to_char(engine, &tone);
                 word.tone = tone;
@@ -154,7 +162,8 @@ pub(crate) fn convert_to_telex(
         }
     }
     let syllable = word.compose();
-    let (stripped, tone) = strip_tone_diacritic(&syllable);
+    let (mut stripped, tone) = strip_tone_diacritic(&syllable);
+    _ = strip_khin(&mut stripped);
     let ret = engine.dict.is_illegal_syllable(&stripped);
 
     let mut composition = Buffer::new();

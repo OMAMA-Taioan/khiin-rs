@@ -25,7 +25,7 @@ icon_dir=.build/icons
 iconset_dir=$icon_dir/AppIcon.iconset
 im_dir="/Users/$(id -un)/Library/Input Methods/"
 db_file=../../resources/khiin.db
-helper_app=../../target/$BUILD_DIR/bundle/macos/khiin_helper.app
+helper_app=../../target/universal-apple-darwin/$BUILD_DIR/bundle/macos/khiin_helper.app
 
 # Prepare icon assets
 rm -rf $iconset_dir

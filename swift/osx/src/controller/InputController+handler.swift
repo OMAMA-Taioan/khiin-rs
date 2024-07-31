@@ -64,11 +64,16 @@ extension KhiinInputController {
                 }
                 return true
             case .number(let num):
-                // if (self.isManualMode()) {
-                //     _ = self.commitCurrent();
-                //     self.candidateViewModel.reset()
-                //     return false;
-                // }
+                if (modifiers.contains(.shift) || modifiers.contains(.capsLock)) {
+                    if (self.isManualMode()) {
+                        _ = self.commitCurrent();
+                        self.candidateViewModel.reset()
+                    } else {
+                        self.reset()
+                        client.clearMarkedText()
+                    }
+                    return false;
+                }
                 self.candidateViewModel.handleChar(String(num))
                 if (self.isManualMode()) {
                     if (self.isCommited()) {

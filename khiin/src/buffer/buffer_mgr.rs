@@ -256,8 +256,6 @@ impl BufferMgr {
         {
             self.edit_state = EditState::ES_EMPTY;
             return Ok(());
-        } else if ch.to_ascii_lowercase() == engine.conf.khin() {
-            self.edit_state = EditState::ES_EMPTY;
         } else {
             self.edit_state = EditState::ES_COMPOSING;
         }
