@@ -31,6 +31,8 @@ pub struct KeyConfig {
     pub t8: char,
     pub t9: char,
     pub khin: char,
+    pub hyphon: char,
+    pub done: char,
 }
 pub struct Config {
     enabled: bool,
@@ -43,7 +45,7 @@ impl Config {
     pub fn new() -> Self {
         Self {
             enabled: false,
-            input_mode: InputMode::Continuous,
+            input_mode: InputMode::Manual,
             tone_mode: ToneMode::Telex,
             key_config: KeyConfig {
                 t2: 's',
@@ -53,7 +55,9 @@ impl Config {
                 t7: 'j',
                 t8: 'j',
                 t9: 'w',
-                khin: 'q',
+                khin: 'v',
+                hyphon: 'd',
+                done: 'r',
             },
         }
     }
@@ -105,7 +109,7 @@ impl Config {
             self.key_config.t7
         }
     }
-    
+
     pub fn t8(&self) -> char {
         if self.tone_mode == ToneMode::Numeric {
             '8'
@@ -124,6 +128,42 @@ impl Config {
 
     pub fn khin(&self) -> char {
         self.key_config.khin
+    }
+
+    pub fn hyphon(&self) -> char {
+        self.key_config.hyphon
+    }
+
+    pub fn done(&self) -> char {
+        self.key_config.done
+    }
+
+    pub fn is_reserved_char(&self, ch: char) -> bool {
+        if ch == self.key_config.khin {
+            true
+        } else if ch == self.key_config.hyphon {
+            true
+        } else if ch == self.key_config.done {
+            true
+        } else if self.tone_mode == ToneMode::Numeric {
+            false
+        } else if ch == self.key_config.t2 {
+            true
+        } else if ch == self.key_config.t3 {
+            true
+        } else if ch == self.key_config.t5 {
+            true
+        } else if ch == self.key_config.t6 {
+            true
+        } else if ch == self.key_config.t7 {
+            true
+        } else if ch == self.key_config.t8 {
+            true
+        } else if ch == self.key_config.t9 {
+            true
+        } else {
+            false
+        }
     }
 
     // set input_mode

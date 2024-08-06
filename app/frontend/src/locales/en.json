@@ -41,6 +41,8 @@
             "temporarily-disable": "Temporarily disable",
             "switch-mode": "Switch mode",
             "auto": "Auto",
+            "classic":"Classic",
+            "manual": "Freedom",
             "numeric": "Numeric",
             "telex": "Telex",
             "shift": "Shift",

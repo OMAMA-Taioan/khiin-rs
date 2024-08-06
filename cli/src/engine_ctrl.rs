@@ -7,6 +7,7 @@ use khiin_protos::command::CommandType;
 use khiin_protos::command::Request;
 use khiin_protos::config::AppConfig;
 use khiin_protos::config::AppInputMode;
+use khiin_protos::config::BoolValue;
 use protobuf::Message;
 
 use crate::keys::translate_keys;
@@ -35,6 +36,24 @@ impl EngineCtrl {
 
         let mut req = Request::new();
         req.type_ = CommandType::CMD_SWITCH_INPUT_MODE.into();
+        req.config = Some(config).into();
+
+        let mut cmd = Command::new();
+        cmd.request = Some(req).into();
+
+        self.send_command(cmd)
+    }
+
+    pub fn send_set_config_command(&mut self, mode: &AppInputMode, is_telex:bool) -> Result<Command> {
+        let mut config: AppConfig = AppConfig::new();
+        config.input_mode = (*mode).into();
+
+        let mut telex_enabled = BoolValue::new();
+        telex_enabled.value = is_telex;
+        config.telex_enabled = Some(telex_enabled).into();
+
+        let mut req = Request::new();
+        req.type_ = CommandType::CMD_SET_CONFIG.into();
         req.config = Some(config).into();
 
         let mut cmd = Command::new();

@@ -239,7 +239,7 @@ pub fn run(stdout: &mut Stdout) -> Result<()> {
     let mut engine = EngineCtrl::new(get_db_filename()?)?;
     let mut mode: AppInputMode = AppInputMode::MANUAL;
 
-    engine.send_switch_mode_command(&mode)?;
+    engine.send_set_config_command(&mode, true)?;
     blank_display(stdout, &mode)?;
 
     let mut raw_input = String::new();

@@ -10,6 +10,7 @@ use protobuf::Message;
 
 use khiin_protos::command::*;
 use khiin_protos::config::AppInputMode;
+use khiin_protos::config::BoolValue;
 
 use crate::buffer::BufferMgr;
 use crate::config::Config;
@@ -186,8 +187,25 @@ impl Engine {
         Err(anyhow!("Not implemented"))
     }
 
-    fn on_set_config(&self, req: Request) -> Result<Response> {
-        Err(anyhow!("Not implemented"))
+    fn on_set_config(&mut self, req: Request) -> Result<Response> {
+        self.buffer_mgr.reset();
+        match req.config.input_mode.enum_value_or_default() {
+            AppInputMode::CONTINUOUS => self.inner.conf.set_input_mode(InputMode::Continuous),
+            AppInputMode::CLASSIC => self.inner.conf.set_input_mode(InputMode::Classic),
+            AppInputMode::MANUAL => self.inner.conf.set_input_mode(InputMode::Manual),
+        }
+
+        // let mut telex_enabled = BoolValue::new();
+        if let Some(telex_enabled) = req.config.telex_enabled.as_ref() {
+            if telex_enabled.value {
+                self.inner.conf.set_tone_mode(ToneMode::Telex)
+            } else {
+                self.inner.conf.set_tone_mode(ToneMode::Numeric)
+            }
+
+        }
+
+        Ok(Response::new())
     }
 
     fn on_test_send_key(&self, req: Request) -> Result<Response> {
