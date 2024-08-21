@@ -83,6 +83,9 @@ extension KhiinInputController {
                         self.resetWindow()
                         client.mark(self.currentDisplayText())
                     }
+                } else if (self.isClassicMode()) {
+                    self.resetWindow()
+                    client.mark(self.currentDisplayText())
                 } else {
                     self.resetWindow()
                 }

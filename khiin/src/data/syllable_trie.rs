@@ -48,4 +48,15 @@ impl SyllableTrie {
         }
         true
     }
+
+    pub fn is_valid_syllable(&self, word: &str) -> bool {
+        let mut current_node: &TrieNode = &self.root;
+        for c in word.chars() {
+            match current_node.children.get(&c.to_ascii_lowercase()) {
+                Some(node) => current_node = node,
+                None => return false,
+            }
+        }
+        return current_node.is_end_of_word
+    }
 }

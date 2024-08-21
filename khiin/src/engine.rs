@@ -105,7 +105,11 @@ impl Engine {
                 }
             },
             SpecialKey::SK_SPACE => {
-                self.buffer_mgr.focus_next_candidate(&self.inner)?;
+                if (req.key_event.modifier_keys.contains(&protobuf::EnumOrUnknown::from_i32(ModifierKey::MODK_SHIFT as i32))) {
+                    self.buffer_mgr.focus_prev_candidate(&self.inner)?;
+                } else {
+                    self.buffer_mgr.focus_next_candidate(&self.inner)?;
+                }
             },
             SpecialKey::SK_ENTER => {
                 return self.on_commit(req);

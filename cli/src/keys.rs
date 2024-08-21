@@ -1,7 +1,9 @@
 use crossterm::event::KeyCode as CTKeyCode;
 use crossterm::event::KeyEvent as CTKeyEvent;
+use crossterm::event::KeyModifiers as CTKeyModifiers;
 use khiin_protos::command::KeyEvent as KhiEvent;
 use khiin_protos::command::SpecialKey;
+use khiin_protos::command::ModifierKey;
 
 pub fn translate_keys(key: CTKeyEvent) -> KhiEvent {
     let mut ret = KhiEvent::new();
@@ -33,6 +35,10 @@ pub fn translate_keys(key: CTKeyEvent) -> KhiEvent {
     } else {
         special_key.into()
     };
+
+    if key.modifiers.contains(CTKeyModifiers::SHIFT) {
+        ret.modifier_keys.push(ModifierKey::MODK_SHIFT.into());
+    }
 
     ret
 }

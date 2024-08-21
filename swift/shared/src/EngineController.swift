@@ -111,6 +111,13 @@ public class EngineController {
         return self.config?.inputMode == .manual
     }
 
+    public func isClassicMode() -> Bool {
+        if (self.config == nil) {
+            return false
+        }
+        return self.config?.inputMode == .classic
+    }
+
     public func changeInputMode() -> Khiin_Proto_Command? {
         if (self.config == nil) {
             log.debug("Config not instantiated")
@@ -119,6 +126,8 @@ public class EngineController {
         
         if (self.config?.inputMode == .continuous) {
             self.config?.inputMode = .manual;
+        } else if (self.config?.inputMode == .manual) {
+            self.config?.inputMode = .classic
         } else {
             self.config?.inputMode = .continuous
         }

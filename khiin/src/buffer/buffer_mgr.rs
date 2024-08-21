@@ -25,6 +25,9 @@ use crate::engine::EngInner;
 use crate::input::converter::convert_all;
 use crate::input::converter::convert_to_telex;
 use crate::input::converter::get_candidates;
+use crate::input::converter::get_candidates_for_word;
+use crate::input::converter::get_candidates_for_word_with_tone;
+use crate::input::converter::get_numberic_tone_char;
 use crate::utils::CharSubstr;
 
 use super::Spacer;
@@ -157,7 +160,7 @@ impl BufferMgr {
     pub fn insert(&mut self, engine: &EngInner, ch: char) -> Result<()> {
         match engine.conf.input_mode() {
             InputMode::Continuous => self.insert_continuous(engine, ch),
-            InputMode::Classic => self.insert_classic(ch),
+            InputMode::Classic => self.insert_classic(engine, ch),
             InputMode::Manual => self.insert_manual(engine, ch),
         }
     }
@@ -171,7 +174,7 @@ impl BufferMgr {
 
         match engine.conf.input_mode() {
             InputMode::Continuous => self.pop_continuous(engine),
-            InputMode::Classic => self.pop_classic(),
+            InputMode::Classic => self.pop_classic(engine),
             InputMode::Manual => self.pop_manual(engine),
         }
     }
@@ -234,12 +237,84 @@ impl BufferMgr {
         Ok(())
     }
 
-    fn insert_classic(&mut self, ch: char) -> Result<()> {
-        Err(anyhow!("Not implemented"))
+    fn insert_classic(&mut self, engine: &EngInner, ch: char) -> Result<()> {
+        debug!("BufferMgr::insert_classic ({})", ch);
+        self.edit_state = EditState::ES_COMPOSING;
+
+        let mut raw_input = self.composition.raw_text();
+        self.build_composition_classic(engine, raw_input, ch)
     }
 
-    fn pop_classic(&mut self) -> Result<()> {
-        Err(anyhow!("Not implemented"))
+    fn pop_classic(&mut self, engine: &EngInner) -> Result<()> {
+        debug!("BufferMgr::pop_classic ");
+        self.edit_state = EditState::ES_COMPOSING;
+        let mut raw_input = self.composition.raw_text();
+        raw_input.pop();
+
+        if raw_input.is_empty() {
+            return self.reset();
+        }
+
+        let ch = raw_input.chars().last().unwrap();
+        raw_input.pop();
+
+        self.build_composition_classic(engine, raw_input, ch)
+    }
+
+    fn build_composition_classic(
+        &mut self,
+        engine: &EngInner,
+        mut raw_input: String,
+        ch: char,
+    ) -> Result<()> {
+        let mut key = ch.to_ascii_lowercase();
+        // check is tone char
+        if engine.conf.is_tone_char(key) {
+            if engine.dict.is_illegal_syllable(&raw_input) {
+                // convert to number tone
+                if let Ok(candidates) =
+                    get_candidates_for_word_with_tone(engine, &raw_input, key)
+                {
+                    if (!candidates.is_empty()) {
+                        raw_input.push(ch);
+                        self.candidates = candidates;
+                        self.composition = Buffer::new();
+                        self.composition
+                            .push(StringElem::from(raw_input).into());
+                        self.char_caret = self.composition.display_char_count();
+                        return Ok(());
+                    }
+                }
+                // get romaji
+                let (ret_com, ret) = convert_to_telex(engine, &raw_input, key);
+                if ret == true {
+                    raw_input.push(ch);
+                    self.candidates = Vec::new();
+                    self.candidates.push(ret_com?);
+                    self.composition = Buffer::new();
+                    self.composition.push(StringElem::from(raw_input).into());
+                    self.char_caret = self.composition.display_char_count();
+                    return Ok(());
+                }
+            }
+        }
+        raw_input.push(ch);
+        let size = raw_input.chars().count();
+        for i in (0..size).rev() {
+            let end = i + 1;
+            let substr = &raw_input[0..end];
+            if let Ok(candidates) = get_candidates_for_word(engine, substr) {
+                if (!candidates.is_empty()) {
+                    self.candidates = candidates;
+                    break;
+                }
+            };
+        }
+        self.composition = Buffer::new();
+        self.composition.push(StringElem::from(raw_input).into());
+        self.char_caret = self.composition.display_char_count();
+
+        Ok(())
     }
 
     fn insert_manual(&mut self, engine: &EngInner, ch: char) -> Result<()> {
@@ -356,6 +431,9 @@ impl BufferMgr {
         engine: &EngInner,
         index: usize,
     ) -> Result<()> {
+        if (engine.conf.input_mode() == InputMode::Classic) {
+            return self.focus_candidate_classic(engine, index);
+        }
         self.composition.clear_autospace();
         let candidate = self
             .candidates
@@ -371,6 +449,37 @@ impl BufferMgr {
         let mut new_comp = candidate;
         let remainder_split = convert_all(engine, &remainder)?;
 
+        new_comp.extend(remainder_split);
+
+        self.composition = new_comp;
+
+        self.focused_cand_idx = Some(index);
+        self.composition.autospace();
+        self.char_caret = self.composition.display_char_count();
+
+        Ok(())
+    }
+
+    fn focus_candidate_classic(
+        &mut self,
+        engine: &EngInner,
+        index: usize,
+    ) -> Result<()> {
+        self.composition.clear_autospace();
+        let candidate = self
+            .candidates
+            .get(index)
+            .ok_or(anyhow!("Candidate index out of bounds"))?
+            .clone();
+
+        let cand_raw_count = candidate.raw_char_count();
+        let comp_raw = self.composition.raw_text();
+        let mut remainder =
+            comp_raw.char_substr(cand_raw_count, comp_raw.chars().count());
+
+        let mut new_comp = candidate;
+        let mut remainder_split = Buffer::new();
+        remainder_split.push(StringElem::from(remainder).into());
         new_comp.extend(remainder_split);
 
         self.composition = new_comp;

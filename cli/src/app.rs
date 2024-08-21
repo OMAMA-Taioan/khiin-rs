@@ -237,7 +237,7 @@ pub fn run(stdout: &mut Stdout) -> Result<()> {
     enable_raw_mode()?;
 
     let mut engine = EngineCtrl::new(get_db_filename()?)?;
-    let mut mode: AppInputMode = AppInputMode::MANUAL;
+    let mut mode: AppInputMode = AppInputMode::CLASSIC;
 
     engine.send_set_config_command(&mode, true)?;
     blank_display(stdout, &mode)?;
@@ -258,6 +258,8 @@ pub fn run(stdout: &mut Stdout) -> Result<()> {
 
         if key.code == KeyCode::Tab {
             if mode == AppInputMode::CONTINUOUS {
+                mode = AppInputMode::CLASSIC;
+            } else if mode == AppInputMode::CLASSIC {
                 mode = AppInputMode::MANUAL;
             } else {
                 mode = AppInputMode::CONTINUOUS;

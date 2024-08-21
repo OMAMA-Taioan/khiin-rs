@@ -1,6 +1,6 @@
 use crate::db::models::InputType;
 
-#[derive(Copy, Clone)]
+#[derive(PartialEq, Copy, Clone)]
 pub enum InputMode {
     Continuous,
     Classic,
@@ -145,8 +145,6 @@ impl Config {
             true
         } else if ch == self.key_config.done {
             true
-        } else if self.tone_mode == ToneMode::Numeric {
-            false
         } else if ch == self.key_config.t2 {
             true
         } else if ch == self.key_config.t3 {
@@ -166,6 +164,26 @@ impl Config {
         }
     }
 
+    pub fn is_tone_char(&self, ch: char) -> bool {
+        if ch == self.key_config.t2 {
+            true
+        } else if ch == self.key_config.t3 {
+            true
+        } else if ch == self.key_config.t5 {
+            true
+        } else if ch == self.key_config.t6 {
+            true
+        } else if ch == self.key_config.t7 {
+            true
+        } else if ch == self.key_config.t8 {
+            true
+        } else if ch == self.key_config.t9 {
+            true
+        } else {
+            false
+        }
+    }
+    
     // set input_mode
     pub fn set_input_mode(&mut self, mode: InputMode) {
         self.input_mode = mode;
