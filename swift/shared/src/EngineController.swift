@@ -154,7 +154,7 @@ public class EngineController {
         return sendCommand(req)
     }
 
-    public func handleSpecialKey(_ key: Khiin_Proto_SpecialKey)
+    public func handleSpecialKey(_ key: Khiin_Proto_SpecialKey, _ hasShift: Bool)
         -> Khiin_Proto_Command?
     {
         var req = Khiin_Proto_Request()
@@ -162,8 +162,18 @@ public class EngineController {
 
         req.type = .cmdSendKey
         keyEvent.specialKey = key
+        log.debug("Engine handleSpecialKey hasShift:\(hasShift)")
+        if (hasShift) {
+            keyEvent.modifierKeys.append(.modkShift)
+        }
         req.keyEvent = keyEvent
 
+        return sendCommand(req)
+    }
+
+    public func sendCommitCommand() -> Khiin_Proto_Command? {
+        var req = Khiin_Proto_Request()
+        req.type = .cmdCommit
         return sendCommand(req)
     }
 

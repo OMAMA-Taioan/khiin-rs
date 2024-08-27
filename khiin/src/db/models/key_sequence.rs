@@ -83,7 +83,7 @@ impl KeySequence {
 
     pub fn of_multi_syl_set(
         numeric: Vec<String>,
-        telex: Vec<String>,
+        toneless: Vec<String>,
         input: &Input,
     ) -> Vec<Self> {
         let mut result = vec![];
@@ -98,10 +98,10 @@ impl KeySequence {
             });
         }
 
-        for keys in telex {
+        for keys in toneless {
             result.push(KeySequence {
                 keys,
-                input_type: InputType::Telex,
+                input_type: InputType::Toneless,
                 n_syls: input.n_syls,
                 input_id: input.id,
                 p: input.p,
@@ -135,19 +135,19 @@ fn generate_key_sequence(input: &Input) -> Result<Vec<KeySequence>> {
     }
 
     let mut numeric_syls: Vec<Vec<String>> = vec![];
-    let mut telex_syls: Vec<Vec<String>> = vec![];
+    let mut toneless_syls: Vec<Vec<String>> = vec![];
 
     input.input.split(" ").for_each(|syl| {
         let (numeric, telex, toneless) = poj_syl_to_key_sequences(syl);
 
         numeric_syls.push(vec![numeric, toneless.clone()]);
-        telex_syls.push(vec![telex, toneless]);
+        toneless_syls.push(vec![toneless]);
     });
 
     let numeric = multi_cartesian_product(numeric_syls);
-    let telex = multi_cartesian_product(telex_syls);
+    let toneless = multi_cartesian_product(toneless_syls);
 
-    Ok(KeySequence::of_multi_syl_set(numeric, telex, input))
+    Ok(KeySequence::of_multi_syl_set(numeric, toneless, input))
 }
 
 fn multi_cartesian_product(constituents: Vec<Vec<String>>) -> Vec<String> {

@@ -5,6 +5,7 @@ use anyhow::anyhow;
 use anyhow::Result;
 
 use khiin_ji::lomaji::is_legal_lomaji;
+use khiin_ji::IsHanji;
 use khiin_protos::command::preedit::Segment;
 use khiin_protos::command::Candidate;
 use khiin_protos::command::CandidateList;
@@ -14,6 +15,7 @@ use khiin_protos::command::SegmentStatus;
 use log::debug;
 use log::trace;
 use protobuf::SpecialFields;
+use regex::Regex;
 
 use crate::buffer::Buffer;
 use crate::buffer::BufferElement;
@@ -46,6 +48,9 @@ pub(crate) struct BufferMgr {
 
     /// Focused candidate in pager, also shows in preedit
     focused_cand_idx: Option<usize>,
+
+    /// Previous committed word, only for classic mode
+    pre_committed: String,
 }
 
 impl BufferMgr {
@@ -57,6 +62,7 @@ impl BufferMgr {
             char_caret: 0,
             focused_elem_idx: 0,
             focused_cand_idx: None,
+            pre_committed: String::new(),
         }
     }
 
@@ -154,6 +160,7 @@ impl BufferMgr {
         self.candidates.clear();
         self.focused_cand_idx = None;
         self.focused_elem_idx = 0;
+        self.pre_committed.clear();
         Ok(())
     }
 
@@ -177,6 +184,59 @@ impl BufferMgr {
             InputMode::Classic => self.pop_classic(engine),
             InputMode::Manual => self.pop_manual(engine),
         }
+    }
+
+    pub fn commit_candidate_and_comosite_remainder(
+        &mut self,
+        engine: &EngInner,
+    ) -> Result<String> {
+        if (engine.conf.input_mode() != InputMode::Classic) {
+            // only classic mode need comosite remainder
+            return Ok(String::new());
+        }
+        if self.candidates.is_empty() {
+            return Ok(String::new());
+        }
+        let mut index = match self.focused_cand_idx {
+            Some(i) if i >= self.candidates.len() => 0,
+            Some(i) => i,
+            None => 0,
+        };
+
+        self.composition.clear_autospace();
+        let candidate = self
+            .candidates
+            .get(index)
+            .ok_or(anyhow!("Candidate index out of bounds"))?
+            .clone();
+
+        let cand_raw_count = candidate.raw_char_count();
+        let comp_raw = self.composition.raw_text();
+        let candi_text = candidate.display_text();
+        let pre_committed = self.pre_committed.clone();
+        let mut remainder =
+            comp_raw.char_substr(cand_raw_count, comp_raw.chars().count());
+
+        self.reset();
+        if !remainder.is_empty() {
+            self.edit_state = EditState::ES_COMPOSING;
+            self.pre_committed.push_str(&candi_text);
+
+            let ch = remainder.chars().last().unwrap();
+            remainder.pop();
+
+            self.build_composition_classic(engine, remainder, ch);
+        }
+        if pre_committed.is_empty() {
+            return Ok(candidate.display_text());
+        }
+        let is_hanji = pre_committed.chars().last().unwrap().is_hanji();
+        if is_hanji && candi_text.chars().last().unwrap().is_hanji() {
+            return Ok(candi_text);
+        }
+        let mut ret = String::from(' ');
+        ret.push_str(&candi_text);
+        return Ok(ret);
     }
 
     fn insert_continuous(&mut self, engine: &EngInner, ch: char) -> Result<()> {
@@ -247,13 +307,14 @@ impl BufferMgr {
 
     fn pop_classic(&mut self, engine: &EngInner) -> Result<()> {
         debug!("BufferMgr::pop_classic ");
-        self.edit_state = EditState::ES_COMPOSING;
         let mut raw_input = self.composition.raw_text();
         raw_input.pop();
 
         if raw_input.is_empty() {
             return self.reset();
         }
+        self.reset();
+        self.edit_state = EditState::ES_COMPOSING;
 
         let ch = raw_input.chars().last().unwrap();
         raw_input.pop();
@@ -270,7 +331,23 @@ impl BufferMgr {
         let mut key = ch.to_ascii_lowercase();
         // check is tone char
         if engine.conf.is_tone_char(key) {
-            if engine.dict.is_illegal_syllable(&raw_input) {
+            let mut word: String = raw_input
+                .replace("ou", "o͘")
+                .replace("oU", "o͘")
+                .replace("Ou", "O͘")
+                .replace("OU", "O͘");
+
+            // to handle NASAL
+            let re_single_nasal: Regex =
+                Regex::new(r"(?i)[aeiouptkhmo͘]nn$").unwrap();
+            if re_single_nasal.is_match(&word) {
+                word = word
+                    .replace("nn", "ⁿ")
+                    .replace("nN", "ⁿ")
+                    .replace("Nn", "ⁿ")
+                    .replace("NN", "ᴺ");
+            }
+            if engine.dict.is_illegal_syllable(&word) {
                 // convert to number tone
                 if let Ok(candidates) =
                     get_candidates_for_word_with_tone(engine, &raw_input, key)
@@ -410,6 +487,47 @@ impl BufferMgr {
         Ok(())
     }
 
+    pub fn focus_next_page_candidate(
+        &mut self,
+        engine: &EngInner,
+    ) -> Result<()> {
+        if (self.candidates.is_empty()) {
+            return Ok(());
+        }
+        if self.edit_state == EditState::ES_COMPOSING {
+            self.edit_state = EditState::ES_SELECTING;
+        }
+
+        let mut to_focus = match self.focused_cand_idx {
+            Some(i) => i + 9,
+            None => 0,
+        };
+        if (to_focus >= self.candidates.len()) {
+            to_focus = to_focus % self.candidates.len();
+        }
+
+        self.focus_candidate(engine, to_focus);
+
+        Ok(())
+    }
+
+    pub fn focus_prev_page_candidate(
+        &mut self,
+        engine: &EngInner,
+    ) -> Result<()> {
+        if (self.candidates.is_empty()) {
+            return Ok(());
+        }
+
+        let mut to_focus = match self.focused_cand_idx {
+            Some(i) if i < 9 => self.candidates.len() - 1,
+            Some(i) => i - 9,
+            None => self.candidates.len() - 1,
+        };
+        self.focus_candidate(engine, to_focus);
+        Ok(())
+    }
+
     fn reset_focus(&mut self) {
         self.focused_cand_idx = None;
         self.focused_elem_idx = 0;
@@ -485,7 +603,7 @@ impl BufferMgr {
         self.composition = new_comp;
 
         self.focused_cand_idx = Some(index);
-        self.composition.autospace();
+        // self.composition.autospace();
         self.char_caret = self.composition.display_char_count();
 
         Ok(())

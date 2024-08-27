@@ -62,7 +62,7 @@
                 on:change={inputModeChanged}
             >
                 <option value="auto">{$_("page.input.auto")}</option>
-                <!-- <option>{$_("page.input.classic")}</option> -->
+                <option value="classic">{$_("page.input.classic")}</option>
                 <option value="manual">{$_("page.input.manual")}</option>
             </select>
         </label>

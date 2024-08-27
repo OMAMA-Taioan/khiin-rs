@@ -76,6 +76,12 @@ class KhiinInputController: IMKInputController {
         var commitText = ""
         if (isManualMode()) {
             commitText = currentDisplayText();
+        } else if (isClassicMode()) {
+            self.candidateViewModel.handleCommit();
+            commitText = self.candidateViewModel
+                .currentCommand
+                .response
+                .committedText
         } else {
             let candList = self.candidateViewModel
                 .currentCommand
@@ -102,8 +108,14 @@ class KhiinInputController: IMKInputController {
         }
 
         client.insert(commitText)
-        EngineController.instance.reset()
-        self.window?.setFrame(.zero, display: true)
+        if (isClassicMode()) {
+            self.resetWindow()
+            client.mark(self.currentDisplayText())
+        } else {
+            self.candidateViewModel.reset()
+            EngineController.instance.reset()
+            self.window?.setFrame(.zero, display: true)
+        }
         return true
     }
 

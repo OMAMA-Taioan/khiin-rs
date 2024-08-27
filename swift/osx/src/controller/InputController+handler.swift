@@ -126,9 +126,12 @@ extension KhiinInputController {
         } else {
             switch event.keyCode.representative {
                 case .enter:
-                    let committed = self.commitCurrent()
-                    self.candidateViewModel.reset()
-                    return committed
+                    if self.candidateViewModel.isToShow() {
+                        let committed = self.commitCurrent()
+                        return committed
+                    } else {
+                        self.candidateViewModel.handleSpace(false)
+                    }
                 case .backspace:
                     self.candidateViewModel.handleBackspace()
                 case .escape:
@@ -136,7 +139,9 @@ extension KhiinInputController {
                     client.clearMarkedText()
                     return true
                 case .space:
-                    self.candidateViewModel.handleSpace()
+                    self.candidateViewModel.handleSpace(modifiers.contains(.shift))
+                case .tab:
+                    self.candidateViewModel.handleTab(modifiers.contains(.shift))
                 case .arrow(Direction.up):
                     self.candidateViewModel.handleArrowUp()
                 case .arrow(Direction.down):

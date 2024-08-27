@@ -118,7 +118,13 @@ impl Engine {
             SpecialKey::SK_BACKSPACE => {
                 self.buffer_mgr.pop(&self.inner)?;
             },
-            SpecialKey::SK_TAB => {},
+            SpecialKey::SK_TAB => {
+                if (req.key_event.modifier_keys.contains(&protobuf::EnumOrUnknown::from_i32(ModifierKey::MODK_SHIFT as i32))) {
+                    self.buffer_mgr.focus_prev_page_candidate(&self.inner)?;
+                } else {
+                    self.buffer_mgr.focus_next_page_candidate(&self.inner)?;
+                }
+            },
             SpecialKey::SK_LEFT => {},
             SpecialKey::SK_RIGHT => {},
             SpecialKey::SK_UP => {
@@ -149,6 +155,14 @@ impl Engine {
     }
 
     fn on_commit(&mut self, req: Request) -> Result<Response> {
+        if (self.inner.conf.input_mode() == InputMode::Classic) {
+            // only classic mode need comosite remainder
+            let committed_text = self.buffer_mgr.commit_candidate_and_comosite_remainder(&self.inner)?;
+            let mut response = Response::default();
+            self.attach_buffer_data(&mut response)?;
+            response.committed_text = committed_text;
+            return Ok(response)
+        }
         let mut response = Response::new();
         response.committed = true;
         self.attach_preedit(&mut response)?;

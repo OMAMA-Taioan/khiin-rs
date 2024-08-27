@@ -164,9 +164,10 @@ message Response {
     CandidateList candidate_list = 3;
     EditState edit_state = 4;
     bool committed = 5;
+    string committed_text = 6;
 
     // Used with Windows TSF OnTestKeyDown method
-    bool consumable = 6;
+    bool consumable = 7;
 }
 
 // A full command bundle, passed between app and engine

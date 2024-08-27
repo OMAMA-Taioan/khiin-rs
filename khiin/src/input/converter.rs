@@ -78,7 +78,7 @@ pub(crate) fn get_candidates_for_word(
 ) -> Result<Vec<Buffer>> {
     let EngInner { db, dict, conf } = &engine;
     let candidates =
-        db.select_conversions_for_tone(InputType::Numeric, &query)?;
+        db.select_conversions_for_tone(InputType::Toneless, &query)?;
 
     let result = candidates
         .into_iter()

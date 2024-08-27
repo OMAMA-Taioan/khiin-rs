@@ -44,6 +44,16 @@ impl EngineCtrl {
         self.send_command(cmd)
     }
 
+    pub fn send_commit_command(&mut self) -> Result<Command> {
+        let mut req = Request::new();
+        req.type_ = CommandType::CMD_COMMIT.into();
+
+        let mut cmd = Command::new();
+        cmd.request = Some(req).into();
+
+        self.send_command(cmd)
+    }
+
     pub fn send_set_config_command(&mut self, mode: &AppInputMode, is_telex:bool) -> Result<Command> {
         let mut config: AppConfig = AppConfig::new();
         config.input_mode = (*mode).into();

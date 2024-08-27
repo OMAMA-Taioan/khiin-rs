@@ -150,7 +150,7 @@ impl Database {
         input_type: InputType,
         query: &str,
     ) -> Result<Vec<KeyConversion>> {
-        let sql = format!(include_str!("sql/select_conversions.sql"), limit = "");
+        let sql = format!(include_str!("sql/select_conversions_for_tone.sql"), limit = "");
         let mut stmt = self.conn.prepare(&sql)?;
         let mut rows = stmt.query(named_params! {
             ":query": query,
