@@ -252,13 +252,13 @@ impl BufferElement for KhiinElem {
         self.candidate.as_ref()
     }
 
-    fn insert(&mut self, idx: usize, ch: char) {
-        todo!()
-    }
+    // fn insert(&mut self, idx: usize, ch: char) {
+    //     todo!()
+    // }
 
-    fn erase(&mut self, idx: usize) {
-        todo!()
-    }
+    // fn erase(&mut self, idx: usize) {
+    //     todo!()
+    // }
 }
 
 #[cfg(test)]

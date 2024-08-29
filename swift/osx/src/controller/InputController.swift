@@ -72,6 +72,10 @@ class KhiinInputController: IMKInputController {
         return isEdited() ? EngineController.instance.hyphenKey() : "";
     }
 
+    func getCommitedText() -> String {
+        return self.candidateViewModel.currentCommand.response.committedText
+    }
+
     func commitCurrent() -> Bool {
         var commitText = ""
         if (isManualMode()) {

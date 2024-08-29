@@ -105,10 +105,19 @@ impl Engine {
                 }
             },
             SpecialKey::SK_SPACE => {
-                if (req.key_event.modifier_keys.contains(&protobuf::EnumOrUnknown::from_i32(ModifierKey::MODK_SHIFT as i32))) {
+                if (req.key_event.modifier_keys.contains(
+                    &protobuf::EnumOrUnknown::from_i32(
+                        ModifierKey::MODK_SHIFT as i32,
+                    ),
+                )) {
                     self.buffer_mgr.focus_prev_candidate(&self.inner)?;
                 } else {
                     self.buffer_mgr.focus_next_candidate(&self.inner)?;
+                }
+                if self.buffer_mgr.edit_state() == EditState::ES_ILLEGAL
+                    && self.inner.conf.input_mode() == InputMode::Classic
+                {
+                    return self.on_commit(req);
                 }
             },
             SpecialKey::SK_ENTER => {
@@ -119,7 +128,11 @@ impl Engine {
                 self.buffer_mgr.pop(&self.inner)?;
             },
             SpecialKey::SK_TAB => {
-                if (req.key_event.modifier_keys.contains(&protobuf::EnumOrUnknown::from_i32(ModifierKey::MODK_SHIFT as i32))) {
+                if (req.key_event.modifier_keys.contains(
+                    &protobuf::EnumOrUnknown::from_i32(
+                        ModifierKey::MODK_SHIFT as i32,
+                    ),
+                )) {
                     self.buffer_mgr.focus_prev_page_candidate(&self.inner)?;
                 } else {
                     self.buffer_mgr.focus_next_page_candidate(&self.inner)?;
@@ -157,11 +170,14 @@ impl Engine {
     fn on_commit(&mut self, req: Request) -> Result<Response> {
         if (self.inner.conf.input_mode() == InputMode::Classic) {
             // only classic mode need comosite remainder
-            let committed_text = self.buffer_mgr.commit_candidate_and_comosite_remainder(&self.inner)?;
+            let committed_text = self
+                .buffer_mgr
+                .commit_candidate_and_comosite_remainder(&self.inner)?;
             let mut response = Response::default();
             self.attach_buffer_data(&mut response)?;
             response.committed_text = committed_text;
-            return Ok(response)
+            response.committed = true;
+            return Ok(response);
         }
         let mut response = Response::new();
         response.committed = true;
@@ -186,9 +202,15 @@ impl Engine {
     fn on_switch_input_mode(&mut self, req: Request) -> Result<Response> {
         self.buffer_mgr.reset();
         match req.config.input_mode.enum_value_or_default() {
-            AppInputMode::CONTINUOUS => self.inner.conf.set_input_mode(InputMode::Continuous),
-            AppInputMode::CLASSIC => self.inner.conf.set_input_mode(InputMode::Classic),
-            AppInputMode::MANUAL => self.inner.conf.set_input_mode(InputMode::Manual),
+            AppInputMode::CONTINUOUS => {
+                self.inner.conf.set_input_mode(InputMode::Continuous)
+            },
+            AppInputMode::CLASSIC => {
+                self.inner.conf.set_input_mode(InputMode::Classic)
+            },
+            AppInputMode::MANUAL => {
+                self.inner.conf.set_input_mode(InputMode::Manual)
+            },
         }
         Ok(Response::new())
     }
@@ -208,9 +230,15 @@ impl Engine {
     fn on_set_config(&mut self, req: Request) -> Result<Response> {
         self.buffer_mgr.reset();
         match req.config.input_mode.enum_value_or_default() {
-            AppInputMode::CONTINUOUS => self.inner.conf.set_input_mode(InputMode::Continuous),
-            AppInputMode::CLASSIC => self.inner.conf.set_input_mode(InputMode::Classic),
-            AppInputMode::MANUAL => self.inner.conf.set_input_mode(InputMode::Manual),
+            AppInputMode::CONTINUOUS => {
+                self.inner.conf.set_input_mode(InputMode::Continuous)
+            },
+            AppInputMode::CLASSIC => {
+                self.inner.conf.set_input_mode(InputMode::Classic)
+            },
+            AppInputMode::MANUAL => {
+                self.inner.conf.set_input_mode(InputMode::Manual)
+            },
         }
 
         // let mut telex_enabled = BoolValue::new();
@@ -220,7 +248,6 @@ impl Engine {
             } else {
                 self.inner.conf.set_tone_mode(ToneMode::Numeric)
             }
-
         }
 
         Ok(Response::new())

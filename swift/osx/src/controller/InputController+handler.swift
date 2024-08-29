@@ -53,6 +53,11 @@ extension KhiinInputController {
                         // shif xor caplocks
                         char = char.uppercased();
                     }
+                } else if (self.isClassicMode()) {
+                    if (modifiers.contains(.shift) || modifiers.contains(.capsLock)) {
+                        // shif xor caplocks
+                        char = char.uppercased();
+                    }
                 }
                 self.candidateViewModel.handleChar(char)
                 if (self.isCommited()) {
@@ -120,7 +125,7 @@ extension KhiinInputController {
                     return true
                 default:
                     log.debug("Event not handled")
-                    self.resetWindow()
+                    self.reset()
                     return false
             }
         } else {
@@ -148,12 +153,15 @@ extension KhiinInputController {
                     self.candidateViewModel.handleArrowDown()
                 default:
                     log.debug("Event not handled")
-                    self.resetWindow()
+                    self.reset()
                     return false
             }
         }
-
-        if (self.isEdited()) {
+        if (self.isClassicMode() && self.isCommited()) {
+            client.insert(self.getCommitedText());
+            self.resetWindow()
+            client.mark(self.currentDisplayText())
+        } else if (self.isEdited()) {
             self.resetWindow()
             client.mark(self.currentDisplayText())
         } else {

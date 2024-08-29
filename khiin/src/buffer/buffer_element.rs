@@ -42,6 +42,6 @@ pub trait BufferElement {
 
     fn candidate(&self) -> Option<&KeyConversion>;
 
-    fn insert(&mut self, idx: usize, ch: char);
-    fn erase(&mut self, idx: usize);
+    // fn insert(&mut self, idx: usize, ch: char);
+    // fn erase(&mut self, idx: usize);
 }

@@ -21,7 +21,6 @@ use crossterm::terminal::ClearType;
 use crossterm::terminal::EnterAlternateScreen;
 use khiin_protos::command::Command;
 use khiin_protos::command::SegmentStatus;
-use khiin_protos::command::CommandType;
 use khiin_protos::config::AppInputMode;
 use unicode_width::UnicodeWidthStr;
 
@@ -187,9 +186,13 @@ fn draw_ime(
     };
 
     if cmd.response.committed {
-        done_buffer.push_str(&disp_buffer);
-        disp_buffer.clear();
-        caret = 0;
+        if input_mode == "Classic" {
+            done_buffer.push_str(&cmd.response.committed_text);
+        } else {
+            done_buffer.push_str(&disp_buffer);
+            disp_buffer.clear();
+            caret = 0;
+        }
     }
 
     update_display(
@@ -276,7 +279,6 @@ pub fn run(stdout: &mut Stdout) -> Result<()> {
             KeyCode::Enter => {
                 if mode == AppInputMode::CLASSIC {
                     let cmd = engine.send_commit_command()?;
-                    done_buffer.push_str(&cmd.response.committed_text);
                     draw_ime(stdout, &raw_input, &mut done_buffer, cmd, &mode)?;
                 } else {
                     raw_input.clear();

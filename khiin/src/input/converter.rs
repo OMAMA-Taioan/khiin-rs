@@ -9,6 +9,7 @@ use crate::config::Config;
 use crate::config::ToneMode;
 use crate::data::Dictionary;
 use crate::db::models::InputType;
+use crate::db::models::CaseType;
 use crate::db::Database;
 use crate::engine::EngInner;
 use crate::input::parser::SectionType;
@@ -72,22 +73,44 @@ fn candidates_for_splittable(
     Ok(result)
 }
 
+fn get_case_type (text: &str) -> CaseType {
+    if text.is_empty() {
+        return CaseType::Lowercase;
+    }
+    if text.chars().all(|c| c.is_uppercase()) {
+        CaseType::Uppercase
+    } else if let Some(first_char) = text.chars().next() {
+        if first_char.is_uppercase() {
+            CaseType::FirstUpper
+        } else {
+            CaseType::Lowercase
+        }
+    } else {
+        CaseType::Lowercase
+    }
+} 
+
 pub(crate) fn get_candidates_for_word(
     engine: &EngInner,
     query: &str,
 ) -> Result<Vec<Buffer>> {
     let EngInner { db, dict, conf } = &engine;
+    let raw_input = query.to_string().to_ascii_lowercase();
+    let case_type = get_case_type(query);
     let candidates =
-        db.select_conversions_for_tone(InputType::Toneless, &query)?;
+        db.select_conversions_for_tone(InputType::Toneless, raw_input.as_str())?;
 
     let result = candidates
         .into_iter()
-        .map(|conv| KhiinElem::from_conversion(&conv.key_sequence, &conv))
+        .map(|mut conv| {
+            conv.set_output_case_type(case_type.clone());
+            KhiinElem::from_conversion(&conv.key_sequence, &conv)
+        })
         .filter(|elem| elem.is_ok())
         .map(|elem| elem.unwrap().into())
         .filter(|elem: &BufferElementEnum| {
             let len = elem.raw_text().len();
-            len >= query.len() || dict.can_segment(&query[len..])
+            len >= raw_input.len() || dict.can_segment(&raw_input[len..])
         })
         .map(|elem| {
             let mut buffer: Buffer = elem.into();
@@ -106,21 +129,25 @@ pub(crate) fn get_candidates_for_word_with_tone(
 ) -> Result<Vec<Buffer>> {
     let EngInner { db, dict, conf } = &engine;
     let tone_key = get_numberic_tone_char(engine, tone_char);
-    let mut raw_input = query.to_string();
+    let mut raw_input = query.to_string().to_ascii_lowercase();
+    let case_type = get_case_type(query);
     raw_input.push(tone_key);
     let candidates =
         db.select_conversions_for_tone(InputType::Numeric, raw_input.as_str())?;
-
+    raw_input.pop();
     let result = candidates
         .into_iter()
-        .map(|conv| KhiinElem::from_conversion(&conv.key_sequence, &conv))
+        .map(|mut conv| {
+            conv.set_output_case_type(case_type.clone());
+            KhiinElem::from_conversion(&conv.key_sequence, &conv)
+        })
         .filter(|elem| elem.is_ok())
         .map(|elem| elem.unwrap().into())
         .filter(|elem: &BufferElementEnum| {
             let len = elem.raw_text().len();
-            len >= query.len() || dict.can_segment(&query[len..])
+            len >= raw_input.len() || dict.can_segment(&raw_input[len..])
         })
-        .map(|elem| {
+        .map(|elem: BufferElementEnum| {
             let mut buffer: Buffer = elem.into();
             buffer.set_converted(true);
             buffer
@@ -225,6 +252,7 @@ pub(crate) fn convert_to_telex(
     let syllable = word.compose();
     let (mut stripped, tone) = strip_tone_diacritic(&syllable);
     _ = strip_khin(&mut stripped);
+    stripped = stripped.replace("O͘", "o͘").replace("ᴺ", "ⁿ");
     let ret = engine.dict.is_illegal_syllable_prefix(&stripped);
 
     let mut composition = Buffer::new();

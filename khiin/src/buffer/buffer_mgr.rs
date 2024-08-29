@@ -195,7 +195,27 @@ impl BufferMgr {
             return Ok(String::new());
         }
         if self.candidates.is_empty() {
-            return Ok(String::new());
+            let mut raw_input = self.composition.raw_text();
+            let mut ret = String::new();
+            if raw_input.starts_with("--") {
+                raw_input.drain(0..2);
+                ret.push_str("--");
+            } else if raw_input.starts_with("-") {
+                raw_input.drain(0..1);
+                ret.push_str("-");
+            } else {
+                ret.push_str(&raw_input);
+                raw_input.clear()
+            }
+            self.reset();
+            if (!raw_input.is_empty()) {
+                self.edit_state = EditState::ES_COMPOSING;
+                let ch = raw_input.chars().last().unwrap();
+                raw_input.pop();
+
+                self.build_composition_classic(engine, raw_input, ch);
+            }
+            return Ok(ret);
         }
         let mut index = match self.focused_cand_idx {
             Some(i) if i >= self.candidates.len() => 0,
@@ -331,21 +351,13 @@ impl BufferMgr {
         let mut key = ch.to_ascii_lowercase();
         // check is tone char
         if engine.conf.is_tone_char(key) {
-            let mut word: String = raw_input
-                .replace("ou", "o͘")
-                .replace("oU", "o͘")
-                .replace("Ou", "O͘")
-                .replace("OU", "O͘");
+            let mut word: String = raw_input.to_lowercase().replace("ou", "o͘");
 
             // to handle NASAL
             let re_single_nasal: Regex =
                 Regex::new(r"(?i)[aeiouptkhmo͘]nn$").unwrap();
             if re_single_nasal.is_match(&word) {
-                word = word
-                    .replace("nn", "ⁿ")
-                    .replace("nN", "ⁿ")
-                    .replace("Nn", "ⁿ")
-                    .replace("NN", "ᴺ");
+                word = word.replace("nn", "ⁿ");
             }
             if engine.dict.is_illegal_syllable(&word) {
                 // convert to number tone
@@ -366,15 +378,50 @@ impl BufferMgr {
                 let (ret_com, ret) = convert_to_telex(engine, &raw_input, key);
                 if ret == true {
                     raw_input.push(ch);
+                    let mut buf = Buffer::new();
+                    buf.push(
+                        StringElem::from_raw_input(
+                            raw_input.clone(),
+                            ret_com?.display_text(),
+                        )
+                        .into(),
+                    );
                     self.candidates = Vec::new();
-                    self.candidates.push(ret_com?);
+                    self.candidates.push(buf);
                     self.composition = Buffer::new();
                     self.composition.push(StringElem::from(raw_input).into());
                     self.char_caret = self.composition.display_char_count();
                     return Ok(());
                 }
             }
+        } else if (key == engine.conf.hyphon()) {
+            if raw_input.ends_with("--") {
+                let len = raw_input.len();
+                raw_input.replace_range(len - 2..len, "");
+                raw_input.push(ch);
+                self.candidates.clear();
+            } else {
+                raw_input.push('-');
+            }
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+            self.char_caret = self.composition.display_char_count();
+            return Ok(());
+        } else if (key == engine.conf.khin()) {
+            if raw_input.starts_with("--") {
+                raw_input.drain(0..2);
+                raw_input.push(key);
+            } else {
+                raw_input.insert(0, '-');
+                raw_input.insert(1, '-');
+            }
+            self.candidates.clear();
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+            self.char_caret = self.composition.display_char_count();
+            return Ok(());
         }
+
         raw_input.push(ch);
         let size = raw_input.chars().count();
         for i in (0..size).rev() {
@@ -583,6 +630,10 @@ impl BufferMgr {
         engine: &EngInner,
         index: usize,
     ) -> Result<()> {
+        if (self.candidates.is_empty()) {
+            self.edit_state = EditState::ES_ILLEGAL;
+            return Ok(());
+        }
         self.composition.clear_autospace();
         let candidate = self
             .candidates

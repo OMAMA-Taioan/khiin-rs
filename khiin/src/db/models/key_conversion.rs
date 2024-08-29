@@ -1,4 +1,4 @@
-use khiin_ji::HANJI_CUTOFF;
+use khiin_ji::{IsHanji, HANJI_CUTOFF};
 
 use super::InputType;
 
@@ -12,6 +12,13 @@ pub struct KeyConversion {
     pub weight: i32,
     pub category: Option<i32>,
     pub annotation: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum CaseType {
+    Lowercase = 0,
+    Uppercase = 1,
+    FirstUpper = 2,
 }
 
 impl KeyConversion {
@@ -54,6 +61,33 @@ impl KeyConversion {
                 .zip(output_split.into_iter())
                 .collect(),
         )
+    }
+
+    pub fn set_output_case_type(&mut self, case_type: CaseType) {
+        if case_type == CaseType::Lowercase {
+            return;
+        }
+        if (self.output.is_empty()) {
+            return;
+        }
+        for ch in self.output.chars() {
+            if ch.is_hanji() {
+                return;
+            }
+        }
+        if (case_type == CaseType::Uppercase) {
+            self.output = self.output.to_uppercase();
+        } else {
+            self.output = self.uppercase_first_letter(&self.output);
+        }
+    }
+
+    fn uppercase_first_letter(&self, s: &str) -> String {
+        let mut c = s.chars();
+        match c.next() {
+            None => String::new(),
+            Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
+        }
     }
 }
 
