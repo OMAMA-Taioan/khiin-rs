@@ -4,6 +4,7 @@ use std::fmt::Debug;
 use anyhow::anyhow;
 use anyhow::Result;
 
+use khiin_ji::lomaji::is_legal_lomaji;
 use khiin_protos::command::preedit::Segment;
 use khiin_protos::command::Candidate;
 use khiin_protos::command::CandidateList;
@@ -171,7 +172,7 @@ impl BufferMgr {
         match engine.conf.input_mode() {
             InputMode::Continuous => self.pop_continuous(engine),
             InputMode::Classic => self.pop_classic(),
-            InputMode::Manual => self.pop_manual(),
+            InputMode::Manual => self.pop_manual(engine),
         }
     }
 
@@ -243,36 +244,66 @@ impl BufferMgr {
 
     fn insert_manual(&mut self, engine: &EngInner, ch: char) -> Result<()> {
         debug!("BufferMgr::insert_manual ({})", ch);
-        if ch == 'd' && self.edit_state == EditState::ES_COMPOSING {
+        let mut raw_input = self.composition.raw_text();
+        let mut key = ch;
+        if self.edit_state == EditState::ES_ILLEGAL {
+            raw_input.push(ch);
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+            return Ok(());
+        } else if ch.to_ascii_lowercase() == engine.conf.done()
+            && self.edit_state == EditState::ES_COMPOSING
+        {
             self.edit_state = EditState::ES_EMPTY;
             return Ok(());
+        } else {
+            self.edit_state = EditState::ES_COMPOSING;
         }
 
-        let mut raw_input = self.composition.raw_text();
+        if ch.to_ascii_lowercase() == engine.conf.hyphon()
+            && self.edit_state == EditState::ES_COMPOSING
+        {
+            if raw_input.ends_with("--") {
+                let len = raw_input.len();
+                raw_input.replace_range(len - 2..len, "");
+                raw_input.push(ch);
+                self.edit_state = EditState::ES_ILLEGAL;
+            } else {
+                raw_input.push('-');
+            }
 
-        self.composition = convert_to_telex(engine, &raw_input, ch)?;
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+        } else {
+            let (ret_com, ret) = convert_to_telex(engine, &raw_input, key);
+            if ret == false {
+                self.edit_state = EditState::ES_ILLEGAL
+            }
+            self.composition = ret_com?;
+        }
+
         self.char_caret = self.composition.display_char_count();
-
-        self.edit_state = EditState::ES_COMPOSING;
 
         Ok(())
     }
 
-    fn pop_manual(&mut self) -> Result<()> {
+    fn pop_manual(&mut self, engine: &EngInner) -> Result<()> {
         debug!("BufferMgr::pop_manual ");
         let mut raw_input = self.composition.raw_text();
         raw_input.pop();
 
         if raw_input.is_empty() {
             return self.reset();
+        } else if self.edit_state == EditState::ES_ILLEGAL {
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+        } else {
+            let (ret_com, _) = convert_to_telex(engine, &raw_input, ' ');
+            self.composition = ret_com?;
+            self.edit_state = EditState::ES_COMPOSING;
         }
 
-        let mut composition: Buffer = Buffer::new();
-        composition.push(StringElem::from(raw_input).into());
-        self.composition = composition;
         self.char_caret = self.composition.display_char_count();
-
-        self.edit_state = EditState::ES_COMPOSING;
 
         Ok(())
     }
@@ -366,6 +397,7 @@ impl BufferMgr {
             EditState::ES_COMPOSING => "Composing",
             EditState::ES_CONVERTED => "Converted",
             EditState::ES_SELECTING => "Selecting",
+            EditState::ES_ILLEGAL => "Illegal",
         };
 
         display_text.push(sep);

@@ -154,6 +154,7 @@ enum EditState {
     ES_COMPOSING = 1;
     ES_CONVERTED = 2;
     ES_SELECTING = 3;
+    ES_ILLEGAL = 4;
 }
 
 // The response portion of the message, from engine back to app

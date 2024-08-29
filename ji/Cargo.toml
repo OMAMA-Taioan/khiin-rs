@@ -9,3 +9,4 @@ publish = false
 once_cell.workspace = true
 regex.workspace = true
 unicode-normalization = "0.1.22"
+lazy_static = "1.5.0"

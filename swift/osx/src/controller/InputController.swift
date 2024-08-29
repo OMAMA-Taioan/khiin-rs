@@ -25,7 +25,27 @@ class KhiinInputController: IMKInputController {
     }
 
     override func deactivateServer(_ sender: Any!) {
+        log.debug("deactivateServer ");
+        if (isManualMode() && isEdited()) {
+            _ = commitCurrent();
+            candidateViewModel.reset();
+        }
         self.window?.setFrame(.zero, display: true)
+    }
+
+    override func menu() -> NSMenu! {
+        // 创建自定义菜单项
+        let settingMenuItem = NSMenuItem(
+            title: "Settings..",
+            action: #selector(self.openSettingApp),
+            keyEquivalent: ""
+        )
+        settingMenuItem.target = self
+        
+        let khiinMenu = NSMenu();
+        khiinMenu.addItem(settingMenuItem)
+
+        return khiinMenu;
     }
 
     func isEdited() -> Bool {
@@ -36,8 +56,16 @@ class KhiinInputController: IMKInputController {
         return self.candidateViewModel.currentCommand.response.committed;
     }
 
+    func isIllegal() -> Bool {
+        return self.candidateViewModel.currentCommand.response.editState == .esIllegal
+    }
+
     func isManualMode() -> Bool {
         return EngineController.instance.isManualMode();
+    }
+
+    func getHyphenKey() -> String {
+        return isEdited() ? EngineController.instance.hyphenKey() : "";
     }
 
     func commitCurrent() -> Bool {
@@ -138,6 +166,28 @@ class KhiinInputController: IMKInputController {
         EngineController.instance.reset()
     }
 
+    @objc func openSettingApp() {
+        let mainBundle = Bundle.main
+        let appPath = mainBundle.bundleURL.appendingPathComponent("Contents/Applications/khiin_helper.app").path
+
+        guard let bundle = Bundle(path: appPath),
+            let executablePath = bundle.executableURL?.path else {
+            log.debug("Can't find helper app.")
+            return
+        }
+        
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: executablePath)
+        
+        do {
+            try process.run()
+            process.waitUntilExit()
+            EngineController.instance.reloadSettings()
+            log.debug("Run helper exit code:\(process.terminationStatus)")
+        } catch {
+            log.debug("Run helper error:\(error)")
+        }
+    }
     //    override func inputText(_ string: String!, client sender: Any!) -> Bool {
     //        log.debug("inputText: \(string ?? "n/a")")
     //

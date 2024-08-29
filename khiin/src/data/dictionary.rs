@@ -3,10 +3,12 @@ use anyhow::Result;
 use crate::config::ToneMode;
 use crate::data::Segmenter;
 use crate::data::Trie;
+use crate::data::SyllableTrie;
 use crate::db::Database;
 
 pub(crate) struct Dictionary {
     word_trie: Trie,
+    syllable_trie: SyllableTrie,
     segmenter: Segmenter,
 }
 
@@ -18,11 +20,14 @@ impl Dictionary {
 
         let word_trie = Trie::new(&inputs)?;
         log::debug!("Word trie loaded");
+        let syllable_trie = SyllableTrie::new();
+        log::debug!("Syllable trie loaded");
         let segmenter = Segmenter::new(inputs)?;
         log::debug!("Segmenter loaded");
 
         Ok(Self {
             word_trie,
+            syllable_trie,
             segmenter,
         })
     }
@@ -33,6 +38,10 @@ impl Dictionary {
 
     pub fn all_words_from_start<'a>(&self, query: &'a str) -> Vec<&'a str> {
         self.word_trie.find_words_from_start(query)
+    }
+
+    pub fn is_illegal_syllable(&self, query: &str) -> bool {
+        self.syllable_trie.is_valid_prefix(query)  
     }
 
     pub fn segment(&self, query: &str) -> Result<Vec<String>> {
@@ -96,6 +105,14 @@ mod tests {
         assert!(ids.len() > 0);
         let ids = dict.find_words_by_prefix("a");
         assert!(ids.len() > 0);
+    }
+
+    #[test_log::test]
+    fn it_illegal_syllable() {
+        let dict = setup();
+        assert_eq!(dict.is_illegal_syllable("lai"), true);
+        assert_eq!(dict.is_illegal_syllable("app"), false);
+        assert_eq!(dict.is_illegal_syllable("kio͘"), true);
     }
 
     #[test]

@@ -7,7 +7,7 @@
         "withGlobalTauri": true
     },
     "package": {
-        "productName": "khiin_app",
+        "productName": "khiin_helper",
         "version": "0.1.0"
     },
     "tauri": {
@@ -57,7 +57,8 @@
                 "resizable": false,
                 "title": "Khíín 台語打字法",
                 "width": 800,
-                "height": 600
+                "height": 600,
+                "alwaysOnTop": true
             }
         ]
     }
