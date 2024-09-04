@@ -98,7 +98,7 @@ pub(crate) fn get_candidates_for_word(
     let raw_input = query.to_string().to_ascii_lowercase();
     let case_type = get_case_type(query);
     let candidates =
-        db.select_conversions_for_tone(InputType::Toneless, raw_input.as_str())?;
+        db.select_conversions_for_tone(InputType::Detoned, raw_input.as_str())?;
 
     let result = candidates
         .into_iter()
@@ -128,7 +128,18 @@ pub(crate) fn get_candidates_for_word_with_tone(
     tone_char: char,
 ) -> Result<Vec<Buffer>> {
     let EngInner { db, dict, conf } = &engine;
-    let tone_key = get_numberic_tone_char(engine, tone_char);
+    let mut tone_key = get_numberic_tone_char(engine, tone_char);
+    if (tone_char == engine.conf.t8() && get_shared_t8_tone(engine) != Tone::T8) {
+        // shared T8 key
+        let lower_str = query
+            .to_lowercase()
+            .replace("ⁿ", "")
+            .replace("ᴺ", "")
+            .replace("nn", "");
+        if lower_str.ends_with(&['p', 't', 'k', 'h']) {
+            tone_key = '8'
+        }
+    }
     let mut raw_input = query.to_string().to_ascii_lowercase();
     let case_type = get_case_type(query);
     raw_input.push(tone_key);

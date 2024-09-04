@@ -11,8 +11,10 @@ use rusqlite::ToSql;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[repr(i64)]
+// TODO
+// Write comment to explain InputType
 pub enum InputType {
-    Toneless = 0,
+    Detoned = 0,
     Numeric = 1,
     Telex = 2,
 }
@@ -34,7 +36,7 @@ impl FromSql for InputType {
         let ty = match value.as_i64()? {
             1 => InputType::Numeric,
             2 => InputType::Telex,
-            _ => InputType::Toneless,
+            _ => InputType::Detoned,
         };
         FromSqlResult::from(Ok(ty))
     }
@@ -74,7 +76,7 @@ impl KeySequence {
             Self {
                 keys: toneless,
                 n_syls: 1,
-                input_type: InputType::Toneless,
+                input_type: InputType::Detoned,
                 input_id: input.id,
                 p: input.p,
             },
@@ -83,7 +85,8 @@ impl KeySequence {
 
     pub fn of_multi_syl_set(
         numeric: Vec<String>,
-        toneless: Vec<String>,
+        telex: Vec<String>,
+        detoned: Vec<String>,
         input: &Input,
     ) -> Vec<Self> {
         let mut result = vec![];
@@ -98,10 +101,20 @@ impl KeySequence {
             });
         }
 
-        for keys in toneless {
+        for keys in telex {
             result.push(KeySequence {
                 keys,
-                input_type: InputType::Toneless,
+                input_type: InputType::Telex,
+                n_syls: input.n_syls,
+                input_id: input.id,
+                p: input.p,
+            });
+        }
+
+        for keys in detoned {
+            result.push(KeySequence {
+                keys,
+                input_type: InputType::Detoned,
                 n_syls: input.n_syls,
                 input_id: input.id,
                 p: input.p,
@@ -128,26 +141,29 @@ pub fn generate_key_sequences(inputs: &Vec<Input>) -> Result<Vec<KeySequence>> {
 
 fn generate_key_sequence(input: &Input) -> Result<Vec<KeySequence>> {
     if input.n_syls == 1 {
-        let (numeric, telex, toneless) = poj_syl_to_key_sequences(&input.input);
+        let (numeric, telex, detoned) = poj_syl_to_key_sequences(&input.input);
         return Ok(KeySequence::of_single_syl_set(
-            numeric, telex, toneless, input,
+            numeric, telex, detoned, input,
         ));
     }
 
     let mut numeric_syls: Vec<Vec<String>> = vec![];
-    let mut toneless_syls: Vec<Vec<String>> = vec![];
+    let mut telex_syls: Vec<Vec<String>> = vec![];
+    let mut detoned_syls: Vec<Vec<String>> = vec![];
 
     input.input.split(" ").for_each(|syl| {
-        let (numeric, telex, toneless) = poj_syl_to_key_sequences(syl);
+        let (numeric, telex, detoned) = poj_syl_to_key_sequences(syl);
 
-        numeric_syls.push(vec![numeric, toneless.clone()]);
-        toneless_syls.push(vec![toneless]);
+        numeric_syls.push(vec![numeric, detoned.clone()]);
+        telex_syls.push(vec![telex, detoned.clone()]);
+        detoned_syls.push(vec![detoned]);
     });
 
     let numeric = multi_cartesian_product(numeric_syls);
-    let toneless = multi_cartesian_product(toneless_syls);
+    let telex = multi_cartesian_product(telex_syls);
+    let detoned = multi_cartesian_product(detoned_syls);
 
-    Ok(KeySequence::of_multi_syl_set(numeric, toneless, input))
+    Ok(KeySequence::of_multi_syl_set(numeric, telex,detoned, input))
 }
 
 fn multi_cartesian_product(constituents: Vec<Vec<String>>) -> Vec<String> {
@@ -221,7 +237,7 @@ mod tests {
         let expect = vec![
             key_seq(2, "o3", InputType::Numeric, 1),
             key_seq(2, "of", InputType::Telex, 1),
-            key_seq(2, "o", InputType::Toneless, 1),
+            key_seq(2, "o", InputType::Detoned, 1),
         ];
         for item in &expect {
             assert!(result.contains(item));

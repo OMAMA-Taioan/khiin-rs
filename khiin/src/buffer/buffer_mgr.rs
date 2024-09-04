@@ -349,52 +349,7 @@ impl BufferMgr {
         ch: char,
     ) -> Result<()> {
         let mut key = ch.to_ascii_lowercase();
-        // check is tone char
-        if engine.conf.is_tone_char(key) {
-            let mut word: String = raw_input.to_lowercase().replace("ou", "o͘");
-
-            // to handle NASAL
-            let re_single_nasal: Regex =
-                Regex::new(r"(?i)[aeiouptkhmo͘]nn$").unwrap();
-            if re_single_nasal.is_match(&word) {
-                word = word.replace("nn", "ⁿ");
-            }
-            if engine.dict.is_illegal_syllable(&word) {
-                // convert to number tone
-                if let Ok(candidates) =
-                    get_candidates_for_word_with_tone(engine, &raw_input, key)
-                {
-                    if (!candidates.is_empty()) {
-                        raw_input.push(ch);
-                        self.candidates = candidates;
-                        self.composition = Buffer::new();
-                        self.composition
-                            .push(StringElem::from(raw_input).into());
-                        self.char_caret = self.composition.display_char_count();
-                        return Ok(());
-                    }
-                }
-                // get romaji
-                let (ret_com, ret) = convert_to_telex(engine, &raw_input, key);
-                if ret == true {
-                    raw_input.push(ch);
-                    let mut buf = Buffer::new();
-                    buf.push(
-                        StringElem::from_raw_input(
-                            raw_input.clone(),
-                            ret_com?.display_text(),
-                        )
-                        .into(),
-                    );
-                    self.candidates = Vec::new();
-                    self.candidates.push(buf);
-                    self.composition = Buffer::new();
-                    self.composition.push(StringElem::from(raw_input).into());
-                    self.char_caret = self.composition.display_char_count();
-                    return Ok(());
-                }
-            }
-        } else if (key == engine.conf.hyphon()) {
+        if (key == engine.conf.hyphon()) {
             if raw_input.ends_with("--") {
                 let len = raw_input.len();
                 raw_input.replace_range(len - 2..len, "");
@@ -411,16 +366,74 @@ impl BufferMgr {
             if raw_input.starts_with("--") {
                 raw_input.drain(0..2);
                 raw_input.push(key);
+                self.candidates.clear();
             } else {
                 raw_input.insert(0, '-');
                 raw_input.insert(1, '-');
             }
-            self.candidates.clear();
             self.composition = Buffer::new();
             self.composition.push(StringElem::from(raw_input).into());
             self.char_caret = self.composition.display_char_count();
             return Ok(());
         }
+
+        let mut word: String = raw_input.to_lowercase();
+        let mut query = raw_input.to_lowercase();
+        let mut tone_char = key;
+        if !engine.conf.is_tone_char(key) {
+            word.push(key);
+            query.push(key);
+            if "htpk".contains(key) {
+                tone_char = '4';
+            } else {
+                tone_char = '1';
+            }
+        }
+        word = word.replace("ou", "o͘");
+        // to handle NASAL
+        let re_single_nasal: Regex =
+            Regex::new(r"(?i)[aeiouptkhmo͘]nn$").unwrap();
+        if re_single_nasal.is_match(&word) {
+            word = word.replace("nn", "ⁿ");
+        }
+        // one syllable
+        if engine.dict.is_illegal_syllable(&word) {
+            // convert to number tone
+            if let Ok(candidates) =
+                get_candidates_for_word_with_tone(engine, &query, tone_char)
+            {
+                if (!candidates.is_empty()) {
+                    raw_input.push(ch);
+                    self.candidates = candidates;
+                    self.composition = Buffer::new();
+                    self.composition
+                        .push(StringElem::from(raw_input).into());
+                    self.char_caret = self.composition.display_char_count();
+                    return Ok(());
+                }
+            }
+            // get romaji
+            let (ret_com, ret) = convert_to_telex(engine, &raw_input, key);
+            if ret == true {
+                raw_input.push(ch);
+                let mut buf = Buffer::new();
+                buf.push(
+                    StringElem::from_raw_input(
+                        raw_input.clone(),
+                        ret_com?.display_text(),
+                    )
+                    .into(),
+                );
+                self.candidates = Vec::new();
+                self.candidates.push(buf);
+                self.composition = Buffer::new();
+                self.composition.push(StringElem::from(raw_input).into());
+                self.char_caret = self.composition.display_char_count();
+                return Ok(());
+            }
+        }
+        
+        
 
         raw_input.push(ch);
         let size = raw_input.chars().count();
