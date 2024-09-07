@@ -3,19 +3,9 @@ import KhiinSwift
 
 class CandidateViewModel: ObservableObject {
     @Published private(set) var currentCommand = Khiin_Proto_Command()
-    @Published private(set) var toShow = true
 
     func reset() {
         self.currentCommand = Khiin_Proto_Command()
-        self.toShow = true
-    }
-
-    func isToShow() -> Bool {
-        return toShow
-    }
-
-    func setToShow(_ show: Bool) {
-        self.toShow = show
     }
 
     func handleChar(_ char: String) {
@@ -39,11 +29,6 @@ class CandidateViewModel: ObservableObject {
     }
 
     func handleSpace(_ hasShift: Bool) {
-        if !self.toShow {
-            self.toShow = true
-            return
-        }
-
         let engine = EngineController.instance
 
         guard let res = engine.handleSpecialKey(.skSpace, hasShift) else {
@@ -54,11 +39,6 @@ class CandidateViewModel: ObservableObject {
     }
 
     func handleTab(_ hasShift: Bool) {
-        if !self.toShow {
-            self.toShow = true
-            return
-        }
-
         let engine = EngineController.instance
 
         guard let res = engine.handleSpecialKey(.skTab, hasShift) else {

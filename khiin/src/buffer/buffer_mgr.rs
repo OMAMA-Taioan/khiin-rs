@@ -1,5 +1,6 @@
 use std::fmt::format;
 use std::fmt::Debug;
+use std::str::Chars;
 
 use anyhow::anyhow;
 use anyhow::Result;
@@ -49,6 +50,9 @@ pub(crate) struct BufferMgr {
     /// Focused candidate in pager, also shows in preedit
     focused_cand_idx: Option<usize>,
 
+    /// candidate page number
+    cand_page: usize,
+
     /// Previous committed word, only for classic mode
     pre_committed: String,
 }
@@ -62,6 +66,7 @@ impl BufferMgr {
             char_caret: 0,
             focused_elem_idx: 0,
             focused_cand_idx: None,
+            cand_page: 0,
             pre_committed: String::new(),
         }
     }
@@ -138,6 +143,7 @@ impl BufferMgr {
             let mut cand = Candidate::default();
             cand.value = c.display_text();
             cand.id = i as i32;
+            cand.annotation = c.display_annotation();
             list.candidates.push(cand);
         }
 
@@ -146,6 +152,8 @@ impl BufferMgr {
         } else {
             self.focused_cand_idx.unwrap() as i32
         };
+
+        list.page = self.cand_page as i32;
 
         list
     }
@@ -160,6 +168,7 @@ impl BufferMgr {
         self.candidates.clear();
         self.focused_cand_idx = None;
         self.focused_elem_idx = 0;
+        self.cand_page = 0;
         self.pre_committed.clear();
         Ok(())
     }
@@ -220,7 +229,7 @@ impl BufferMgr {
         let mut index = match self.focused_cand_idx {
             Some(i) if i >= self.candidates.len() => 0,
             Some(i) => i,
-            None => 0,
+            None => self.cand_page * 9,
         };
 
         self.composition.clear_autospace();
@@ -230,9 +239,21 @@ impl BufferMgr {
             .ok_or(anyhow!("Candidate index out of bounds"))?
             .clone();
 
-        let cand_raw_count = candidate.raw_char_count();
+        let mut cand_raw_count = candidate.raw_char_count();
+        let mut candi_text = candidate.display_text();
         let comp_raw = self.composition.raw_text();
-        let candi_text = candidate.display_text();
+        let mut has_hyphen = false;
+        if comp_raw.starts_with("--") {
+            candi_text = format!("--{}", candi_text);
+            cand_raw_count = cand_raw_count + 2;
+            has_hyphen = true;
+        } else if comp_raw.starts_with("-") {
+            candi_text = format!("-{}", candi_text);
+            cand_raw_count = cand_raw_count + 1;
+            has_hyphen = true;
+        } else if candi_text.starts_with("-") {
+            has_hyphen = true;
+        }
         let pre_committed = self.pre_committed.clone();
         let mut remainder =
             comp_raw.char_substr(cand_raw_count, comp_raw.chars().count());
@@ -240,15 +261,15 @@ impl BufferMgr {
         self.reset();
         if !remainder.is_empty() {
             self.edit_state = EditState::ES_COMPOSING;
-            self.pre_committed.push_str(&candi_text);
+            self.pre_committed.push_str(&candidate.display_text());
 
             let ch = remainder.chars().last().unwrap();
             remainder.pop();
 
             self.build_composition_classic(engine, remainder, ch);
         }
-        if pre_committed.is_empty() {
-            return Ok(candidate.display_text());
+        if pre_committed.is_empty() || has_hyphen || pre_committed.ends_with("-") {
+            return Ok(candi_text);
         }
         let is_hanji = pre_committed.chars().last().unwrap().is_hanji();
         if is_hanji && candi_text.chars().last().unwrap().is_hanji() {
@@ -342,6 +363,27 @@ impl BufferMgr {
         self.build_composition_classic(engine, raw_input, ch)
     }
 
+    fn attach_hypen_candicate(&mut self) {
+        if self.candidates.is_empty() || self.pre_committed.is_empty() {
+            return;
+        }
+        if self.pre_committed.ends_with("-") || self.composition.raw_text().starts_with("-") {
+            return;
+        }
+        for ch in self.pre_committed.chars() {
+            if ch.is_hanji() {
+                return;
+            }
+        }
+        let mut hypen_candi = Buffer::new();
+        hypen_candi.push(StringElem::from_raw_input("".to_string(), "-".to_string()).into());
+        if (self.candidates.len() >= 3) {
+            self.candidates.insert(2, hypen_candi);
+        } else {
+            self.candidates.push(hypen_candi);
+        }
+    }
+
     fn build_composition_classic(
         &mut self,
         engine: &EngInner,
@@ -378,11 +420,17 @@ impl BufferMgr {
         }
 
         let mut word: String = raw_input.to_lowercase();
-        let mut query = raw_input.to_lowercase();
+        let mut query = raw_input.clone();
+        if query.starts_with("--") {
+            query.drain(0..2);
+        } else if query.starts_with("-") {
+            query.drain(0..1);
+        }
+
         let mut tone_char = key;
         if !engine.conf.is_tone_char(key) {
             word.push(key);
-            query.push(key);
+            query.push(ch);
             if "htpk".contains(key) {
                 tone_char = '4';
             } else {
@@ -390,6 +438,7 @@ impl BufferMgr {
             }
         }
         word = word.replace("ou", "o͘");
+        
         // to handle NASAL
         let re_single_nasal: Regex =
             Regex::new(r"(?i)[aeiouptkhmo͘]nn$").unwrap();
@@ -406,9 +455,9 @@ impl BufferMgr {
                     raw_input.push(ch);
                     self.candidates = candidates;
                     self.composition = Buffer::new();
-                    self.composition
-                        .push(StringElem::from(raw_input).into());
+                    self.composition.push(StringElem::from(raw_input).into());
                     self.char_caret = self.composition.display_char_count();
+                    self.attach_hypen_candicate();
                     return Ok(());
                 }
             }
@@ -429,17 +478,22 @@ impl BufferMgr {
                 self.composition = Buffer::new();
                 self.composition.push(StringElem::from(raw_input).into());
                 self.char_caret = self.composition.display_char_count();
+                self.attach_hypen_candicate();
                 return Ok(());
             }
         }
-        
-        
 
         raw_input.push(ch);
-        let size = raw_input.chars().count();
+        query = raw_input.clone();
+        if query.starts_with("--") {
+            query.drain(0..2);
+        } else if query.starts_with("-") {
+            query.drain(0..1);
+        }
+        let size = query.chars().count();
         for i in (0..size).rev() {
             let end = i + 1;
-            let substr = &raw_input[0..end];
+            let substr = &query[0..end];
             if let Ok(candidates) = get_candidates_for_word(engine, substr) {
                 if (!candidates.is_empty()) {
                     self.candidates = candidates;
@@ -450,7 +504,7 @@ impl BufferMgr {
         self.composition = Buffer::new();
         self.composition.push(StringElem::from(raw_input).into());
         self.char_caret = self.composition.display_char_count();
-
+        self.attach_hypen_candicate();
         Ok(())
     }
 
@@ -528,7 +582,7 @@ impl BufferMgr {
         let mut to_focus = match self.focused_cand_idx {
             Some(i) if i >= self.candidates.len() - 1 => 0,
             Some(i) => i + 1,
-            None => 0,
+            None => self.cand_page * 9,
         };
 
         self.focus_candidate(engine, to_focus);
@@ -540,57 +594,71 @@ impl BufferMgr {
         let mut to_focus = match self.focused_cand_idx {
             Some(i) if i == 0 => self.candidates.len() - 1,
             Some(i) => i - 1,
-            None => self.candidates.len() - 1,
+            None => self.cand_page * 9,
         };
 
         self.focus_candidate(engine, to_focus);
         Ok(())
     }
 
-    pub fn focus_next_page_candidate(
+    pub fn show_next_page_candidate(
         &mut self,
         engine: &EngInner,
     ) -> Result<()> {
         if (self.candidates.is_empty()) {
             return Ok(());
         }
-        if self.edit_state == EditState::ES_COMPOSING {
-            self.edit_state = EditState::ES_SELECTING;
+        if (self.candidates.len() <= 9) {
+            return Ok(());
         }
 
-        let mut to_focus = match self.focused_cand_idx {
-            Some(i) => i + 9,
-            None => 0,
+        let total_page = (self.candidates.len() + 8) / 9;
+        let to_page = if self.cand_page >= total_page - 1 {
+            0
+        } else {
+            self.cand_page + 1
         };
-        if (to_focus >= self.candidates.len()) {
-            to_focus = to_focus % self.candidates.len();
+
+        if self.focused_cand_idx.is_none() {
+            self.cand_page = to_page;
+        } else {
+            let mut to_focus = to_page * 9;
+            self.focus_candidate(engine, to_focus);
         }
-
-        self.focus_candidate(engine, to_focus);
-
         Ok(())
     }
 
-    pub fn focus_prev_page_candidate(
+    pub fn show_prev_page_candidate(
         &mut self,
         engine: &EngInner,
     ) -> Result<()> {
         if (self.candidates.is_empty()) {
             return Ok(());
         }
+        if (self.candidates.len() <= 9) {
+            return Ok(());
+        }
 
-        let mut to_focus = match self.focused_cand_idx {
-            Some(i) if i < 9 => self.candidates.len() - 1,
-            Some(i) => i - 9,
-            None => self.candidates.len() - 1,
+        let total_page = (self.candidates.len() + 8) / 9;
+        let to_page = if self.cand_page == 0 {
+            total_page - 1
+        } else {
+            self.cand_page - 1
         };
-        self.focus_candidate(engine, to_focus);
+
+        if self.focused_cand_idx.is_none() {
+            self.cand_page = to_page;
+        } else {
+            let mut to_focus = to_page * 9;
+            self.focus_candidate(engine, to_focus);
+        }
         Ok(())
     }
 
     fn reset_focus(&mut self) {
         self.focused_cand_idx = None;
         self.focused_elem_idx = 0;
+        self.cand_page = 0;
     }
 
     // When focusing a candidate, we must construct the new composition to be
@@ -632,6 +700,7 @@ impl BufferMgr {
         self.composition = new_comp;
 
         self.focused_cand_idx = Some(index);
+        self.cand_page = index / 9;
         self.composition.autospace();
         self.char_caret = self.composition.display_char_count();
 
@@ -647,27 +716,33 @@ impl BufferMgr {
             self.edit_state = EditState::ES_ILLEGAL;
             return Ok(());
         }
-        self.composition.clear_autospace();
         let candidate = self
             .candidates
             .get(index)
             .ok_or(anyhow!("Candidate index out of bounds"))?
             .clone();
 
-        let cand_raw_count = candidate.raw_char_count();
+        let mut cand_raw_count = candidate.raw_char_count();
+        let mut candi_text = candidate.display_text();
         let comp_raw = self.composition.raw_text();
+        if comp_raw.starts_with("--") {
+            candi_text = format!("--{}", candi_text);
+            cand_raw_count = cand_raw_count + 2;
+        } else if comp_raw.starts_with("-") {
+            candi_text = format!("-{}", candi_text);
+            cand_raw_count = cand_raw_count + 1;
+        }
         let mut remainder =
             comp_raw.char_substr(cand_raw_count, comp_raw.chars().count());
 
-        let mut new_comp = candidate;
-        let mut remainder_split = Buffer::new();
-        remainder_split.push(StringElem::from(remainder).into());
-        new_comp.extend(remainder_split);
+        candi_text.push_str(&remainder);
 
-        self.composition = new_comp;
+        self.composition = Buffer::new();
+        self.composition
+            .push(StringElem::from_raw_input(comp_raw, candi_text).into());
 
         self.focused_cand_idx = Some(index);
-        // self.composition.autospace();
+        self.cand_page = index / 9;
         self.char_caret = self.composition.display_char_count();
 
         Ok(())

@@ -131,12 +131,8 @@ extension KhiinInputController {
         } else {
             switch event.keyCode.representative {
                 case .enter:
-                    if self.candidateViewModel.isToShow() {
-                        let committed = self.commitCurrent()
-                        return committed
-                    } else {
-                        self.candidateViewModel.handleSpace(false)
-                    }
+                    let committed = self.commitCurrent()
+                    return committed
                 case .backspace:
                     self.candidateViewModel.handleBackspace()
                 case .escape:

@@ -133,9 +133,9 @@ impl Engine {
                         ModifierKey::MODK_SHIFT as i32,
                     ),
                 )) {
-                    self.buffer_mgr.focus_prev_page_candidate(&self.inner)?;
+                    self.buffer_mgr.show_prev_page_candidate(&self.inner)?;
                 } else {
-                    self.buffer_mgr.focus_next_page_candidate(&self.inner)?;
+                    self.buffer_mgr.show_next_page_candidate(&self.inner)?;
                 }
             },
             SpecialKey::SK_LEFT => {},

@@ -29,6 +29,9 @@ class KhiinInputController: IMKInputController {
         if (isManualMode() && isEdited()) {
             _ = commitCurrent();
             candidateViewModel.reset();
+        } else if (isEdited()) {
+            candidateViewModel.reset();
+            self.reset();
         }
         self.window?.setFrame(.zero, display: true)
     }

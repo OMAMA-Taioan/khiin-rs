@@ -142,6 +142,9 @@ message CandidateList {
 
     // The focused candidate should be highlighted for the user
     int32 focused = 2;
+
+    // Page number. One page has 9 candiates
+    int32 page = 3;
 }
 
 enum ErrorCode {

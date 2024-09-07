@@ -110,9 +110,10 @@ fn get_candidate_page(cmd: &Command) -> Vec<String> {
     let page_size = 9;
     let cl = &cmd.response.candidate_list;
     let item_count = cl.candidates.len();
+    let page = cl.page as usize;
 
     let (start, end) = if cl.focused < 0 {
-        (0, std::cmp::min(item_count, 9))
+        (page * page_size, std::cmp::min(item_count, (page + 1) * page_size))
     } else {
         page_range(item_count, page_size, cl.focused as usize)
     };
@@ -210,7 +211,7 @@ fn draw_ime(
 fn draw_footer(stdout: &mut Stdout) -> Result<()> {
     let (_, rows) = size()?;
 
-    let help = vec!["<Esc>: Quit", "<Enter>: Clear", "<Tab>: Switch mode"];
+    let help = vec!["<Esc>: Quit", "<Enter>: Clear", "<Backtick>: Switch mode"];
 
     let max_len = help.iter().map(|s| s.chars().count()).max().unwrap_or(0) + 4;
 
@@ -260,7 +261,7 @@ pub fn run(stdout: &mut Stdout) -> Result<()> {
             break;
         }
 
-        if key.code == KeyCode::Tab {
+        if key.code == KeyCode::Char('`') {
             if mode == AppInputMode::CONTINUOUS {
                 mode = AppInputMode::CLASSIC;
             } else if mode == AppInputMode::CLASSIC {
