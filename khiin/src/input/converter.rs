@@ -140,12 +140,15 @@ pub(crate) fn get_candidates_for_word_with_tone(
             tone_key = '8'
         }
     }
-    let mut raw_input = query.to_string().to_ascii_lowercase();
+    let raw_input = query.to_string().to_ascii_lowercase();
+    let tone_input = format!("{}{}", raw_input, tone_key);
     let case_type = get_case_type(query);
-    raw_input.push(tone_key);
-    let candidates =
-        db.select_conversions_for_tone(InputType::Numeric, raw_input.as_str())?;
-    raw_input.pop();
+    let candidates = if (tone_char == '1' || tone_char == '4') {
+        db.select_conversions_for_word(InputType::Numeric, tone_input.as_str(), raw_input.as_str())?
+    } else {
+        db.select_conversions_for_tone(InputType::Numeric, tone_input.as_str())?
+    };
+
     let result = candidates
         .into_iter()
         .map(|mut conv| {

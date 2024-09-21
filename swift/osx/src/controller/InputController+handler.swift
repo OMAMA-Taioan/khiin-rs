@@ -69,6 +69,13 @@ extension KhiinInputController {
                 }
                 return true
             case .number(let num):
+                if (modifiers.contains(.shift) && num == 1 && self.isClassicMode()) {
+                    self.candidateViewModel.handleChar("!")
+                    self.resetWindow()
+                    client.mark(self.currentDisplayText())
+                    return true
+                }
+
                 if (modifiers.contains(.shift) || modifiers.contains(.capsLock)) {
                     if (self.isManualMode()) {
                         _ = self.commitCurrent();
@@ -95,6 +102,21 @@ extension KhiinInputController {
                     self.resetWindow()
                 }
                 return true
+            case .punctuation(let ch):
+                log.debug("handle punctuation " + ch)
+                if (self.isClassicMode()) {
+                    if (".,".contains(ch) && !modifiers.contains(.shift)) {
+                        self.candidateViewModel.handleChar(ch)
+                        self.resetWindow()
+                        client.mark(self.currentDisplayText())
+                        return true
+                    } else if (ch == "/" && modifiers.contains(.shift)) {
+                        self.candidateViewModel.handleChar("?")
+                        self.resetWindow()
+                        client.mark(self.currentDisplayText())
+                        return true
+                    }
+                }
             default:
                 log.debug("key is special key")
         }
@@ -146,7 +168,7 @@ extension KhiinInputController {
                 case .arrow(Direction.up):
                     self.candidateViewModel.handleArrowUp()
                 case .arrow(Direction.down):
-                    self.candidateViewModel.handleArrowDown()
+                    self.candidateViewModel.handleArrowDown()                
                 default:
                     log.debug("Event not handled")
                     self.reset()

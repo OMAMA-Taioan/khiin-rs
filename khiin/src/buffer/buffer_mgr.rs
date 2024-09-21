@@ -490,16 +490,56 @@ impl BufferMgr {
         } else if query.starts_with("-") {
             query.drain(0..1);
         }
-        let size = query.chars().count();
-        for i in (0..size).rev() {
-            let end = i + 1;
-            let substr = &query[0..end];
-            if let Ok(candidates) = get_candidates_for_word(engine, substr) {
-                if (!candidates.is_empty()) {
-                    self.candidates = candidates;
-                    break;
-                }
-            };
+
+        // add punctuation
+        if query.starts_with("?") {
+            self.candidates = Vec::new();
+            let mut buf = Buffer::new();
+            buf.push(StringElem::from("?").into());
+            self.candidates.push(buf);
+
+            buf = Buffer::new();
+            buf.push(StringElem::from_raw_input("?".to_string(), "？".to_string()).into());
+            self.candidates.push(buf);
+        } else if query.starts_with(".") {
+            self.candidates = Vec::new();
+            let mut buf = Buffer::new();
+            buf.push(StringElem::from(".").into());
+            self.candidates.push(buf);
+
+            buf = Buffer::new();
+            buf.push(StringElem::from_raw_input(".".to_string(), "。".to_string()).into());
+            self.candidates.push(buf);
+        } else if query.starts_with(",") {
+            self.candidates = Vec::new();
+            let mut buf = Buffer::new();
+            buf.push(StringElem::from(",").into());
+            self.candidates.push(buf);
+
+            buf = Buffer::new();
+            buf.push(StringElem::from_raw_input(",".to_string(), "、".to_string()).into());
+            self.candidates.push(buf);
+        } else if query.starts_with("!") {
+            self.candidates = Vec::new();
+            let mut buf = Buffer::new();
+            buf.push(StringElem::from("!").into());
+            self.candidates.push(buf);
+
+            buf = Buffer::new();
+            buf.push(StringElem::from_raw_input("!".to_string(), "！".to_string()).into());
+            self.candidates.push(buf);
+        } else {
+            let size = query.chars().count();
+            for i in (0..size).rev() {
+                let end = i + 1;
+                let substr = &query[0..end];
+                if let Ok(candidates) = get_candidates_for_word(engine, substr) {
+                    if (!candidates.is_empty()) {
+                        self.candidates = candidates;
+                        break;
+                    }
+                };
+            }
         }
         self.composition = Buffer::new();
         self.composition.push(StringElem::from(raw_input).into());

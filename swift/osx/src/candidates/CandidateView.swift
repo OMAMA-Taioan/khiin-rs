@@ -51,9 +51,9 @@ struct CandidateItem: View {
 
                 // Text("\(index).")
                 //     .frame(minWidth: 16)
-                Text(candidate.value)
+                Text(candidate.value).font(.system(size: 14.0))
                 Text(candidate.annotation)
-                    .font(.system(size: 10.0))
+                    .font(.system(size: 9.0))
             }
             .frame(height: 24)
             .padding(.horizontal, 8)

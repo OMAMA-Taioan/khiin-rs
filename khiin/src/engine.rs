@@ -296,6 +296,8 @@ fn ascii_char_from_i32(ch: i32) -> Option<char> {
     if let Some(ch) = char::from_u32(ch) {
         if ch.is_ascii_alphanumeric() {
             return Some(ch);
+        } else if ch.is_ascii_punctuation() {
+            return Some(ch);
         }
     }
     None
