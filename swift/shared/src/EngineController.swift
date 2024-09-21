@@ -22,12 +22,14 @@ public class EngineController {
             self.engine = nil
             return
         }
+        log.debug("dbpath : \(dbpath)")
 
         guard let settingsPath = getSettingFilePath() else {
             self.config = nil
             self.engine = nil
             return
         }
+        log.debug("settingsPath : \(settingsPath)")
 
         guard let engine = EngineBridge.new(dbpath) else {
             log.debug("No engine")
