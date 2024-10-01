@@ -13,6 +13,12 @@ pub enum ToneMode {
     Telex,
 }
 
+#[derive(PartialEq, Copy, Clone)]
+pub enum OutputMode {
+    Lomaji,
+    Hanji,
+}
+
 impl Into<InputType> for ToneMode {
     fn into(self) -> InputType {
         match self {
@@ -38,6 +44,7 @@ pub struct Config {
     enabled: bool,
     input_mode: InputMode,
     tone_mode: ToneMode,
+    output_mode: OutputMode,
     key_config: KeyConfig,
 }
 
@@ -47,6 +54,7 @@ impl Config {
             enabled: false,
             input_mode: InputMode::Manual,
             tone_mode: ToneMode::Telex,
+            output_mode: OutputMode::Lomaji,
             key_config: KeyConfig {
                 t2: 's',
                 t3: 'f',
@@ -68,6 +76,10 @@ impl Config {
 
     pub fn tone_mode(&self) -> ToneMode {
         self.tone_mode
+    }
+
+    pub fn output_mode(&self) -> OutputMode {
+        self.output_mode
     }
 
     pub fn t2(&self) -> char {
@@ -183,7 +195,11 @@ impl Config {
             false
         }
     }
-    
+
+    pub fn is_hanji_first(&self) -> bool {
+        self.output_mode == OutputMode::Hanji
+    }
+
     // set input_mode
     pub fn set_input_mode(&mut self, mode: InputMode) {
         self.input_mode = mode;
@@ -192,5 +208,10 @@ impl Config {
     // set tone_mode
     pub fn set_tone_mode(&mut self, mode: ToneMode) {
         self.tone_mode = mode;
+    }
+
+    // set output_mode
+    pub fn set_output_mode(&mut self, mode: OutputMode) {
+        self.output_mode = mode;
     }
 }

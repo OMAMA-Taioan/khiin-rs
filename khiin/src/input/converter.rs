@@ -7,6 +7,7 @@ use crate::buffer::KhiinElem;
 use crate::buffer::StringElem;
 use crate::config::Config;
 use crate::config::ToneMode;
+use crate::config::OutputMode;
 use crate::data::Dictionary;
 use crate::db::models::InputType;
 use crate::db::models::CaseType;
@@ -98,7 +99,7 @@ pub(crate) fn get_candidates_for_word(
     let raw_input = query.to_string().to_ascii_lowercase();
     let case_type = get_case_type(query);
     let candidates =
-        db.select_conversions_for_tone(InputType::Detoned, raw_input.as_str())?;
+        db.select_conversions_for_tone(InputType::Detoned, raw_input.as_str(), conf.is_hanji_first())?;
 
     let result = candidates
         .into_iter()
@@ -144,9 +145,9 @@ pub(crate) fn get_candidates_for_word_with_tone(
     let tone_input = format!("{}{}", raw_input, tone_key);
     let case_type = get_case_type(query);
     let candidates = if (tone_char == '1' || tone_char == '4') {
-        db.select_conversions_for_word(InputType::Numeric, tone_input.as_str(), raw_input.as_str())?
+        db.select_conversions_for_word(InputType::Numeric, tone_input.as_str(), raw_input.as_str(), conf.is_hanji_first())?
     } else {
-        db.select_conversions_for_tone(InputType::Numeric, tone_input.as_str())?
+        db.select_conversions_for_tone(InputType::Numeric, tone_input.as_str(), conf.is_hanji_first())?
     };
 
     let result = candidates

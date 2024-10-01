@@ -9,6 +9,7 @@ where
     or (c.key_sequence = :detoned_query and c.input_type = 0 and c.n_syls > 1)
 
 order by
+    c.is_hanji desc,
     c.weight desc
 
 {limit}

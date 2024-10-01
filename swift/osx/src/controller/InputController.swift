@@ -26,13 +26,8 @@ class KhiinInputController: IMKInputController {
 
     override func deactivateServer(_ sender: Any!) {
         log.debug("deactivateServer ");
-        if (isManualMode() && isEdited()) {
-            _ = commitCurrent();
-            candidateViewModel.reset();
-        } else if (isEdited()) {
-            candidateViewModel.reset();
-            self.reset();
-        }
+        _ = commitCurrent();
+        candidateViewModel.reset();
         self.window?.setFrame(.zero, display: true)
     }
 

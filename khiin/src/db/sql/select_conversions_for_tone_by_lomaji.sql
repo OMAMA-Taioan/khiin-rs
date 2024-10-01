@@ -11,6 +11,7 @@ and (
 )
 
 order by
+    c.is_hanji asc,
     c.weight desc
 
 {limit}

@@ -10,11 +10,13 @@ use protobuf::Message;
 
 use khiin_protos::command::*;
 use khiin_protos::config::AppInputMode;
+use khiin_protos::config::AppOutputMode;
 use khiin_protos::config::BoolValue;
 
 use crate::buffer::BufferMgr;
 use crate::config::Config;
 use crate::config::InputMode;
+use crate::config::OutputMode;
 use crate::config::ToneMode;
 use crate::data::dictionary::Dictionary;
 use crate::db::Database;
@@ -69,6 +71,9 @@ impl Engine {
             CommandType::CMD_FOCUS_CANDIDATE => self.on_focus_candidate(req),
             CommandType::CMD_SWITCH_INPUT_MODE => {
                 self.on_switch_input_mode(req)
+            },
+            CommandType::CMD_SWITCH_OUTPUT_MODE => {
+                self.on_switch_output_mode(req)
             },
             CommandType::CMD_PLACE_CURSOR => self.on_place_cursor(req),
             CommandType::CMD_DISABLE => self.on_disable(req),
@@ -215,6 +220,19 @@ impl Engine {
         Ok(Response::new())
     }
 
+    fn on_switch_output_mode(&mut self, req: Request) -> Result<Response> {
+        self.buffer_mgr.reset();
+        match req.config.output_mode.enum_value_or_default() {
+            AppOutputMode::LOMAJI => {
+                self.inner.conf.set_output_mode(OutputMode::Lomaji)
+            },
+            AppOutputMode::HANJI => {
+                self.inner.conf.set_output_mode(OutputMode::Hanji)
+            },
+        }
+        Ok(Response::new())
+    }
+
     fn on_place_cursor(&self, req: Request) -> Result<Response> {
         Err(anyhow!("Not implemented"))
     }
@@ -238,6 +256,15 @@ impl Engine {
             },
             AppInputMode::MANUAL => {
                 self.inner.conf.set_input_mode(InputMode::Manual)
+            },
+        }
+
+        match req.config.output_mode.enum_value_or_default() {
+            AppOutputMode::LOMAJI => {
+                self.inner.conf.set_output_mode(OutputMode::Lomaji)
+            },
+            AppOutputMode::HANJI => {
+                self.inner.conf.set_output_mode(OutputMode::Hanji)
             },
         }
 

@@ -24,20 +24,28 @@ extension KhiinInputController {
         if clientID != currentClientID {
             currentClient = client
         }
-    
-        if (changeInputMode) {
-            if (self.isManualMode()) {
-                _ = self.commitCurrent();
-            }
+        // alt + h, change to hanji first
+        if (modifiers.contains(.option) && event.keyCode.representative == .alphabet("h")) {
+            _ = self.commitCurrent();
+            self.candidateViewModel.changeOutputMode(isHanjiFirst: true)
+            self.reset()
+            client.clearMarkedText()
+            return true
+        } else if (modifiers.contains(.option) && event.keyCode.representative == .alphabet("l")) {
+            _ = self.commitCurrent();
+            self.candidateViewModel.changeOutputMode(isHanjiFirst: false)
+            self.reset()
+            client.clearMarkedText()
+            return true
+        } else if (changeInputMode) {
+            _ = self.commitCurrent();
             self.candidateViewModel.changeInputMode()
             self.reset()
             client.clearMarkedText()
             return true
         } else if (shouldIgnoreCurrentEvent) {
-            if (self.isManualMode()) {
-                _ = self.commitCurrent();
-                self.candidateViewModel.reset()
-            }
+            _ = self.commitCurrent();
+            self.candidateViewModel.reset()
             return false;
         }
 
@@ -77,13 +85,8 @@ extension KhiinInputController {
                 }
 
                 if (modifiers.contains(.shift) || modifiers.contains(.capsLock)) {
-                    if (self.isManualMode()) {
-                        _ = self.commitCurrent();
-                        self.candidateViewModel.reset()
-                    } else {
-                        self.reset()
-                        client.clearMarkedText()
-                    }
+                    _ = self.commitCurrent();
+                    self.candidateViewModel.reset()
                     return false;
                 }
                 self.candidateViewModel.handleChar(String(num))

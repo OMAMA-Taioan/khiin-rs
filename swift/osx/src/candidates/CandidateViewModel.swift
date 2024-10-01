@@ -88,4 +88,14 @@ class CandidateViewModel: ObservableObject {
         self.currentCommand = res
         
     }
+
+    func changeOutputMode(isHanjiFirst: Bool) {
+        let engine = EngineController.instance
+
+        guard let res = engine.changeOutputMode(isHanjiFirst: isHanjiFirst) else {
+            return
+        }
+
+        self.currentCommand = res
+    }
 }

@@ -149,8 +149,13 @@ impl Database {
         &self,
         input_type: InputType,
         query: &str,
+        is_hanji_first: bool,
     ) -> Result<Vec<KeyConversion>> {
-        let sql = format!(include_str!("sql/select_conversions_for_tone.sql"), limit = "");
+        let sql = if is_hanji_first {
+            format!(include_str!("sql/select_conversions_for_tone_by_hanji.sql"), limit = "")
+        } else {
+            format!(include_str!("sql/select_conversions_for_tone_by_lomaji.sql"), limit = "")
+        };
         let mut stmt = self.conn.prepare(&sql)?;
         let mut rows = stmt.query(named_params! {
             ":query": query,
@@ -170,8 +175,13 @@ impl Database {
         input_type: InputType,
         query: &str,
         detoned_query: &str,
+        is_hanji_first: bool,
     ) -> Result<Vec<KeyConversion>> {
-        let sql = format!(include_str!("sql/select_conversions_for_word.sql"), limit = "");
+        let sql = if is_hanji_first {
+            format!(include_str!("sql/select_conversions_for_word_by_hanji.sql"), limit = "")
+        } else {
+            format!(include_str!("sql/select_conversions_for_word_by_lomaji.sql"), limit = "")
+        };
         let mut stmt = self.conn.prepare(&sql)?;
         let mut rows = stmt.query(named_params! {
             ":query": query,

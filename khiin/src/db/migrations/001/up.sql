@@ -31,6 +31,7 @@ create table
         "weight" integer,
         "category" integer,
         "annotation" text,
+        "is_hanji" integer,
         unique ("input_id", "output"),
         foreign key ("input_id") references "inputs" ("id")
     );
@@ -90,7 +91,8 @@ create view
         "output",
         "weight",
         "category",
-        "annotation"
+        "annotation",
+        "is_hanji"
     ) as
 select
     "n"."key_sequence",
@@ -101,7 +103,8 @@ select
     "c"."output",
     "c"."weight",
     "c"."category",
-    "c"."annotation"
+    "c"."annotation",
+    "c"."is_hanji"
 from
     key_sequences as "n"
     join inputs as "f" on "f"."id" = "n"."input_id"

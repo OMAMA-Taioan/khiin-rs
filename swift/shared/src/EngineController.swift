@@ -141,6 +141,21 @@ public class EngineController {
         return sendCommand(req)
     }
 
+    public func changeOutputMode(isHanjiFirst: Bool) -> Khiin_Proto_Command? {
+        if (self.config == nil) {
+            log.debug("Config not instantiated")
+            return nil
+        }
+
+        self.config?.outputMode = isHanjiFirst ? .hanji : .lomaji
+
+        var req = Khiin_Proto_Request()
+        req.type = .cmdSwitchOutputMode
+        req.config = self.config!
+
+        return sendCommand(req)
+    }
+
     public func handleChar(_ char: Character) -> Khiin_Proto_Command? {
         guard let charCode = char.asciiValue else {
             return nil
