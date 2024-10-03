@@ -7,6 +7,8 @@ use anyhow::Result;
 
 use khiin_ji::lomaji::is_legal_lomaji;
 use khiin_ji::IsHanji;
+use khiin_ji::punctuation::get_hanji_chars;
+use khiin_ji::punctuation::get_lomaji_chars;
 use khiin_protos::command::preedit::Segment;
 use khiin_protos::command::Candidate;
 use khiin_protos::command::CandidateList;
@@ -194,6 +196,61 @@ impl BufferMgr {
             InputMode::Manual => self.pop_manual(engine),
         }
     }
+    pub fn commit_all(&mut self, engine: &EngInner) -> Result<(String)> {
+        if self.candidates.is_empty() || self.focused_cand_idx.is_none() {
+            let raw_text = self.composition.raw_text();
+            self.reset();
+            return Ok(raw_text);
+        }
+
+        let mut index = match self.focused_cand_idx {
+            Some(i) if i >= self.candidates.len() => 0,
+            Some(i) => i,
+            None => self.cand_page * 9,
+        };
+
+        self.composition.clear_autospace();
+        let candidate = self
+            .candidates
+            .get(index)
+            .ok_or(anyhow!("Candidate index out of bounds"))?
+            .clone();
+
+        let mut cand_raw_count = candidate.raw_char_count();
+        let mut candi_text = candidate.display_text();
+        let comp_raw = self.composition.raw_text();
+        let mut has_hyphen = false;
+        if comp_raw.starts_with("--") {
+            candi_text = format!("--{}", candi_text);
+            cand_raw_count = cand_raw_count + 2;
+            has_hyphen = true;
+        } else if comp_raw.starts_with("-") {
+            candi_text = format!("-{}", candi_text);
+            cand_raw_count = cand_raw_count + 1;
+            has_hyphen = true;
+        } else if candi_text.starts_with("-") {
+            has_hyphen = true;
+        }
+        let pre_committed = self.pre_committed.clone();
+        let mut remainder =
+            comp_raw.char_substr(cand_raw_count, comp_raw.chars().count());
+
+        self.reset();
+
+        if pre_committed.is_empty() || has_hyphen || pre_committed.ends_with("-") {
+            candi_text.push_str(&remainder);
+            return Ok(candi_text);
+        }
+        let is_hanji = pre_committed.chars().last().unwrap().is_hanji();
+        if is_hanji && candi_text.chars().last().unwrap().is_hanji() {
+            candi_text.push_str(&remainder);
+            return Ok(candi_text);
+        }
+        let mut ret = String::from(' ');
+        ret.push_str(&candi_text);
+        ret.push_str(&remainder);
+        return Ok(ret);
+    }
 
     pub fn commit_candidate_and_comosite_remainder(
         &mut self,
@@ -275,9 +332,13 @@ impl BufferMgr {
         if is_hanji && candi_text.chars().last().unwrap().is_hanji() {
             return Ok(candi_text);
         }
-        let mut ret = String::from(' ');
+        let mut ret = if engine.conf.is_hanji_first() {
+            String::from('　')
+        } else {
+            String::from(' ')
+        };
         ret.push_str(&candi_text);
-        return Ok(ret);
+        Ok(ret)
     }
 
     fn insert_continuous(&mut self, engine: &EngInner, ch: char) -> Result<()> {
@@ -417,6 +478,57 @@ impl BufferMgr {
             self.composition.push(StringElem::from(raw_input).into());
             self.char_caret = self.composition.display_char_count();
             return Ok(());
+        } else if (key == '.') {
+            if engine.conf.is_lomaji_first() {
+                raw_input.push('.');                
+            } else {
+                raw_input.push('。');
+            }
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+            self.char_caret = self.composition.display_char_count();
+            self.edit_state = EditState::ES_EMPTY;
+            return Ok(());
+        } else if (key == '?') {
+            if engine.conf.is_lomaji_first() {
+                raw_input.push('?');
+            } else {
+                raw_input.push('？');
+            }
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+            self.char_caret = self.composition.display_char_count();
+            self.edit_state = EditState::ES_EMPTY;
+            return Ok(());
+        } else if (key == ',') {
+            if engine.conf.is_lomaji_first() {
+                raw_input.push(',');
+            } else {
+                raw_input.push('、');
+            }
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+            self.char_caret = self.composition.display_char_count();
+            self.edit_state = EditState::ES_EMPTY;
+            return Ok(());
+        } else if (key == '!') {
+            if engine.conf.is_lomaji_first() {
+                raw_input.push('!');
+            } else {
+                raw_input.push('！');
+            }
+            self.composition = Buffer::new();   
+            self.composition.push(StringElem::from(raw_input).into());
+            self.char_caret = self.composition.display_char_count();
+            self.edit_state = EditState::ES_EMPTY;
+            return Ok(());
+        } else if (":=[]".contains(key)&& engine.conf.is_lomaji_first()) {
+            raw_input.push(key);
+            self.composition = Buffer::new();   
+            self.composition.push(StringElem::from(raw_input).into());
+            self.char_caret = self.composition.display_char_count();
+            self.edit_state = EditState::ES_EMPTY;
+            return Ok(());  
         }
 
         let mut word: String = raw_input.to_lowercase();
@@ -492,42 +604,31 @@ impl BufferMgr {
         }
 
         // add punctuation
-        if query.starts_with("?") {
+        // key = first char of query
+        let key = query.chars().next().unwrap();
+        if query.starts_with(":") && engine.conf.is_hanji_first() {
             self.candidates = Vec::new();
             let mut buf = Buffer::new();
-            buf.push(StringElem::from("?").into());
+            buf.push(StringElem::from_raw_input(":".to_string(), "：".to_string()).into());
             self.candidates.push(buf);
 
             buf = Buffer::new();
-            buf.push(StringElem::from_raw_input("?".to_string(), "？".to_string()).into());
+            buf.push(StringElem::from_raw_input(":".to_string(), "⋯⋯".to_string()).into());
             self.candidates.push(buf);
-        } else if query.starts_with(".") {
-            self.candidates = Vec::new();
-            let mut buf = Buffer::new();
-            buf.push(StringElem::from(".").into());
-            self.candidates.push(buf);
-
-            buf = Buffer::new();
-            buf.push(StringElem::from_raw_input(".".to_string(), "。".to_string()).into());
-            self.candidates.push(buf);
-        } else if query.starts_with(",") {
-            self.candidates = Vec::new();
-            let mut buf = Buffer::new();
-            buf.push(StringElem::from(",").into());
-            self.candidates.push(buf);
-
-            buf = Buffer::new();
-            buf.push(StringElem::from_raw_input(",".to_string(), "、".to_string()).into());
-            self.candidates.push(buf);
-        } else if query.starts_with("!") {
-            self.candidates = Vec::new();
-            let mut buf = Buffer::new();
-            buf.push(StringElem::from("!").into());
-            self.candidates.push(buf);
-
-            buf = Buffer::new();
-            buf.push(StringElem::from_raw_input("!".to_string(), "！".to_string()).into());
-            self.candidates.push(buf);
+        } else if "'\"<>+_".contains(key) && engine.conf.is_lomaji_first() {
+            let lomaji_chars = get_lomaji_chars(key).unwrap();
+            for lomaji_char in lomaji_chars {
+                let mut buf = Buffer::new();
+                buf.push(StringElem::from_raw_input(key.to_string(), lomaji_char.to_string()).into());
+                self.candidates.push(buf);
+            }
+        } else if "'\"<>+_=[]".contains(key) && engine.conf.is_hanji_first(){
+            let hanji_chars = get_hanji_chars(key).unwrap();
+            for hanji_char in hanji_chars {
+                let mut buf = Buffer::new();
+                buf.push(StringElem::from_raw_input(key.to_string(), hanji_char.to_string()).into());
+                self.candidates.push(buf);
+            }
         } else {
             let size = query.chars().count();
             for i in (0..size).rev() {

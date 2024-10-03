@@ -26,7 +26,7 @@ class KhiinInputController: IMKInputController {
 
     override func deactivateServer(_ sender: Any!) {
         log.debug("deactivateServer ");
-        _ = commitCurrent();
+        _ = commitAll();
         candidateViewModel.reset();
         self.window?.setFrame(.zero, display: true)
     }
@@ -74,12 +74,77 @@ class KhiinInputController: IMKInputController {
         return self.candidateViewModel.currentCommand.response.committedText
     }
 
-    func commitCurrent() -> Bool {
+    func handleResponse() -> Bool {
+        guard let client = self.currentClient else {
+            return false
+        }
+        if (self.isCommited()) {
+            var commitText = self.candidateViewModel
+                .currentCommand
+                .response
+                .committedText
+            client.insert(commitText)
+            self.reset()
+        } else {
+            self.resetWindow()
+            client.mark(self.currentDisplayText())
+        }
+        return true
+    }
+
+    func commitAll() -> Bool {
         var commitText = ""
         if (isManualMode()) {
             commitText = currentDisplayText();
         } else if (isClassicMode()) {
             self.candidateViewModel.handleCommit();
+            commitText = self.candidateViewModel
+                .currentCommand
+                .response
+                .committedText
+        } else {
+            let candList = self.candidateViewModel
+                .currentCommand
+                .response
+                .candidateList
+
+            let candidates = candList.candidates
+            let focus = Int(candList.focused)
+            
+            guard candidates.count > 0 else {
+                return false
+            }
+
+            commitText = candidates[focus < 0 ? 0 : focus].value
+        }
+
+
+        if (commitText.isEmpty) {
+            return false
+        }
+        
+        guard let client = self.currentClient else {
+            return false
+        }
+
+        client.insert(commitText)
+        if (isClassicMode()) {
+            self.resetWindow()
+            client.mark(self.currentDisplayText())
+        } else {
+            self.candidateViewModel.reset()
+            EngineController.instance.reset()
+            self.window?.setFrame(.zero, display: true)
+        }
+        return true
+    }
+
+    func commitCurrent() -> Bool {
+        var commitText = ""
+        if (isManualMode()) {
+            commitText = currentDisplayText();
+        } else if (isClassicMode()) {
+            self.candidateViewModel.handleEnter();
             commitText = self.candidateViewModel
                 .currentCommand
                 .response

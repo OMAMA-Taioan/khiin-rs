@@ -26,29 +26,40 @@ extension KhiinInputController {
         }
         // alt + h, change to hanji first
         if (modifiers.contains(.option) && event.keyCode.representative == .alphabet("h")) {
-            _ = self.commitCurrent();
+            _ = self.commitAll();
             self.candidateViewModel.changeOutputMode(isHanjiFirst: true)
             self.reset()
             client.clearMarkedText()
             return true
         } else if (modifiers.contains(.option) && event.keyCode.representative == .alphabet("l")) {
-            _ = self.commitCurrent();
+            _ = self.commitAll();
             self.candidateViewModel.changeOutputMode(isHanjiFirst: false)
             self.reset()
             client.clearMarkedText()
             return true
         } else if (changeInputMode) {
-            _ = self.commitCurrent();
+            _ = self.commitAll();
             self.candidateViewModel.changeInputMode()
             self.reset()
             client.clearMarkedText()
             return true
         } else if (shouldIgnoreCurrentEvent) {
-            _ = self.commitCurrent();
+            _ = self.commitAll();
             self.candidateViewModel.reset()
             return false;
         }
-
+        if (event.characters == "'") {
+            log.debug("handle punctuation '" + event.characters!)
+            self.candidateViewModel.handleChar("''")
+            return self.handleResponse();
+        } else if (event.characters == "\"") {
+            log.debug("handle punctuation \"" + event.characters!)
+            self.candidateViewModel.handleChar("\"")
+            return self.handleResponse();
+        } else if (event.characters == ":") {
+            self.candidateViewModel.handleChar(":")
+            return self.handleResponse();
+        }
         switch event.keyCode.representative {
             case .alphabet(var char):
                 if (self.isManualMode()) {
@@ -79,13 +90,11 @@ extension KhiinInputController {
             case .number(let num):
                 if (modifiers.contains(.shift) && num == 1 && self.isClassicMode()) {
                     self.candidateViewModel.handleChar("!")
-                    self.resetWindow()
-                    client.mark(self.currentDisplayText())
-                    return true
+                    return self.handleResponse();
                 }
 
                 if (modifiers.contains(.shift) || modifiers.contains(.capsLock)) {
-                    _ = self.commitCurrent();
+                    _ = self.commitAll();
                     self.candidateViewModel.reset()
                     return false;
                 }
@@ -108,16 +117,27 @@ extension KhiinInputController {
             case .punctuation(let ch):
                 log.debug("handle punctuation " + ch)
                 if (self.isClassicMode()) {
-                    if (".,".contains(ch) && !modifiers.contains(.shift)) {
+                    if (".,'=[]".contains(ch) && !modifiers.contains(.shift)) {
                         self.candidateViewModel.handleChar(ch)
-                        self.resetWindow()
-                        client.mark(self.currentDisplayText())
-                        return true
+                        return self.handleResponse();
                     } else if (ch == "/" && modifiers.contains(.shift)) {
                         self.candidateViewModel.handleChar("?")
-                        self.resetWindow()
-                        client.mark(self.currentDisplayText())
-                        return true
+                        return self.handleResponse();
+                    } else if (ch == "'" && modifiers.contains(.shift)) {
+                        self.candidateViewModel.handleChar("\"")
+                        return self.handleResponse();
+                    } else if (ch == "," && modifiers.contains(.shift)) {
+                        self.candidateViewModel.handleChar("<")
+                        return self.handleResponse();
+                    } else if (ch == "." && modifiers.contains(.shift)) {
+                        self.candidateViewModel.handleChar(">")
+                        return self.handleResponse();
+                    } else if (ch == "=" && modifiers.contains(.shift)) {
+                        self.candidateViewModel.handleChar("+")
+                        return self.handleResponse();
+                    } else if (ch == "-" && modifiers.contains(.shift)) {
+                        self.candidateViewModel.handleChar("_")
+                        return self.handleResponse();
                     }
                 }
             default:

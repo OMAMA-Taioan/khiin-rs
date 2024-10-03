@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use anyhow::Result;
 
 use crate::buffer::Buffer;
@@ -101,7 +103,7 @@ pub(crate) fn get_candidates_for_word(
     let candidates =
         db.select_conversions_for_tone(InputType::Detoned, raw_input.as_str(), conf.is_hanji_first())?;
 
-    let result = candidates
+    let mut result: Vec<_> = candidates
         .into_iter()
         .map(|mut conv| {
             conv.set_output_case_type(case_type.clone());
@@ -119,7 +121,8 @@ pub(crate) fn get_candidates_for_word(
             buffer
         })
         .collect();
-
+    let mut seen = HashSet::new();
+    result.retain(|elem| seen.insert(elem.display_text().to_string()));
     Ok(result)
 }
 

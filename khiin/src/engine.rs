@@ -66,7 +66,7 @@ impl Engine {
             CommandType::CMD_SEND_KEY => self.on_send_key(req),
             CommandType::CMD_REVERT => self.on_revert(req),
             CommandType::CMD_RESET => self.on_reset(req),
-            CommandType::CMD_COMMIT => self.on_commit(req),
+            CommandType::CMD_COMMIT => self.on_commit_all(req),
             CommandType::CMD_SELECT_CANDIDATE => self.on_select_candidate(req),
             CommandType::CMD_FOCUS_CANDIDATE => self.on_focus_candidate(req),
             CommandType::CMD_SWITCH_INPUT_MODE => {
@@ -105,7 +105,7 @@ impl Engine {
                 if let Some(ch) = ch {
                     self.buffer_mgr.insert(&self.inner, ch)?;
                     if self.buffer_mgr.edit_state() == EditState::ES_EMPTY {
-                        return self.on_commit(req);
+                        return self.on_commit_all(req);
                     }
                 }
             },
@@ -170,6 +170,15 @@ impl Engine {
     fn on_reset(&mut self, req: Request) -> Result<Response> {
         self.buffer_mgr.reset()?;
         Ok(Response::new())
+    }
+
+    fn on_commit_all(&mut self, req: Request) -> Result<Response> {
+        let committed_text = self.buffer_mgr.commit_all(&self.inner)?;
+        let mut response = Response::default();
+        self.attach_buffer_data(&mut response)?;
+        response.committed_text = committed_text;
+        response.committed = true;
+        Ok(response)
     }
 
     fn on_commit(&mut self, req: Request) -> Result<Response> {

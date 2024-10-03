@@ -22,6 +22,7 @@ use crossterm::terminal::EnterAlternateScreen;
 use khiin_protos::command::Command;
 use khiin_protos::command::SegmentStatus;
 use khiin_protos::config::AppInputMode;
+use khiin_protos::config::AppOutputMode;
 use unicode_width::UnicodeWidthStr;
 
 use crate::engine_ctrl::EngineCtrl;
@@ -38,19 +39,24 @@ fn clear(stdout: &mut Stdout) -> Result<()> {
     Ok(())
 }
 
-fn blank_display(stdout: &mut Stdout, mode: &AppInputMode) -> Result<()> {
+fn blank_display(stdout: &mut Stdout, mode: &AppInputMode, output_mode: &AppOutputMode) -> Result<()> {
     let input_mode = match mode {
         AppInputMode::CONTINUOUS => "Auto",
         AppInputMode::CLASSIC => "Classic",
         AppInputMode::MANUAL => "Manual",
     };
-    update_display(stdout, &input_mode, "", "", "", 0, "", &Vec::new())?;
+    let output_mode_str = match output_mode {
+        AppOutputMode::LOMAJI => "Lomaji",
+        AppOutputMode::HANJI => "Hanji",
+    };
+    update_display(stdout, &input_mode, &output_mode_str, "", "", "", 0, "", &Vec::new())?;
     Ok(())
 }
 
 fn update_display(
     stdout: &mut Stdout,
     mode: &str,
+    output_mode: &str,
     raw: &str,
     display: &str,
     committed: &str,
@@ -66,21 +72,23 @@ fn update_display(
         MoveTo(2, 4),
         Print(format!("Input mode:  {}", mode)),
         MoveTo(2, 6),
-        Print(format!("Raw input:  {}", raw)),
+        Print(format!("Output mode: {}", output_mode)),
         MoveTo(2, 8),
-        Print(format!("Committed:  {}", committed)),
+        Print(format!("Raw input:  {}", raw)),
         MoveTo(2, 10),
-        Print(format!("User sees:  {}", display)),
-        MoveTo(14, 11),
-        Print(format!("{}", attrs)),
+        Print(format!("Committed:  {}", committed)),
         MoveTo(2, 12),
+        Print(format!("User sees:  {}", display)),
+        MoveTo(14, 13),
+        Print(format!("{}", attrs)),
+        MoveTo(2, 14),
         Print(format!("Candidates:")),
     )?;
 
     for (i, cand) in cands.iter().enumerate() {
         execute!(
             stdout,
-            MoveTo(15, 12 + i as u16),
+            MoveTo(15, 14 + i as u16),
             Print(format!("{}", cand))
         )?;
     }
@@ -88,7 +96,7 @@ fn update_display(
     draw_footer(stdout)?;
     execute!(
         stdout,
-        MoveTo(14 + caret as u16, 10),
+        MoveTo(14 + caret as u16, 11),
         Show,
         SetCursorStyle::BlinkingBar
     )?;
@@ -142,6 +150,7 @@ fn draw_ime(
     done_buffer: &mut String,
     cmd: Command,
     mode: &AppInputMode,
+    output_mode: &AppOutputMode,
 ) -> Result<()> {
     let mut disp_buffer = String::new();
     let mut attr_buffer = String::new();
@@ -180,14 +189,18 @@ fn draw_ime(
     }
 
     let cands = get_candidate_page(&cmd);
-    let input_mode = match mode {
+    let input_mode_str = match mode {
         AppInputMode::CONTINUOUS => "Auto",
         AppInputMode::CLASSIC => "Classic",
         AppInputMode::MANUAL => "Manual",
     };
+    let output_mode_str = match output_mode {
+        AppOutputMode::LOMAJI => "Lomaji",
+        AppOutputMode::HANJI => "Hanji",
+    };
 
     if cmd.response.committed {
-        if input_mode == "Classic" {
+        if input_mode_str == "Classic" {
             done_buffer.push_str(&cmd.response.committed_text);
         } else {
             done_buffer.push_str(&disp_buffer);
@@ -198,7 +211,8 @@ fn draw_ime(
 
     update_display(
         stdout,
-        &input_mode,
+        &input_mode_str,
+        &output_mode_str,
         &raw_input,
         &disp_buffer,
         done_buffer,
@@ -211,7 +225,7 @@ fn draw_ime(
 fn draw_footer(stdout: &mut Stdout) -> Result<()> {
     let (_, rows) = size()?;
 
-    let help = vec!["<Esc>: Quit", "<Enter>: Clear", "<Backtick>: Switch mode"];
+    let help = vec!["<Esc>: Quit", "<Enter>: Clear", "<Backtick>: Switch mode", "<Tab>: Switch output mode"];
 
     let max_len = help.iter().map(|s| s.chars().count()).max().unwrap_or(0) + 4;
 
@@ -242,10 +256,10 @@ pub fn run(stdout: &mut Stdout) -> Result<()> {
     enable_raw_mode()?;
 
     let mut engine = EngineCtrl::new(get_db_filename()?)?;
-    let mut mode: AppInputMode = AppInputMode::CLASSIC;
-
-    engine.send_set_config_command(&mode, true)?;
-    blank_display(stdout, &mode)?;
+    let mut intput_mode: AppInputMode = AppInputMode::CLASSIC;
+    let mut output_mode: AppOutputMode = AppOutputMode::LOMAJI;
+    engine.send_set_config_command(&intput_mode, &output_mode, true)?;
+    blank_display(stdout, &intput_mode, &output_mode)?;
 
     let mut raw_input = String::new();
     let mut done_buffer = String::new();
@@ -262,30 +276,39 @@ pub fn run(stdout: &mut Stdout) -> Result<()> {
         }
 
         if key.code == KeyCode::Char('`') {
-            if mode == AppInputMode::CONTINUOUS {
-                mode = AppInputMode::CLASSIC;
-            } else if mode == AppInputMode::CLASSIC {
-                mode = AppInputMode::MANUAL;
+            if intput_mode == AppInputMode::CONTINUOUS {
+                intput_mode = AppInputMode::CLASSIC;
+            } else if intput_mode == AppInputMode::CLASSIC {
+                intput_mode = AppInputMode::MANUAL;
             } else {
-                mode = AppInputMode::CONTINUOUS;
+                intput_mode = AppInputMode::CONTINUOUS;
             }
             raw_input.clear();
             done_buffer.clear();
-            let cmd = engine.send_switch_mode_command(&mode)?;
-            draw_ime(stdout, &raw_input, &mut done_buffer, cmd, &mode)?;
+            let cmd = engine.send_switch_mode_command(&intput_mode)?;
+            draw_ime(stdout, &raw_input, &mut done_buffer, cmd, &intput_mode, &output_mode)?;
+            continue;
+        } else if key.code == KeyCode::Tab {
+            if output_mode == AppOutputMode::LOMAJI {
+                output_mode = AppOutputMode::HANJI;
+            } else {
+                output_mode = AppOutputMode::LOMAJI;
+            }
+            let cmd = engine.send_switch_output_mode_command(&output_mode)?;
+            draw_ime(stdout, &raw_input, &mut done_buffer, cmd, &intput_mode, &output_mode)?;
             continue;
         }
 
         match key.code {
             KeyCode::Enter => {
-                if mode == AppInputMode::CLASSIC {
+                if intput_mode == AppInputMode::CLASSIC {
                     let cmd = engine.send_commit_command()?;
-                    draw_ime(stdout, &raw_input, &mut done_buffer, cmd, &mode)?;
+                    draw_ime(stdout, &raw_input, &mut done_buffer, cmd, &intput_mode, &output_mode)?;
                 } else {
                     raw_input.clear();
                     done_buffer.clear();
                     engine.reset()?;
-                    blank_display(stdout, &mode)?;
+                    blank_display(stdout, &intput_mode, &output_mode)?;
                 }
                 continue;
             },
@@ -306,7 +329,7 @@ pub fn run(stdout: &mut Stdout) -> Result<()> {
         if cmd.response.committed {
             raw_input.clear();
         }
-        draw_ime(stdout, &raw_input, &mut done_buffer, cmd, &mode)?;
+        draw_ime(stdout, &raw_input, &mut done_buffer, cmd, &intput_mode, &output_mode)?;
     }
 
     clear(stdout)?;

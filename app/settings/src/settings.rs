@@ -36,6 +36,7 @@ impl Default for CandidateSettings {
 }
 const INPUT_MODE_DEFAULT: &str = "manual";
 const TONE_MODE_DEFAULT: &str = "telex";
+const OUTPUT_MODE_DEFAULT: &str = "lomaji";
 const T2_DEFAULT: char = 's';
 const T3_DEFAULT: char = 'f';
 const T5_DEFAULT: char = 'l';
@@ -53,6 +54,8 @@ pub struct InputSettings {
     pub input_mode: String,
     #[serde(default = "default_tone_mode")]
     pub tone_mode: String,
+    #[serde(default = "default_output_mode")]
+    pub output_mode: String,
     #[serde(default = "default_t2")]
     pub t2: char,
     #[serde(default = "default_t3")]
@@ -81,6 +84,10 @@ fn default_input_mode() -> String {
 
 fn default_tone_mode() -> String {
     TONE_MODE_DEFAULT.to_string()
+}
+
+fn default_output_mode() -> String {
+    OUTPUT_MODE_DEFAULT.to_string()
 }
 
 fn default_t2() -> char {
@@ -128,6 +135,7 @@ impl Default for InputSettings {
         Self {
             input_mode: INPUT_MODE_DEFAULT.to_string(),
             tone_mode: TONE_MODE_DEFAULT.to_string(),
+            output_mode: OUTPUT_MODE_DEFAULT.to_string(),
             t2: T2_DEFAULT,
             t3: T3_DEFAULT,
             t5: T5_DEFAULT,
@@ -219,6 +227,7 @@ mod tests {
             [input_settings]
             input_mode = "manual"
             tone_mode = "numeric"
+            output_mode = "lomaji"
             t3 = "c"
         "#,
         )
@@ -228,6 +237,7 @@ mod tests {
         assert_eq!(settings.candidates.font_size, 24);
         assert_eq!(settings.input_settings.input_mode, "manual");
         assert_eq!(settings.input_settings.tone_mode, "numeric");
+        assert_eq!(settings.input_settings.output_mode, "lomaji");
         assert_eq!(settings.input_settings.t2, 's');
         assert_eq!(settings.input_settings.t3, 'c');
     }

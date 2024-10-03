@@ -200,6 +200,10 @@ impl Config {
         self.output_mode == OutputMode::Hanji
     }
 
+    pub fn is_lomaji_first(&self) -> bool {
+        self.output_mode == OutputMode::Lomaji
+    }
+
     // set input_mode
     pub fn set_input_mode(&mut self, mode: InputMode) {
         self.input_mode = mode;
