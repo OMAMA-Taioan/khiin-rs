@@ -152,9 +152,15 @@ impl Database {
         is_hanji_first: bool,
     ) -> Result<Vec<KeyConversion>> {
         let sql = if is_hanji_first {
-            format!(include_str!("sql/select_conversions_for_tone_by_hanji.sql"), limit = "")
+            format!(
+                include_str!("sql/select_conversions_for_tone_by_hanji.sql"),
+                limit = ""
+            )
         } else {
-            format!(include_str!("sql/select_conversions_for_tone_by_lomaji.sql"), limit = "")
+            format!(
+                include_str!("sql/select_conversions_for_tone_by_lomaji.sql"),
+                limit = ""
+            )
         };
         let mut stmt = self.conn.prepare(&sql)?;
         let mut rows = stmt.query(named_params! {
@@ -178,9 +184,15 @@ impl Database {
         is_hanji_first: bool,
     ) -> Result<Vec<KeyConversion>> {
         let sql = if is_hanji_first {
-            format!(include_str!("sql/select_conversions_for_word_by_hanji.sql"), limit = "")
+            format!(
+                include_str!("sql/select_conversions_for_word_by_hanji.sql"),
+                limit = ""
+            )
         } else {
-            format!(include_str!("sql/select_conversions_for_word_by_lomaji.sql"), limit = "")
+            format!(
+                include_str!("sql/select_conversions_for_word_by_lomaji.sql"),
+                limit = ""
+            )
         };
         let mut stmt = self.conn.prepare(&sql)?;
         let mut rows = stmt.query(named_params! {
@@ -189,9 +201,11 @@ impl Database {
             ":detoned_query": detoned_query,
         })?;
 
-        let mut result = Vec::new();
+        let mut result: Vec<KeyConversion> = Vec::new();
         while let Some(row) = rows.next()? {
-            result.push(row.try_into()?);
+            let mut detoned_row: KeyConversion = row.try_into()?;
+            detoned_row.key_sequence = detoned_query.to_string();
+            result.push(detoned_row);
         }
 
         Ok(result)

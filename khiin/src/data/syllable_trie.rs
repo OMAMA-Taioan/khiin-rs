@@ -35,12 +35,16 @@ impl SyllableTrie {
 
     pub fn is_valid_prefix(&self, prefix: &str) -> bool {
         let mut current_node: &TrieNode = &self.root;
-        let mut chars = prefix.chars();
-        let last_char = chars.clone().last().unwrap().to_ascii_lowercase();
-        if last_char == 'n' || last_char == 'o' {
-            chars.next_back();
+        let mut query = prefix.to_string();
+        
+        if query.ends_with("n") {
+            query.pop();
+            // query.push('ⁿ');
+        } else if query.ends_with('o') {
+            query.pop();
+            // query.push_str("o͘");
         }
-        for c in chars {
+        for c in query.chars() {
             match current_node.children.get(&c.to_ascii_lowercase()) {
                 Some(node) => current_node = node,
                 None => return false,

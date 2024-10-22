@@ -88,9 +88,17 @@ extension KhiinInputController {
                 }
                 return true
             case .number(let num):
-                if (modifiers.contains(.shift) && num == 1 && self.isClassicMode()) {
-                    self.candidateViewModel.handleChar("!")
-                    return self.handleResponse();
+                if (modifiers.contains(.shift) && self.isClassicMode()) {
+                    if (num == 1) {
+                        self.candidateViewModel.handleChar("!")
+                        return self.handleResponse();
+                    } else if (num == 9) {
+                        self.candidateViewModel.handleChar("(")
+                        return self.handleResponse();
+                    } else if (num == 0) {
+                        self.candidateViewModel.handleChar(")")
+                        return self.handleResponse();
+                    }
                 }
 
                 if (modifiers.contains(.shift) || modifiers.contains(.capsLock)) {
@@ -117,7 +125,7 @@ extension KhiinInputController {
             case .punctuation(let ch):
                 log.debug("handle punctuation " + ch)
                 if (self.isClassicMode()) {
-                    if (".,'=[]".contains(ch) && !modifiers.contains(.shift)) {
+                    if (".,'=[];".contains(ch) && !modifiers.contains(.shift)) {
                         self.candidateViewModel.handleChar(ch)
                         return self.handleResponse();
                     } else if (ch == "/" && modifiers.contains(.shift)) {
@@ -159,7 +167,7 @@ extension KhiinInputController {
                 case .arrow:
                     fallthrough
                 case .tab:
-                    _ = self.commitCurrent();
+                    _ = self.commitAll();
                     self.candidateViewModel.reset()
                     return false;
                 case .backspace:
@@ -169,8 +177,9 @@ extension KhiinInputController {
                     client.clearMarkedText()
                     return true
                 default:
-                    log.debug("Event not handled")
-                    self.reset()
+                    log.debug("default handled")
+                    _ = self.commitAll();
+                    self.candidateViewModel.reset()
                     return false
             }
         } else {
@@ -193,8 +202,9 @@ extension KhiinInputController {
                 case .arrow(Direction.down):
                     self.candidateViewModel.handleArrowDown()                
                 default:
-                    log.debug("Event not handled")
-                    self.reset()
+                    log.debug("default handled")
+                    _ = self.commitAll();
+                    self.candidateViewModel.reset()
                     return false
             }
         }

@@ -178,6 +178,12 @@ impl Engine {
         self.attach_buffer_data(&mut response)?;
         response.committed_text = committed_text;
         response.committed = true;
+        self.buffer_mgr.reset()?;
+        if let Some(ref mut p) = response.preedit.as_mut() {
+            p.caret = 0;
+            p.focused_caret = 0;
+        }
+        response.edit_state = EditState::ES_EMPTY.into();
         Ok(response)
     }
 

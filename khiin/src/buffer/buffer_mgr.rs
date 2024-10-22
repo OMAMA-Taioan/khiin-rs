@@ -186,6 +186,19 @@ impl BufferMgr {
     pub fn pop(&mut self, engine: &EngInner) -> Result<()> {
         if self.edit_state == EditState::ES_EMPTY {
             return Ok(());
+        } else if (self.edit_state == EditState::ES_ILLEGAL) {
+            let mut raw_input = self.composition.raw_text();
+            raw_input.pop();
+
+            if raw_input.is_empty() {
+                self.edit_state = EditState::ES_EMPTY;
+                self.reset();
+            } else {
+                self.composition = Buffer::new();
+                self.composition.push(StringElem::from(raw_input).into());
+                self.char_caret = self.composition.display_char_count();
+            }
+            return Ok(());
         }
 
         self.edit_state = EditState::ES_COMPOSING;
@@ -196,10 +209,10 @@ impl BufferMgr {
             InputMode::Manual => self.pop_manual(engine),
         }
     }
+
     pub fn commit_all(&mut self, engine: &EngInner) -> Result<(String)> {
         if self.candidates.is_empty() || self.focused_cand_idx.is_none() {
             let raw_text = self.composition.raw_text();
-            self.reset();
             return Ok(raw_text);
         }
 
@@ -234,8 +247,6 @@ impl BufferMgr {
         let pre_committed = self.pre_committed.clone();
         let mut remainder =
             comp_raw.char_substr(cand_raw_count, comp_raw.chars().count());
-
-        self.reset();
 
         if pre_committed.is_empty() || has_hyphen || pre_committed.ends_with("-") {
             candi_text.push_str(&remainder);
@@ -516,6 +527,39 @@ impl BufferMgr {
                 raw_input.push('!');
             } else {
                 raw_input.push('！');
+            }
+            self.composition = Buffer::new();   
+            self.composition.push(StringElem::from(raw_input).into());
+            self.char_caret = self.composition.display_char_count();
+            self.edit_state = EditState::ES_EMPTY;
+            return Ok(());
+        } else if (key == ';') {
+            if engine.conf.is_lomaji_first() {
+                raw_input.push(';');
+            } else {
+                raw_input.push('・');
+            }
+            self.composition = Buffer::new();   
+            self.composition.push(StringElem::from(raw_input).into());
+            self.char_caret = self.composition.display_char_count();
+            self.edit_state = EditState::ES_EMPTY;
+            return Ok(());
+        } else if (key == '(') {
+            if engine.conf.is_lomaji_first() {
+                raw_input.push('(');
+            } else {
+                raw_input.push('（');
+            }
+            self.composition = Buffer::new();   
+            self.composition.push(StringElem::from(raw_input).into());
+            self.char_caret = self.composition.display_char_count();
+            self.edit_state = EditState::ES_EMPTY;
+            return Ok(());
+        } else if (key == ')') {
+            if engine.conf.is_lomaji_first() {
+                raw_input.push(')');
+            } else {
+                raw_input.push('）');
             }
             self.composition = Buffer::new();   
             self.composition.push(StringElem::from(raw_input).into());

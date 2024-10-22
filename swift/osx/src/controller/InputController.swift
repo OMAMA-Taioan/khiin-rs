@@ -79,7 +79,7 @@ class KhiinInputController: IMKInputController {
             return false
         }
         if (self.isCommited()) {
-            var commitText = self.candidateViewModel
+            let commitText = self.candidateViewModel
                 .currentCommand
                 .response
                 .committedText

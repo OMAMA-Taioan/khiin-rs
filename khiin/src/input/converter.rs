@@ -226,6 +226,20 @@ pub(crate) fn convert_to_telex(
         raw_input.push(key);
         composition.push(StringElem::from(raw_input).into());
         return (Ok(composition), false);
+    } else if (key.to_ascii_lowercase() == 'n' && (raw_buffer.ends_with("ⁿ") || raw_buffer.ends_with("ᴺ"))) {
+        let mut composition = Buffer::new();
+        let mut raw_input = stripped.to_string();
+        raw_input.pop();
+        raw_input.push(key);
+        composition.push(StringElem::from(raw_input).into());
+        return (Ok(composition), false);
+    } else if (key.to_ascii_lowercase() == 'u' && (raw_buffer.ends_with("o͘") || raw_buffer.ends_with("O͘"))) {
+        let mut composition = Buffer::new();
+        let mut raw_input = stripped.to_string();
+        raw_input.pop();
+        raw_input.push(key);
+        composition.push(StringElem::from(raw_input).into());
+        return (Ok(composition), false);
     }
     let mut word: Syllable = Syllable::new();
     word.raw_body = stripped.to_string();
