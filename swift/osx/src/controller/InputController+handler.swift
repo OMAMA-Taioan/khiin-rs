@@ -24,8 +24,8 @@ extension KhiinInputController {
         if clientID != currentClientID {
             currentClient = client
         }
-        // alt + h, change to hanji first
-        if (modifiers.contains(.option) && event.keyCode.representative == .alphabet("h")) {
+        // alt + h or alt + s, change to hanji first
+        if (modifiers.contains(.option) && (event.keyCode.representative == .alphabet("h") || event.keyCode.representative == .alphabet("s"))) {
             _ = self.commitAll();
             self.candidateViewModel.changeOutputMode(isHanjiFirst: true)
             self.reset()
@@ -34,6 +34,13 @@ extension KhiinInputController {
         } else if (modifiers.contains(.option) && event.keyCode.representative == .alphabet("l")) {
             _ = self.commitAll();
             self.candidateViewModel.changeOutputMode(isHanjiFirst: false)
+            self.reset()
+            client.clearMarkedText()
+            return true
+        } else if (modifiers.contains(.option) && event.keyCode.representative == .space) {
+            // alt + space, toggle output mode
+            _ = self.commitAll();
+            self.candidateViewModel.toggleOutputMode()
             self.reset()
             client.clearMarkedText()
             return true

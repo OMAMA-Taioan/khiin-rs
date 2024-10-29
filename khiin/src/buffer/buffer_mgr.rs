@@ -593,14 +593,14 @@ impl BufferMgr {
                 tone_char = '1';
             }
         }
-        word = word.replace("ou", "o͘");
+        // word = word.replace("ou", "o͘");
         
-        // to handle NASAL
-        let re_single_nasal: Regex =
-            Regex::new(r"(?i)[aeiouptkhmo͘]nn$").unwrap();
-        if re_single_nasal.is_match(&word) {
-            word = word.replace("nn", "ⁿ");
-        }
+        // // to handle NASAL
+        // let re_single_nasal: Regex =
+        //     Regex::new(r"(?i)[aeiouptkhmo͘]nn$").unwrap();
+        // if re_single_nasal.is_match(&word) {
+        //     word = word.replace("nn", "ⁿ");
+        // }
         // one syllable
         if engine.dict.is_illegal_syllable(&word) {
             // convert to number tone

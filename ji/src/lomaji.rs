@@ -53,6 +53,8 @@ const POJ_INPUT_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
         "O\u{0358}" => "Ou",
         "\u{207f}" => "nn",
         "\u{1d3a}" => "NN",
+        "o\u{0324}" => "eo",
+        "u\u{0324}" => "eu",
     )
 });
 
@@ -160,6 +162,52 @@ pub fn poj_syl_to_key_sequences(syl: &str) -> (String, String, String) {
     return (numeric, telex, stripped);
 }
 
+pub fn syllable_to_key_sequences(syl: &str) -> Vec<String> {
+    let (stripped, _tone) = strip_tone_diacritic(syl);
+    let mut ret = vec![];
+    let mut dots_stripped = vec![];
+    if stripped.ends_with("ⁿ") {
+        let new_stripped = stripped.replace("ⁿ", "");
+        if let Some(vowel_pos) = new_stripped.find(|c: char| "aeiouo͘o̤ṳ".contains(c)) {
+            let mut i = vowel_pos + 1;
+            while i <= new_stripped.len() {
+                let suffix = &new_stripped[i..];
+                if suffix.starts_with(DOTS_BELOW) || suffix.starts_with(DOT_ABOVE_RIGHT){
+                    i += 2;
+                    continue;
+                }
+                let mut new_str = new_stripped[..i].to_string();
+                new_str.push_str("nn");
+                new_str.push_str(suffix);
+                if new_str.contains(DOTS_BELOW) || new_str.contains(DOT_ABOVE_RIGHT) {
+                    dots_stripped.push(new_str);
+                } else {
+                    ret.push(new_str);
+                }
+                i += 1;
+            }
+        }
+    } else if stripped.contains(DOTS_BELOW) || stripped.contains(DOT_ABOVE_RIGHT) {
+        dots_stripped.push(stripped.clone());
+    } else {
+        ret.push(stripped.clone());
+    }
+    while !dots_stripped.is_empty() {
+        // take str and find first o͘
+        let str: String = dots_stripped.pop().unwrap().replace("ṳ", "eu").replace("o̤", "eo");
+        if str.contains("o͘") {
+            // replace o͘ with oo & ou
+            let oo_str = str.replace("o͘", "oo");
+            let ou_str = str.replace("o͘", "ou");
+            ret.push(oo_str);
+            ret.push(ou_str);
+        } else {
+            ret.push(str);
+        }
+    }
+    ret
+}
+
 pub fn strip_khin(syl: &mut String) -> bool {
     if syl.starts_with("--") {
         syl.drain(0..2);
@@ -205,5 +253,14 @@ mod tests {
         let stripped = strip_khin(&mut s);
         assert!(stripped);
         assert_eq!(s.as_str(), "ho");
+    }
+
+    #[test]
+    fn it_syllable_to_key_sequences() {
+        assert_eq!(syllable_to_key_sequences("no͘").len(), 2);
+        assert_eq!(syllable_to_key_sequences("tṳiⁿ").len(), 2);
+        assert_eq!(syllable_to_key_sequences("peⁿ").len(), 1);        
+        assert_eq!(syllable_to_key_sequences("cho͘hⁿ").len(), 4);
+        assert_eq!(syllable_to_key_sequences("chho͘ⁿ").len(), 2);
     }
 }

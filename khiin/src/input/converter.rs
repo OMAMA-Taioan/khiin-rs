@@ -284,7 +284,10 @@ pub(crate) fn convert_to_telex(
     let syllable = word.compose();
     let (mut stripped, tone) = strip_tone_diacritic(&syllable);
     _ = strip_khin(&mut stripped);
-    stripped = stripped.replace("O͘", "o͘").replace("ᴺ", "ⁿ");
+    stripped = stripped.replace("O͘", "ou")
+    .replace("o͘", "ou")
+    .replace("ᴺ", "nn")
+    .replace("ⁿ", "nn");
     let ret = engine.dict.is_illegal_syllable_prefix(&stripped);
 
     let mut composition = Buffer::new();

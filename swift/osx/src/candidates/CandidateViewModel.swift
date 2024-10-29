@@ -108,4 +108,14 @@ class CandidateViewModel: ObservableObject {
 
         self.currentCommand = res
     }
+
+    func toggleOutputMode() {
+        let engine = EngineController.instance
+
+        guard let res = engine.toggleOutputMode() else {
+            return
+        }
+
+        self.currentCommand = res
+    }
 }

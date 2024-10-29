@@ -26,9 +26,11 @@ class KhiinInputController: IMKInputController {
 
     override func deactivateServer(_ sender: Any!) {
         log.debug("deactivateServer ");
-        _ = commitAll();
-        candidateViewModel.reset();
+        _ = commitAll()
+        candidateViewModel.reset()
+        self.currentClient?.clearMarkedText()
         self.window?.setFrame(.zero, display: true)
+        self.resetWindow()
     }
 
     override func menu() -> NSMenu! {
