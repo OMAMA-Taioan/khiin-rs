@@ -274,6 +274,7 @@ impl BufferMgr {
         if self.candidates.is_empty() {
             let mut raw_input = self.composition.raw_text();
             let mut ret = String::new();
+            // commit hyphen
             if raw_input.starts_with("--") {
                 raw_input.drain(0..2);
                 ret.push_str("--");
@@ -286,6 +287,7 @@ impl BufferMgr {
             }
             self.reset();
             if (!raw_input.is_empty()) {
+                // handle remaining input
                 self.edit_state = EditState::ES_COMPOSING;
                 let ch = raw_input.chars().last().unwrap();
                 raw_input.pop();
@@ -328,6 +330,7 @@ impl BufferMgr {
 
         self.reset();
         if !remainder.is_empty() {
+            // handle remaining input
             self.edit_state = EditState::ES_COMPOSING;
             self.pre_committed.push_str(&candidate.display_text());
 
@@ -343,11 +346,7 @@ impl BufferMgr {
         if is_hanji && candi_text.chars().last().unwrap().is_hanji() {
             return Ok(candi_text);
         }
-        let mut ret = if engine.conf.is_hanji_first() {
-            String::from('　')
-        } else {
-            String::from(' ')
-        };
+        let mut ret = String::from(' ');
         ret.push_str(&candi_text);
         Ok(ret)
     }
@@ -579,8 +578,10 @@ impl BufferMgr {
         let mut query = raw_input.clone();
         if query.starts_with("--") {
             query.drain(0..2);
+            word.drain(0..2);
         } else if query.starts_with("-") {
             query.drain(0..1);
+            word.drain(0..1);
         }
 
         let mut tone_char = key;
@@ -602,7 +603,7 @@ impl BufferMgr {
         //     word = word.replace("nn", "ⁿ");
         // }
         // one syllable
-        if engine.dict.is_illegal_syllable(&word) {
+        if engine.dict.is_legal_syllable(&word) {
             // convert to number tone
             if let Ok(candidates) =
                 get_candidates_for_word_with_tone(engine, &query, tone_char)
@@ -678,6 +679,10 @@ impl BufferMgr {
             for i in (0..size).rev() {
                 let end = i + 1;
                 let substr = &query[0..end];
+                // substr ends "'\"<>+_=[]"
+                if substr.ends_with(|c: char| "'\":<>+_=[]".contains(c)) {
+                    break;
+                }
                 if let Ok(candidates) = get_candidates_for_word(engine, substr) {
                     if (!candidates.is_empty()) {
                         self.candidates = candidates;

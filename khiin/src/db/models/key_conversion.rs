@@ -76,7 +76,7 @@ impl KeyConversion {
             }
         }
         if (case_type == CaseType::Uppercase) {
-            self.output = self.output.to_uppercase();
+            self.output = self.output.to_uppercase().replace("ⁿ", "ᴺ");
         } else {
             self.output = self.uppercase_first_letter(&self.output);
         }

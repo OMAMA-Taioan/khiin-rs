@@ -55,17 +55,20 @@ extension KhiinInputController {
             self.candidateViewModel.reset()
             return false;
         }
-        if (event.characters == "'") {
-            log.debug("handle punctuation '" + event.characters!)
-            self.candidateViewModel.handleChar("''")
-            return self.handleResponse();
-        } else if (event.characters == "\"") {
-            log.debug("handle punctuation \"" + event.characters!)
-            self.candidateViewModel.handleChar("\"")
-            return self.handleResponse();
-        } else if (event.characters == ":") {
-            self.candidateViewModel.handleChar(":")
-            return self.handleResponse();
+        if (self.isClassicMode()) {
+            if (event.characters == "'") {
+                log.debug("handle punctuation '" + event.characters!)
+                self.candidateViewModel.handleChar("''")
+                return self.handleResponse();
+            } else if (event.characters == "\"") {
+                log.debug("handle punctuation \"" + event.characters!)
+                self.candidateViewModel.handleChar("\"")
+                return self.handleResponse();
+            } else if (event.characters == ":") {
+                log.debug("handle punctuation :" + event.characters!)
+                self.candidateViewModel.handleChar(":")
+                return self.handleResponse();
+            }
         }
         switch event.keyCode.representative {
             case .alphabet(var char):

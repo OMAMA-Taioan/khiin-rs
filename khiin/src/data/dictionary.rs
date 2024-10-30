@@ -40,11 +40,11 @@ impl Dictionary {
         self.word_trie.find_words_from_start(query)
     }
 
-    pub fn is_illegal_syllable_prefix(&self, query: &str) -> bool {
+    pub fn is_legal_syllable_prefix(&self, query: &str) -> bool {
         self.syllable_trie.is_valid_prefix(query)  
     }
 
-    pub fn is_illegal_syllable(&self, query: &str) -> bool {
+    pub fn is_legal_syllable(&self, query: &str) -> bool {
         self.syllable_trie.is_valid_syllable(query)  
     }
 
@@ -114,17 +114,17 @@ mod tests {
     #[test_log::test]
     fn it_illegal_syllable() {
         let dict = setup();
-        assert_eq!(dict.is_illegal_syllable_prefix("lai"), true);
-        assert_eq!(dict.is_illegal_syllable_prefix("app"), false);
-        assert_eq!(dict.is_illegal_syllable_prefix("kio͘"), true);
+        assert_eq!(dict.is_legal_syllable_prefix("lai"), true);
+        assert_eq!(dict.is_legal_syllable_prefix("app"), false);
+        assert_eq!(dict.is_legal_syllable_prefix("kio͘"), true);
 
-        assert_eq!(dict.is_illegal_syllable("app"), false);
-        assert_eq!(dict.is_illegal_syllable("kio͘"), true);
-        assert_eq!(dict.is_illegal_syllable("chh"), false);
-        assert_eq!(dict.is_illegal_syllable("chhi"), true);
-        assert_eq!(dict.is_illegal_syllable("chhia"), true);
-        assert_eq!(dict.is_illegal_syllable("chhiap"), true);
-        assert_eq!(dict.is_illegal_syllable("chhiapo"), false);
+        assert_eq!(dict.is_legal_syllable("app"), false);
+        assert_eq!(dict.is_legal_syllable("kio͘"), true);
+        assert_eq!(dict.is_legal_syllable("chh"), false);
+        assert_eq!(dict.is_legal_syllable("chhi"), true);
+        assert_eq!(dict.is_legal_syllable("chhia"), true);
+        assert_eq!(dict.is_legal_syllable("chhiap"), true);
+        assert_eq!(dict.is_legal_syllable("chhiapo"), false);
     }
 
     #[test]

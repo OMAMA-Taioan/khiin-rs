@@ -58,6 +58,17 @@ const POJ_INPUT_MAP: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
     )
 });
 
+const POJ_INPUT_MAP_OO: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
+    collection!(
+        "o\u{0358}" => "oo",
+        "O\u{0358}" => "Oo",
+        "\u{207f}" => "nn",
+        "\u{1d3a}" => "NN",
+        "o\u{0324}" => "eo",
+        "u\u{0324}" => "eu",
+    )
+});
+
 const TONE_LETTER_PATTERNS: Lazy<Vec<(Regex, usize)>> = Lazy::new(|| {
     vec![
         (Regex::new("(?i)o[ae][ptkhmni]").unwrap(), 1),
@@ -151,6 +162,21 @@ pub fn poj_syl_to_key_sequences(syl: &str) -> (String, String, String) {
     let (stripped, tone) = strip_tone_diacritic(syl);
 
     let stripped = POJ_INPUT_MAP
+        .iter()
+        .fold(stripped, |agg, (pat, repl)| agg.replace(pat, repl));
+
+    let mut numeric = stripped.clone();
+    numeric.push(NUMERIC_TONE_CHARS[tone as i32 as usize]);
+    let mut telex = stripped.clone();
+    telex.push(TELEX_TONE_CHARS[tone as i32 as usize]);
+
+    return (numeric, telex, stripped);
+}
+
+pub fn poj_syl_to_key_sequences_oo(syl: &str) -> (String, String, String) {
+    let (stripped, tone) = strip_tone_diacritic(syl);
+
+    let stripped = POJ_INPUT_MAP_OO
         .iter()
         .fold(stripped, |agg, (pat, repl)| agg.replace(pat, repl));
 

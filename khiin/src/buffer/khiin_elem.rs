@@ -282,6 +282,21 @@ mod test {
             assert_eq!(s.raw_input, String::from("bo"));
             assert_eq!(s.raw_body, String::from("bo"));
         }
+
+        let c = mock_conversion("hô͘ tô͘", "胡途");
+        let elem = KhiinElem::from_conversion("hootou", &c).unwrap();
+        assert_eq!(elem.value.len(), 3);
+        assert!(matches!(elem.value[0], Khiin::Syllable(_)));
+        if let Khiin::Syllable(s) = &elem.value[0] {
+            assert_eq!(s.raw_input, String::from("hoo"));
+            assert_eq!(s.raw_body, String::from("hoo"));
+        }
+        assert!(matches!(elem.value[1], Khiin::Separator(_)));
+        assert!(matches!(elem.value[2], Khiin::Syllable(_)));
+        if let Khiin::Syllable(s) = &elem.value[2] {
+            assert_eq!(s.raw_input, String::from("tou"));
+            assert_eq!(s.raw_body, String::from("tou"));
+        }
     }
 
     #[test]

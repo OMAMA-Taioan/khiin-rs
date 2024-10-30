@@ -96,7 +96,7 @@ fn update_display(
     draw_footer(stdout)?;
     execute!(
         stdout,
-        MoveTo(14 + caret as u16, 11),
+        MoveTo(14 + caret as u16, 12),
         Show,
         SetCursorStyle::BlinkingBar
     )?;

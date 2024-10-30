@@ -209,6 +209,7 @@ pub(crate) fn convert_to_telex(
     let (stripped, tone) = strip_tone_diacritic(raw_buffer);
 
     let pre_tone_char = tone_to_char(engine, &tone);
+    let lower_key = key.to_ascii_lowercase();
     if pre_tone_char != ' ' && pre_tone_char == key.to_ascii_lowercase() {
         // duplicate tone characters
         let mut composition = Buffer::new();
@@ -217,7 +218,7 @@ pub(crate) fn convert_to_telex(
         composition.push(StringElem::from(raw_input).into());
         return (Ok(composition), false);
     } else if (raw_buffer.starts_with("--")
-        && key.to_ascii_lowercase() == engine.conf.khin())
+        && lower_key == engine.conf.khin())
     {
         // duplicate khin characters
         let mut composition = Buffer::new();
@@ -226,17 +227,43 @@ pub(crate) fn convert_to_telex(
         raw_input.push(key);
         composition.push(StringElem::from(raw_input).into());
         return (Ok(composition), false);
-    } else if (key.to_ascii_lowercase() == 'n' && (raw_buffer.ends_with("ⁿ") || raw_buffer.ends_with("ᴺ"))) {
+    } else if (lower_key == 'n' && (raw_buffer.ends_with("ⁿ") || raw_buffer.ends_with("ᴺ"))) {
         let mut composition = Buffer::new();
         let mut raw_input = stripped.to_string();
         raw_input.pop();
         raw_input.push(key);
         composition.push(StringElem::from(raw_input).into());
         return (Ok(composition), false);
-    } else if (key.to_ascii_lowercase() == 'u' && (raw_buffer.ends_with("o͘") || raw_buffer.ends_with("O͘"))) {
+    } else if ((lower_key== 'u' || lower_key == 'o') && (raw_buffer.ends_with("o͘") || raw_buffer.ends_with("O͘"))) {
         let mut composition = Buffer::new();
         let mut raw_input = stripped.to_string();
         raw_input.pop();
+        raw_input.push(key);
+        composition.push(StringElem::from(raw_input).into());
+        return (Ok(composition), false);
+    } else if (lower_key == 'o' && (raw_buffer.ends_with("o̤") || raw_buffer.ends_with("O̤"))) {
+        let mut composition = Buffer::new();
+        let mut raw_input = stripped.to_string();
+        raw_input.pop();
+        raw_input.pop();
+        if lower_key == key {
+            raw_input.push('e');    
+        } else {
+            raw_input.push('E');
+        }
+        raw_input.push(key);
+        composition.push(StringElem::from(raw_input).into());
+        return (Ok(composition), false);
+    } else if (lower_key == 'u' && (raw_buffer.ends_with("ṳ") || raw_buffer.ends_with("Ṳ"))) {
+        let mut composition = Buffer::new();
+        let mut raw_input = stripped.to_string();
+        raw_input.pop();
+        raw_input.pop();
+        if lower_key == key {
+            raw_input.push('e');    
+        } else {
+            raw_input.push('E');
+        }
         raw_input.push(key);
         composition.push(StringElem::from(raw_input).into());
         return (Ok(composition), false);
@@ -284,11 +311,11 @@ pub(crate) fn convert_to_telex(
     let syllable = word.compose();
     let (mut stripped, tone) = strip_tone_diacritic(&syllable);
     _ = strip_khin(&mut stripped);
-    stripped = stripped.replace("O͘", "ou")
-    .replace("o͘", "ou")
-    .replace("ᴺ", "nn")
-    .replace("ⁿ", "nn");
-    let ret = engine.dict.is_illegal_syllable_prefix(&stripped);
+    stripped = stripped.replace("O͘", "ou").replace("o͘", "ou")
+    .replace("ᴺ", "nn").replace("ⁿ", "nn")
+    .replace("o̤", "eo").replace("O̤", "eo")
+    .replace("ṳ", "eu").replace("Ṳ", "eu");
+    let ret = engine.dict.is_legal_syllable_prefix(&stripped);
 
     let mut composition = Buffer::new();
     composition.push(StringElem::from(syllable).into());
