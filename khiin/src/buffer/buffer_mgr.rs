@@ -6,9 +6,9 @@ use anyhow::anyhow;
 use anyhow::Result;
 
 use khiin_ji::lomaji::is_legal_lomaji;
-use khiin_ji::IsHanji;
 use khiin_ji::punctuation::get_hanji_chars;
 use khiin_ji::punctuation::get_lomaji_chars;
+use khiin_ji::IsHanji;
 use khiin_protos::command::preedit::Segment;
 use khiin_protos::command::Candidate;
 use khiin_protos::command::CandidateList;
@@ -248,7 +248,10 @@ impl BufferMgr {
         let mut remainder =
             comp_raw.char_substr(cand_raw_count, comp_raw.chars().count());
 
-        if pre_committed.is_empty() || has_hyphen || pre_committed.ends_with("-") {
+        if pre_committed.is_empty()
+            || has_hyphen
+            || pre_committed.ends_with("-")
+        {
             candi_text.push_str(&remainder);
             return Ok(candi_text);
         }
@@ -339,7 +342,10 @@ impl BufferMgr {
 
             self.build_composition_classic(engine, remainder, ch);
         }
-        if pre_committed.is_empty() || has_hyphen || pre_committed.ends_with("-") {
+        if pre_committed.is_empty()
+            || has_hyphen
+            || pre_committed.ends_with("-")
+        {
             return Ok(candi_text);
         }
         let is_hanji = pre_committed.chars().last().unwrap().is_hanji();
@@ -414,7 +420,11 @@ impl BufferMgr {
         self.edit_state = EditState::ES_COMPOSING;
 
         let mut raw_input = self.composition.raw_text();
-        self.build_composition_classic(engine, raw_input, ch)
+        self.build_composition_classic(
+            engine,
+            raw_input,
+            ch,
+        )
     }
 
     fn pop_classic(&mut self, engine: &EngInner) -> Result<()> {
@@ -431,14 +441,20 @@ impl BufferMgr {
         let ch = raw_input.chars().last().unwrap();
         raw_input.pop();
 
-        self.build_composition_classic(engine, raw_input, ch)
+        self.build_composition_classic(
+            engine,
+            raw_input,
+            ch,
+        )
     }
 
     fn attach_hypen_candicate(&mut self) {
         if self.candidates.is_empty() || self.pre_committed.is_empty() {
             return;
         }
-        if self.pre_committed.ends_with("-") || self.composition.raw_text().starts_with("-") {
+        if self.pre_committed.ends_with("-")
+            || self.composition.raw_text().starts_with("-")
+        {
             return;
         }
         for ch in self.pre_committed.chars() {
@@ -447,7 +463,9 @@ impl BufferMgr {
             }
         }
         let mut hypen_candi = Buffer::new();
-        hypen_candi.push(StringElem::from_raw_input("".to_string(), "-".to_string()).into());
+        hypen_candi.push(
+            StringElem::from_raw_input("".to_string(), "-".to_string()).into(),
+        );
         if (self.candidates.len() >= 3) {
             self.candidates.insert(2, hypen_candi);
         } else {
@@ -464,7 +482,7 @@ impl BufferMgr {
         let mut key = ch.to_ascii_lowercase();
         if (key == engine.conf.hyphon()) {
             if raw_input.ends_with("--") {
-                let len = raw_input.len();
+                let len: usize = raw_input.len();
                 raw_input.replace_range(len - 2..len, "");
                 raw_input.push(ch);
                 self.candidates.clear();
@@ -490,7 +508,7 @@ impl BufferMgr {
             return Ok(());
         } else if (key == '.') {
             if engine.conf.is_lomaji_first() {
-                raw_input.push('.');                
+                raw_input.push('.');
             } else {
                 raw_input.push('。');
             }
@@ -527,7 +545,7 @@ impl BufferMgr {
             } else {
                 raw_input.push('！');
             }
-            self.composition = Buffer::new();   
+            self.composition = Buffer::new();
             self.composition.push(StringElem::from(raw_input).into());
             self.char_caret = self.composition.display_char_count();
             self.edit_state = EditState::ES_EMPTY;
@@ -538,7 +556,7 @@ impl BufferMgr {
             } else {
                 raw_input.push('・');
             }
-            self.composition = Buffer::new();   
+            self.composition = Buffer::new();
             self.composition.push(StringElem::from(raw_input).into());
             self.char_caret = self.composition.display_char_count();
             self.edit_state = EditState::ES_EMPTY;
@@ -549,7 +567,7 @@ impl BufferMgr {
             } else {
                 raw_input.push('（');
             }
-            self.composition = Buffer::new();   
+            self.composition = Buffer::new();
             self.composition.push(StringElem::from(raw_input).into());
             self.char_caret = self.composition.display_char_count();
             self.edit_state = EditState::ES_EMPTY;
@@ -560,18 +578,18 @@ impl BufferMgr {
             } else {
                 raw_input.push('）');
             }
-            self.composition = Buffer::new();   
+            self.composition = Buffer::new();
             self.composition.push(StringElem::from(raw_input).into());
             self.char_caret = self.composition.display_char_count();
             self.edit_state = EditState::ES_EMPTY;
             return Ok(());
-        } else if (":=[]".contains(key)&& engine.conf.is_lomaji_first()) {
+        } else if (":=[]".contains(key) && engine.conf.is_lomaji_first()) {
             raw_input.push(key);
-            self.composition = Buffer::new();   
+            self.composition = Buffer::new();
             self.composition.push(StringElem::from(raw_input).into());
             self.char_caret = self.composition.display_char_count();
             self.edit_state = EditState::ES_EMPTY;
-            return Ok(());  
+            return Ok(());
         }
 
         let mut word: String = raw_input.to_lowercase();
@@ -595,7 +613,7 @@ impl BufferMgr {
             }
         }
         // word = word.replace("ou", "o͘");
-        
+
         // // to handle NASAL
         // let re_single_nasal: Regex =
         //     Regex::new(r"(?i)[aeiouptkhmo͘]nn$").unwrap();
@@ -605,18 +623,37 @@ impl BufferMgr {
         // one syllable
         if engine.dict.is_legal_syllable(&word) {
             // convert to number tone
-            if let Ok(candidates) =
-                get_candidates_for_word_with_tone(engine, &query, tone_char)
-            {
-                if (!candidates.is_empty()) {
-                    raw_input.push(ch);
-                    self.candidates = candidates;
-                    self.composition = Buffer::new();
-                    self.composition.push(StringElem::from(raw_input).into());
-                    self.char_caret = self.composition.display_char_count();
-                    self.attach_hypen_candicate();
-                    return Ok(());
+            if self.pre_committed.is_empty() {
+                if let Ok(candidates) =
+                    get_candidates_for_word_with_tone(engine, &query, tone_char)
+                {
+                    if (!candidates.is_empty()) {
+                        raw_input.push(ch);
+                        self.candidates = candidates;
+                        self.composition = Buffer::new();
+                        self.composition
+                            .push(StringElem::from(raw_input).into());
+                        self.char_caret = self.composition.display_char_count();
+                        self.attach_hypen_candicate();
+                        return Ok(());
+                    }
                 }
+            } else {
+                query = raw_input.clone();
+                query.push(ch);
+                if let Ok(candidates) = get_candidates_for_word(engine, &query)
+                {
+                    if (!candidates.is_empty()) {
+                        raw_input.push(ch);
+                        self.candidates = candidates;
+                        self.composition = Buffer::new();
+                        self.composition
+                            .push(StringElem::from(raw_input).into());
+                        self.char_caret = self.composition.display_char_count();
+                        self.attach_hypen_candicate();
+                        return Ok(());
+                    }
+                };
             }
             // get romaji
             let (ret_com, ret) = convert_to_telex(engine, &raw_input, key);
@@ -654,24 +691,42 @@ impl BufferMgr {
         if query.starts_with(":") && engine.conf.is_hanji_first() {
             self.candidates = Vec::new();
             let mut buf = Buffer::new();
-            buf.push(StringElem::from_raw_input(":".to_string(), "：".to_string()).into());
+            buf.push(
+                StringElem::from_raw_input(":".to_string(), "：".to_string())
+                    .into(),
+            );
             self.candidates.push(buf);
 
             buf = Buffer::new();
-            buf.push(StringElem::from_raw_input(":".to_string(), "⋯⋯".to_string()).into());
+            buf.push(
+                StringElem::from_raw_input(":".to_string(), "⋯⋯".to_string())
+                    .into(),
+            );
             self.candidates.push(buf);
         } else if "'\"<>+_".contains(key) && engine.conf.is_lomaji_first() {
             let lomaji_chars = get_lomaji_chars(key).unwrap();
             for lomaji_char in lomaji_chars {
                 let mut buf = Buffer::new();
-                buf.push(StringElem::from_raw_input(key.to_string(), lomaji_char.to_string()).into());
+                buf.push(
+                    StringElem::from_raw_input(
+                        key.to_string(),
+                        lomaji_char.to_string(),
+                    )
+                    .into(),
+                );
                 self.candidates.push(buf);
             }
-        } else if "'\"<>+_=[]".contains(key) && engine.conf.is_hanji_first(){
+        } else if "'\"<>+_=[]".contains(key) && engine.conf.is_hanji_first() {
             let hanji_chars = get_hanji_chars(key).unwrap();
             for hanji_char in hanji_chars {
                 let mut buf = Buffer::new();
-                buf.push(StringElem::from_raw_input(key.to_string(), hanji_char.to_string()).into());
+                buf.push(
+                    StringElem::from_raw_input(
+                        key.to_string(),
+                        hanji_char.to_string(),
+                    )
+                    .into(),
+                );
                 self.candidates.push(buf);
             }
         } else {
@@ -683,7 +738,8 @@ impl BufferMgr {
                 if substr.ends_with(|c: char| "'\":<>+_=[]".contains(c)) {
                     break;
                 }
-                if let Ok(candidates) = get_candidates_for_word(engine, substr) {
+                if let Ok(candidates) = get_candidates_for_word(engine, substr)
+                {
                     if (!candidates.is_empty()) {
                         self.candidates = candidates;
                         break;
