@@ -45,7 +45,7 @@ fn update_settings(
         if let Ok(mut writer) = state.store.write() {
             // let prev_settings = writer.settings.clone();
             writer.settings = settings_update;
-            writer.save_to_file();
+            let _ = writer.save_to_file();
         }
     }
 }

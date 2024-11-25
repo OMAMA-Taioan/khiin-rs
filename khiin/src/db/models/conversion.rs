@@ -5,4 +5,5 @@ pub struct Conversion {
     pub weight: i64,
     pub annotation: Option<String>,
     pub category: Option<i64>,
+    pub is_hanji: bool,
 }

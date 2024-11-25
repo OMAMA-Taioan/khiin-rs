@@ -1,6 +1,6 @@
 use crate::db::models::InputType;
 
-#[derive(Copy, Clone)]
+#[derive(PartialEq, Copy, Clone)]
 pub enum InputMode {
     Continuous,
     Classic,
@@ -11,6 +11,12 @@ pub enum InputMode {
 pub enum ToneMode {
     Numeric,
     Telex,
+}
+
+#[derive(PartialEq, Copy, Clone)]
+pub enum OutputMode {
+    Lomaji,
+    Hanji,
 }
 
 impl Into<InputType> for ToneMode {
@@ -38,6 +44,7 @@ pub struct Config {
     enabled: bool,
     input_mode: InputMode,
     tone_mode: ToneMode,
+    output_mode: OutputMode,
     key_config: KeyConfig,
 }
 
@@ -47,6 +54,7 @@ impl Config {
             enabled: false,
             input_mode: InputMode::Manual,
             tone_mode: ToneMode::Telex,
+            output_mode: OutputMode::Lomaji,
             key_config: KeyConfig {
                 t2: 's',
                 t3: 'f',
@@ -68,6 +76,10 @@ impl Config {
 
     pub fn tone_mode(&self) -> ToneMode {
         self.tone_mode
+    }
+
+    pub fn output_mode(&self) -> OutputMode {
+        self.output_mode
     }
 
     pub fn t2(&self) -> char {
@@ -145,8 +157,6 @@ impl Config {
             true
         } else if ch == self.key_config.done {
             true
-        } else if self.tone_mode == ToneMode::Numeric {
-            false
         } else if ch == self.key_config.t2 {
             true
         } else if ch == self.key_config.t3 {
@@ -166,6 +176,34 @@ impl Config {
         }
     }
 
+    pub fn is_tone_char(&self, ch: char) -> bool {
+        if ch == self.key_config.t2 {
+            true
+        } else if ch == self.key_config.t3 {
+            true
+        } else if ch == self.key_config.t5 {
+            true
+        } else if ch == self.key_config.t6 {
+            true
+        } else if ch == self.key_config.t7 {
+            true
+        } else if ch == self.key_config.t8 {
+            true
+        } else if ch == self.key_config.t9 {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn is_hanji_first(&self) -> bool {
+        self.output_mode == OutputMode::Hanji
+    }
+
+    pub fn is_lomaji_first(&self) -> bool {
+        self.output_mode == OutputMode::Lomaji
+    }
+
     // set input_mode
     pub fn set_input_mode(&mut self, mode: InputMode) {
         self.input_mode = mode;
@@ -174,5 +212,10 @@ impl Config {
     // set tone_mode
     pub fn set_tone_mode(&mut self, mode: ToneMode) {
         self.tone_mode = mode;
+    }
+
+    // set output_mode
+    pub fn set_output_mode(&mut self, mode: OutputMode) {
+        self.output_mode = mode;
     }
 }

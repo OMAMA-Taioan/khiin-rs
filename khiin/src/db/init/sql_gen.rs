@@ -66,6 +66,7 @@ pub(crate) fn insert_conversions(
             row.weight,
             row.category,
             row.annotation,
+            row.is_hanji as i64,
         ])?;
     }
 

@@ -34,7 +34,19 @@ impl Syllable {
             .replace("ou", "o͘")
             .replace("oU", "o͘")
             .replace("Ou", "O͘")
-            .replace("OU", "O͘");
+            .replace("OU", "O͘")
+            .replace("oo", "o͘")
+            .replace("oO", "o͘")
+            .replace("Oo", "O͘")
+            .replace("OO", "O͘")
+            .replace("eo", "o̤")
+            .replace("Eo", "o̤")
+            .replace("eO", "O̤")
+            .replace("EO", "O̤")
+            .replace("eu", "ṳ")
+            .replace("Eu", "ṳ")
+            .replace("eU", "Ṳ")
+            .replace("EU", "Ṳ");
 
         // to handle NASAL
         let re_single_nasal: Regex =
@@ -56,12 +68,12 @@ impl Syllable {
             ret.push_str("ᴺ");
         }
         ret = ret
-                .replace("Oᴺ", "O͘ᴺ")
-                .replace("Oⁿ", "O͘ⁿ")
-                .replace("oⁿ", "o͘ⁿ")
-                .replace("OHᴺ", "O͘Hᴺ")
-                .replace("Ohⁿ", "O͘hⁿ")
-                .replace("ohⁿ", "o͘hⁿ");
+            .replace("Oᴺ", "O͘ᴺ")
+            .replace("Oⁿ", "O͘ⁿ")
+            .replace("oⁿ", "o͘ⁿ")
+            .replace("OHᴺ", "O͘Hᴺ")
+            .replace("Ohⁿ", "O͘hⁿ")
+            .replace("ohⁿ", "o͘hⁿ");
         if self.khin {
             // ret.insert(0, '·');
             ret.insert(0, '-');
@@ -111,59 +123,80 @@ impl Syllable {
         }
     }
 
-    pub fn from_composed(input: &str) -> Self {
+    pub fn from_composed(input: &str) -> Vec<Self> {
         if input.is_empty() {
-            return Self::default();
+            return vec![Self::default()];
         }
-
-        let replacements = vec![
-            ('\u{0358}', "u".to_string()),
-            ('\u{207f}', "nn".to_string()),
-        ];
 
         let (mut stripped, tone) = strip_tone_diacritic(input);
         let khin = strip_khin(&mut stripped);
-        let raw_body: String = stripped
-            .chars()
-            .flat_map(|ch| {
-                for (x, y) in &replacements {
-                    if ch == *x {
-                        return y.chars().collect::<Vec<_>>();
+
+        // 创建两个替换规则集
+        let replacements_o = vec![
+            ('\u{0358}', "o".to_string()),
+            ('\u{207f}', "nn".to_string()),
+        ];
+        let replacements_u = vec![
+            ('\u{0358}', "u".to_string()),
+            ('\u{207f}', "nn".to_string()),
+        ];
+        let mut replacements = vec![replacements_u];
+        if stripped.contains('\u{0358}') {
+            replacements.push(replacements_o);
+        }
+
+        let mut results = Vec::new();
+        for replacements in replacements {
+            let raw_body: String = stripped
+                .chars()
+                .flat_map(|ch| {
+                    for (x, y) in &replacements {
+                        if ch == *x {
+                            return y.chars().collect::<Vec<_>>();
+                        }
                     }
-                }
-                vec![ch]
-            })
-            .collect();
+                    vec![ch]
+                })
+                .collect();
 
-        let mut raw_input = raw_body.clone();
+            let mut raw_input = raw_body.clone();
 
-        if let Some(ch) = get_tone_char(tone) {
-            raw_input.push(ch);
+            if let Some(ch) = get_tone_char(tone) {
+                raw_input.push(ch);
+            }
+
+            if khin {
+                raw_input.push('0');
+            }
+
+            results.push(Self {
+                raw_input,
+                raw_body,
+                khin,
+                tone,
+            });
         }
-
-        if khin {
-            raw_input.push('0');
-        }
-
-        Self {
-            raw_input,
-            raw_body,
-            khin,
-            tone,
-        }
+        results
     }
 
     pub fn from_conversion_alignment(
         raw_input: &str,
         target: &str,
     ) -> Option<(usize, Syllable)> {
-        let target = Syllable::from_composed(target);
+        let targets = Syllable::from_composed(target);
 
-        let mut shared_prefix_count = raw_input
-            .chars()
-            .zip(target.raw_input.chars())
-            .take_while(|&(c1, c2)| c1.to_lowercase().eq(c2.to_lowercase()))
-            .count();
+        let (target, mut shared_prefix_count) = targets
+            .iter()
+            .map(|t| {
+                let count = raw_input
+                    .chars()
+                    .zip(t.raw_input.chars())
+                    .take_while(|&(c1, c2)| c1.to_lowercase().eq(c2.to_lowercase()))
+                    .count();
+                (t, count)
+            })
+            .max_by_key(|&(_, count)| count)
+            .unwrap_or((&targets[0], 0));
 
         if shared_prefix_count == 0 {
             return None;
@@ -186,13 +219,13 @@ impl Syllable {
         let raw_syl: String =
             raw_input.chars().take(shared_prefix_count).collect();
 
-        let shared_prefix_len = raw_input
-            .char_indices()
-            .nth(shared_prefix_count)
-            .map(|(i, _)| i)
-            .unwrap_or_default();
+        // let shared_prefix_len = raw_input
+        //     .char_indices()
+        //     .nth(shared_prefix_count)
+        //     .map(|(i, _)| i)
+        //     .unwrap_or_default();
 
-        Some((shared_prefix_len, Syllable::from_raw(&raw_syl)))
+        Some((shared_prefix_count, Syllable::from_raw(&raw_syl)))
     }
 
     pub(crate) fn raw_caret_from_composed(&self, remainder: usize) -> usize {
@@ -275,9 +308,9 @@ mod tests {
             ("mn̂g", "mng", Tone::T5, false, "mng5"),
             ("choân", "choan", Tone::T5, false, "choan5"),
         ];
-
         for case in cases {
-            let syl = Syllable::from_composed(case.0);
+            let syllables = Syllable::from_composed(case.0);
+            let syl = syllables.first().unwrap();
             assert_eq!(syl.raw_body, case.1);
             assert_eq!(syl.tone, case.2);
             assert_eq!(syl.khin, case.3);

@@ -7,6 +7,7 @@ use khiin_protos::command::CommandType;
 use khiin_protos::command::Request;
 use khiin_protos::config::AppConfig;
 use khiin_protos::config::AppInputMode;
+use khiin_protos::config::AppOutputMode;
 use khiin_protos::config::BoolValue;
 use khiin_protos::config::KeyConfiguration;
 use khiin_settings::SettingsManager;
@@ -66,8 +67,15 @@ impl EngineBridge {
             _ => AppInputMode::CONTINUOUS, // Default value if input mode is not recognized
         };
 
+        let output_mode = match settings.input_settings.output_mode.as_str() {
+            "lomaji" => AppOutputMode::LOMAJI,
+            "hanji" => AppOutputMode::HANJI,
+            _ => AppOutputMode::LOMAJI, // Default value if output mode is not recognized
+        };
+
         let mut config: AppConfig = AppConfig::new();
         config.input_mode = input_mode.into();
+        config.output_mode = output_mode.into();
         // set telex enabled to rust protobuf boolvalue true
         let mut telex_enabled = BoolValue::new();
         telex_enabled.value = settings.input_settings.tone_mode == "telex";

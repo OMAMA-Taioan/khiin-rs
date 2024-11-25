@@ -17,21 +17,41 @@ class CandidateViewModel: ObservableObject {
 
         self.currentCommand = res
     }
-
-    func handleBackspace() {
+    
+    func handleEnter() {
         let engine = EngineController.instance
 
-        guard let res = engine.handleSpecialKey(.skBackspace) else {
+        guard let res = engine.handleSpecialKey(.skEnter, false) else {
             return
         }
 
         self.currentCommand = res
     }
 
-    func handleSpace() {
+    func handleBackspace() {
         let engine = EngineController.instance
 
-        guard let res = engine.handleSpecialKey(.skSpace) else {
+        guard let res = engine.handleSpecialKey(.skBackspace, false) else {
+            return
+        }
+
+        self.currentCommand = res
+    }
+
+    func handleSpace(_ hasShift: Bool) {
+        let engine = EngineController.instance
+
+        guard let res = engine.handleSpecialKey(.skSpace, hasShift) else {
+            return
+        }
+        
+        self.currentCommand = res
+    }
+
+    func handleTab(_ hasShift: Bool) {
+        let engine = EngineController.instance
+
+        guard let res = engine.handleSpecialKey(.skTab, hasShift) else {
             return
         }
 
@@ -41,7 +61,7 @@ class CandidateViewModel: ObservableObject {
     func handleArrowUp() {
         let engine = EngineController.instance
 
-        guard let res = engine.handleSpecialKey(.skUp) else {
+        guard let res = engine.handleSpecialKey(.skUp, false) else {
             return
         }
 
@@ -51,7 +71,17 @@ class CandidateViewModel: ObservableObject {
     func handleArrowDown() {
         let engine = EngineController.instance
 
-        guard let res = engine.handleSpecialKey(.skDown) else {
+        guard let res = engine.handleSpecialKey(.skDown, false) else {
+            return
+        }
+
+        self.currentCommand = res
+    }
+
+    func handleCommit() {
+        let engine = EngineController.instance
+
+        guard let res = engine.sendCommitCommand() else {
             return
         }
 
@@ -67,5 +97,25 @@ class CandidateViewModel: ObservableObject {
 
         self.currentCommand = res
         
+    }
+
+    func changeOutputMode(isHanjiFirst: Bool) {
+        let engine = EngineController.instance
+
+        guard let res = engine.changeOutputMode(isHanjiFirst: isHanjiFirst) else {
+            return
+        }
+
+        self.currentCommand = res
+    }
+
+    func toggleOutputMode() {
+        let engine = EngineController.instance
+
+        guard let res = engine.toggleOutputMode() else {
+            return
+        }
+
+        self.currentCommand = res
     }
 }

@@ -9,6 +9,7 @@
     let convert_c_to_ch = false;
     let input_mode = $settings.input_settings.input_mode;
     let tone_mode = $settings.input_settings.tone_mode;
+    let output_mode = $settings.input_settings.output_mode;
     let tone_mode_disabled = false
     $: if (input_mode == "auto") {
 		tone_mode_disabled = true;
@@ -32,6 +33,15 @@
             return settings;
         })
 
+        await updateSettings();
+    }
+
+    async function outputModeChanged(event) {
+        const new_output_mode = event.target.value;
+        settings.update(settings => {
+            settings.input_settings.output_mode = new_output_mode;
+            return settings;
+        })
         await updateSettings();
     }
 
@@ -62,7 +72,7 @@
                 on:change={inputModeChanged}
             >
                 <option value="auto">{$_("page.input.auto")}</option>
-                <!-- <option>{$_("page.input.classic")}</option> -->
+                <option value="classic">{$_("page.input.classic")}</option>
                 <option value="manual">{$_("page.input.manual")}</option>
             </select>
         </label>
@@ -76,6 +86,17 @@
             >
                 <option value="numeric">{$_("page.input.numeric")}</option>
                 <option value="telex">{$_("page.input.telex")}</option>
+            </select>
+        </label>
+        <label class="block">
+            <span class="text-gray-700">{$_("page.input.output-mode")}</span>
+            <select
+                bind:value={output_mode}
+                class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50"
+                on:change={outputModeChanged}
+            >
+                <option value="lomaji">{$_("page.input.lomaji")}</option>
+                <option value="hanji">{$_("page.input.hanji")}</option>
             </select>
         </label>
         <!-- <label class="block">

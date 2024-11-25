@@ -33,18 +33,30 @@ extension KhiinInputController {
         candidateView.view.translatesAutoresizingMaskIntoConstraints = false
         
         if let topAnchor = window?.contentView?.topAnchor,
-            // let bottomAnchor = window?.contentView?.bottomAnchor,
+            let bottomAnchor = window?.contentView?.bottomAnchor,
             let leadingAnchor = window?.contentView?.leadingAnchor
             // let trailingAnchor = window?.contentView?.trailingAnchor
         {
-            NSLayoutConstraint.activate([
-                candidateView.view.topAnchor.constraint(
-                    equalTo: topAnchor
-                ),
-                candidateView.view.leadingAnchor.constraint(
-                    equalTo: leadingAnchor
-                ),
-            ])
+            let origin = self.currentOrigin ?? self.currentClient?.position ?? .zero
+            if origin.y > frame.minY {
+                NSLayoutConstraint.activate([
+                    candidateView.view.topAnchor.constraint(
+                        equalTo: topAnchor
+                    ),
+                    candidateView.view.leadingAnchor.constraint(
+                        equalTo: leadingAnchor
+                    ),
+                ])
+            } else {
+                NSLayoutConstraint.activate([
+                    candidateView.view.bottomAnchor.constraint(
+                        equalTo: bottomAnchor
+                    ),
+                    candidateView.view.leadingAnchor.constraint(
+                        equalTo: leadingAnchor
+                    ),
+                ])
+            }
         }
         self.window?.contentViewController?.addChild(candidateView)
         self.window?.setFrame(frame, display: true)
@@ -56,7 +68,13 @@ extension KhiinInputController {
         let origin = self.currentOrigin ?? self.currentClient?.position ?? .zero
         let size = CGSize(width: 500, height: height)
 
+        guard let screenFrame = NSScreen.main?.visibleFrame else {
+            return CGRect(
+                x: origin.x, y: origin.y - height, width: size.width, height: size.height)
+        }
+
+        let y = origin.y - height < screenFrame.minY ? origin.y + 24 : origin.y - height
         return CGRect(
-            x: origin.x, y: origin.y - height, width: size.width, height: size.height)
+            x: origin.x, y: y, width: size.width, height: size.height)
     }
 }

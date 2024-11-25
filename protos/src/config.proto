@@ -31,6 +31,11 @@ enum AppInputMode {
     MANUAL = 2;
 }
 
+enum AppOutputMode {
+    LOMAJI = 0;
+    HANJI = 1;
+}
+
 enum DefaultPunctuation {
     PUNCT_UNSPECIFIED = 0;
     PUNCT_HALF = 1;
@@ -42,9 +47,10 @@ message AppConfig {
     KeyConfiguration key_config = 2;
     AppInputMode input_mode = 3;
     BoolValue telex_enabled = 4;
-    BoolValue dotted_khin = 5;
-    BoolValue autokhin = 6;
-    DefaultPunctuation default_punctuation = 7;
-    BoolValue easy_ch = 8;
-    BoolValue uppercase_nasal = 9;
+    AppOutputMode output_mode = 5;
+    BoolValue dotted_khin = 6;
+    BoolValue autokhin = 7;
+    DefaultPunctuation default_punctuation = 8;
+    BoolValue easy_ch = 9;
+    BoolValue uppercase_nasal = 10;
 }

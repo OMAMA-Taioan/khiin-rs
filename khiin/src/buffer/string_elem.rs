@@ -8,8 +8,20 @@ use crate::buffer::BufferElement;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StringElem {
     value: String,
+    keys: String,
     converted: bool,
     selected: bool,
+}
+
+impl StringElem {
+    pub fn from_raw_input(raw_input: String, value: String) -> Self {
+        Self {
+            converted: false,
+            selected: false,
+            keys: raw_input,
+            value,
+        }
+    }
 }
 
 impl Deref for StringElem {
@@ -31,6 +43,7 @@ impl From<String> for StringElem {
         Self {
             converted: false,
             selected: false,
+            keys: value.clone(),
             value,
         }
     }
@@ -41,6 +54,7 @@ impl From<&str> for StringElem {
         Self {
             converted: false,
             selected: false,
+            keys: String::from(value),
             value: String::from(value),
         }
     }
@@ -48,11 +62,11 @@ impl From<&str> for StringElem {
 
 impl BufferElement for StringElem {
     fn raw_char_count(&self) -> usize {
-        self.chars().count()
+        self.keys.chars().count()
     }
 
     fn raw_text(&self) -> String {
-        self.value.clone()
+        self.keys.clone()
     }
 
     fn composed_text(&self) -> String {
@@ -95,15 +109,15 @@ impl BufferElement for StringElem {
         None
     }
 
-    fn insert(&mut self, idx: usize, ch: char) {
-        self.value.insert(idx, ch);
-    }
+    // fn insert(&mut self, idx: usize, ch: char) {
+    //     self.value.insert(idx, ch);
+    // }
 
-    fn erase(&mut self, idx: usize) {
-        let start = self.value.char_indices().nth(idx).unwrap().0;
-        let end = self.value.char_indices().nth(idx + 1).unwrap().0;
-        self.value.replace_range(start..end, "");
-    }
+    // fn erase(&mut self, idx: usize) {
+    //     let start = self.value.char_indices().nth(idx).unwrap().0;
+    //     let end = self.value.char_indices().nth(idx + 1).unwrap().0;
+    //     self.value.replace_range(start..end, "");
+    // }
 
     fn set_converted(&mut self, converted: bool) {
         self.converted = converted;
