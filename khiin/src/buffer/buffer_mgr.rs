@@ -613,14 +613,7 @@ impl BufferMgr {
             }
         }
         // word = word.replace("ou", "o͘");
-
-        // // to handle NASAL
-        // let re_single_nasal: Regex =
-        //     Regex::new(r"(?i)[aeiouptkhmo͘]nn$").unwrap();
-        // if re_single_nasal.is_match(&word) {
-        //     word = word.replace("nn", "ⁿ");
-        // }
-        // one syllable
+        // single syllable
         if engine.dict.is_legal_syllable(&word) {
             // convert to number tone
             if self.pre_committed.is_empty() {
@@ -745,6 +738,11 @@ impl BufferMgr {
                         break;
                     }
                 };
+            }
+            let mut guess_candidate = convert_all(engine, &raw_input)?;
+            guess_candidate.set_converted(true);
+            if !self.candidates.iter().any(|cand| guess_candidate.eq_display(cand)) {
+                self.candidates.insert(0, guess_candidate);
             }
         }
         self.composition = Buffer::new();

@@ -126,12 +126,10 @@ public class EngineController {
             return nil
         }
         
-        if (self.config?.inputMode == .continuous) {
-            self.config?.inputMode = .manual;
-        } else if (self.config?.inputMode == .manual) {
+        if (self.config?.inputMode == .manual) {
             self.config?.inputMode = .classic
         } else {
-            self.config?.inputMode = .continuous
+            self.config?.inputMode = .manual
         }
 
         var req = Khiin_Proto_Request()

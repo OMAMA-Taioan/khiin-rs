@@ -24,7 +24,6 @@
 // input = >
 
 // menu, 漢字 submode == [〉, 》]
-
 // menu, 羅字 submode == [>, »]
 
 // # --------
@@ -32,7 +31,6 @@
 // input = ;
 
 // direct output, 漢字 submode == ・[U+30FB]
-
 // direct output, 羅字 submode == ;
 
 // # --------
@@ -48,7 +46,6 @@
 // input = +
 
 // menu, 漢字 submode == [+, ＋, ⁺]
-
 // menu, 羅字 submode == [+, ⁺]
 
 // # -------
@@ -56,7 +53,6 @@
 // input = =
 
 // menu, 漢字 submode == [=, ＝, 〓]
-
 // direct output, 羅字 submode == =
 
 // # -------
@@ -64,7 +60,6 @@
 // input = _
 
 // menu, 漢字 submode == [_, —, ＿, ⁻]
-
 // menu, 羅字 submode == [_, —, ⁻]
 
 // # -------
@@ -72,7 +67,6 @@
 // input = [
 
 // menu, 漢字 submode == [〔, 【, 〖]
-
 // direct output, 羅字 submode == [
 
 // # -------
@@ -80,7 +74,6 @@
 // input = ]
 
 // menu, 漢字 submode == [〕, 】, 〗]
-
 // direct output, 羅字 submode == ]
 
 const APOSTROPHE_HANJI_CHARS: [char; 2] = ['「', '」'];

@@ -34,7 +34,7 @@ impl Default for CandidateSettings {
         }
     }
 }
-const INPUT_MODE_DEFAULT: &str = "manual";
+const INPUT_MODE_DEFAULT: &str = "classic";
 const TONE_MODE_DEFAULT: &str = "telex";
 const OUTPUT_MODE_DEFAULT: &str = "lomaji";
 const T2_DEFAULT: char = 's';
@@ -170,7 +170,10 @@ impl SettingsManager {
             let mut contents = String::new();
             file.read_to_string(&mut contents).unwrap();
     
-            if let Ok(settings) = toml::from_str::<AppSettings>(&contents) {
+            if let Ok(mut settings) = toml::from_str::<AppSettings>(&contents) {
+                if settings.input_settings.input_mode == "auto" {
+                    settings.input_settings.input_mode = INPUT_MODE_DEFAULT.to_string();
+                }
                 SettingsManager {
                     settings,
                     filename: filename.clone(),

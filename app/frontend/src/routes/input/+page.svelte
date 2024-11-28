@@ -71,7 +71,6 @@
                 class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50"
                 on:change={inputModeChanged}
             >
-                <option value="auto">{$_("page.input.auto")}</option>
                 <option value="classic">{$_("page.input.classic")}</option>
                 <option value="manual">{$_("page.input.manual")}</option>
             </select>

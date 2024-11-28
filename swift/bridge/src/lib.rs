@@ -60,11 +60,9 @@ impl EngineBridge {
         let settings = SettingsManager::load_from_file(&path).settings;
 
         let input_mode = match settings.input_settings.input_mode.as_str() {
-            "continuous" => AppInputMode::CONTINUOUS,
-            "auto" => AppInputMode::CONTINUOUS,
             "classic" => AppInputMode::CLASSIC,
             "manual" => AppInputMode::MANUAL,
-            _ => AppInputMode::CONTINUOUS, // Default value if input mode is not recognized
+            _ => AppInputMode::CLASSIC, // Default value if input mode is not recognized
         };
 
         let output_mode = match settings.input_settings.output_mode.as_str() {
