@@ -22,12 +22,14 @@ public class EngineController {
             self.engine = nil
             return
         }
+        log.debug("dbpath : \(dbpath)")
 
         guard let settingsPath = getSettingFilePath() else {
             self.config = nil
             self.engine = nil
             return
         }
+        log.debug("settingsPath : \(settingsPath)")
 
         guard let engine = EngineBridge.new(dbpath) else {
             log.debug("No engine")
@@ -111,6 +113,13 @@ public class EngineController {
         return self.config?.inputMode == .manual
     }
 
+    public func isClassicMode() -> Bool {
+        if (self.config == nil) {
+            return false
+        }
+        return self.config?.inputMode == .classic
+    }
+
     public func changeInputMode() -> Khiin_Proto_Command? {
         if (self.config == nil) {
             log.debug("Config not instantiated")
@@ -119,6 +128,8 @@ public class EngineController {
         
         if (self.config?.inputMode == .continuous) {
             self.config?.inputMode = .manual;
+        } else if (self.config?.inputMode == .manual) {
+            self.config?.inputMode = .classic
         } else {
             self.config?.inputMode = .continuous
         }
@@ -127,6 +138,40 @@ public class EngineController {
         req.type = .cmdSwitchInputMode
         req.config = self.config!
         
+        return sendCommand(req)
+    }
+
+    public func changeOutputMode(isHanjiFirst: Bool) -> Khiin_Proto_Command? {
+        if (self.config == nil) {
+            log.debug("Config not instantiated")
+            return nil
+        }
+
+        self.config?.outputMode = isHanjiFirst ? .hanji : .lomaji
+
+        var req = Khiin_Proto_Request()
+        req.type = .cmdSwitchOutputMode
+        req.config = self.config!
+
+        return sendCommand(req)
+    }
+
+    public func toggleOutputMode() -> Khiin_Proto_Command? {
+        if (self.config == nil) {
+            log.debug("Config not instantiated")
+            return nil
+        }
+
+        if (self.config?.outputMode == .hanji) {
+            self.config?.outputMode = .lomaji;
+        } else {
+            self.config?.outputMode = .hanji
+        }
+
+        var req = Khiin_Proto_Request()
+        req.type = .cmdSwitchOutputMode
+        req.config = self.config!
+
         return sendCommand(req)
     }
 
@@ -145,7 +190,7 @@ public class EngineController {
         return sendCommand(req)
     }
 
-    public func handleSpecialKey(_ key: Khiin_Proto_SpecialKey)
+    public func handleSpecialKey(_ key: Khiin_Proto_SpecialKey, _ hasShift: Bool)
         -> Khiin_Proto_Command?
     {
         var req = Khiin_Proto_Request()
@@ -153,8 +198,18 @@ public class EngineController {
 
         req.type = .cmdSendKey
         keyEvent.specialKey = key
+        log.debug("Engine handleSpecialKey hasShift:\(hasShift)")
+        if (hasShift) {
+            keyEvent.modifierKeys.append(.modkShift)
+        }
         req.keyEvent = keyEvent
 
+        return sendCommand(req)
+    }
+
+    public func sendCommitCommand() -> Khiin_Proto_Command? {
+        var req = Khiin_Proto_Request()
+        req.type = .cmdCommit
         return sendCommand(req)
     }
 

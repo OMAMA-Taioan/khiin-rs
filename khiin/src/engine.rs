@@ -10,11 +10,13 @@ use protobuf::Message;
 
 use khiin_protos::command::*;
 use khiin_protos::config::AppInputMode;
+use khiin_protos::config::AppOutputMode;
 use khiin_protos::config::BoolValue;
 
 use crate::buffer::BufferMgr;
 use crate::config::Config;
 use crate::config::InputMode;
+use crate::config::OutputMode;
 use crate::config::ToneMode;
 use crate::data::dictionary::Dictionary;
 use crate::db::Database;
@@ -64,11 +66,14 @@ impl Engine {
             CommandType::CMD_SEND_KEY => self.on_send_key(req),
             CommandType::CMD_REVERT => self.on_revert(req),
             CommandType::CMD_RESET => self.on_reset(req),
-            CommandType::CMD_COMMIT => self.on_commit(req),
+            CommandType::CMD_COMMIT => self.on_commit_all(req),
             CommandType::CMD_SELECT_CANDIDATE => self.on_select_candidate(req),
             CommandType::CMD_FOCUS_CANDIDATE => self.on_focus_candidate(req),
             CommandType::CMD_SWITCH_INPUT_MODE => {
                 self.on_switch_input_mode(req)
+            },
+            CommandType::CMD_SWITCH_OUTPUT_MODE => {
+                self.on_switch_output_mode(req)
             },
             CommandType::CMD_PLACE_CURSOR => self.on_place_cursor(req),
             CommandType::CMD_DISABLE => self.on_disable(req),
@@ -100,12 +105,25 @@ impl Engine {
                 if let Some(ch) = ch {
                     self.buffer_mgr.insert(&self.inner, ch)?;
                     if self.buffer_mgr.edit_state() == EditState::ES_EMPTY {
-                        return self.on_commit(req);
+                        return self.on_commit_all(req);
                     }
                 }
             },
             SpecialKey::SK_SPACE => {
-                self.buffer_mgr.focus_next_candidate(&self.inner)?;
+                if (req.key_event.modifier_keys.contains(
+                    &protobuf::EnumOrUnknown::from_i32(
+                        ModifierKey::MODK_SHIFT as i32,
+                    ),
+                )) {
+                    self.buffer_mgr.focus_prev_candidate(&self.inner)?;
+                } else {
+                    self.buffer_mgr.focus_next_candidate(&self.inner)?;
+                }
+                if self.buffer_mgr.edit_state() == EditState::ES_ILLEGAL
+                    && self.inner.conf.input_mode() == InputMode::Classic
+                {
+                    return self.on_commit(req);
+                }
             },
             SpecialKey::SK_ENTER => {
                 return self.on_commit(req);
@@ -114,7 +132,17 @@ impl Engine {
             SpecialKey::SK_BACKSPACE => {
                 self.buffer_mgr.pop(&self.inner)?;
             },
-            SpecialKey::SK_TAB => {},
+            SpecialKey::SK_TAB => {
+                if (req.key_event.modifier_keys.contains(
+                    &protobuf::EnumOrUnknown::from_i32(
+                        ModifierKey::MODK_SHIFT as i32,
+                    ),
+                )) {
+                    self.buffer_mgr.show_prev_page_candidate(&self.inner)?;
+                } else {
+                    self.buffer_mgr.show_next_page_candidate(&self.inner)?;
+                }
+            },
             SpecialKey::SK_LEFT => {},
             SpecialKey::SK_RIGHT => {},
             SpecialKey::SK_UP => {
@@ -144,7 +172,33 @@ impl Engine {
         Ok(Response::new())
     }
 
+    fn on_commit_all(&mut self, req: Request) -> Result<Response> {
+        let committed_text = self.buffer_mgr.commit_all(&self.inner)?;
+        let mut response = Response::default();
+        self.attach_buffer_data(&mut response)?;
+        response.committed_text = committed_text;
+        response.committed = true;
+        self.buffer_mgr.reset()?;
+        if let Some(ref mut p) = response.preedit.as_mut() {
+            p.caret = 0;
+            p.focused_caret = 0;
+        }
+        response.edit_state = EditState::ES_EMPTY.into();
+        Ok(response)
+    }
+
     fn on_commit(&mut self, req: Request) -> Result<Response> {
+        if (self.inner.conf.input_mode() == InputMode::Classic) {
+            // only classic mode need comosite remainder
+            let committed_text = self
+                .buffer_mgr
+                .commit_candidate_and_comosite_remainder(&self.inner)?;
+            let mut response = Response::default();
+            self.attach_buffer_data(&mut response)?;
+            response.committed_text = committed_text;
+            response.committed = true;
+            return Ok(response);
+        }
         let mut response = Response::new();
         response.committed = true;
         self.attach_preedit(&mut response)?;
@@ -168,9 +222,28 @@ impl Engine {
     fn on_switch_input_mode(&mut self, req: Request) -> Result<Response> {
         self.buffer_mgr.reset();
         match req.config.input_mode.enum_value_or_default() {
-            AppInputMode::CONTINUOUS => self.inner.conf.set_input_mode(InputMode::Continuous),
-            AppInputMode::CLASSIC => self.inner.conf.set_input_mode(InputMode::Classic),
-            AppInputMode::MANUAL => self.inner.conf.set_input_mode(InputMode::Manual),
+            AppInputMode::CONTINUOUS => {
+                self.inner.conf.set_input_mode(InputMode::Continuous)
+            },
+            AppInputMode::CLASSIC => {
+                self.inner.conf.set_input_mode(InputMode::Classic)
+            },
+            AppInputMode::MANUAL => {
+                self.inner.conf.set_input_mode(InputMode::Manual)
+            },
+        }
+        Ok(Response::new())
+    }
+
+    fn on_switch_output_mode(&mut self, req: Request) -> Result<Response> {
+        self.buffer_mgr.reset();
+        match req.config.output_mode.enum_value_or_default() {
+            AppOutputMode::LOMAJI => {
+                self.inner.conf.set_output_mode(OutputMode::Lomaji)
+            },
+            AppOutputMode::HANJI => {
+                self.inner.conf.set_output_mode(OutputMode::Hanji)
+            },
         }
         Ok(Response::new())
     }
@@ -190,9 +263,24 @@ impl Engine {
     fn on_set_config(&mut self, req: Request) -> Result<Response> {
         self.buffer_mgr.reset();
         match req.config.input_mode.enum_value_or_default() {
-            AppInputMode::CONTINUOUS => self.inner.conf.set_input_mode(InputMode::Continuous),
-            AppInputMode::CLASSIC => self.inner.conf.set_input_mode(InputMode::Classic),
-            AppInputMode::MANUAL => self.inner.conf.set_input_mode(InputMode::Manual),
+            AppInputMode::CONTINUOUS => {
+                self.inner.conf.set_input_mode(InputMode::Continuous)
+            },
+            AppInputMode::CLASSIC => {
+                self.inner.conf.set_input_mode(InputMode::Classic)
+            },
+            AppInputMode::MANUAL => {
+                self.inner.conf.set_input_mode(InputMode::Manual)
+            },
+        }
+
+        match req.config.output_mode.enum_value_or_default() {
+            AppOutputMode::LOMAJI => {
+                self.inner.conf.set_output_mode(OutputMode::Lomaji)
+            },
+            AppOutputMode::HANJI => {
+                self.inner.conf.set_output_mode(OutputMode::Hanji)
+            },
         }
 
         // let mut telex_enabled = BoolValue::new();
@@ -202,7 +290,6 @@ impl Engine {
             } else {
                 self.inner.conf.set_tone_mode(ToneMode::Numeric)
             }
-
         }
 
         Ok(Response::new())
@@ -250,6 +337,8 @@ fn ascii_char_from_i32(ch: i32) -> Option<char> {
     let ch = ch as u32;
     if let Some(ch) = char::from_u32(ch) {
         if ch.is_ascii_alphanumeric() {
+            return Some(ch);
+        } else if ch.is_ascii_punctuation() {
             return Some(ch);
         }
     }

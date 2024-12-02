@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use anyhow::Result;
 
 use crate::buffer::Buffer;
@@ -5,9 +7,12 @@ use crate::buffer::BufferElement;
 use crate::buffer::BufferElementEnum;
 use crate::buffer::KhiinElem;
 use crate::buffer::StringElem;
-use crate::config;
 use crate::config::Config;
+use crate::config::ToneMode;
+use crate::config::OutputMode;
 use crate::data::Dictionary;
+use crate::db::models::InputType;
+use crate::db::models::CaseType;
 use crate::db::Database;
 use crate::engine::EngInner;
 use crate::input::parser::SectionType;
@@ -17,8 +22,8 @@ use super::parse_whole_input;
 use super::Syllable;
 
 use khiin_ji::lomaji::has_tone_letter;
-use khiin_ji::lomaji::strip_tone_diacritic;
 use khiin_ji::lomaji::strip_khin;
+use khiin_ji::lomaji::strip_tone_diacritic;
 use khiin_ji::Tone;
 
 pub(crate) fn get_candidates(
@@ -71,6 +76,105 @@ fn candidates_for_splittable(
     Ok(result)
 }
 
+fn get_case_type (text: &str) -> CaseType {
+    if text.is_empty() {
+        return CaseType::Lowercase;
+    }
+    if text.chars().all(|c| c.is_uppercase()) {
+        CaseType::Uppercase
+    } else if let Some(first_char) = text.chars().next() {
+        if first_char.is_uppercase() {
+            CaseType::FirstUpper
+        } else {
+            CaseType::Lowercase
+        }
+    } else {
+        CaseType::Lowercase
+    }
+} 
+
+pub(crate) fn get_candidates_for_word(
+    engine: &EngInner,
+    query: &str,
+) -> Result<Vec<Buffer>> {
+    let EngInner { db, dict, conf } = &engine;
+    let raw_input = query.to_string().to_ascii_lowercase();
+    let case_type = get_case_type(query);
+    let candidates =
+        db.select_conversions_for_tone(InputType::Detoned, raw_input.as_str(), conf.is_hanji_first())?;
+
+    let mut result: Vec<_> = candidates
+        .into_iter()
+        .map(|mut conv| {
+            conv.set_output_case_type(case_type.clone());
+            KhiinElem::from_conversion(&conv.key_sequence, &conv)
+        })
+        .filter(|elem| elem.is_ok())
+        .map(|elem| elem.unwrap().into())
+        .filter(|elem: &BufferElementEnum| {
+            let len = elem.raw_text().len();
+            len >= raw_input.len() || dict.can_segment(&raw_input[len..])
+        })
+        .map(|elem| {
+            let mut buffer: Buffer = elem.into();
+            buffer.set_converted(true);
+            buffer
+        })
+        .collect();
+    let mut seen = HashSet::new();
+    result.retain(|elem| seen.insert(elem.display_text().to_string()));
+    Ok(result)
+}
+
+pub(crate) fn get_candidates_for_word_with_tone(
+    engine: &EngInner,
+    query: &str,
+    tone_char: char,
+) -> Result<Vec<Buffer>> {
+    let EngInner { db, dict, conf } = &engine;
+    let mut tone_key = get_numberic_tone_char(engine, tone_char);
+    if (tone_char == engine.conf.t8() && get_shared_t8_tone(engine) != Tone::T8) {
+        // shared T8 key
+        let lower_str = query
+            .to_lowercase()
+            .replace("ⁿ", "")
+            .replace("ᴺ", "")
+            .replace("nn", "");
+        if lower_str.ends_with(&['p', 't', 'k', 'h']) {
+            tone_key = '8'
+        }
+    }
+    let raw_input = query.to_string().to_ascii_lowercase();
+    let tone_input = format!("{}{}", raw_input, tone_key);
+    let case_type = get_case_type(query);
+    let candidates = if (tone_char == '1' || tone_char == '4') {
+        db.select_conversions_for_word(InputType::Numeric, tone_input.as_str(), raw_input.as_str(), conf.is_hanji_first())?
+    } else {
+        db.select_conversions_for_tone(InputType::Numeric, tone_input.as_str(), conf.is_hanji_first())?
+    };
+
+    let result = candidates
+        .into_iter()
+        .map(|mut conv| {
+            conv.set_output_case_type(case_type.clone());
+            KhiinElem::from_conversion(&conv.key_sequence, &conv)
+        })
+        .filter(|elem| elem.is_ok())
+        .map(|elem| elem.unwrap().into())
+        .filter(|elem: &BufferElementEnum| {
+            let len = elem.raw_text().len();
+            len >= raw_input.len() || dict.can_segment(&raw_input[len..])
+        })
+        .map(|elem: BufferElementEnum| {
+            let mut buffer: Buffer = elem.into();
+            buffer.set_converted(true);
+            buffer
+        })
+        .collect();
+
+    Ok(result)
+}
+
 pub(crate) fn convert_all(
     engine: &EngInner,
     raw_buffer: &str,
@@ -105,6 +209,7 @@ pub(crate) fn convert_to_telex(
     let (stripped, tone) = strip_tone_diacritic(raw_buffer);
 
     let pre_tone_char = tone_to_char(engine, &tone);
+    let lower_key = key.to_ascii_lowercase();
     if pre_tone_char != ' ' && pre_tone_char == key.to_ascii_lowercase() {
         // duplicate tone characters
         let mut composition = Buffer::new();
@@ -112,11 +217,53 @@ pub(crate) fn convert_to_telex(
         raw_input.push(key);
         composition.push(StringElem::from(raw_input).into());
         return (Ok(composition), false);
-    } else if (raw_buffer.starts_with("--") && key.to_ascii_lowercase() == engine.conf.khin()) {
+    } else if (raw_buffer.starts_with("--")
+        && lower_key == engine.conf.khin())
+    {
         // duplicate khin characters
         let mut composition = Buffer::new();
         let mut raw_input = stripped.to_string();
         raw_input.drain(0..2);
+        raw_input.push(key);
+        composition.push(StringElem::from(raw_input).into());
+        return (Ok(composition), false);
+    } else if (lower_key == 'n' && (raw_buffer.ends_with("ⁿ") || raw_buffer.ends_with("ᴺ"))) {
+        let mut composition = Buffer::new();
+        let mut raw_input = stripped.to_string();
+        raw_input.pop();
+        raw_input.push(key);
+        composition.push(StringElem::from(raw_input).into());
+        return (Ok(composition), false);
+    } else if ((lower_key== 'u' || lower_key == 'o') && (raw_buffer.ends_with("o͘") || raw_buffer.ends_with("O͘"))) {
+        let mut composition = Buffer::new();
+        let mut raw_input = stripped.to_string();
+        raw_input.pop();
+        raw_input.push(key);
+        composition.push(StringElem::from(raw_input).into());
+        return (Ok(composition), false);
+    } else if (lower_key == 'o' && (raw_buffer.ends_with("o̤") || raw_buffer.ends_with("O̤"))) {
+        let mut composition = Buffer::new();
+        let mut raw_input = stripped.to_string();
+        raw_input.pop();
+        raw_input.pop();
+        if lower_key == key {
+            raw_input.push('e');    
+        } else {
+            raw_input.push('E');
+        }
+        raw_input.push(key);
+        composition.push(StringElem::from(raw_input).into());
+        return (Ok(composition), false);
+    } else if (lower_key == 'u' && (raw_buffer.ends_with("ṳ") || raw_buffer.ends_with("Ṳ"))) {
+        let mut composition = Buffer::new();
+        let mut raw_input = stripped.to_string();
+        raw_input.pop();
+        raw_input.pop();
+        if lower_key == key {
+            raw_input.push('e');    
+        } else {
+            raw_input.push('E');
+        }
         raw_input.push(key);
         composition.push(StringElem::from(raw_input).into());
         return (Ok(composition), false);
@@ -164,7 +311,11 @@ pub(crate) fn convert_to_telex(
     let syllable = word.compose();
     let (mut stripped, tone) = strip_tone_diacritic(&syllable);
     _ = strip_khin(&mut stripped);
-    let ret = engine.dict.is_illegal_syllable(&stripped);
+    stripped = stripped.replace("O͘", "ou").replace("o͘", "ou")
+    .replace("ᴺ", "nn").replace("ⁿ", "nn")
+    .replace("o̤", "eo").replace("O̤", "eo")
+    .replace("ṳ", "eu").replace("Ṳ", "eu");
+    let ret = engine.dict.is_legal_syllable_prefix(&stripped);
 
     let mut composition = Buffer::new();
     composition.push(StringElem::from(syllable).into());
@@ -188,12 +339,32 @@ fn convert_section(
         )?;
 
         if let Some(conv) = conversions.get(0) {
-            let khiin_elem = KhiinElem::from_conversion(&word, conv)?;
+            let khiin_elem: KhiinElem =
+                KhiinElem::from_conversion(&word, conv)?;
             ret.push(khiin_elem.into());
         }
     }
 
     Ok(ret)
+}
+pub(crate) fn get_numberic_tone_char(engine: &EngInner, ch: char) -> char {
+    if (engine.conf.tone_mode() == ToneMode::Telex) {
+        let tone = char_to_tone(engine, ch);
+        match tone {
+            Tone::None => ch,
+            Tone::T1 => ch,
+            Tone::T2 => '2',
+            Tone::T3 => '3',
+            Tone::T4 => ch,
+            Tone::T5 => '5',
+            Tone::T6 => '6',
+            Tone::T7 => '7',
+            Tone::T8 => '8',
+            Tone::T9 => '9',
+        }
+    } else {
+        ch
+    }
 }
 
 fn tone_to_char(engine: &EngInner, tone: &Tone) -> char {

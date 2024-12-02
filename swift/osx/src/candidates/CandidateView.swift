@@ -7,11 +7,16 @@ struct CandidateView: View {
     var body: some View {
         let candList = self.viewModel.currentCommand.response.candidateList
         let candidates = candList.candidates
-        let focus = Int(candList.focused) + 1
+        let focused = Int(candList.focused)
+        let page = Int(candList.page)
+
+        let start = page * 9
+        let end = start + 9 > candidates.count ? candidates.count : start + 9
+        let focus = focused == -1 ? -1 : focused % 9 + 1
 
         ZStack {
             VStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(zip(1...9, candidates)), id: \.0) {
+                ForEach(Array(zip(1...9, candidates[start..<end])), id: \.0) {
                     index, candidate in
 
                     CandidateItem(
@@ -44,9 +49,11 @@ struct CandidateItem: View {
                 )
                 .frame(width: 4, height: 16)
 
-                Text("\(index).")
-                    .frame(minWidth: 16)
-                Text(candidate.value)
+                // Text("\(index).")
+                //     .frame(minWidth: 16)
+                Text(candidate.value).font(.system(size: 14.0))
+                Text(candidate.annotation)
+                    .font(.system(size: 9.0))
             }
             .frame(height: 24)
             .padding(.horizontal, 8)

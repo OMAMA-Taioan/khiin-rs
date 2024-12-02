@@ -19,9 +19,8 @@ func getAppDataDir() -> URL? {
 }
 
 func getDatabaseFilePath() -> String? {
-    if let dataDir = getAppDataDir() {
-        return dataDir.appendingPathComponent("khiin.db").absoluteURL
-            .path(percentEncoded: false)
+    if let dbPath = Bundle.main.path(forResource: "khiin", ofType: "db") {
+        return dbPath
     }
 
     return nil

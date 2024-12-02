@@ -26,11 +26,11 @@ class KhiinInputController: IMKInputController {
 
     override func deactivateServer(_ sender: Any!) {
         log.debug("deactivateServer ");
-        if (isManualMode() && isEdited()) {
-            _ = commitCurrent();
-            candidateViewModel.reset();
-        }
+        _ = commitAll()
+        candidateViewModel.reset()
+        self.currentClient?.clearMarkedText()
         self.window?.setFrame(.zero, display: true)
+        self.resetWindow()
     }
 
     override func menu() -> NSMenu! {
@@ -64,14 +64,46 @@ class KhiinInputController: IMKInputController {
         return EngineController.instance.isManualMode();
     }
 
+    func isClassicMode() -> Bool {
+        return EngineController.instance.isClassicMode();
+    }
+
     func getHyphenKey() -> String {
         return isEdited() ? EngineController.instance.hyphenKey() : "";
     }
 
-    func commitCurrent() -> Bool {
+    func getCommitedText() -> String {
+        return self.candidateViewModel.currentCommand.response.committedText
+    }
+
+    func handleResponse() -> Bool {
+        guard let client = self.currentClient else {
+            return false
+        }
+        if (self.isCommited()) {
+            let commitText = self.candidateViewModel
+                .currentCommand
+                .response
+                .committedText
+            client.insert(commitText)
+            self.reset()
+        } else {
+            self.resetWindow()
+            client.mark(self.currentDisplayText())
+        }
+        return true
+    }
+
+    func commitAll() -> Bool {
         var commitText = ""
         if (isManualMode()) {
             commitText = currentDisplayText();
+        } else if (isClassicMode()) {
+            self.candidateViewModel.handleCommit();
+            commitText = self.candidateViewModel
+                .currentCommand
+                .response
+                .committedText
         } else {
             let candList = self.candidateViewModel
                 .currentCommand
@@ -98,8 +130,61 @@ class KhiinInputController: IMKInputController {
         }
 
         client.insert(commitText)
-        EngineController.instance.reset()
-        self.window?.setFrame(.zero, display: true)
+        if (isClassicMode()) {
+            self.resetWindow()
+            client.mark(self.currentDisplayText())
+        } else {
+            self.candidateViewModel.reset()
+            EngineController.instance.reset()
+            self.window?.setFrame(.zero, display: true)
+        }
+        return true
+    }
+
+    func commitCurrent() -> Bool {
+        var commitText = ""
+        if (isManualMode()) {
+            commitText = currentDisplayText();
+        } else if (isClassicMode()) {
+            self.candidateViewModel.handleEnter();
+            commitText = self.candidateViewModel
+                .currentCommand
+                .response
+                .committedText
+        } else {
+            let candList = self.candidateViewModel
+                .currentCommand
+                .response
+                .candidateList
+
+            let candidates = candList.candidates
+            let focus = Int(candList.focused)
+            
+            guard candidates.count > 0 else {
+                return false
+            }
+
+            commitText = candidates[focus < 0 ? 0 : focus].value
+        }
+
+
+        if (commitText.isEmpty) {
+            return false
+        }
+        
+        guard let client = self.currentClient else {
+            return false
+        }
+
+        client.insert(commitText)
+        if (isClassicMode()) {
+            self.resetWindow()
+            client.mark(self.currentDisplayText())
+        } else {
+            self.candidateViewModel.reset()
+            EngineController.instance.reset()
+            self.window?.setFrame(.zero, display: true)
+        }
         return true
     }
 

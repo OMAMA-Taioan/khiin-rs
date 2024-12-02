@@ -4,6 +4,7 @@ use std::hash::Hash;
 
 use anyhow::Result;
 use csv::Reader;
+use khiin_ji::IsHanji;
 use serde::Deserialize;
 
 use crate::db::models::Conversion;
@@ -116,6 +117,8 @@ pub fn conversions_from_csv(
             category,
         } = result?;
 
+        let is_hanji = output.chars().any(|c| c.is_hanji());
+
         if let Some(input_id) = input_lookup.id_of(&input) {
             if seen.insert((input.clone(), output.clone())) {
                 n += 1;
@@ -125,7 +128,8 @@ pub fn conversions_from_csv(
                     weight,
                     annotation,
                     category,
-                })
+                    is_hanji: is_hanji,
+                });
             } else {
                 log::debug!(
                     "Duplicate conversion: {:?}, {:?}",

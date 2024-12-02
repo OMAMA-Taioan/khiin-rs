@@ -87,6 +87,21 @@ impl Buffer {
         })
     }
 
+    pub fn display_annotation(&self) -> String {
+        for elem in self.elems.iter() {
+            if let Some(conv) = elem.candidate() {
+                if let Some(anno) = conv.annotation.clone() {
+                    if anno.is_empty() {
+                        return anno;
+                    } else {
+                        return format!("    ({})", anno);
+                    }
+                }
+            }
+        }
+        return String::new();
+    }
+
     pub fn set_converted(&mut self, converted: bool) {
         for elem in self.elems.iter_mut() {
             elem.set_converted(converted);

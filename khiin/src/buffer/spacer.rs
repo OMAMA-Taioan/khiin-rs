@@ -77,13 +77,13 @@ impl BufferElement for Spacer {
         None
     }
 
-    fn insert(&mut self, idx: usize, ch: char) {
-        // Not impl
-    }
+    // fn insert(&mut self, idx: usize, ch: char) {
+    //     // Not impl
+    // }
 
-    fn erase(&mut self, idx: usize) {
-        if idx == 0 {
-            self.deleted = true
-        }
-    }
+    // fn erase(&mut self, idx: usize) {
+    //     if idx == 0 {
+    //         self.deleted = true
+    //     }
+    // }
 }

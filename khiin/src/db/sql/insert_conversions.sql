@@ -4,7 +4,8 @@ insert into
         output,
         weight,
         category,
-        annotation
+        annotation,
+        is_hanji
     )
 values
-    (?, ?, ?, ?, ?)
+    (?, ?, ?, ?, ?, ?)
