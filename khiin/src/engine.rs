@@ -126,7 +126,7 @@ impl Engine {
                 }
             },
             SpecialKey::SK_ENTER => {
-                return self.on_commit(req);
+                return self.on_enter(req);
             },
             SpecialKey::SK_ESC => {},
             SpecialKey::SK_BACKSPACE => {
@@ -185,6 +185,19 @@ impl Engine {
         }
         response.edit_state = EditState::ES_EMPTY.into();
         Ok(response)
+    }
+
+    fn on_enter(&mut self, req: Request) -> Result<Response> {
+        if (self.inner.conf.input_mode() == InputMode::Classic) {
+            // check is candidate is action
+            if self.buffer_mgr.focused_candidate_is_action() {
+                self.buffer_mgr.expand_candidate(&self.inner)?;
+                let mut response = Response::default();
+                self.attach_buffer_data(&mut response)?;
+                return Ok(response);
+            }
+        }
+        return self.on_commit(req);
     }
 
     fn on_commit(&mut self, req: Request) -> Result<Response> {

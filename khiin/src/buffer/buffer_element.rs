@@ -5,6 +5,7 @@ use enum_dispatch::enum_dispatch;
 use crate::buffer::KhiinElem;
 use crate::buffer::Spacer;
 use crate::buffer::StringElem;
+use crate::buffer::ActionElem;
 use crate::db::models::KeyConversion;
 
 #[enum_dispatch(BufferElement)]
@@ -13,6 +14,7 @@ pub(crate) enum BufferElementEnum {
     StringElem,
     KhiinElem,
     Spacer,
+    ActionElem,
 }
 
 pub(crate) enum ConversionState {

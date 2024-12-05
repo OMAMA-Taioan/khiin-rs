@@ -35,6 +35,7 @@ use crate::input::converter::get_candidates_for_word_with_tone;
 use crate::input::converter::get_numberic_tone_char;
 use crate::utils::CharSubstr;
 
+use super::ActionElem;
 use super::Spacer;
 use super::StringElem;
 
@@ -57,6 +58,9 @@ pub(crate) struct BufferMgr {
 
     /// Previous committed word, only for classic mode
     pre_committed: String,
+
+    /// Whether the candidate is expanded
+    cand_expanded: bool,
 }
 
 impl BufferMgr {
@@ -70,6 +74,7 @@ impl BufferMgr {
             focused_cand_idx: None,
             cand_page: 0,
             pre_committed: String::new(),
+            cand_expanded: false,
         }
     }
 
@@ -172,6 +177,7 @@ impl BufferMgr {
         self.focused_elem_idx = 0;
         self.cand_page = 0;
         self.pre_committed.clear();
+        self.cand_expanded = false;
         Ok(())
     }
 
@@ -228,6 +234,11 @@ impl BufferMgr {
             .get(index)
             .ok_or(anyhow!("Candidate index out of bounds"))?
             .clone();
+
+        if candidate.is_action() {
+            let raw_text = self.composition.raw_text();
+            return Ok(raw_text);
+        }
 
         let mut cand_raw_count = candidate.raw_char_count();
         let mut candi_text = candidate.display_text();
@@ -420,11 +431,7 @@ impl BufferMgr {
         self.edit_state = EditState::ES_COMPOSING;
 
         let mut raw_input = self.composition.raw_text();
-        self.build_composition_classic(
-            engine,
-            raw_input,
-            ch,
-        )
+        self.build_composition_classic(engine, raw_input, ch)
     }
 
     fn pop_classic(&mut self, engine: &EngInner) -> Result<()> {
@@ -441,11 +448,7 @@ impl BufferMgr {
         let ch = raw_input.chars().last().unwrap();
         raw_input.pop();
 
-        self.build_composition_classic(
-            engine,
-            raw_input,
-            ch,
-        )
+        self.build_composition_classic(engine, raw_input, ch)
     }
 
     fn attach_hypen_candicate(&mut self) {
@@ -724,6 +727,7 @@ impl BufferMgr {
             }
         } else {
             let size = query.chars().count();
+            let mut found = false;
             for i in (0..size).rev() {
                 let end = i + 1;
                 let substr = &query[0..end];
@@ -734,14 +738,28 @@ impl BufferMgr {
                 if let Ok(candidates) = get_candidates_for_word(engine, substr)
                 {
                     if (!candidates.is_empty()) {
-                        self.candidates = candidates;
-                        break;
+                        if !found {
+                            found = true;
+                            self.candidates = candidates;
+                        } else if self.cand_expanded {
+                            // expand candidate
+                            self.candidates.extend(candidates);
+                        } else {
+                            let mut buf = Buffer::new();
+                            buf.push(ActionElem::new().into());
+                            self.candidates.push(buf);
+                            break;
+                        }
                     }
                 };
             }
             let mut guess_candidate = convert_all(engine, &raw_input)?;
             guess_candidate.set_converted(true);
-            if !self.candidates.iter().any(|cand| guess_candidate.eq_display(cand)) {
+            if !self
+                .candidates
+                .iter()
+                .any(|cand| guess_candidate.eq_display(cand))
+            {
                 self.candidates.insert(0, guess_candidate);
             }
         }
@@ -966,6 +984,18 @@ impl BufferMgr {
             .ok_or(anyhow!("Candidate index out of bounds"))?
             .clone();
 
+        if candidate.is_action() {
+            let comp_raw = self.composition.raw_text();
+            self.composition = Buffer::new();
+            self.composition.push(
+                StringElem::from_raw_input(comp_raw.clone(), comp_raw).into(),
+            );
+            self.focused_cand_idx = Some(index);
+            self.cand_page = index / 9;
+            self.char_caret = self.composition.display_char_count();
+            return Ok(());
+        }
+
         let mut cand_raw_count = candidate.raw_char_count();
         let mut candi_text = candidate.display_text();
         let comp_raw = self.composition.raw_text();
@@ -990,6 +1020,19 @@ impl BufferMgr {
         self.char_caret = self.composition.display_char_count();
 
         Ok(())
+    }
+
+    pub fn focused_candidate_is_action(&self) -> bool {
+        self.focused_cand_idx.is_some()
+            && self.candidates[self.focused_cand_idx.unwrap()].is_action()
+    }
+
+    pub fn expand_candidate(&mut self, engine: &EngInner) -> Result<()> {
+        let index = self.focused_cand_idx.unwrap();
+        self.cand_expanded = true;
+        let composition = self.composition.raw_text();
+        self.build_composition_continuous(engine, composition)?;
+        self.focus_candidate_classic(engine, index)
     }
 }
 

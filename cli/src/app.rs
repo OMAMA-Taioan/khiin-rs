@@ -39,7 +39,11 @@ fn clear(stdout: &mut Stdout) -> Result<()> {
     Ok(())
 }
 
-fn blank_display(stdout: &mut Stdout, mode: &AppInputMode, output_mode: &AppOutputMode) -> Result<()> {
+fn blank_display(
+    stdout: &mut Stdout,
+    mode: &AppInputMode,
+    output_mode: &AppOutputMode,
+) -> Result<()> {
     let input_mode = match mode {
         AppInputMode::CONTINUOUS => "Auto",
         AppInputMode::CLASSIC => "Classic",
@@ -49,7 +53,17 @@ fn blank_display(stdout: &mut Stdout, mode: &AppInputMode, output_mode: &AppOutp
         AppOutputMode::LOMAJI => "Lomaji",
         AppOutputMode::HANJI => "Hanji",
     };
-    update_display(stdout, &input_mode, &output_mode_str, "", "", "", 0, "", &Vec::new())?;
+    update_display(
+        stdout,
+        &input_mode,
+        &output_mode_str,
+        "",
+        "",
+        "",
+        0,
+        "",
+        &Vec::new(),
+    )?;
     Ok(())
 }
 
@@ -121,7 +135,10 @@ fn get_candidate_page(cmd: &Command) -> Vec<String> {
     let page = cl.page as usize;
 
     let (start, end) = if cl.focused < 0 {
-        (page * page_size, std::cmp::min(item_count, (page + 1) * page_size))
+        (
+            page * page_size,
+            std::cmp::min(item_count, (page + 1) * page_size),
+        )
     } else {
         page_range(item_count, page_size, cl.focused as usize)
     };
@@ -225,7 +242,12 @@ fn draw_ime(
 fn draw_footer(stdout: &mut Stdout) -> Result<()> {
     let (_, rows) = size()?;
 
-    let help = vec!["<Esc>: Quit", "<Enter>: Clear", "<Backtick>: Switch mode", "<Tab>: Switch output mode"];
+    let help = vec![
+        "<Esc>: Quit",
+        "<Enter>: Clear",
+        "<Backtick>: Switch mode",
+        "<Tab>: Switch output mode",
+    ];
 
     let max_len = help.iter().map(|s| s.chars().count()).max().unwrap_or(0) + 4;
 
@@ -265,7 +287,7 @@ pub fn run(stdout: &mut Stdout) -> Result<()> {
     let mut done_buffer = String::new();
 
     loop {
-        let key = read_key()?;
+        let key: KeyEvent = read_key()?;
 
         if key.kind != KeyEventKind::Press {
             continue;
@@ -286,7 +308,14 @@ pub fn run(stdout: &mut Stdout) -> Result<()> {
             raw_input.clear();
             done_buffer.clear();
             let cmd = engine.send_switch_mode_command(&intput_mode)?;
-            draw_ime(stdout, &raw_input, &mut done_buffer, cmd, &intput_mode, &output_mode)?;
+            draw_ime(
+                stdout,
+                &raw_input,
+                &mut done_buffer,
+                cmd,
+                &intput_mode,
+                &output_mode,
+            )?;
             continue;
         } else if key.code == KeyCode::Tab {
             if output_mode == AppOutputMode::LOMAJI {
@@ -295,22 +324,29 @@ pub fn run(stdout: &mut Stdout) -> Result<()> {
                 output_mode = AppOutputMode::LOMAJI;
             }
             let cmd = engine.send_switch_output_mode_command(&output_mode)?;
-            draw_ime(stdout, &raw_input, &mut done_buffer, cmd, &intput_mode, &output_mode)?;
+            draw_ime(
+                stdout,
+                &raw_input,
+                &mut done_buffer,
+                cmd,
+                &intput_mode,
+                &output_mode,
+            )?;
             continue;
         }
 
         match key.code {
             KeyCode::Enter => {
-                if intput_mode == AppInputMode::CLASSIC {
-                    let cmd = engine.send_commit_command()?;
-                    draw_ime(stdout, &raw_input, &mut done_buffer, cmd, &intput_mode, &output_mode)?;
-                } else {
+                if intput_mode != AppInputMode::CLASSIC {
+                    //     let cmd = engine.send_commit_command()?;
+                    //     draw_ime(stdout, &raw_input, &mut done_buffer, cmd, &intput_mode, &output_mode)?;
+                    // } else {
                     raw_input.clear();
                     done_buffer.clear();
                     engine.reset()?;
                     blank_display(stdout, &intput_mode, &output_mode)?;
+                    continue;
                 }
-                continue;
             },
             KeyCode::Backspace => {
                 if !raw_input.is_empty() {
@@ -329,7 +365,14 @@ pub fn run(stdout: &mut Stdout) -> Result<()> {
         if cmd.response.committed {
             raw_input.clear();
         }
-        draw_ime(stdout, &raw_input, &mut done_buffer, cmd, &intput_mode, &output_mode)?;
+        draw_ime(
+            stdout,
+            &raw_input,
+            &mut done_buffer,
+            cmd,
+            &intput_mode,
+            &output_mode,
+        )?;
     }
 
     clear(stdout)?;
