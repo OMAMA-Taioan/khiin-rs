@@ -120,6 +120,13 @@ public class EngineController {
         return self.config?.inputMode == .classic
     }
 
+    public func isHanjiFirst() -> Bool {
+        if (self.config == nil) {
+            return false
+        }
+        return self.config?.outputMode == .hanji
+    }
+
     public func changeInputMode() -> Khiin_Proto_Command? {
         if (self.config == nil) {
             log.debug("Config not instantiated")

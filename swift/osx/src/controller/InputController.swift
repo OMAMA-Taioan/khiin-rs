@@ -68,6 +68,10 @@ class KhiinInputController: IMKInputController {
         return EngineController.instance.isClassicMode();
     }
 
+    func isHanjiFirst() -> Bool {
+        return EngineController.instance.isHanjiFirst();
+    }
+
     func getHyphenKey() -> String {
         return isEdited() ? EngineController.instance.hyphenKey() : "";
     }

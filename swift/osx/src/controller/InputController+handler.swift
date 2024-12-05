@@ -58,7 +58,7 @@ extension KhiinInputController {
         if (self.isClassicMode()) {
             if (event.characters == "'") {
                 log.debug("handle punctuation '" + event.characters!)
-                self.candidateViewModel.handleChar("''")
+                self.candidateViewModel.handleChar("'")
                 return self.handleResponse();
             } else if (event.characters == "\"") {
                 log.debug("handle punctuation \"" + event.characters!)
@@ -86,6 +86,14 @@ extension KhiinInputController {
                     if (modifiers.contains(.shift) || modifiers.contains(.capsLock)) {
                         // shif xor caplocks
                         char = char.uppercased();
+                    }
+
+                    // check previous char is punctuation
+                    let punctuations = ".,!?()'\":<>;+=_[]"
+                    let text = self.currentDisplayText()
+                    if (text.count > 0 && punctuations.contains(text.last!)) {
+                        _ = self.commitCurrent();
+                        self.candidateViewModel.reset()
                     }
                 }
                 self.candidateViewModel.handleChar(char)
@@ -163,6 +171,11 @@ extension KhiinInputController {
         }
 
         if (!self.isEdited()) {
+            // if key is space, and classic mode, and hanji first, then don't reset window
+            if (self.isClassicMode() && self.isHanjiFirst() && event.keyCode.representative == .space) {
+                client.insert("　")
+                return true
+            }
             return false
         }
         
