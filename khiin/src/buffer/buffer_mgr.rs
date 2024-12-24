@@ -835,6 +835,14 @@ impl BufferMgr {
 
         Ok(())
     }
+    pub fn focus_candidate_by_index(&mut self, engine: &EngInner, index: usize) -> Result<()> {
+        let to_focus = self.cand_page * 9 + index;
+        if to_focus >= self.candidates.len() {
+            return Err(anyhow!("Candidate index out of bounds"));
+        }
+        self.focus_candidate(engine, to_focus);
+        Ok(())
+    }
 
     pub fn focus_next_candidate(&mut self, engine: &EngInner) -> Result<()> {
         if self.edit_state == EditState::ES_COMPOSING {

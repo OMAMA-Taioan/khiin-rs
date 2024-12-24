@@ -124,6 +124,7 @@ extension KhiinInputController {
                     self.candidateViewModel.reset()
                     return false;
                 }
+                log.debug("handle number " + String(num))
                 self.candidateViewModel.handleChar(String(num))
                 if (self.isManualMode()) {
                     if (self.isCommited()) {
@@ -134,6 +135,10 @@ extension KhiinInputController {
                         client.mark(self.currentDisplayText())
                     }
                 } else if (self.isClassicMode()) {
+                    if (self.isCommited()) {
+                        log.debug("handle number for commit ")
+                        client.insert(self.getCommitedText());
+                    }
                     self.resetWindow()
                     client.mark(self.currentDisplayText())
                 } else {
@@ -172,7 +177,7 @@ extension KhiinInputController {
 
         if (!self.isEdited()) {
             // if key is space, and classic mode, and hanji first, then don't reset window
-            if (self.isClassicMode() && self.isHanjiFirst() && event.keyCode.representative == .space) {
+            if (self.isClassicMode() && self.isHanjiFirst() && event.keyCode.representative == .space && !modifiers.contains(.shift)) {
                 client.insert("　")
                 return true
             }

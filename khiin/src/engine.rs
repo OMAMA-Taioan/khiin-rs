@@ -103,6 +103,22 @@ impl Engine {
             SpecialKey::SK_NONE => {
                 let ch = ascii_char_from_i32(req.key_event.key_code);
                 if let Some(ch) = ch {
+                    // if ch is number
+                    if ch.is_ascii_digit()
+                        && self.inner.conf.input_mode() == InputMode::Classic
+                        && self.inner.conf.tone_mode() == ToneMode::Telex
+                    {
+                        let idx = ch.to_digit(10).unwrap() as usize;
+                        if idx > 0 {
+                            if let Ok(_) = self
+                                .buffer_mgr
+                                .focus_candidate_by_index(&self.inner, idx - 1)
+                            {
+                                return self.on_commit(req);
+                            }
+                        }
+                    }
+
                     self.buffer_mgr.insert(&self.inner, ch)?;
                     if self.buffer_mgr.edit_state() == EditState::ES_EMPTY {
                         return self.on_commit_all(req);
