@@ -58,16 +58,13 @@ extension KhiinInputController {
         if (self.isClassicMode()) {
             if (event.characters == "'") {
                 log.debug("handle punctuation '" + event.characters!)
-                self.candidateViewModel.handleChar("'")
-                return self.handleResponse();
+                return self.handlePunctuation("'");
             } else if (event.characters == "\"") {
                 log.debug("handle punctuation \"" + event.characters!)
-                self.candidateViewModel.handleChar("\"")
-                return self.handleResponse();
+                return self.handlePunctuation("\"");
             } else if (event.characters == ":") {
                 log.debug("handle punctuation :" + event.characters!)
-                self.candidateViewModel.handleChar(":")
-                return self.handleResponse();
+                return self.handlePunctuation(":");
             }
         }
         switch event.keyCode.representative {
@@ -89,7 +86,7 @@ extension KhiinInputController {
                     }
 
                     // check previous char is punctuation
-                    let punctuations = ".,!?()'\":<>;+=_[]"
+                    let punctuations = ".,!?()'\":<>;+=_[]「」‘’『』々〱〈《<«〉》>»+＋⁺+⁺=＝〓_—＿⁻_—⁻〔【〖〕】〗"
                     let text = self.currentDisplayText()
                     if (text.count > 0 && punctuations.contains(text.last!)) {
                         _ = self.commitCurrent();
@@ -108,14 +105,11 @@ extension KhiinInputController {
             case .number(let num):
                 if (modifiers.contains(.shift) && self.isClassicMode()) {
                     if (num == 1) {
-                        self.candidateViewModel.handleChar("!")
-                        return self.handleResponse();
+                        return self.handlePunctuation("!");
                     } else if (num == 9) {
-                        self.candidateViewModel.handleChar("(")
-                        return self.handleResponse();
+                        return self.handlePunctuation("(");
                     } else if (num == 0) {
-                        self.candidateViewModel.handleChar(")")
-                        return self.handleResponse();
+                        return self.handlePunctuation(")");
                     }
                 }
 
@@ -149,26 +143,19 @@ extension KhiinInputController {
                 log.debug("handle punctuation " + ch)
                 if (self.isClassicMode()) {
                     if (".,'=[];".contains(ch) && !modifiers.contains(.shift)) {
-                        self.candidateViewModel.handleChar(ch)
-                        return self.handleResponse();
+                        return self.handlePunctuation(ch);
                     } else if (ch == "/" && modifiers.contains(.shift)) {
-                        self.candidateViewModel.handleChar("?")
-                        return self.handleResponse();
+                        return self.handlePunctuation("?");
                     } else if (ch == "'" && modifiers.contains(.shift)) {
-                        self.candidateViewModel.handleChar("\"")
-                        return self.handleResponse();
+                        return self.handlePunctuation("\"");
                     } else if (ch == "," && modifiers.contains(.shift)) {
-                        self.candidateViewModel.handleChar("<")
-                        return self.handleResponse();
+                        return self.handlePunctuation("<");
                     } else if (ch == "." && modifiers.contains(.shift)) {
-                        self.candidateViewModel.handleChar(">")
-                        return self.handleResponse();
+                        return self.handlePunctuation(">");
                     } else if (ch == "=" && modifiers.contains(.shift)) {
-                        self.candidateViewModel.handleChar("+")
-                        return self.handleResponse();
+                        return self.handlePunctuation("+");
                     } else if (ch == "-" && modifiers.contains(.shift)) {
-                        self.candidateViewModel.handleChar("_")
-                        return self.handleResponse();
+                        return self.handlePunctuation("_");
                     }
                 }
             default:

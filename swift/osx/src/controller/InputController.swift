@@ -98,6 +98,12 @@ class KhiinInputController: IMKInputController {
         return true
     }
 
+    func handlePunctuation(_ char: String) -> Bool {
+        _ = self.commitAll();
+        self.candidateViewModel.handleChar(char)
+        return self.handleResponse();
+    }
+
     func commitAll() -> Bool {
         var commitText = ""
         if (isManualMode()) {
