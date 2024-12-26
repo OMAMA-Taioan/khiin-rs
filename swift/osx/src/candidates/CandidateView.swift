@@ -12,11 +12,11 @@ struct CandidateView: View {
 
         let start = page * 9
         let end = start + 9 > candidates.count ? candidates.count : start + 9
-        let focus = focused == -1 ? -1 : focused % 9 + 1
+        let focus = focused == -1 ? -1 : focused % 9
 
         ZStack {
             VStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(zip(1...9, candidates[start..<end])), id: \.0) {
+                ForEach(Array(zip(0...8, candidates[start..<end])), id: \.0) {
                     index, candidate in
 
                     CandidateItem(
@@ -49,8 +49,10 @@ struct CandidateItem: View {
                 )
                 .frame(width: 4, height: 16)
 
-                Text("\(index).")
-                    .frame(minWidth: 16)
+                if index > 0 {
+                    Text("\(index).")
+                        .frame(minWidth: 16)
+                }
                 Text(candidate.value).font(.system(size: 14.0))
                 Text(candidate.annotation)
                     .font(.system(size: 9.0))

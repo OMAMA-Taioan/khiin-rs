@@ -836,9 +836,9 @@ impl BufferMgr {
         Ok(())
     }
     pub fn focus_candidate_by_index(&mut self, engine: &EngInner, index: usize) -> Result<()> {
-        let to_focus = self.cand_page * 9 + index;
+        let mut to_focus = self.cand_page * 9 + index;
         if to_focus >= self.candidates.len() {
-            return Err(anyhow!("Candidate index out of bounds"));
+            to_focus = self.candidates.len() - 1;
         }
         self.focus_candidate(engine, to_focus);
         Ok(())
@@ -1041,6 +1041,10 @@ impl BufferMgr {
         let composition = self.composition.raw_text();
         self.build_composition_continuous(engine, composition)?;
         self.focus_candidate_classic(engine, index)
+    }
+
+    pub fn is_focused(&self) -> bool {
+        return self.focused_cand_idx.is_some();
     }
 }
 
