@@ -145,6 +145,39 @@ impl Database {
         Ok(result)
     }
 
+    pub fn select_conversions_by_hanlo(
+        &self,
+        input_type: InputType,
+        query: &str,
+        is_hanji_first: bool,
+    ) -> Result<Vec<KeyConversion>> {
+        let sql = if is_hanji_first {
+            format!(
+                include_str!("sql/select_conversions_by_hanji.sql"),
+                limit = "limit 1"
+            )
+        } else {
+            format!(
+                include_str!("sql/select_conversions_by_lomaji.sql"),
+                limit = "limit 1"
+            )
+        };
+
+        let mut stmt = self.conn.prepare(&sql)?;
+        let mut rows = stmt.query(named_params! {
+            ":query": query,
+            ":input_type": input_type as i64,
+        })?;
+
+        let mut result = Vec::new();
+        while let Some(row) = rows.next()? {
+            result.push(row.try_into()?);
+        }
+
+        Ok(result)
+    }
+
+
     pub fn select_conversions_for_tone(
         &self,
         input_type: InputType,

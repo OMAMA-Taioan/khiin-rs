@@ -28,6 +28,7 @@ use crate::data::Dictionary;
 use crate::db::Database;
 use crate::engine::EngInner;
 use crate::input::converter::convert_all;
+use crate::input::converter::convert_guess;
 use crate::input::converter::convert_to_telex;
 use crate::input::converter::get_candidates;
 use crate::input::converter::get_candidates_for_word;
@@ -360,7 +361,7 @@ impl BufferMgr {
             return Ok(candi_text);
         }
         let is_hanji = pre_committed.chars().last().unwrap().is_hanji();
-        if is_hanji && candi_text.chars().last().unwrap().is_hanji() {
+        if is_hanji && candi_text.chars().next().unwrap().is_hanji() {
             return Ok(candi_text);
         }
         let mut ret = String::from(' ');
@@ -730,7 +731,7 @@ impl BufferMgr {
             let mut found = false;
             for i in (0..size).rev() {
                 let end = i + 1;
-                let substr = &query[0..end];
+                let substr = &query[0..end].to_ascii_lowercase();
                 // substr ends "'\"<>+_=[]"
                 if substr.ends_with(|c: char| "'\":<>+_=[]".contains(c)) {
                     break;
@@ -753,8 +754,9 @@ impl BufferMgr {
                     }
                 };
             }
-            let mut guess_candidate = convert_all(engine, &raw_input)?;
+            let mut guess_candidate = convert_guess(engine, &raw_input)?;
             guess_candidate.set_converted(true);
+            guess_candidate.autospace();
             if !self
                 .candidates
                 .iter()
@@ -1038,8 +1040,10 @@ impl BufferMgr {
     pub fn expand_candidate(&mut self, engine: &EngInner) -> Result<()> {
         let index = self.focused_cand_idx.unwrap();
         self.cand_expanded = true;
-        let composition = self.composition.raw_text();
-        self.build_composition_continuous(engine, composition)?;
+        let mut composition = self.composition.raw_text();
+        let ch = composition.chars().last().unwrap();
+        composition.pop();
+        self.build_composition_classic(engine, composition, ch)?;
         self.focus_candidate_classic(engine, index)
     }
 

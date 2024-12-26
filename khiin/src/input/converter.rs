@@ -175,6 +175,34 @@ pub(crate) fn get_candidates_for_word_with_tone(
     Ok(result)
 }
 
+pub(crate) fn convert_guess(
+    engine: &EngInner,
+    raw_buffer: &str,
+) -> Result<Buffer> {
+    let lower_buffer = raw_buffer.to_ascii_lowercase();
+    let sections = parse_whole_input(&engine.dict, &lower_buffer);
+    let is_hanji_first = engine.conf.is_hanji_first();
+    let mut composition = Buffer::new();
+
+    for (ty, section) in sections {
+        match ty {
+            SectionType::Plaintext => {
+                composition.push(StringElem::from(section).into());
+            },
+            SectionType::Hyphens => todo!(),
+            SectionType::Punct => todo!(),
+            SectionType::Splittable => {
+                let elems = convert_section_by_hanlo(engine, ty, section, is_hanji_first)?;
+                for elem in elems.into_iter() {
+                    composition.push(elem)
+                }
+            },
+        }
+    }
+
+    Ok(composition)
+}
+
 pub(crate) fn convert_all(
     engine: &EngInner,
     raw_buffer: &str,
@@ -347,6 +375,34 @@ fn convert_section(
 
     Ok(ret)
 }
+
+fn convert_section_by_hanlo(
+    engine: &EngInner,
+
+    ty: SectionType,
+    section: &str,
+    is_hanji_first: bool,
+) -> Result<Vec<BufferElementEnum>> {
+    let mut ret = Vec::new();
+
+    let words = engine.dict.segment(section)?;
+    for word in words {
+        let conversions = engine.db.select_conversions_by_hanlo(
+            engine.conf.tone_mode().into(),
+            word.as_str(),
+            is_hanji_first,
+        )?;
+
+        if let Some(conv) = conversions.get(0) {
+            let khiin_elem: KhiinElem =
+                KhiinElem::from_conversion(&word, conv)?;
+            ret.push(khiin_elem.into());
+        }
+    }
+
+    Ok(ret)
+}
+
 pub(crate) fn get_numberic_tone_char(engine: &EngInner, ch: char) -> char {
     if (engine.conf.tone_mode() == ToneMode::Telex) {
         let tone = char_to_tone(engine, ch);
