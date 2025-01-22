@@ -925,13 +925,13 @@ impl BufferMgr {
                 // KhinMode::Dot
                 if raw_input.ends_with(" ·") {
                     let len = raw_input.len();
-                    raw_input.replace_range(len - 2..len, "");
+                    raw_input.replace_range(len - 3..len, "");
                     raw_input.push(ch);
                     raw_input.push(ch);
                     self.edit_state = EditState::ES_ILLEGAL;
                 } else if raw_input.ends_with("-·") {
                     let len = raw_input.len();
-                    raw_input.replace_range(len - 2..len, "");
+                    raw_input.replace_range(len - 3..len, "");
                     if ch.is_ascii_uppercase() {
                         raw_input
                             .push(engine.conf.hyphon().to_ascii_uppercase());

@@ -22,6 +22,7 @@ use crossterm::terminal::EnterAlternateScreen;
 use khiin_protos::command::Command;
 use khiin_protos::command::SegmentStatus;
 use khiin_protos::config::AppInputMode;
+use khiin_protos::config::AppKhinMode;
 use khiin_protos::config::AppOutputMode;
 use unicode_width::UnicodeWidthStr;
 
@@ -280,7 +281,8 @@ pub fn run(stdout: &mut Stdout) -> Result<()> {
     let mut engine = EngineCtrl::new(get_db_filename()?)?;
     let mut intput_mode: AppInputMode = AppInputMode::CLASSIC;
     let mut output_mode: AppOutputMode = AppOutputMode::LOMAJI;
-    engine.send_set_config_command(&intput_mode, &output_mode, true)?;
+    let mut khin_mode = AppKhinMode::DOT;
+    engine.send_set_config_command(&intput_mode, &output_mode, &khin_mode, true)?;
     blank_display(stdout, &intput_mode, &output_mode)?;
 
     let mut raw_input = String::new();

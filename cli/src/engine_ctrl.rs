@@ -7,6 +7,7 @@ use khiin_protos::command::CommandType;
 use khiin_protos::command::Request;
 use khiin_protos::config::AppConfig;
 use khiin_protos::config::AppInputMode;
+use khiin_protos::config::AppKhinMode;
 use khiin_protos::config::AppOutputMode;
 use khiin_protos::config::BoolValue;
 use protobuf::Message;
@@ -70,10 +71,11 @@ impl EngineCtrl {
     //     self.send_command(cmd)
     // }
 
-    pub fn send_set_config_command(&mut self, mode: &AppInputMode, output_mode: &AppOutputMode, is_telex:bool) -> Result<Command> {
+    pub fn send_set_config_command(&mut self, mode: &AppInputMode, output_mode: &AppOutputMode, khin_mode: &AppKhinMode, is_telex:bool) -> Result<Command> {
         let mut config: AppConfig = AppConfig::new();
         config.input_mode = (*mode).into();
         config.output_mode = (*output_mode).into();
+        config.khin_mode = (*khin_mode).into();
         let mut telex_enabled = BoolValue::new();
         telex_enabled.value = is_telex;
         config.telex_enabled = Some(telex_enabled).into();

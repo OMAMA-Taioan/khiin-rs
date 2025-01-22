@@ -11,12 +11,14 @@ use protobuf::Message;
 use khiin_protos::command::*;
 use khiin_protos::config::AppInputMode;
 use khiin_protos::config::AppOutputMode;
+use khiin_protos::config::AppKhinMode;
 use khiin_protos::config::BoolValue;
 
 use crate::buffer::BufferMgr;
 use crate::config::Config;
 use crate::config::InputMode;
 use crate::config::OutputMode;
+use crate::config::KhinMode;
 use crate::config::ToneMode;
 use crate::data::dictionary::Dictionary;
 use crate::db::Database;
@@ -303,6 +305,18 @@ impl Engine {
             },
             AppOutputMode::HANJI => {
                 self.inner.conf.set_output_mode(OutputMode::Hanji)
+            },
+        }
+
+        match req.config.khin_mode.enum_value_or_default() {
+            AppKhinMode::KHINLESS => {
+                self.inner.conf.set_khin_mode(KhinMode::Khinless)
+            },
+            AppKhinMode::DOT => {
+                self.inner.conf.set_khin_mode(KhinMode::Dot)
+            },
+            AppKhinMode::HYPHEN => {
+                self.inner.conf.set_khin_mode(KhinMode::Hyphen)
             },
         }
 
