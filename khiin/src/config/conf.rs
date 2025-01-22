@@ -19,6 +19,13 @@ pub enum OutputMode {
     Hanji,
 }
 
+#[derive(PartialEq, Copy, Clone)]
+pub enum KhinMode {
+    Khinless,
+    Hyphen,
+    Dot,
+}
+
 impl Into<InputType> for ToneMode {
     fn into(self) -> InputType {
         match self {
@@ -45,6 +52,7 @@ pub struct Config {
     input_mode: InputMode,
     tone_mode: ToneMode,
     output_mode: OutputMode,
+    khin_mode: KhinMode,
     key_config: KeyConfig,
 }
 
@@ -55,6 +63,7 @@ impl Config {
             input_mode: InputMode::Manual,
             tone_mode: ToneMode::Telex,
             output_mode: OutputMode::Lomaji,
+            khin_mode: KhinMode::Hyphen,
             key_config: KeyConfig {
                 t2: 's',
                 t3: 'f',
@@ -80,6 +89,10 @@ impl Config {
 
     pub fn output_mode(&self) -> OutputMode {
         self.output_mode
+    }
+
+    pub fn khin_mode(&self) -> KhinMode {
+        self.khin_mode
     }
 
     pub fn t2(&self) -> char {
@@ -217,5 +230,10 @@ impl Config {
     // set output_mode
     pub fn set_output_mode(&mut self, mode: OutputMode) {
         self.output_mode = mode;
+    }
+
+    // set khin_mode
+    pub fn set_khin_mode(&mut self, mode: KhinMode) {
+        self.khin_mode = mode;
     }
 }

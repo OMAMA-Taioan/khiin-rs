@@ -10,7 +10,8 @@ pub struct KeyConversion {
     pub input_id: u32,
     pub output: String,
     pub weight: i32,
-    pub category: Option<i32>,
+    pub khin_ok: bool,
+    pub khinless_ok: bool,
     pub annotation: Option<String>,
 }
 
@@ -103,7 +104,8 @@ mod tests {
             input_id: 0,
             output: output.into(),
             weight: 0,
-            category: None,
+            khin_ok: true,
+            khinless_ok: true,
             annotation: None,
         }
     }

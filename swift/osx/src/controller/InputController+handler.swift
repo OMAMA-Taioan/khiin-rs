@@ -164,7 +164,7 @@ extension KhiinInputController {
 
         if (!self.isEdited()) {
             // if key is space, and classic mode, and hanji first, then don't reset window
-            if (self.isClassicMode() && self.isHanjiFirst() && event.keyCode.representative == .space && !modifiers.contains(.shift)) {
+            if (self.isClassicMode() && self.isHanjiFirst() && event.keyCode.representative == .space && modifiers.contains(.shift)) {
                 client.insert("　")
                 return true
             }

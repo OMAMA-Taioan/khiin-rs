@@ -293,7 +293,8 @@ impl TryFrom<&Row<'_>> for KeyConversion {
             input_id: row.get("input_id")?,
             output: row.get("output")?,
             weight: row.get("weight")?,
-            category: row.get("category")?,
+            khin_ok: row.get("khin_ok")?,
+            khinless_ok: row.get("khinless_ok")?,
             annotation: row.get("annotation")?,
         })
     }
@@ -387,7 +388,6 @@ mod tests {
         assert!(res.iter().any(|row| row.output == "好"));
         assert!(res.iter().any(|row| row.output == "hó"));
         assert!(res[0].annotation.is_none());
-        assert!(res[0].category.is_none());
     }
 
     #[test_log::test]

@@ -5,6 +5,7 @@ use std::hash::Hash;
 use anyhow::Result;
 use csv::Reader;
 use khiin_ji::IsHanji;
+use protobuf::well_known_types::wrappers::BoolValue;
 use serde::Deserialize;
 
 use crate::db::models::Conversion;
@@ -40,8 +41,10 @@ pub struct CsvConversion {
     pub weight: i64,
     #[serde(rename = "hint")]
     pub annotation: Option<String>,
-    #[serde(rename = "color")]
-    pub category: Option<i64>,
+    #[serde(rename = "khin-OK")]
+    pub khin_ok: bool,
+    #[serde(rename = "khinless-OK")]
+    pub khinless_ok: bool,
 }
 
 fn load_freq_records(csv_data: Cow<str>) -> Result<(Vec<CsvFrequency>, i64)> {
@@ -114,7 +117,8 @@ pub fn conversions_from_csv(
             output,
             weight,
             annotation,
-            category,
+            khin_ok,
+            khinless_ok,
         } = result?;
 
         let is_hanji = output.chars().any(|c| c.is_hanji());
@@ -127,7 +131,8 @@ pub fn conversions_from_csv(
                     output,
                     weight,
                     annotation,
-                    category,
+                    khin_ok,
+                    khinless_ok,
                     is_hanji: is_hanji,
                 });
             } else {

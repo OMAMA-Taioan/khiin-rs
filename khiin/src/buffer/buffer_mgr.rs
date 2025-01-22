@@ -24,6 +24,7 @@ use crate::buffer::Buffer;
 use crate::buffer::BufferElement;
 use crate::config::Config;
 use crate::config::InputMode;
+use crate::config::KhinMode;
 use crate::data::Dictionary;
 use crate::db::Database;
 use crate::engine::EngInner;
@@ -485,27 +486,88 @@ impl BufferMgr {
     ) -> Result<()> {
         let mut key = ch.to_ascii_lowercase();
         if (key == engine.conf.hyphon()) {
-            if raw_input.ends_with("--") {
-                let len: usize = raw_input.len();
-                raw_input.replace_range(len - 2..len, "");
-                raw_input.push(ch);
-                self.candidates.clear();
+            if engine.conf.khin_mode() == KhinMode::Hyphen {
+                if raw_input.ends_with("--") {
+                    let len = raw_input.len();
+                    raw_input.replace_range(len - 2..len, "");
+                    if ch.is_ascii_uppercase() {
+                        raw_input.push(engine.conf.khin().to_ascii_uppercase());
+                    } else {
+                        raw_input.push(engine.conf.khin());
+                    }
+                    raw_input.push(ch);
+                    self.candidates.clear();
+                } else if raw_input.ends_with("-") {
+                    let len = raw_input.len();
+                    raw_input.remove(len - 1);
+                    raw_input.push(ch);
+                    self.candidates.clear();
+                } else {
+                    raw_input.push('-');
+                }
             } else {
-                raw_input.push('-');
+                if raw_input.ends_with("-") {
+                    let len: usize = raw_input.len();
+                    raw_input.remove(len - 1);
+                    raw_input.push(ch);
+                    self.candidates.clear();
+                } else {
+                    raw_input.push('-');
+                }
             }
             self.composition = Buffer::new();
             self.composition.push(StringElem::from(raw_input).into());
             self.char_caret = self.composition.display_char_count();
             return Ok(());
-        } else if (key == engine.conf.khin()) {
-            if raw_input.starts_with("--") {
-                raw_input.drain(0..2);
-                raw_input.push(key);
-                self.candidates.clear();
+        } else if (key == engine.conf.khin()
+            && engine.conf.khin_mode() != KhinMode::Khinless)
+        {
+            if engine.conf.khin_mode() == KhinMode::Hyphen {
+                if raw_input.starts_with("--") {
+                    let len = raw_input.len();
+                    raw_input.replace_range(len - 2..len, "");
+                    raw_input.push(ch);
+                    self.candidates.clear();
+                } else if raw_input.ends_with("-") {
+                    let len: usize = raw_input.len();
+                    raw_input.remove(len - 1);
+                    if ch.is_ascii_uppercase() {
+                        raw_input
+                            .push(engine.conf.hyphon().to_ascii_uppercase());
+                    } else {
+                        raw_input.push(engine.conf.hyphon());
+                    }
+                    raw_input.push(ch);
+                    self.candidates.clear();
+                } else {
+                    raw_input.push_str("--");
+                }
             } else {
-                raw_input.insert(0, '-');
-                raw_input.insert(1, '-');
+                if raw_input.ends_with(" ·") {
+                    let len = raw_input.len();
+                    raw_input.replace_range(len - 2..len, "");
+                    raw_input.push(ch);
+                    raw_input.push(ch);
+                    self.candidates.clear();
+                } else if raw_input.ends_with("-·") {
+                    let len = raw_input.len();
+                    raw_input.replace_range(len - 2..len, "");
+                    if ch.is_ascii_uppercase() {
+                        raw_input
+                            .push(engine.conf.hyphon().to_ascii_uppercase());
+                    } else {
+                        raw_input.push(engine.conf.hyphon());
+                    }
+                    raw_input.push(ch);
+                    raw_input.push(ch);
+                    self.candidates.clear();
+                } else if raw_input.ends_with("-") {
+                    raw_input.push('·');
+                } else {
+                    raw_input.push_str(" ·");
+                }
             }
+
             self.composition = Buffer::new();
             self.composition.push(StringElem::from(raw_input).into());
             self.char_caret = self.composition.display_char_count();
@@ -604,6 +666,12 @@ impl BufferMgr {
         } else if query.starts_with("-") {
             query.drain(0..1);
             word.drain(0..1);
+        } else if query.starts_with(" ·") {
+            query.drain(0..2);
+            word.drain(0..2);
+        } else if query.starts_with("-·") {
+            query.drain(0..2);
+            word.drain(0..2);
         }
 
         let mut tone_char = key;
@@ -680,6 +748,10 @@ impl BufferMgr {
             query.drain(0..2);
         } else if query.starts_with("-") {
             query.drain(0..1);
+        } else if query.starts_with(" ·") {
+            query.drain(0..2);
+        } else if query.starts_with("-·") {
+            query.drain(0..2);
         }
 
         // add punctuation
@@ -793,15 +865,88 @@ impl BufferMgr {
         if ch.to_ascii_lowercase() == engine.conf.hyphon()
             && self.edit_state == EditState::ES_COMPOSING
         {
-            if raw_input.ends_with("--") {
-                let len = raw_input.len();
-                raw_input.replace_range(len - 2..len, "");
-                raw_input.push(ch);
-                self.edit_state = EditState::ES_ILLEGAL;
+            if engine.conf.khin_mode() == KhinMode::Hyphen {
+                if raw_input.ends_with("--") {
+                    let len = raw_input.len();
+                    raw_input.replace_range(len - 2..len, "");
+                    if ch.is_ascii_uppercase() {
+                        raw_input.push(engine.conf.khin().to_ascii_uppercase());
+                    } else {
+                        raw_input.push(engine.conf.khin());
+                    }
+                    raw_input.push(ch);
+                    self.edit_state = EditState::ES_ILLEGAL;
+                } else if raw_input.ends_with("-") {
+                    let len = raw_input.len();
+                    raw_input.remove(len - 1);
+                    raw_input.push(ch);
+                    self.edit_state = EditState::ES_ILLEGAL;
+                } else {
+                    raw_input.push('-');
+                }
             } else {
-                raw_input.push('-');
+                if raw_input.ends_with("-") {
+                    let len = raw_input.len();
+                    raw_input.remove(len - 1);
+                    raw_input.push(ch);
+                    self.edit_state = EditState::ES_ILLEGAL;
+                } else {
+                    raw_input.push('-');
+                }
             }
-
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+        } else if ch.to_ascii_lowercase() == engine.conf.khin()
+            && engine.conf.khin_mode() != KhinMode::Khinless
+            && self.edit_state == EditState::ES_COMPOSING
+        {
+            if engine.conf.khin_mode() == KhinMode::Hyphen {
+                if raw_input.ends_with("--") {
+                    let len = raw_input.len();
+                    raw_input.replace_range(len - 2..len, "");
+                    raw_input.push(ch);
+                    raw_input.push(ch);
+                    self.edit_state = EditState::ES_ILLEGAL;
+                } else if raw_input.ends_with("-") {
+                    let len = raw_input.len();
+                    raw_input.remove(len - 1);
+                    if ch.is_ascii_uppercase() {
+                        raw_input
+                            .push(engine.conf.hyphon().to_ascii_uppercase());
+                    } else {
+                        raw_input.push(engine.conf.hyphon());
+                    }
+                    raw_input.push(ch);
+                    self.edit_state = EditState::ES_ILLEGAL;
+                } else {
+                    raw_input.push_str("--");
+                }
+            } else {
+                // KhinMode::Dot
+                if raw_input.ends_with(" ·") {
+                    let len = raw_input.len();
+                    raw_input.replace_range(len - 2..len, "");
+                    raw_input.push(ch);
+                    raw_input.push(ch);
+                    self.edit_state = EditState::ES_ILLEGAL;
+                } else if raw_input.ends_with("-·") {
+                    let len = raw_input.len();
+                    raw_input.replace_range(len - 2..len, "");
+                    if ch.is_ascii_uppercase() {
+                        raw_input
+                            .push(engine.conf.hyphon().to_ascii_uppercase());
+                    } else {
+                        raw_input.push(engine.conf.hyphon());
+                    }
+                    raw_input.push(ch);
+                    raw_input.push(ch);
+                    self.edit_state = EditState::ES_ILLEGAL;
+                } else if raw_input.ends_with("-") {
+                    raw_input.push('·');
+                } else {
+                    raw_input.push_str(" ·");
+                }
+            }
             self.composition = Buffer::new();
             self.composition.push(StringElem::from(raw_input).into());
         } else {
@@ -837,7 +982,11 @@ impl BufferMgr {
 
         Ok(())
     }
-    pub fn focus_candidate_by_index(&mut self, engine: &EngInner, index: usize) -> Result<()> {
+    pub fn focus_candidate_by_index(
+        &mut self,
+        engine: &EngInner,
+        index: usize,
+    ) -> Result<()> {
         let mut to_focus = self.cand_page * 9 + index;
         if to_focus >= self.candidates.len() {
             to_focus = self.candidates.len() - 1;

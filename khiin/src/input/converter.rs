@@ -153,7 +153,7 @@ pub(crate) fn get_candidates_for_word_with_tone(
         db.select_conversions_for_tone(InputType::Numeric, tone_input.as_str(), conf.is_hanji_first())?
     };
 
-    let result = candidates
+    let mut result: Vec<_> = candidates
         .into_iter()
         .map(|mut conv| {
             conv.set_output_case_type(case_type.clone());
@@ -171,7 +171,8 @@ pub(crate) fn get_candidates_for_word_with_tone(
             buffer
         })
         .collect();
-
+    let mut seen = HashSet::new();
+    result.retain(|elem| seen.insert(elem.display_text().to_string()));
     Ok(result)
 }
 
@@ -242,16 +243,6 @@ pub(crate) fn convert_to_telex(
         // duplicate tone characters
         let mut composition = Buffer::new();
         let mut raw_input = stripped.to_string();
-        raw_input.push(key);
-        composition.push(StringElem::from(raw_input).into());
-        return (Ok(composition), false);
-    } else if (raw_buffer.starts_with("--")
-        && lower_key == engine.conf.khin())
-    {
-        // duplicate khin characters
-        let mut composition = Buffer::new();
-        let mut raw_input = stripped.to_string();
-        raw_input.drain(0..2);
         raw_input.push(key);
         composition.push(StringElem::from(raw_input).into());
         return (Ok(composition), false);
