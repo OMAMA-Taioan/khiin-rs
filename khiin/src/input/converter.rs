@@ -226,7 +226,7 @@ pub(crate) fn convert_guess(
                     ty,
                     section,
                     is_hanji_first,
-                    &case_type,
+                    case_type.clone(),
                 )?;
                 for elem in elems.into_iter() {
                     composition.push(elem)
@@ -416,7 +416,7 @@ fn convert_section_by_hanlo(
     ty: SectionType,
     section: &str,
     is_hanji_first: bool,
-    case_type: &CaseType,
+    mut case_type: CaseType,
 ) -> Result<Vec<BufferElementEnum>> {
     let mut ret = Vec::new();
     let khin_mode = engine.conf.khin_mode();
@@ -440,6 +440,9 @@ fn convert_section_by_hanlo(
             let khiin_elem: KhiinElem =
                 KhiinElem::from_conversion(&word, conv)?;
             ret.push(khiin_elem.into());
+            if (case_type == CaseType::FirstUpper) {
+                case_type = CaseType::Lowercase;
+            }
         }
     }
 
