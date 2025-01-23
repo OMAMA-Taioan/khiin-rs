@@ -803,7 +803,7 @@ impl BufferMgr {
             let mut found = false;
             for i in (0..size).rev() {
                 let end = i + 1;
-                let substr = &query[0..end].to_ascii_lowercase();
+                let substr = &query[0..end];
                 // substr ends "'\"<>+_=[]"
                 if substr.ends_with(|c: char| "'\":<>+_=[]".contains(c)) {
                     break;

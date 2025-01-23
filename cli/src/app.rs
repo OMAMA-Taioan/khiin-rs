@@ -281,7 +281,7 @@ pub fn run(stdout: &mut Stdout) -> Result<()> {
     let mut engine = EngineCtrl::new(get_db_filename()?)?;
     let mut intput_mode: AppInputMode = AppInputMode::CLASSIC;
     let mut output_mode: AppOutputMode = AppOutputMode::LOMAJI;
-    let mut khin_mode = AppKhinMode::DOT;
+    let khin_mode = AppKhinMode::DOT;
     engine.send_set_config_command(&intput_mode, &output_mode, &khin_mode, true)?;
     blank_display(stdout, &intput_mode, &output_mode)?;
 

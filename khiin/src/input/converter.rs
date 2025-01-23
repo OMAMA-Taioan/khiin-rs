@@ -207,6 +207,7 @@ pub(crate) fn convert_guess(
     engine: &EngInner,
     raw_buffer: &str,
 ) -> Result<Buffer> {
+    let mut case_type = get_case_type(raw_buffer);
     let lower_buffer = raw_buffer.to_ascii_lowercase();
     let sections = parse_whole_input(&engine.dict, &lower_buffer);
     let is_hanji_first = engine.conf.is_hanji_first();
@@ -225,11 +226,15 @@ pub(crate) fn convert_guess(
                     ty,
                     section,
                     is_hanji_first,
+                    &case_type,
                 )?;
                 for elem in elems.into_iter() {
                     composition.push(elem)
                 }
             },
+        }
+        if (case_type == CaseType::FirstUpper && !composition.is_empty()) {
+            case_type = CaseType::Lowercase;
         }
     }
 
@@ -411,6 +416,7 @@ fn convert_section_by_hanlo(
     ty: SectionType,
     section: &str,
     is_hanji_first: bool,
+    case_type: &CaseType,
 ) -> Result<Vec<BufferElementEnum>> {
     let mut ret = Vec::new();
     let khin_mode = engine.conf.khin_mode();
@@ -425,6 +431,7 @@ fn convert_section_by_hanlo(
         )?;
 
         if let Some(conv) = conversions.get_mut(0) {
+            conv.set_output_case_type(case_type.clone());
             if (khin_mode == KhinMode::Khinless) {
                 conv.convert_to_khinless();
             } else if (khin_mode == KhinMode::Hyphen) {

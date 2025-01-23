@@ -106,6 +106,13 @@ public class EngineController {
         return self.config?.keyConfig.altHyphen ?? ""
     }
 
+    public func khinKey() -> String {
+        if (self.config == nil) {
+            return ""
+        }
+        return self.config?.keyConfig.telexKhin ?? ""
+    }
+
     public func isManualMode() -> Bool {
         if (self.config == nil) {
             return false

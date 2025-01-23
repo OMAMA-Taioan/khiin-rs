@@ -49,7 +49,7 @@ struct CandidateItem: View {
                 )
                 .frame(width: 4, height: 16)
 
-                if index > 0 {
+                if index > 0 && focus != -1 {
                     Text("\(index).")
                         .frame(minWidth: 16)
                 }

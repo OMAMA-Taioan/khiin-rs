@@ -72,8 +72,8 @@ class KhiinInputController: IMKInputController {
         return EngineController.instance.isHanjiFirst();
     }
 
-    func getHyphenKey() -> String {
-        return isEdited() ? EngineController.instance.hyphenKey() : "";
+    func isHyphenOrKhinKey(_ char: String) -> Bool {
+        return isEdited() && (char == EngineController.instance.hyphenKey() || char == EngineController.instance.khinKey())
     }
 
     func getCommitedText() -> String {

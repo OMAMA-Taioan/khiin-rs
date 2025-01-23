@@ -170,19 +170,19 @@ impl Config {
             true
         } else if ch == self.key_config.done {
             true
-        } else if ch == self.key_config.t2 {
+        } else if ch == self.t2() {
             true
-        } else if ch == self.key_config.t3 {
+        } else if ch == self.t3() {
             true
-        } else if ch == self.key_config.t5 {
+        } else if ch == self.t5() {
             true
-        } else if ch == self.key_config.t6 {
+        } else if ch == self.t6() {
             true
-        } else if ch == self.key_config.t7 {
+        } else if ch == self.t7() {
             true
-        } else if ch == self.key_config.t8 {
+        } else if ch == self.t8() {
             true
-        } else if ch == self.key_config.t9 {
+        } else if ch == self.t9() {
             true
         } else {
             false
@@ -190,19 +190,19 @@ impl Config {
     }
 
     pub fn is_tone_char(&self, ch: char) -> bool {
-        if ch == self.key_config.t2 {
+        if ch == self.t2() {
             true
-        } else if ch == self.key_config.t3 {
+        } else if ch == self.t3() {
             true
-        } else if ch == self.key_config.t5 {
+        } else if ch == self.t5() {
             true
-        } else if ch == self.key_config.t6 {
+        } else if ch == self.t6(){
             true
-        } else if ch == self.key_config.t7 {
+        } else if ch == self.t7() {
             true
-        } else if ch == self.key_config.t8 {
+        } else if ch == self.t8() {
             true
-        } else if ch == self.key_config.t9 {
+        } else if ch == self.t9() {
             true
         } else {
             false

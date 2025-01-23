@@ -113,6 +113,14 @@ impl Engine {
                         let idx = ch.to_digit(10).unwrap() as usize;
                         self.buffer_mgr
                             .focus_candidate_by_index(&self.inner, idx);
+                        // check is candidate is action
+                        if self.buffer_mgr.focused_candidate_is_action() {
+                            self.buffer_mgr.expand_candidate(&self.inner)?;
+                            let mut response = Response::default();
+                            self.attach_buffer_data(&mut response)?;
+                            return Ok(response);
+                        }
+                        return self.on_commit(req);
                     } else {
                         self.buffer_mgr.insert(&self.inner, ch)?;
                         if self.buffer_mgr.edit_state() == EditState::ES_EMPTY {
