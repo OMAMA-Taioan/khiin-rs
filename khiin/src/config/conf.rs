@@ -217,6 +217,10 @@ impl Config {
         self.output_mode == OutputMode::Lomaji
     }
 
+    pub fn is_khinless(&self) -> bool {
+        self.khin_mode == KhinMode::Khinless
+    }
+
     // set input_mode
     pub fn set_input_mode(&mut self, mode: InputMode) {
         self.input_mode = mode;

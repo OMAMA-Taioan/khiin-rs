@@ -150,16 +150,27 @@ impl Database {
         input_type: InputType,
         query: &str,
         is_hanji_first: bool,
+        is_khinless: bool,
     ) -> Result<Vec<KeyConversion>> {
         let sql = if is_hanji_first {
             format!(
                 include_str!("sql/select_conversions_by_hanji.sql"),
-                limit = "limit 1"
+                limit = "limit 1",
+                khin_mode = if is_khinless {
+                    "khinless_ok"
+                } else {
+                    "khin_ok"
+                }
             )
         } else {
             format!(
                 include_str!("sql/select_conversions_by_lomaji.sql"),
-                limit = "limit 1"
+                limit = "limit 1",
+                khin_mode = if is_khinless {
+                    "khinless_ok"
+                } else {
+                    "khin_ok"
+                }
             )
         };
 
@@ -177,22 +188,32 @@ impl Database {
         Ok(result)
     }
 
-
     pub fn select_conversions_for_tone(
         &self,
         input_type: InputType,
         query: &str,
         is_hanji_first: bool,
+        is_khinless: bool,
     ) -> Result<Vec<KeyConversion>> {
         let sql = if is_hanji_first {
             format!(
                 include_str!("sql/select_conversions_for_tone_by_hanji.sql"),
-                limit = ""
+                limit = "",
+                khin_mode = if is_khinless {
+                    "khinless_ok"
+                } else {
+                    "khin_ok"
+                }
             )
         } else {
             format!(
                 include_str!("sql/select_conversions_for_tone_by_lomaji.sql"),
-                limit = ""
+                limit = "",
+                khin_mode = if is_khinless {
+                    "khinless_ok"
+                } else {
+                    "khin_ok"
+                }
             )
         };
         let mut stmt = self.conn.prepare(&sql)?;
@@ -215,16 +236,27 @@ impl Database {
         query: &str,
         detoned_query: &str,
         is_hanji_first: bool,
+        is_khinless: bool,
     ) -> Result<Vec<KeyConversion>> {
         let sql = if is_hanji_first {
             format!(
                 include_str!("sql/select_conversions_for_word_by_hanji.sql"),
-                limit = ""
+                limit = "",
+                khin_mode = if is_khinless {
+                    "khinless_ok"
+                } else {
+                    "khin_ok"
+                }
             )
         } else {
             format!(
                 include_str!("sql/select_conversions_for_word_by_lomaji.sql"),
-                limit = ""
+                limit = "",
+                khin_mode = if is_khinless {
+                    "khinless_ok"
+                } else {
+                    "khin_ok"
+                }
             )
         };
         let mut stmt = self.conn.prepare(&sql)?;

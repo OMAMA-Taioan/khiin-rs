@@ -1,4 +1,5 @@
-use khiin_ji::{IsHanji, HANJI_CUTOFF};
+use khiin_ji::IsHanji;
+use khiin_ji::HANJI_CUTOFF;
 
 use super::InputType;
 
@@ -81,6 +82,38 @@ impl KeyConversion {
         } else {
             self.output = self.uppercase_first_letter(&self.output);
         }
+    }
+
+    pub fn convert_to_khin_hyphen(&mut self) {
+        if (self.output.contains("-·")) {
+            let mut has_pre_khin = false;
+            let mut pre_char = 'a';
+            let mut result = String::new();
+            for ch in self.output.chars() {
+                if (ch == '·' && pre_char == '-') {
+                    if (!has_pre_khin) {
+                        result.push('-');
+                    }
+                    has_pre_khin = true;
+                } else {
+                    if (ch == '·') {
+                        has_pre_khin = true;
+                    } else if ((pre_char == '-' || pre_char == ' ')
+                        && ch.is_ascii_alphanumeric())
+                    {
+                        has_pre_khin = false;
+                    }
+                    result.push(ch);
+                    pre_char = ch;
+                }
+            }
+            self.output = result;
+        }
+        self.output = self.output.replace(" ·", "--");
+    }
+
+    pub fn convert_to_khinless(&mut self) {
+        self.output = self.output.replace("·", "");
     }
 
     fn uppercase_first_letter(&self, s: &str) -> String {

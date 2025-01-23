@@ -16,7 +16,7 @@ where
 and (
     c.input_type = :input_type
     or c.input_type = 0
-)
+) and c.{khin_mode} = 1
 
 order by
     c.is_hanji desc,

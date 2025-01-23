@@ -9,6 +9,7 @@ use crate::buffer::KhiinElem;
 use crate::buffer::StringElem;
 use crate::config::Config;
 use crate::config::OutputMode;
+use crate::config::KhinMode;
 use crate::config::ToneMode;
 use crate::data::Dictionary;
 use crate::db::models::CaseType;
@@ -104,12 +105,18 @@ pub(crate) fn get_candidates_for_word(
         InputType::Detoned,
         raw_input.as_str(),
         conf.is_hanji_first(),
+        conf.is_khinless(),
     )?;
 
     let mut result: Vec<_> = candidates
         .into_iter()
         .map(|mut conv| {
             conv.set_output_case_type(case_type.clone());
+            if (conf.khin_mode() == KhinMode::Khinless) {
+                conv.convert_to_khinless();
+            } else if (conf.khin_mode() == KhinMode::Hyphen) {
+                conv.convert_to_khin_hyphen();
+            }
             KhiinElem::from_conversion(&conv.key_sequence, &conv)
         })
         .filter(|elem| elem.is_ok())
@@ -157,12 +164,14 @@ pub(crate) fn get_candidates_for_word_with_tone(
             tone_input.as_str(),
             raw_input.as_str(),
             conf.is_hanji_first(),
+            conf.is_khinless()
         )?
     } else {
         db.select_conversions_for_tone(
             InputType::Numeric,
             tone_input.as_str(),
             conf.is_hanji_first(),
+            conf.is_khinless()
         )?
     };
 
@@ -170,6 +179,11 @@ pub(crate) fn get_candidates_for_word_with_tone(
         .into_iter()
         .map(|mut conv| {
             conv.set_output_case_type(case_type.clone());
+            if (conf.khin_mode() == KhinMode::Khinless) {
+                conv.convert_to_khinless();
+            } else if (conf.khin_mode() == KhinMode::Hyphen) {
+                conv.convert_to_khin_hyphen();
+            }
             KhiinElem::from_conversion(&conv.key_sequence, &conv)
         })
         .filter(|elem| elem.is_ok())
@@ -394,22 +408,28 @@ fn convert_section(
 
 fn convert_section_by_hanlo(
     engine: &EngInner,
-
     ty: SectionType,
     section: &str,
     is_hanji_first: bool,
 ) -> Result<Vec<BufferElementEnum>> {
     let mut ret = Vec::new();
+    let khin_mode = engine.conf.khin_mode();
 
     let words = engine.dict.segment(section)?;
     for word in words {
-        let conversions = engine.db.select_conversions_by_hanlo(
+        let mut conversions = engine.db.select_conversions_by_hanlo(
             engine.conf.tone_mode().into(),
             word.as_str(),
             is_hanji_first,
+            engine.conf.is_khinless(),
         )?;
 
-        if let Some(conv) = conversions.get(0) {
+        if let Some(conv) = conversions.get_mut(0) {
+            if (khin_mode == KhinMode::Khinless) {
+                conv.convert_to_khinless();
+            } else if (khin_mode == KhinMode::Hyphen) {
+                conv.convert_to_khin_hyphen();
+            }
             let khiin_elem: KhiinElem =
                 KhiinElem::from_conversion(&word, conv)?;
             ret.push(khiin_elem.into());
