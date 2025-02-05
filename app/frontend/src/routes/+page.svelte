@@ -2,7 +2,7 @@
     import { _ } from "svelte-i18n"    // import Settings from "../lib/Settings.svelte";
     
     // Add version information variable
-    const version = "v0.2.3"; // Replace with actual version number
+    const version = "v0.2.4"; // Replace with actual version number
 </script>
 
 <h1 class="text-3xl mb-3">{$_('page.home.title')}</h1>

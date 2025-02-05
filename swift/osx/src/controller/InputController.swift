@@ -33,6 +33,26 @@ class KhiinInputController: IMKInputController {
         self.resetWindow()
     }
 
+    override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
+        super.init(server: server, delegate: delegate, client: inputClient)
+        setupMouseEventMonitor()
+    }
+
+    func setupMouseEventMonitor() {
+        NSEvent.addGlobalMonitorForEvents(matching: .leftMouseDown) { [weak self] event in
+            log.debug("mouse click event")
+            self!.resetController()
+        }
+    }
+
+    func resetController() {
+        _ = commitAll()
+        candidateViewModel.reset()
+        self.currentClient?.clearMarkedText()
+        self.window?.setFrame(.zero, display: true)
+        self.resetWindow()
+    }
+
     override func menu() -> NSMenu! {
         // 创建自定义菜单项
         let settingMenuItem = NSMenuItem(

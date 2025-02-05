@@ -194,20 +194,21 @@ impl BufferMgr {
     pub fn pop(&mut self, engine: &EngInner) -> Result<()> {
         if self.edit_state == EditState::ES_EMPTY {
             return Ok(());
-        } else if (self.edit_state == EditState::ES_ILLEGAL) {
-            let mut raw_input = self.composition.raw_text();
-            raw_input.pop();
+        } 
+        // else if (self.edit_state == EditState::ES_ILLEGAL) {
+        //     let mut raw_input = self.composition.raw_text();
+        //     raw_input.pop();
 
-            if raw_input.is_empty() {
-                self.edit_state = EditState::ES_EMPTY;
-                self.reset();
-            } else {
-                self.composition = Buffer::new();
-                self.composition.push(StringElem::from(raw_input).into());
-                self.char_caret = self.composition.display_char_count();
-            }
-            return Ok(());
-        }
+        //     if raw_input.is_empty() {
+        //         self.edit_state = EditState::ES_EMPTY;
+        //         self.reset();
+        //     } else {
+        //         self.composition = Buffer::new();
+        //         self.composition.push(StringElem::from(raw_input).into());
+        //         self.char_caret = self.composition.display_char_count();
+        //     }
+        //     return Ok(());
+        // }
 
         self.edit_state = EditState::ES_COMPOSING;
 
@@ -969,13 +970,13 @@ impl BufferMgr {
 
         if raw_input.is_empty() {
             return self.reset();
-        } else if self.edit_state == EditState::ES_ILLEGAL {
-            self.composition = Buffer::new();
-            self.composition.push(StringElem::from(raw_input).into());
+        // } else if self.edit_state == EditState::ES_ILLEGAL {
+        //     self.composition = Buffer::new();
+        //     self.composition.push(StringElem::from(raw_input).into());
         } else {
-            let (ret_com, _) = convert_to_telex(engine, &raw_input, ' ');
+            let (ret_com, ret) = convert_to_telex(engine, &raw_input, ' ');
             self.composition = ret_com?;
-            self.edit_state = EditState::ES_COMPOSING;
+            self.edit_state = if ret { EditState::ES_COMPOSING } else { EditState::ES_ILLEGAL };
         }
 
         self.char_caret = self.composition.display_char_count();
