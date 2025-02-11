@@ -628,6 +628,24 @@ impl BufferMgr {
             self.char_caret = self.composition.display_char_count();
             self.edit_state = EditState::ES_EMPTY;
             return Ok(());
+        } else if (key == '"') {
+            if engine.conf.is_lomaji_first() {
+                raw_input.push('"');
+            }
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+            self.char_caret = self.composition.display_char_count();
+            self.edit_state = EditState::ES_EMPTY;
+            return Ok(());
+        } else if (key == '\'') {
+            if engine.conf.is_lomaji_first() {
+                raw_input.push('\'');
+            }
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+            self.char_caret = self.composition.display_char_count();
+            self.edit_state = EditState::ES_EMPTY;
+            return Ok(());
         } else if (key == '(') {
             if engine.conf.is_lomaji_first() {
                 raw_input.push('(');
