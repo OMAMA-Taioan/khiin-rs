@@ -2,12 +2,12 @@
     "global": {
         "title": "起引",
         "nav": {
-            "home": "頭頁",
+            "home": "",
             "about": "關係",
-            "appearance": "外皮",
-            "input-settings": "打字設定",
-            "dictionary": "字典",
-            "donate": "Donate",
+            "appearance": "界面設定",
+            "input-settings": "入字設定",
+            "dictionary": "字詞庫",
+            "donate": "寄付",
             "github": "GitHub"
         }
     },
@@ -16,12 +16,12 @@
             "title": "起引台語打字法"
         },
         "appearance": {
-            "title": "外皮",
+            "title": "界面設定",
             "theme": "色水",
             "auto": "自動",
             "light": "光色",
             "dark": "暗色",
-            "language": "界面語言",
+            "language": "界面語文",
             "font-size": "揀字寸尺",
             "xs": "卡細",
             "sm": "細",
@@ -31,31 +31,31 @@
             "font": "揀字字骨"
         },
         "input": {
-            "title": "打字設定",
-            "default-input-mode": "打字模式",
+            "title": "入字設定",
+            "default-input-mode": "形態",
             "convert-double-hyphen": "双連字符換輕点",
             "convert-c-to-ch": "c 換 ch",
             "auto-capitalization": "自動大寫",
             "input-mode": "打字模式",
-            "tone-mode": "打調模式",
-            "output-mode": "輸出模式",
+            "tone-mode": "注調形式",
+            "output-mode": "主体字",
             "temporarily-disable": "暫時停用",
-            "switch-mode": "切換模式",
-            "khin-mode": "輕調模式",
+            "switch-mode": "換形態个起",
+            "khin-mode": "輕調形式",
             "auto": "自動",
-            "classic":"傳統",
+            "classic":"自動",
             "manual": "自由",
             "numeric": "數字",
-            "telex": "Telex",
-            "lomaji": "羅馬字",
-            "hanji": "漢字",
+            "telex": "TELEX",
+            "lomaji": "羅馬字 (羅漢)",
+            "hanji": "漢字 (漢羅)",
             "shift": "Shift",
             "ctrl-space": "Ctrl + Space",
-            "alt-backtick": "Alt + Backtick",
+            "alt-backtick": "Alt + `",
             "alt-space": "Alt + Space"
         },
         "dictionary": {
-            "title": "字典"
+            "title": "字詞庫"
         }
     }
 }

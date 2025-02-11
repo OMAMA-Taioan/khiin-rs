@@ -2,9 +2,9 @@
     "global": {
         "title": "Khíín",
         "nav": {
-            "home": "Home",
+            "home": "",
             "about": "About",
-            "appearance": "Appearance",
+            "appearance": "Interface Settings",
             "input-settings": "Input Settings",
             "dictionary": "Dictionary",
             "donate": "Donate",
@@ -13,15 +13,15 @@
     },
     "page": {
         "home": {
-            "title": "Khíín Taiwanese Input Method Editor"
+            "title": "Khíín IME for Taioanese"
         },
         "appearance": {
-            "title": "Appearance",
+            "title": "Interface Settings",
             "theme": "Theme",
             "auto": "Auto",
             "light": "Light",
             "dark": "Dark",
-            "language": "UI Language",
+            "language": "Interface Language",
             "font-size": "Candidate Font Size",
             "xs": "Extra Small",
             "sm": "Small",
@@ -32,26 +32,26 @@
         },
         "input-settings": {
             "title": "Input Settings",
-            "default-input-mode": "Default Input Mode",
+            "default-input-mode": "Mode",
             "convert-double-hyphen": "Convert double hyphen to khin dot",
             "convert-c-to-ch": "Convert C to Ch",
             "auto-capitalization": "Auto-capitalization",
             "input-mode": "Input Mode",
-            "tone-mode": "Tone Mode",
-            "output-mode": "Output Mode",
+            "tone-mode": "Tone Input",
+            "output-mode": "Matrix",
             "temporarily-disable": "Temporarily disable",
-            "switch-mode": "Switch mode",
-            "khin-mode": "Khin mode",
+            "switch-mode": "Shortcut for Switching Modes",
+            "khin-mode": "Enclitic Marking",
             "auto": "Auto",
-            "classic":"Classic",
-            "manual": "Freedom",
+            "classic":"Standard",
+            "manual": "Manual",
             "numeric": "Numeric",
             "telex": "Telex",
-            "lomaji": "Lomaji",
-            "hanji": "Hanji",
+            "lomaji": "Lô (Lô Hàn)",
+            "hanji": "Hàn (Hàn Lô)",
             "shift": "Shift",
             "ctrl-space": "Ctrl+Space",
-            "alt-backtick": "Alt+Backtick",
+            "alt-backtick": "Alt + Backtick",
             "alt-space": "Alt+Space"
         },
         "dictionary": {
