@@ -77,10 +77,10 @@
 // direct output, 羅字 submode == ]
 
 const APOSTROPHE_HANJI_CHARS: [char; 2] = ['「', '」'];
-const APOSTROPHE_LOMAJI_CHARS: [char; 3] = ['‘', '’', '\''];
+const APOSTROPHE_LOMAJI_CHARS: [char; 1] = ['\''];
 
 const QUOTE_HANJI_CHARS: [char; 4] = ['『', '』', '々', '〱'];
-const QUOTE_LOMAJI_CHARS: [char; 3] = ['"', '"', '"'];
+const QUOTE_LOMAJI_CHARS: [char; 1] = ['"'];
 
 const LESS_THAN_HANJI_CHARS: [char; 2] = ['〈', '《'];
 const LESS_THAN_LOMAJI_CHARS: [char; 2] = ['<', '«'];
