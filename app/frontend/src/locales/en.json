@@ -30,7 +30,7 @@
             "xl": "Extra Large",
             "font": "Candidate Font"
         },
-        "input-settings": {
+        "input": {
             "title": "Input Settings",
             "default-input-mode": "Mode",
             "convert-double-hyphen": "Convert double hyphen to khin dot",
@@ -49,6 +49,7 @@
             "telex": "Telex",
             "lomaji": "Lô (Lô Hàn)",
             "hanji": "Hàn (Hàn Lô)",
+            "khinless": "(bô chù)",
             "shift": "Shift",
             "ctrl-space": "Ctrl+Space",
             "alt-backtick": "Alt + Backtick",

@@ -194,7 +194,7 @@ impl BufferMgr {
     pub fn pop(&mut self, engine: &EngInner) -> Result<()> {
         if self.edit_state == EditState::ES_EMPTY {
             return Ok(());
-        } 
+        }
         // else if (self.edit_state == EditState::ES_ILLEGAL) {
         //     let mut raw_input = self.composition.raw_text();
         //     raw_input.pop();
@@ -548,7 +548,6 @@ impl BufferMgr {
                     let len = raw_input.len();
                     raw_input.replace_range(len - 2..len, "");
                     raw_input.push(ch);
-                    raw_input.push(ch);
                     self.candidates.clear();
                 } else if raw_input.ends_with("-·") {
                     let len = raw_input.len();
@@ -559,7 +558,6 @@ impl BufferMgr {
                     } else {
                         raw_input.push(engine.conf.hyphon());
                     }
-                    raw_input.push(ch);
                     raw_input.push(ch);
                     self.candidates.clear();
                 } else if raw_input.ends_with("-") {
@@ -628,24 +626,6 @@ impl BufferMgr {
             self.char_caret = self.composition.display_char_count();
             self.edit_state = EditState::ES_EMPTY;
             return Ok(());
-        } else if (key == '"') {
-            if engine.conf.is_lomaji_first() {
-                raw_input.push('"');
-            }
-            self.composition = Buffer::new();
-            self.composition.push(StringElem::from(raw_input).into());
-            self.char_caret = self.composition.display_char_count();
-            self.edit_state = EditState::ES_EMPTY;
-            return Ok(());
-        } else if (key == '\'') {
-            if engine.conf.is_lomaji_first() {
-                raw_input.push('\'');
-            }
-            self.composition = Buffer::new();
-            self.composition.push(StringElem::from(raw_input).into());
-            self.char_caret = self.composition.display_char_count();
-            self.edit_state = EditState::ES_EMPTY;
-            return Ok(());
         } else if (key == '(') {
             if engine.conf.is_lomaji_first() {
                 raw_input.push('(');
@@ -668,7 +648,7 @@ impl BufferMgr {
             self.char_caret = self.composition.display_char_count();
             self.edit_state = EditState::ES_EMPTY;
             return Ok(());
-        } else if (":=[]".contains(key) && engine.conf.is_lomaji_first()) {
+        } else if ("'\":=[]".contains(key) && engine.conf.is_lomaji_first()) {
             raw_input.push(key);
             self.composition = Buffer::new();
             self.composition.push(StringElem::from(raw_input).into());
@@ -924,7 +904,6 @@ impl BufferMgr {
                     let len = raw_input.len();
                     raw_input.replace_range(len - 2..len, "");
                     raw_input.push(ch);
-                    raw_input.push(ch);
                     self.edit_state = EditState::ES_ILLEGAL;
                 } else if raw_input.ends_with("-") {
                     let len = raw_input.len();
@@ -946,7 +925,6 @@ impl BufferMgr {
                     let len = raw_input.len();
                     raw_input.replace_range(len - 3..len, "");
                     raw_input.push(ch);
-                    raw_input.push(ch);
                     self.edit_state = EditState::ES_ILLEGAL;
                 } else if raw_input.ends_with("-·") {
                     let len = raw_input.len();
@@ -957,7 +935,6 @@ impl BufferMgr {
                     } else {
                         raw_input.push(engine.conf.hyphon());
                     }
-                    raw_input.push(ch);
                     raw_input.push(ch);
                     self.edit_state = EditState::ES_ILLEGAL;
                 } else if raw_input.ends_with("-") {
@@ -994,7 +971,11 @@ impl BufferMgr {
         } else {
             let (ret_com, ret) = convert_to_telex(engine, &raw_input, ' ');
             self.composition = ret_com?;
-            self.edit_state = if ret { EditState::ES_COMPOSING } else { EditState::ES_ILLEGAL };
+            self.edit_state = if ret {
+                EditState::ES_COMPOSING
+            } else {
+                EditState::ES_ILLEGAL
+            };
         }
 
         self.char_caret = self.composition.display_char_count();

@@ -112,7 +112,7 @@
                 class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50"
                 on:change={khinModeChanged}
             >
-                <option value="khinless">(bô chù)</option>
+                <option value="khinless">{$_("page.input.khinless")}</option>
                 <option value="hyphen">--</option>
                 <option value="dot"> ·</option>
             </select>

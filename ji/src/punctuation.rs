@@ -78,11 +78,9 @@
 
 const APOSTROPHE_HANJI_CHARS: [char; 3] = ['「', '」', '\''];
 // const APOSTROPHE_LOMAJI_CHARS: [char; 3] = ['‘', '’', '\''];
-const APOSTROPHE_LOMAJI_CHARS: [char; 1] = ['\''];
 
 const QUOTE_HANJI_CHARS: [char; 5] = ['『', '』', '"', '々', '〱'];
 // const QUOTE_LOMAJI_CHARS: [char; 3] = ['"', '"', '"'];
-const QUOTE_LOMAJI_CHARS: [char; 1] = ['"'];
 
 const LESS_THAN_HANJI_CHARS: [char; 2] = ['〈', '《'];
 const LESS_THAN_LOMAJI_CHARS: [char; 2] = ['<', '«'];
@@ -110,8 +108,8 @@ const RIGHT_BRACKET_HANJI_CHARS: [char; 3] = ['〕', '】', '〗'];
 
 pub fn get_lomaji_chars(key: char) -> Option<Vec<char>> {
     match key {
-        '\'' => Some(APOSTROPHE_LOMAJI_CHARS.to_vec()),
-        '"' => Some(QUOTE_LOMAJI_CHARS.to_vec()),
+        // '\'' => Some(APOSTROPHE_LOMAJI_CHARS.to_vec()),
+        // '"' => Some(QUOTE_LOMAJI_CHARS.to_vec()),
         '<' => Some(LESS_THAN_LOMAJI_CHARS.to_vec()),
         '>' => Some(GREATER_THAN_LOMAJI_CHARS.to_vec()),
         '+' => Some(PLUS_LOMAJI_CHARS.to_vec()),

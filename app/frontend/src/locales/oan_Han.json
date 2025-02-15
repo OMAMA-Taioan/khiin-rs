@@ -49,6 +49,7 @@
             "telex": "TELEX",
             "lomaji": "羅馬字 (羅漢)",
             "hanji": "漢字 (漢羅)",
+            "khinless": "(無注)",
             "shift": "Shift",
             "ctrl-space": "Ctrl + Space",
             "alt-backtick": "Alt + `",

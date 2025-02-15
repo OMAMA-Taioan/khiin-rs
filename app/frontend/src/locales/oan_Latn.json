@@ -49,13 +49,14 @@
             "telex": "TELEX",
             "lomaji": "Lô-má-jī (Lô Hàn)",
             "hanji": "Hàn-jī (Hàn Lô)",
+            "khinless": "(bô chù)",
             "shift": "Shift",
             "ctrl-space": "Ctrl+Space",
             "alt-backtick": "Alt + `",
             "alt-space": "Alt+Space"
         },
         "dictionary": {
-            "title": "Jī-sû-khò͘",
+            "title": "Jī-sû-khò͘"
         }
     }
 }

@@ -116,6 +116,10 @@ impl KeyConversion {
         self.output = self.output.replace("·", "");
     }
 
+    pub fn clear_annotation(&mut self) {
+        self.annotation = None;
+    }
+
     fn uppercase_first_letter(&self, s: &str) -> String {
         let mut c = s.chars();
         match c.next() {
