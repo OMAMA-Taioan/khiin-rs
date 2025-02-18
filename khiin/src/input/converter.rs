@@ -432,7 +432,7 @@ fn convert_section_by_hanlo(
 
         if let Some(conv) = conversions.get_mut(0) {
             conv.set_output_case_type(case_type.clone());
-            conv.clear_annotation();
+            conv.mark_guess_annotation();
             if (khin_mode == KhinMode::Khinless) {
                 conv.convert_to_khinless();
             } else if (khin_mode == KhinMode::Hyphen) {

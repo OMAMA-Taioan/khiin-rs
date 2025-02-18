@@ -116,8 +116,8 @@ impl KeyConversion {
         self.output = self.output.replace("·", "");
     }
 
-    pub fn clear_annotation(&mut self) {
-        self.annotation = None;
+    pub fn mark_guess_annotation(&mut self) {
+        self.annotation = Some("?".to_string());
     }
 
     fn uppercase_first_letter(&self, s: &str) -> String {
