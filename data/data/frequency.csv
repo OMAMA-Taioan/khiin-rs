@@ -3,9 +3,14 @@ ah,2586,31
 but but,10,6153
 chhe chhe,1,18069
 chhia chhia,10,1216
+chhih chhah,10,9523
 chhih chhih,10,1417
 chhè chhè,2,18069
 chhèng chhèng,1,9497
+chhì chhah,1,9523
+chhì chhà,1,9523
+chhī chhā,1,13537
+chhī chhāⁿ,1,13537
 chi,1,1180
 chiam,22,1821
 chiat,1,10012
@@ -83,7 +88,7 @@ sai,112,450
 sai sai,1,1495
 sak,11,953
 siak siak,10,3440
-sian,33,1718
+sian,38,1718
 sia̍k sia̍k,6,3440
 sih sih,10,1496
 sio̍h,1,9343
@@ -96,7 +101,9 @@ sìm sìm,1,9334
 sîn,12,2680
 sòaⁿ,112,977
 sú,2,3203
+sī,10209,33
 tang tang,11,3157
+tauh tauh,1,9641
 te,1,2516
 teh teh,10,8823
 tek,2,1482
@@ -115,6 +122,9 @@ tiāu,21,2219
 tong tong,2,18495
 tuh tuh,1,2911
 a,19,31
+chit,3586,78
+lit,2,10540
+tit,12,4999
 á,468,1
 á kiáⁿ,10,4558
 î,11,3010
@@ -137,7 +147,6 @@ a mí tô hu̍t,1,4186
 a mí tô͘ hu̍t,5,4186
 a mî,1,1499
 a píⁿ ah,6,3682
-a píⁿ a,1,3682
 a pō͘,1,5111
 a tok á,1,4092
 a tà bū,1,1506
@@ -233,7 +242,7 @@ bān le̍k,1,3742
 bān tan,10,3099
 bāng oaⁿ,1,3252
 bēng,1,3209
-bīn chheh,1,6828
+bīn chheh,1,16828
 bū hong,1,11506
 chai tîn,1,5107
 chan,2,2973
@@ -270,7 +279,7 @@ chhim kheⁿ,11,6160
 chhim kheⁿ á,1,12616
 chhim khiⁿ,1,6160
 chhim khiⁿ á,1,12616
-chhiong sêng,1,883
+chhiong sêng,1,10883
 chhit bí,1,13254
 chhit chheⁿ soaⁿ,1,3755
 chhit chheⁿ thâm,1,3138
@@ -335,6 +344,7 @@ chio̍h tēng á,10,4456
 chiuⁿ,3,3327
 chiuⁿ phó͘,1,1623
 chiàu an,1,6116
+chiàⁿ im,2,11444
 chiáu chhêng,21,3807
 chiáⁿ chúi káng,1,3182
 chiân kim,2,9524
@@ -596,6 +606,8 @@ hō͘ bé,1,2029
 hō͘ bóe,1,2029
 hō͘ tîn,1,5117
 hūi oaⁿ,1,11726
+i ta li ah,1,16712
+i tá lí ah,1,16712
 i tîn,1,3376
 ia so͘,1,3653
 iah chhun,1,7917
@@ -718,6 +730,7 @@ khoe kháu,1,14372
 khong á liâu,1,859
 khu,12,2300
 khun san,1,13732
+khut goân,1,27597
 khàm téng,2,3241
 khóng,11,2296
 khóng chú,1,23894
@@ -787,6 +800,7 @@ koan tong,1,4353
 koan tè biō,1,3832
 koan á niá,1,9187
 koaⁿ tiān,10,3867
+koaⁿ ōe,1,12535
 koe lâng,5,1370
 koe lâng hô,1,13370
 koe lâng khi̍t,1,4068
@@ -916,7 +930,7 @@ lêng ngá liâu,1,3217
 lêng nâ,1,1906
 lêng pho,1,12129
 lêng á liâu,2,3217
-lí,13745,44
+lí,13755,44
 lí kang khioh,1,3407
 lí káng,1,13791
 lí sūn,1,16159
@@ -992,6 +1006,8 @@ ngô͘ lô,1,5485
 ngāi,1,3205
 ngāu san oân,1,16228
 niau phīⁿ thâu,1,9530
+niáu ki,1,6498
+niáu ku,1,6498
 niú iok,1,1826
 niû,11,2981
 ná ui,1,7859
@@ -1028,6 +1044,7 @@ o͘ lâng,11,9006
 o͘ mí tô͘ hu̍t,10,4186
 o͘ mí tō͘ hu̍t,1,4186
 o͘ siông,1,5186
+piᴺ a,1,1017
 pa khek lé,1,6553
 pa la koah,5,3463
 pa lá koah,10,3463
@@ -1111,6 +1128,8 @@ po͘ iâm,11,3336
 po͘ lí,10,7103
 pu̍t chó͘,10,7777
 pu̍t kàu,10,7965
+pàng bē kì,2,4464
+pàng bōe kì,2,4464
 pán chéⁿ,1,3688
 pán pún,11,3686
 pâi oan,1,4296
@@ -1415,6 +1434,8 @@ thài ke̍k,1,8600
 thài kok,100,5629
 thài ló͘ koh,1,18337
 thài ló͘ kok,1,18337
+thài mâ lí,1,8416
+thài môa lí,1,8416
 thài pe̍k chheⁿ,1,8099
 thài pêng iûⁿ,10,6975
 thài pêng kéng,1,6976
@@ -1429,6 +1450,8 @@ thâu pak,1,23371
 thâu siâⁿ,1,8828
 thâu ûi,1,11205
 thó͘ chheⁿ,1,8098
+thó͘ jíⁿ kî,1,9631
+thó͘ ní kî,1,9631
 thó͘ tī kong,10,2829
 thô hn̂g,100,6573
 thô hûiⁿ,1,6573
@@ -1602,6 +1625,7 @@ tām chúi khoe,1,15171
 tām súi,1,782
 tāu tiâⁿ,1,5269
 tē chông ông,1,9166
+tē tiong hái,1,17639
 tēng,20,1109
 tēⁿ,200,2786
 tēⁿ kok sèng,1,17217
@@ -1634,6 +1658,7 @@ tōa tō͘,1,4640
 tōa tō͘ khe,1,4641
 tōa tō͘ khoe,1,4641
 tōa ông,1,4856
+tōe tiong hái,1,17639
 tōng pōng,1,3163
 tō͘,12,720
 tō͘ pian,1,3275
@@ -1700,6 +1725,7 @@ ah bú,1,4553
 ah bē,1,1065
 ah bōe,1,1065
 ah hêng á,10,6412
+ah kim,1,4557
 ah kiān,1,2972
 ah nn̄g,10,4554
 ah nūi,1,4554
@@ -1714,6 +1740,7 @@ ai ai,1,4565
 ai ioh,15,1508
 ai ioh oeh,15,1509
 ai ioh ôe,10,1509
+ai no͘ kho͘h,1,9628
 ai oh,2,1508
 ai oàn,10,6830
 ai sa chuh,1,7810
@@ -1952,9 +1979,9 @@ bo̍k te̍k,10,6591
 bo͘,1,182
 bui bui,10,3529
 but á hî,10,1622
-but á hî bê,1,6127
-but á hî moâi,1,6127
-but á hî môe,1,6127
+but á hî bê,1,17127
+but á hî moâi,1,17127
+but á hî môe,1,17127
 bu̍t,1,6126
 bu̍t chit,1,7055
 bu̍t lân tî,1,812
@@ -2031,6 +2058,7 @@ bì lù,100,1604
 bí,11,757
 bí boán,1,7321
 bí chiú,1,6317
+bí chiú thâu á,1,11647
 bí ha̍k,1,15301
 bí hún,10,3161
 bí hún chhá,10,3162
@@ -2269,9 +2297,10 @@ bāng lō͘,100,1563
 bāng nī,1,1554
 bāng á,1,15607
 băi khín,1,9105
-bē,3116,77
+bē,3122,77
 bē bái,100,917
 bē chhun chhia,10,3040
+bē chia̍h tit,1,20884
 bē chió,1,4242
 bē chēng bē,1,1084
 bē giàn,10,1447
@@ -2279,22 +2308,24 @@ bē ha̍h,10,6534
 bē hiáu,100,1572
 bē hô,10,1564
 bē hù,100,1174
-bē kham chit,1,4465
+bē jīn tit,11,16763
+bē kham chit,2,4465
 bē kham lit,1,4465
-bē kham tit,10,4465
+bē kham tit,11,4465
 bē kì tit,186,4464
 bē lī,10,5538
 bē pháiⁿ,10,5687
 bē pí,10,12427
 bē su,100,8199
 bē sái,500,1405
-bē sái tit,10,4467
+bē sái tit,11,4467
 bē sóng,100,6417
 bē tit,1,5357
 bē tàng,100,174
 bē tín bē tāng,10,5625
+bē ēng tit,101,4466
 bē ēng chit,1,4466
-bē ēng tit,100,4466
+bē ēng ê,1,4466
 bē chêng,1,1085
 bē chêng bē,1,1084
 bē sài,1,4245
@@ -2316,6 +2347,7 @@ bīn phê,5,5961
 bīn phôe,10,5961
 bīn pô͘,1,19562
 bīn sek,10,14172
+bīn se̍k,10,17329
 bīn tháng,10,6399
 bīn thâng,1,4410
 bīn thâu chêng,10,4255
@@ -2323,9 +2355,10 @@ bīn téng,10,1006
 bīn tùi,10,6570
 bīn á,1,16248
 bō á,10,4213
-bōe,3060,77
+bōe,3071,77
 bōe bái,100,917
 bōe chhun chhia,5,3040
+bōe chia̍h tit,1,20884
 bōe chió,1,4242
 bōe chēng,1,1085
 bōe chēng bōe,1,1084
@@ -2334,22 +2367,25 @@ bōe ha̍h,10,6534
 bōe hiáu,50,1572
 bōe hô,5,1564
 bōe hù,50,1174
+bōe jīn tit,6,16763
 bōe kham chit,1,4465
 bōe kham eh,1,4465
 bōe kham lit,1,4465
-bōe kham tit,5,4465
+bōe kham tit,6,4465
 bōe kì tit,98,4464
 bōe lī,10,5538
 bōe pháiⁿ,5,5687
 bōe pí,5,12427
 bōe su,50,8199
 bōe sái,100,1405
-bōe sái tit,5,4467
+bōe sái tit,6,4467
 bōe sóng,50,6417
 bōe tit,1,5357
 bōe tàng,100,174
 bōe tín bōe tāng,10,5625
-bōe ēng tit,100,4466
+bōe ēng eh,1,4466
+bōe ēng tit,101,4466
+bōe ēng ê,1,4466
 bōe chêng,1,1085
 bōe chêng bōe,1,1084
 bōng,10,4260
@@ -2412,10 +2448,9 @@ chat tiám,1,11945
 chau that,100,706
 cha̍h,10,1629
 cha̍h lō͘,10,6437
+cha̍h chí,1,8906
 cha̍k,1,6522
 cha̍p,378,90
-cha̍p ge̍h,10,10910
-cha̍p goe̍h,20,10910
 cha̍p gōa,10,12943
 cha̍p kúi,1,12643
 cha̍p tiám,100,7715
@@ -2423,6 +2458,8 @@ cha̍p chhit,10,6756
 cha̍p chhài,1,6019
 cha̍p chn̂g,1,1284
 cha̍p chì,100,3046
+cha̍p ge̍h,10,10910
+cha̍p goe̍h,20,10910
 cha̍p gō͘,10,6749
 cha̍p hun,1,15763
 cha̍p hè,5,3043
@@ -2486,7 +2523,7 @@ cheⁿ,1,635
 chha,100,4766
 chha pia̍t,1,5092
 chha put to,174,709
-chhah,100,797
+chhah,101,797
 chhah chhia,10,21297
 chhah hoe,10,7175
 chham,20,206
@@ -2538,7 +2575,10 @@ chheh tû á,1,6706
 chhek,3,9404
 chhek chhng,10,8231
 chhek chiáu á,10,6996
+chhek lia̍k,1,11417
+chhek lio̍k,1,11417
 chhek to̍k,1,11943
+chhek á,1,8120
 chheng,295,93
 chheng bān,10,6333
 chheng gōa,10,13443
@@ -2590,7 +2630,10 @@ chheⁿ á,10,8242
 chheⁿ á châng,9,8243
 chheⁿ âng teng,100,4199
 chheⁿ ḿ,10,686
+chhi bu chhī chhū,1,9644
 chhi bê,1,9220
+chhi bú chhī chhā,5,9644
+chhi bú chhī chhū,10,9644
 chhi chhi chhā chhā,1,8609
 chhi chhi,1,3572
 chhi chhám,1,1674
@@ -2653,6 +2696,8 @@ chhim,217,879
 chhim mn̂g ta̍h hō͘,10,13218
 chhim chhiat,1,6666
 chhim chiàm,1,8777
+chhim lia̍k,1,9840
+chhim lio̍k,10,9840
 chhim soaⁿ nâ lāi,10,12407
 chhim tîm,1,2942
 chhin,100,5000
@@ -2694,10 +2739,10 @@ chhio̍h á,10,1737
 chhio̍k,10,7011
 chhip,1,1075
 chhit,338,107
-chhit ge̍h,10,10907
-chhit goe̍h,20,10907
 chhit tiám,100,7407
 chhit cha̍p,100,6755
+chhit ge̍h,10,10907
+chhit goe̍h,20,10907
 chhit jī á,10,17075
 chhit thô,100,881
 chhit thô mi̍h,1,5788
@@ -2797,6 +2842,7 @@ chhiú tōaⁿ,10,8440
 chhiú āu khiau,10,1526
 chhiú ńg,1,827
 chhiúⁿ,10,6198
+chhiúⁿ kiap,1,9638
 chhiúⁿ siang,5,11962
 chhiúⁿ siong,10,11962
 chhiû,1,1758
@@ -2912,9 +2958,8 @@ chhun ûn,1,9002
 chhut,1224,16
 chhut chhiú,10,7613
 chhut chîⁿ,10,7616
-chhut khì,258,3454
-chhut lâi,518,3455
-chhut lō͘,2,6740
+chhut khì,269,3454
+chhut lâi,529,3455
 chhut mn̂g,198,5259
 chhut siaⁿ,10,6889
 chhut chháu,10,7618
@@ -2928,6 +2973,7 @@ chhut ji̍p,10,12861
 chhut khîn,10,9327
 chhut khûn,5,9327
 chhut kok,10,5966
+chhut lō͘,1,6742
 chhut miâ,10,16389
 chhut phia̍h,1,11645
 chhut phiā,1,11645
@@ -3015,6 +3061,7 @@ chhâ se,1,1638
 chhâ soe,1,1638
 chhâ thûi,1,3543
 chhâ á,10,711
+chhâi hông,1,9820
 chhâi liāu,1,8467
 chhân,101,207
 chhân chháu,10,2655
@@ -3152,14 +3199,16 @@ chhām,5,206
 chhē,321,218
 chhē bô,50,5571
 chhē m̄ sī,1,18195
-chhē tio̍h,5,11823
+chhē tio̍h,6,11823
 chhēng,547,210
 chhēng saⁿ,100,6784
 chhēng chhah,10,3506
 chhī,250,211
 chhī bó͘ kiáⁿ,10,5946
 chhī kiáⁿ,10,5946
-chhī tiān,1,5851
+chhī tiān,1,25851
+chhī bú chhī chhā,1,9644
+chhī bú chhī chhū,1,9644
 chhī chháu,1,14208
 chhī khu,1,14916
 chhī lāi,10,5033
@@ -3174,7 +3223,7 @@ chhōa lō͘,10,5574
 chhōa thâu,10,6894
 chhōe,638,218
 chhōe bô,100,5571
-chhōe tio̍h,10,11823
+chhōe tio̍h,11,11823
 chhū,1,8399
 chhūn sí,1,5512
 chhūn pān,1,1812
@@ -3205,6 +3254,7 @@ chiam chhia,10,12717
 chiam tùi,10,8723
 chiam á,1,8184
 chian,1,7062
+chian kiáu,1,24411
 chiang kun,5,3841
 chiang lâi,5,5434
 chiang thêng,1,9060
@@ -3219,7 +3269,9 @@ chiat bo̍k,10,7750
 chiat chàu,1,9594
 chiau chhéng,1,18531
 chiau chi̍p,1,13472
+chiau cho,1,17366
 chiau pâi,10,9098
+chiau tiám,1,9880
 chia̍h,4181,83
 chia̍h chho,1,6874
 chia̍h chhài,10,6537
@@ -3248,9 +3300,9 @@ chia̍t,1,6442
 chia̍t chia̍t,1,6443
 chia̍t chí,10,6496
 chia̍t ūn,10,6431
+chiaⁿ bah,10,1824
 chiaⁿ ge̍h,110,1823
 chiaⁿ goe̍h,110,1823
-chiaⁿ bah,10,1824
 chiaⁿ si̍t,500,1177
 chih,1,1836
 chih chiap,10,4012
@@ -3307,7 +3359,6 @@ chip,1,1075
 chip chèng,10,13205
 chip hêng,10,9230
 chip sū,1,18694
-chit,3585,78
 chit chām,10,660
 chit chām á,110,660
 chit chūn,1,1344
@@ -3457,19 +3508,19 @@ chiūⁿ tâng,1,3397
 chi̍h,11,1322
 chi̍p thoân,1,7577
 chi̍p thé,10,7725
-chi̍t,8553,41
+chi̍t,8554,41
 chi̍t ba̍k nih,1,1323
 chi̍t ba̍k nih kú,10,16893
 chi̍t ba̍k nih á,10,1324
 chi̍t chām á,110,662
 chi̍t khùn,10,1851
 chi̍t khùn á,11,1852
-chi̍t kóa,130,342
+chi̍t kóa,131,342
 chi̍t pah,100,6762
 chi̍t pòaⁿ,10,7323
 chi̍t pòaⁿ pái á,1,18621
 chi̍t sut sut á,10,6735
-chi̍t sut á,101,1203
+chi̍t sut á,112,1203
 chi̍t sì lâng,110,6307
 chi̍t sì kè,10,5584
 chi̍t sì kòe,10,5584
@@ -3478,10 +3529,10 @@ chi̍t thoa,10,4586
 chi̍t tiap kú á,1,6267
 chi̍t tiap á kú,10,16266
 chi̍t tiám,100,6734
-chi̍t tiám á,110,6734
+chi̍t tiám á,121,6734
 chi̍t tiô,10,2937
 chi̍t ê,100,8455
-chi̍t ē,442,241
+chi̍t ē,452,241
 chi̍t ē á,15,5233
 chi̍t sî tek,1,15179
 chi̍t sî te̍k,1,15179
@@ -3489,6 +3540,7 @@ chi̍t tò͘,1,4146
 chiⁿ tiâu,1,4214
 chng chú,1,13244
 chng kha,100,1253
+chng pêⁿ,1,20268
 chng thâu,1,6635
 chng tiúⁿ,1,7768
 chng á,10,5680
@@ -3707,6 +3759,7 @@ chéng thâu á,100,648
 chéng tùn,1,5842
 chéng ām,1,4472
 chê cháⁿ,1,4135
+chê pī,1,13380
 chêng,512,203
 chêng kàu taⁿ,5,642
 chêng sì lâng,15,6313
@@ -3788,6 +3841,7 @@ chîm kóng,1,8657
 chîm kóng chhài,10,12686
 chîm á,10,7059
 chîn,1,1842
+chîⁿ hāng,1,9645
 chò,2677,53
 chò bē kàu,10,7241
 chò bōe kàu,5,7241
@@ -3871,6 +3925,7 @@ chó͘ tòng,10,6159
 chôa,10,1255
 chôaⁿ á,1,3588
 chôe cháⁿ,1,4135
+chôe pī,1,13380
 chông,10,1877
 chông chîⁿ,10,12377
 chông pài,1,6608
@@ -3934,7 +3989,7 @@ chúi ke,10,3404
 chúi kiáu,10,4411
 chúi kng,1,1172
 chúi koe,5,3404
-chúi kéng,1,582
+chúi kéng,1,10582
 chúi kó,1,1880
 chúi lâi,1,2366
 chúi lê,10,4408
@@ -4101,9 +4156,13 @@ eng thô,1,9081
 eng àm,100,866
 e̍h,101,867
 e̍k,1,9277
+e̍k chò,10,19277
+e̍k chòe,5,19277
+e̍k chô,1,13143
 e̍k keng á,10,6394
 e̍k kin,1,6395
 e̍k kun,1,6395
+e̍k tháng,10,9649
 eⁿ á,11,3556
 ga suh,1,1902
 ga̍k bió,1,15682
@@ -4161,7 +4220,7 @@ giâ kê,10,1856
 giâ thâu,1,810
 giâ éng,1,5753
 giâ kang,10,1860
-giâ kang chháu,1,7064
+giâ kang chháu,1,17064
 giâ kông,1,16523
 giâm lē,1,9430
 giâm siok,1,7440
@@ -4197,7 +4256,7 @@ goe̍h niû,185,795
 goe̍h piáⁿ,10,10251
 goe̍h sū,10,6221
 goe̍h tâi,1,7202
-goán,3210,70
+goán,3220,70
 goân bûn,1,6589
 goân chek,10,8150
 goân chiap,1,8067
@@ -4303,7 +4362,8 @@ gîm á,1,1914
 gîn,10,3664
 gîn hâng,100,7044
 gîn kak á,10,9592
-góa,15113,36
+góa,15123,36
+góa kā lí kóng,100,35452
 góa ê,10,23632
 gô,11,1919
 gông,1,1215
@@ -4321,7 +4381,7 @@ gú im,5,15956
 gú khì,1,14738
 gú khì sû,1,14738
 gú sû,1,1793
-gún,1251,70
+gún,1256,70
 gû bah,10,7137
 gû chàu,1,23845
 gû hi,1,4359
@@ -4410,11 +4470,11 @@ gōng gōng,10,14428
 gōng sîn,10,16214
 gōng tōa tai,10,1935
 gō͘,419,105
-gō͘ ge̍h,10,10905
-gō͘ goe̍h,20,10905
 gō͘ tiám,100,7413
 gō͘ bō͘,1,8591
 gō͘ cha̍p,100,6751
+gō͘ ge̍h,10,10905
+gō͘ goe̍h,20,10905
 gō͘ hōe,10,1922
 gō͘ kái,10,1923
 gō͘ lo̍k,10,1924
@@ -4542,6 +4602,7 @@ hiaⁿ tī,265,4682
 hihⁿ,2,7928
 him bō͘,1,7785
 him siān,10,2036
+him soān,1,2036
 hin,1,5972
 hin ōng,1,6999
 hioh,10,682
@@ -4768,7 +4829,6 @@ hoàn,1,2327
 hoàn chhù,10,7989
 hoàn siáng,1,9320
 hoàn sióng,1,9320
-hoàn siōng,1,6539
 hoàn á,1,7993
 hoàn á keng,10,7994
 hoán hóe,10,7479
@@ -4794,6 +4854,7 @@ hoân hoa,1,7363
 hoân hó,1,839
 hoân hôa,1,7363
 hoân kan,1,9194
+hoân kéng,1,5447
 hoân ló,265,839
 hoân nā,1,8441
 hoân tîn,1,19550
@@ -4829,6 +4890,8 @@ ho͘hⁿ,15,569
 hu,1,2052
 hu hoa,1,2807
 hu jîn,10,7569
+hu lo͘h,1,9652
+hu lo͘h tháng,1,26952
 hui,2,4155
 hui chèng sek,11,16494
 hui hêng ki,10,1481
@@ -5169,6 +5232,7 @@ hô͘ lî chiⁿ,1,6469
 hô͘ lô͘,1,3997
 hô͘ pau,1,13142
 hô͘ sîn,10,2031
+hô͘ tia̍p,1,9653
 hô͘ tô͘,10,1942
 hô͘ⁿ,1,569
 hù,3,1175
@@ -5203,6 +5267,10 @@ hùn tho̍k,1,12780
 hùn tàu,1,14580
 hùn tò͘,1,14580
 hú,2,1551
+hú lo͘h,1,9652
+hú lo͘h tháng,10,26952
+hú lo͘h keng,10,19652
+hú ló͘ tháng,5,26952
 hú pāi,1,7660
 hú tō,1,13665
 hú á,1,1552
@@ -5337,6 +5405,7 @@ hō͘ chúi,10,5461
 hō͘ hóe,1,7480
 hō͘ jia,1,7985
 hō͘ kó,1,15637
+hō͘ lêng,10,9388
 hō͘ mng á,1,9226
 hō͘ moa,10,2033
 hō͘ siang,63,4867
@@ -5365,7 +5434,7 @@ hūi tō͘,1,4400
 hūn,30,426
 hūn chú,1,1592
 hǹg,5,3592
-i,12285,34
+i,12295,34
 i ê,1,23432
 i koan,1,6323
 i kài,1,12722
@@ -5424,7 +5493,7 @@ im phiau,1,9287
 im piau,1,9287
 im poe,1,2093
 im ūn,1,11252
-in,3004,50
+in,3005,50
 in tau,10,13194
 in chêng,1,13801
 in hô,1,5249
@@ -5507,7 +5576,7 @@ iá sim,1,4459
 iá sèng,1,17545
 iám,1,3230
 ián,10,2088
-ián tó,10,2090
+ián tó,11,2090
 ián chàu,10,9599
 ián goân,1,7836
 ián hòa,1,7761
@@ -5689,8 +5758,8 @@ jiō ô͘,1,4415
 ji̍h,51,925
 ji̍p,699,310
 ji̍p chhù,1,6918
-ji̍p khì,292,3457
-ji̍p lâi,141,3456
+ji̍p khì,303,3457
+ji̍p lâi,152,3456
 ji̍p mn̂g,11,7908
 ji̍p sim,10,5321
 ji̍p tiûⁿ,1,13157
@@ -5741,20 +5810,20 @@ jû chháng chháng,10,2131
 jû chhú,1,8890
 jû kim,10,5439
 jī,497,293
-jī ge̍h,10,7659
-jī goe̍h,20,7659
 jī bó,5,11409
 jī bú,10,11409
 jī bō͘,1,12610
 jī cha̍p,100,6744
 jī chhiú,10,9281
 jī cháiⁿ,1,17801
+jī ge̍h,10,7659
+jī goe̍h,20,7659
 jī gī,1,12150
 jī hoat,1,11238
 jī hêng,1,11280
 jī kha,1,12827
 jī khak,10,11623
-jī kut,1,7869
+jī kut,1,12869
 jī kù,1,13428
 jī lūi,1,9162
 jī pêng,10,11023
@@ -5848,6 +5917,7 @@ kai kip,10,8420
 kai tōaⁿ,10,8959
 kaiⁿ,1,9941
 kak,1,1393
+kak ah,2,9172
 kak chhéⁿ,10,5600
 kak gō͘,10,1443
 kak ngō͘,5,1443
@@ -5855,6 +5925,7 @@ kak sek,10,6074
 kak séng,1,5600
 kak tāu,10,7673
 kak tō͘,10,5739
+kak á,1,9172
 kam,175,10053
 kam khai,10,5324
 kam chià,10,4294
@@ -5922,7 +5993,6 @@ kau thòe,1,16509
 kau tiāng,1,9204
 kau tiōng,1,9204
 kau tài,100,1294
-kau tāi,1,6793
 kau á,11,7875
 kau í,10,8674
 kauh,10,1442
@@ -6245,9 +6315,13 @@ khiáu,100,780
 khiáu chong,1,13295
 khiáu sîn,10,9472
 khiâ,100,891
+khiâ o tó bái,5,21492
+khiâ o͘ tó bái,10,21492
+khiâ o͘ tó͘ bái,100,21492
 khiân sêng,1,6416
 khiò,1,8948
 khióng hat,10,5721
+khióng kiaⁿ,1,18643
 khióng pò͘,10,2271
 khiú,100,1918
 khiú āu kha,5,13870
@@ -6327,6 +6401,7 @@ kho͘ gûn,1,4889
 kho͘ si á,10,8526
 kho͘ su á,1,8526
 kho͘ uh á,10,19344
+kho͘ toaⁿ,1,17881
 kho͘ á,10,15375
 kho͘ á lāi,1,15375
 khu la buh,1,8937
@@ -6350,6 +6425,7 @@ khut chhioh,10,9102
 khut kiâng,1,9352
 khut kiông,1,9352
 khut sè,1,3270
+khu̍t,1,9442
 khà,10,1058
 khà tiān ōe,10,2946
 khà chhia,1,2795
@@ -6411,7 +6487,7 @@ khê sìⁿ,1,10844
 khêng,1,2248
 khêng chin,1,2247
 khêng si̍t,1,6223
-khì,5663,4
+khì,5673,4
 khì ho͘,1,10449
 khì hō͘,20,10448
 khì phut phut,10,7907
@@ -6444,7 +6520,7 @@ khí chhiú,1,7786
 khí chhù,10,6515
 khí ke,10,8051
 khí kha,10,7787
-khí khì,1,3382
+khí khì,3,3382
 khí kiâⁿ,10,16152
 khí kó͘,10,13113
 khí lâi,506,3381
@@ -6464,7 +6540,7 @@ khí khe,1,6847
 khí kho,10,6847
 khí ko,10,9266
 khí lih,5,3382
-khí lì,5,3382
+khí lì,11,3382
 khí pōng,1,3434
 khí pō͘,10,11541
 khí seng,10,14943
@@ -6508,7 +6584,7 @@ khòaⁿ khin,10,5564
 khòaⁿ kìⁿ,570,147
 khòaⁿ māi,100,1471
 khòaⁿ phòa,10,7266
-khòaⁿ tio̍h,100,4648
+khòaⁿ tio̍h,101,4648
 khòaⁿ ū,100,5567
 khòaⁿ hoat,1,6353
 khòaⁿ kháu,1,4272
@@ -6559,6 +6635,7 @@ khó sioh,148,4851
 khó thâu bê,1,2281
 khó thâu moâi,1,2281
 khó thâu môe,1,2281
+khó ài,1,7428
 khó í,1,7533
 khóng khài,1,8555
 khóng sek,10,6517
@@ -6654,6 +6731,7 @@ kian kiâng,1,14384
 kian kiông,1,14384
 kian kò͘,1,6916
 kian sim,10,5766
+kiap sò͘,1,9870
 kiat,122,1474
 kiat lan,10,14533
 kiat gī,1,5187
@@ -6771,7 +6849,9 @@ kiàⁿ tâi,1,5733
 kiám,11,303
 kiám chió,10,8472
 kiám cha,10,8140
+kiám chhat koaⁿ,10,18143
 kiám chhái,10,330
+kiám giām,10,18145
 kiám pûi,1,17443
 kiám séng,10,12398
 kiám thó,10,8127
@@ -6909,7 +6989,7 @@ koa á,10,5844
 koa á chheh,1,5846
 koa á hì,10,5845
 koa á sian,1,8024
-koah,101,834
+koah,102,834
 koah chhài,1,2341
 koah chhài chí,1,6304
 koah kim,10,5351
@@ -7043,7 +7123,7 @@ koài kî,1,8934
 koàiⁿ sì,1,1134
 koàn,110,1131
 koàn hong,10,13759
-koàn tiān,10,5852
+koàn tiān,10,25852
 koàn chhoan,10,5822
 koàn kò͘,1,5820
 koàn lē,1,6203
@@ -7270,8 +7350,6 @@ káng piⁿ,1,6811
 káng su,1,16231
 káng to͘,1,7416
 káu,390,109
-káu ge̍h,10,10914
-káu goe̍h,20,10914
 káu tiám,10,7409
 káu bó,1,18655
 káu bó soa,1,15860
@@ -7281,6 +7359,8 @@ káu cha̍p,100,6759
 káu chiàn thah,1,6684
 káu chàn chhah,1,6684
 káu chàn thah,10,6684
+káu ge̍h,10,10914
+káu goe̍h,20,10914
 káu hiā,100,1397
 káu kang,10,8967
 káu kang io,1,9617
@@ -7291,7 +7371,6 @@ káu á,10,7879
 káu á kiáⁿ,10,4560
 káⁿ,910,304
 káⁿ ná,1,1155
-kâ,1,6183
 kâi,1,4304
 kâiⁿ,1,4304
 kâm,1,2172
@@ -7313,10 +7392,11 @@ kâⁿ,10,5772
 kè,530,110
 kè ang,10,7168
 kè chhiú,6,9193
-kè khì,200,5393
-kè lâi,10,5392
+kè khì,211,5393
+kè lâi,21,5392
 kè miâ,5,21389
 kè nî,1,8210
+kè lâng,11,13897
 kè biô,5,9720
 kè bín,5,9097
 kè bô͘,10,9720
@@ -7455,10 +7535,11 @@ kòa sim,1,3613
 kòa ì,1,3612
 kòe,1114,110
 kòe chhiú,15,9193
-kòe khì,400,5393
-kòe lâi,100,5392
+kòe khì,501,5393
+kòe lâi,151,5392
 kòe miâ,10,21389
 kòe nî,10,8210
+kòe lâng,1,21107
 kòe bín,10,9097
 kòe hî,10,9174
 kòe hūn,10,6259
@@ -7499,7 +7580,7 @@ kò͘ thé,1,6914
 kò͘ tēng,1,6944
 kó chiap,1,9755
 kó koh,1,14707
-kóa,10,341
+kóa,11,341
 kóaⁿ,100,1132
 kóaⁿ hū,10,4065
 kóaⁿ jîn,1,21552
@@ -7572,9 +7653,9 @@ kù á,1,8505
 kùi,100,6460
 kùi sam sam,5,9307
 kùi som som,10,9307
+kùi khì,1,5974
 kùi sèⁿ,10,6424
 kùi sìⁿ,1,6424
-kùi khì,1,5974
 kùi sū,1,6422
 kùiⁿ,1,5605
 kùn á,1,4221
@@ -7625,7 +7706,6 @@ kāng pē koh bú,10,8979
 kāu,100,1441
 kāu kang,10,1158
 kāu ōe,10,13597
-kă,1,6183
 kăng,1,2181
 kē,10,1401
 kē chhù á,10,5265
@@ -7693,10 +7773,10 @@ lau lau,10,8168
 la̍h chek,10,3385
 la̍h ji̍t,10,3370
 la̍k,218,106
-la̍k ge̍h,10,10906
-la̍k goe̍h,20,10906
 la̍k tiám,100,7406
 la̍k cha̍p,100,6753
+la̍k ge̍h,10,10906
+la̍k goe̍h,20,10906
 la̍p,11,9964
 la̍t,10,4500
 la̍t chháu,10,5641
@@ -7748,7 +7828,7 @@ lih,1,10540
 lim,500,374
 lim chiú,100,6738
 lim chúi,100,7161
-lim ka pi,10,7166
+lim ka pi,10,17166
 lim tê,10,11207
 lin,60,149
 lin bú,1,9376
@@ -7760,7 +7840,6 @@ lio̍h á,1,3044
 lio̍k im,10,11725
 lio̍k iáⁿ,10,12631
 lip,1,1075
-lit,1,10540
 liu,2,3418
 liàm,1,6476
 liàn,10,2429
@@ -7786,6 +7865,7 @@ liâm tong sî,1,6472
 liân bêng,1,3661
 liân bín,1,13923
 liân ha̍p,10,3656
+liân hoe,1,7331
 liân hî,1,9177
 liân lo̍k,10,3655
 liân ngāu,10,9517
@@ -7798,6 +7878,7 @@ liân sòa,10,9013
 liân só,1,8410
 liân sú,1,8930
 liân sū,1,8930
+liân te̍k,1,17935
 liân u̍ih,1,3658
 liân á,1,12177
 liâng,10,2432
@@ -7946,7 +8027,7 @@ làu làu,10,8167
 làu si̍t á,1,9181
 lám,101,2381
 lám nōa,10,2379
-lán,2681,59
+lán,2682,59
 lán si,1,8512
 láng,2,1041
 láng siuⁿ,1,3346
@@ -7962,9 +8043,9 @@ lâ lun sio,1,8301
 lâ lí,1,3895
 lâ lûn sio,10,8301
 lâ á,10,2363
-lâi,9430,3
+lâi,9440,3
 lâi chē,10,12023
-lâi khì,917,4727
+lâi khì,918,4727
 lâi kàu,10,4698
 lâi lâi khì khì,10,4727
 lâi pin,1,9480
@@ -7984,7 +8065,7 @@ lân,1,10058
 lân bián,1,7490
 lân kan,1,9014
 lân san,10,1262
-lâng,9492,7
+lâng,9502,7
 lâng bīn,10,9403
 lâng châi,1,1043
 lâng kang,1,8113
@@ -7994,6 +8075,7 @@ lâng sn̂g,1,3756
 lâu kōaⁿ,10,13171
 lâu phīⁿ,10,15703
 lâu phīⁿ chúi,10,15703
+lâu thng,10,23893
 lâu ōe,10,15409
 lâu kha,100,13761
 lâu thui,10,2236
@@ -8065,8 +8147,9 @@ lí sióng,10,6014
 lí siā,5,15762
 lím,1,8975
 lím lím,1,13975
+lím lím ah,2,13975
 lím lím á,15,13975
-lín,1572,113
+lín,1573,113
 lín chó͘ má,10,5611
 lín pē,11,1588
 lín tau,10,13198
@@ -8311,6 +8394,8 @@ mi,1,2479
 mi mi mau mau,5,8558
 mi mi mauh mauh,10,8558
 mi mí mauh mauh,1,8558
+mi sín,1,12235
+mi sín iû,1,22237
 mih,1,391
 mih á,10,3402
 miâ,632,389
@@ -8461,6 +8546,7 @@ māi,1,1472
 mē,100,1955
 mē á,1,8351
 mī,10,765
+mī tàⁿ á,10,5204
 mī hún,10,8079
 mī pau,1,9337
 mī sòaⁿ,10,3272
@@ -8508,6 +8594,9 @@ m̄ tāⁿ,10,701
 na ga sih,1,6819
 na gá sih,1,6819
 nah,2,396
+nah m̄,1,6271
+nah thang,1,6269
+nah tio̍h,1,6270
 nah ē,1,4627
 nah ū,1,4677
 naih,1,8044
@@ -8541,8 +8630,10 @@ ngó͘ á hî,10,15923
 ngāi gio̍h,1,1903
 ngāu hún,1,7595
 ngē,10,2405
+ngē thé,1,14622
 ngē táu,1,2491
 ngī,1,2405
+ngī thé,1,14622
 ngō͘ lo̍k,1,1924
 ni,66,149
 ni bó,1,9376
@@ -8583,8 +8674,12 @@ nn̄g ê,10,14928
 nn̄g jîn,10,9072
 nn̄g khak,1,13949
 nn̄g pe̍h chit,10,9069
+nn̄g toaⁿ,1,13881
 no͘h,15,1466
 nà,627,396
+nà m̄,1,6271
+nà thang,1,6269
+nà tio̍h,1,6270
 nà ē,50,4627
 nà ū,50,4677
 ná,2068,116
@@ -8785,6 +8880,8 @@ pa chio,10,9608
 pa kiat,10,4022
 pa lang,1,8161
 pa lé,1,4611
+pa lē,1,9648
+pa lōe,1,9648
 pa pa,216,2528
 pa pah,10,2528
 pa á,1,1598
@@ -8851,11 +8948,11 @@ pa̍t á,10,1602
 pe,160,2608
 pe lêng á,5,5763
 peh,220,108
-peh goe̍h,20,10908
 peh pak,1,8385
 peh soaⁿ,10,7177
 peh tiám,10,7408
 peh cha̍p,100,6757
+peh goe̍h,20,10908
 peh jī,10,7556
 peh sèⁿ,133,4723
 peh ḿ,1,688
@@ -9065,6 +9162,8 @@ phâng,130,1429
 phâng tiûⁿ,10,4328
 phè,100,5474
 phè ha̍p,1,8383
+phèng chhiáⁿ,10,9637
+phèng kim,1,9636
 phê,10,1145
 phê bah,1,13574
 phê hu,1,8163
@@ -9134,6 +9233,7 @@ phóng,1,2570
 phó͘,10,3600
 phó͘ ki̍p,10,13943
 phó͘ phiàn,10,4474
+phó͘ phó͘ ah,2,6007
 phó͘ phó͘ á,15,6007
 phó͘ sè,1,23454
 phó͘ thong,100,3048
@@ -9300,11 +9400,12 @@ piān sū,1,10223
 piān tong,100,2593
 pi̍t gia̍p,10,3179
 piⁿ,297,19
-piⁿ a,51,1017
 piⁿ ah,150,1017
+piⁿ a,50,1017
 piⁿ thâu,1,1018
-piⁿ á,2,1017
+piⁿ á,1,1017
 piⁿ â,1,1017
+piⁿ á thâu,1,9635
 png chhiū,10,14071
 png á,1,14071
 png á chhiū,10,14071
@@ -9339,9 +9440,9 @@ poe,566,974
 poe lêng ki,1,1481
 poe lêng á,10,5763
 poeh,50,108
-poeh ge̍h,10,10908
 poeh tiám,5,7408
 poeh cha̍p,50,6757
+poeh ge̍h,10,10908
 poeh jī,5,7556
 poe̍h,10,3910
 poh hōaⁿ,10,9195
@@ -9553,6 +9654,7 @@ pòaⁿ sì lâng,15,6310
 pòaⁿ tháng chúi,10,7882
 pòaⁿ tháng sái,1,17882
 pòaⁿ tiám cheng,10,5813
+pòaⁿ hóng á,1,16022
 pòaⁿ iam iûⁿ,1,6531
 pòaⁿ iam iûⁿ á,1,11531
 pòaⁿ lâm iûⁿ,1,6531
@@ -9720,6 +9822,7 @@ sa bì sù,10,8838
 sa bí suh,10,8838
 sa bí sù,1,8838
 sa bûn chú gī,1,2698
+sa lia̍h,1,6290
 sa mi,1,7789
 sa si mih,1,9095
 sa sí mih,10,9095
@@ -9761,6 +9864,7 @@ sam á,1,15623
 san,5,3571
 san bêng hái sè,1,5597
 san ko,1,5755
+san tin hái bī,10,9899
 san ô͘,1,6348
 sang,68,472
 sang ko lūn,1,13207
@@ -9779,8 +9883,6 @@ saⁿ,1330,2
 saⁿ bān,10,6775
 saⁿ chheng,10,6782
 saⁿ chioh mn̄g,5,4262
-saⁿ ge̍h,10,10903
-saⁿ goe̍h,20,10903
 saⁿ gō͘,10,8622
 saⁿ keⁿ pòaⁿ mê,15,5546
 saⁿ khan chhiú,1,7807
@@ -9793,6 +9895,12 @@ saⁿ tǹg,1,7274
 saⁿ cha̍p,100,6745
 saⁿ cheⁿ,10,2636
 saⁿ chiⁿ,1,2636
+saⁿ ge̍h,10,10903
+saⁿ goe̍h,20,10903
+saⁿ kak,1,9790
+saⁿ kak hêng,10,9629
+saⁿ kak keng,10,11979
+saⁿ kak thang,100,10979
 saⁿ kap,1,2187
 saⁿ keng á,10,2637
 saⁿ khò͘,10,3168
@@ -9875,6 +9983,8 @@ si kio̍k,1,8795
 si koe,10,2650
 si kut,1,29782
 si si,1,14444
+si sia mo͘h,1,5951
+si siá mo͘h,1,5951
 si thé,1,9770
 sia,1,3174
 siah,2,2652
@@ -9891,7 +10001,7 @@ sian hô,1,6348
 sian jîn,1,10078
 sian pái,1,4882
 sian pòe,1,9000
-sian seⁿ,386,470
+sian seⁿ,396,470
 sian seⁿ niû,10,14815
 sian siⁿ,386,470
 sian siⁿ niû,1,14815
@@ -10009,12 +10119,13 @@ sin khu piⁿ,100,5411
 sin khó͘,1,8811
 sin le̍k,1,3520
 sin lô,1,2657
+sin lông,1,25242
 sin miā,1,13847
 sin niû,10,5715
 sin nî,1,7513
 sin piⁿ,10,5410
 sin pū,10,2679
-sin seⁿ,193,470
+sin seⁿ,198,470
 sin seⁿ niû,5,14815
 sin si,1,2352
 sin sè,2,13643
@@ -10209,7 +10320,7 @@ sió tán,100,3133
 sió bē,10,6204
 sió chiá,245,1115
 sió chím,1,4179
-sió khóa,100,1114
+sió khóa,101,1114
 sió khóa á,10,3132
 sió kńg,1,2685
 sió kńg á,10,6178
@@ -10286,7 +10397,7 @@ siū chōe,1,17464
 siū khó͘,15,19047
 siū siang,1,14591
 siū siong,10,14591
-siū tio̍h,10,4914
+siū tio̍h,11,4914
 siū khì,174,823
 siū lān,1,7157
 siū lān chiá,10,7157
@@ -10298,11 +10409,12 @@ siūⁿ bē khui,10,8186
 siūⁿ bē kàu,100,1749
 siūⁿ bōe khui,10,8186
 siūⁿ bōe kàu,50,1749
+siūⁿ chhù,10,7392
 siūⁿ khòaⁿ,10,7204
 siūⁿ khòaⁿ bāi,10,7204
 siūⁿ khòaⁿ māi,100,7204
 siūⁿ kóng,100,5084
-siūⁿ tio̍h,100,4713
+siūⁿ tio̍h,101,4713
 siūⁿ hoat,10,6352
 siūⁿ khì,87,823
 siūⁿ poe,10,1748
@@ -10457,11 +10569,13 @@ sut,1,1201
 sut á,1,1202
 sàm bah,1,9324
 sàm mà,1,9324
+sàm pō͘,1,7370
 sàn,10,2634
 sàn bûn,1,17128
 sàn chhiah,100,2632
 sàn chia̍h,1,2632
 sàn hiong,10,2635
+sàn pō͘,10,7370
 sàng soh,1,6878
 sàng so͘h,5,6878
 sàng sò,1,6878
@@ -10508,6 +10622,7 @@ sè chiah,10,6895
 sè châng,1,13081
 sè pún,10,15423
 sè pún jī,2,11542
+sè siaⁿ,10,12456
 sè bīn,1,9422
 sè chêng,1,7367
 sè giân,1,8190
@@ -10564,15 +10679,16 @@ sêng pún,10,7591
 sêng pāi,1,7766
 sêng se̍k,1,13191
 sêng sim,1,6415
+sêng sio̍k,1,13191
 sêng siū,1,8032
 sêng ì,10,6510
 sì,374,104
-sì ge̍h,10,10904
-sì goe̍h,20,10904
 sì tiám,100,7404
 sì bīn,1,9422
 sì cha̍p,100,6747
 sì chiu ûi,10,18447
+sì ge̍h,10,10904
+sì goe̍h,20,10904
 sì kak,10,5740
 sì kak jī,1,10282
 sì kha á,10,3956
@@ -10599,7 +10715,7 @@ sìn sit,1,8506
 sìn táu,1,3145
 sìⁿ,1,7077
 sìⁿ miā,105,1361
-sí,1004,124
+sí,1005,124
 sí giān giān,1,9126
 sí gín ná,2,15684
 sí gín á,2,15684
@@ -10662,6 +10778,7 @@ sòe chhù,100,7803
 sòe chiah,5,6895
 sòe châng,1,13081
 sòe pún,5,15423
+sòe siaⁿ,5,12456
 sòe ho̍k,1,6073
 sòe hàn,199,453
 sòe jī,50,2643
@@ -10753,6 +10870,8 @@ sûn būn chhù,1,7740
 sûn chhùi,1,8666
 sûn chêng,10,7292
 sûn chùi,1,8666
+sûn hoân,1,20337
+sûn khoân,10,10330
 sûn lô,1,14278
 sûn sùi,1,8666
 sāng,1,2668
@@ -10760,7 +10879,6 @@ să bì sù,1,8838
 săn sín,1,12301
 sēng,10,2646
 sēng sòa,1,913
-sī,10208,33
 sī kóng,10,5287
 sī m̄ sī,100,465
 sī m̄,10,7927
@@ -10831,6 +10949,7 @@ tah èng,10,768
 tai,10,168
 tai á,1,13505
 tak,1,2776
+tak á,1,9643
 tam,2,2749
 tam sin miā,10,13847
 tam gō͘,1,9357
@@ -10860,6 +10979,7 @@ tang thiⁿ,10,5436
 tap siā,10,8282
 tap àn,1,8181
 tau,300,2736
+tauh,1,8949
 ta̍h,10,2775
 ta̍h chhu,1,8593
 ta̍h tòng á,10,3892
@@ -10927,11 +11047,11 @@ tham thâu,2,8481
 tham sim,10,6260
 tham u,1,9366
 tham ù,1,9366
-thang,2895,67
+thang,2885,67
 thang chai,1,15218
 thang hó,10,989
 thang kng,1,990
-thang á,1,6398
+thang á,10,986
 thang á mn̂g,100,988
 thap,10,2386
 thap siū,1,2521
@@ -10999,7 +11119,7 @@ thiaⁿ bô,100,5566
 thiaⁿ koa,1,17401
 thiaⁿ kìⁿ,372,4241
 thiaⁿ kóng,100,5083
-thiaⁿ tio̍h,100,4680
+thiaⁿ tio̍h,110,4680
 thiaⁿ ū,100,5565
 thiaⁿ chiòng,10,9032
 thiaⁿ tn̂g,10,7550
@@ -11044,6 +11164,7 @@ thiò bí,10,5980
 thiòng,10,2754
 thióng,1,3422
 thióng á,1,3423
+thiām,1,9962
 thiāu,1,3148
 thiāu á,11,3149
 thiāu á chí,1,3692
@@ -11212,6 +11333,7 @@ thâu thiàⁿ,11,5795
 thâu ah,2,6585
 thâu ba̍k,1,13447
 thâu chang,10,1635
+thâu chhah,1,28797
 thâu chêng,186,4737
 thâu gê,1,15068
 thâu hia̍h,10,5387
@@ -11308,6 +11430,7 @@ thó hia̍p,1,6381
 thó ià,1,2074
 thó lūn,100,4885
 thó tòng,1,2845
+thóng,10,5493
 thóng it,1,4887
 thóng kè,10,12823
 thóng tī,1,14843
@@ -11412,6 +11535,7 @@ tih,1698,54
 tih beh,10,591
 tih boeh,5,591
 tin,10,9960
+tin sioh,1,13850
 tin tiang,2,9092
 tin tin tang tang,10,15092
 tin tin tiang tiang,1,15092
@@ -11435,6 +11559,7 @@ tiong sèng,1,11437
 tiong tàu,100,2874
 tio̍h,8871,10
 tio̍h che,10,3437
+tio̍h chha̍t thau,10,23305
 tio̍h chún,10,13716
 tio̍h ka cha̍k,1,7641
 tio̍h m̄ tio̍h,100,7207
@@ -11446,8 +11571,7 @@ tio̍h bôa,1,4310
 tio̍h kiaⁿ,10,5210
 tio̍h kip,1,13510
 tio̍h kâu,1,4104
-tit,11,4999
-tit tio̍h,414,4741
+tit tio̍h,415,4741
 tit beh,1,591
 tiu tiu,1,9078
 tiuh,11,2875
@@ -11461,6 +11585,7 @@ tiàu,12,786
 tiàu chi̍p,10,9509
 tiàu kiáⁿ,10,7904
 tiàu oán,1,1479
+tiàu te̍k,1,18137
 tiàu tāu,1,5183
 tiàⁿ,1,8359
 tiám,397,539
@@ -11540,6 +11665,7 @@ tiān lêng,10,5652
 tiān náu,10,7205
 tiān oe,1,6614
 tiān sī,100,6491
+tiān thah,1,25524
 tiān thui,100,8143
 tiān tâi,10,13274
 tiān tî,10,9242
@@ -11738,12 +11864,13 @@ té khòng,10,8296
 té khò͘,10,9381
 té tì,10,2784
 téng,439,18
+téng ji̍t,2,9574
 téng lé pài,10,15583
 téng pái,15,5363
 téng sì lâng,15,6312
 téng bīn,169,4708
 téng chin,1,3966
-téng ji̍t á,10,9574
+téng ji̍t á,10,15574
 téng kiuⁿ,1,8996
 téng koân,500,874
 téng thâu,10,5235
@@ -11778,7 +11905,7 @@ tì bō á,10,6837
 tì hūi,10,7909
 tì jiá,1,8217
 tì kak,10,6730
-tì kak tio̍h,10,6725
+tì kak tio̍h,15,6725
 tì kàu,1,538
 tì sek,100,1279
 tì sek hūn chú,10,6495
@@ -11786,7 +11913,7 @@ tì sú,1,7997
 tì tiōng,1,6690
 tì ì,1,14854
 tì ìm,1,3991
-tìm,2,2780
+tìm,3,2780
 tìm thâu,10,2779
 tìn,1,733
 tìn tè,10,2767
@@ -11811,8 +11938,8 @@ tîn á,10,5501
 tîn í,1,5497
 tîⁿ,1,2940
 tò,10,840
-tò khì,1,4891
-tò lâi,1,18403
+tò khì,2,4891
+tò lâi,2,18403
 tò chhiú,100,1832
 tò chhiú pêng,100,1833
 tò chhiú phang,10,9189
@@ -11921,7 +12048,7 @@ tùi ōe,1,9044
 tùn teⁿ,10,6125
 tú,100,561
 tú hó,110,562
-tú tio̍h,122,4673
+tú tio̍h,132,4673
 tú chhian,1,1101
 tú chiah,100,1098
 tú tio̍h ah,2,5667
@@ -11968,8 +12095,8 @@ tāi tông á,10,3734
 tāi á,10,6026
 tāi á hî,10,6026
 tām khì,1,6609
-tām po̍h,10,1143
-tām po̍h á,100,2738
+tām po̍h,11,1143
+tām po̍h á,110,2738
 tām sám,1,8357
 tān sī,266,497
 tāng,225,499
@@ -11979,9 +12106,12 @@ tāu,1,28
 tāu chhiam,1,1982
 tāu chhài,10,7923
 tāu gê,1,9063
+tāu gí,1,13811
 tāu hoe,10,7142
 tāu hū,100,4490
 tāu iû,100,4491
+tāu jí,1,13811
+tāu jú,1,13811
 tāu keh,1,8925
 tāu koaⁿ,10,2919
 tāu koaⁿ chìⁿ,10,5373
@@ -12028,8 +12158,9 @@ tē á,11,4892
 tē ūi,10,6514
 tēng gī,1,7135
 tēng hun,10,2723
-tēng kui,1,6268
+tēng kui,1,16268
 tēng sin,10,16317
+tēng tauh,1,13140
 tĕ,1,2853
 tī,6806,39
 tī an,1,11928
@@ -12050,8 +12181,8 @@ tīn tōng,1,8556
 tīⁿ,11,732
 tńg,324,550
 tńg chhù,10,8395
-tńg khì,246,4675
-tńg lâi,418,4671
+tńg khì,257,4675
+tńg lâi,429,4671
 tńg tōa lâng,10,4046
 tńg châi,1,8469
 tńg lûn,1,6293
@@ -12220,6 +12351,7 @@ ne,11,578
 ni̍h,5,149
 nn̍gh,1,149
 no͘,1,1466
+ê,33907,32
 àm kheⁿ á,10,1517
 âng,291,158
 âng mn̂g káng,10,4204
@@ -12320,6 +12452,7 @@ no͘,1,1466
 àu kheh,10,5881
 àu kó͘,1,9073
 àu náu,1,3530
+àu tò͘,1,14086
 àⁿ,1,3622
 á bē,255,1065
 á bōe,510,1065
@@ -12359,7 +12492,7 @@ no͘,1,1466
 âng chô hî,1,14925
 âng eⁿ á,11,4238
 âng hê,11,1990
-âng iⁿ á,2,4238
+âng iⁿ á,1,4238
 âng ke iû,1,15276
 âng ke jiû,10,16281
 âng khak,1,4232
@@ -12374,6 +12507,7 @@ no͘,1,1466
 âng liông kó,10,5471
 âng mn̂g thô͘,10,4622
 âng mô͘ thô͘,1,4622
+âng pau,1,9633
 âng sek,10,13977
 âng sian,1,16522
 âng sio hî,1,15383
@@ -12402,7 +12536,6 @@ no͘,1,1466
 éng pái,1,1176
 éng sè,1,5663
 éng éng,10,865
-ê,33807,32
 ê khoán,10,10963
 ê sî,10,4579
 ê chái,5,1895
@@ -12475,13 +12608,13 @@ no͘,1,1466
 ín poe,1,9421
 ín tō͘,1,12537
 íⁿ,1,3606
-î ah,2,6220
+î ah,2,527
 î bîn,1,8580
 î chhî,10,6606
 î e̍k,1,17063
 î it,1,3100
 î sin,1,2067
-î á,36,6220
+î á,36,527
 îm loān,1,10345
 îⁿ,100,1068
 îⁿ liàn liàn,10,11243
@@ -12524,6 +12657,7 @@ no͘,1,1466
 ông lâi,10,1310
 ông lí,1,7183
 ông lú,10,7183
+ô͘ tia̍p,1,9653
 ù,1,7643
 ù tiān,1,18175
 ù jiám,10,2152
@@ -12616,6 +12750,7 @@ no͘,1,1466
 ăi,1,9558
 ăi ioh,2,1508
 ăi ioh oeh,2,1509
+ăi nó͘ kho͘h,1,9628
 ăi sat chuh,1,7810
 ăi sá chuh,1,7810
 ăi io oe,1,1509
@@ -12629,21 +12764,30 @@ no͘,1,1466
 ē káng,10,3768
 ē mn̂g,10,871
 ē,4777,17
+ē chia̍h tit,1,20883
 ē hiáu,281,1170
 ē hô,10,1891
 ē hù,10,1173
-ē iōng tit,1,4462
-ē kham tit,1,4444
-ē kì tit,176,4461
+ē iōng tit,2,4462
+ē jīn chit,2,16760
+ē jīn lit,1,16760
+ē jīn tit,15,16760
+ē kham tit,2,4444
+ē kì tit,186,4461
 ē lī,10,5537
 ē sái,699,869
-ē sái tit,1,4463
+ē sái tit,2,4463
 ē tàng,501,255
-ē ēng tit,100,4462
+ē ēng eh,2,4462
+ē ēng tit,110,4462
+ē ēng chit,1,4462
+ē ēng ê,1,4462
+ē ĕng,1,4462
 ē bīn,10,8461
 ē chái,1,1895
 ē hoâi,10,1897
 ē hâi,5,1897
+ē ji̍t á,1,17107
 ē kha,500,1168
 ē kok,1,8997
 ē po͘,100,870
@@ -12699,12 +12843,14 @@ no͘,1,1466
 ō͘ kóe,1,5635
 ō͘ kóe khiau,10,5636
 ō͘ á,10,1525
+ō͘ á peng,10,23853
 ŏa,1,6861
 ŏe,1,1468
 ŏ͘,5,571
 ŏ͘ ián,10,9728
 ūi bú iâⁿ,1,18412
 ū,12082,35
+ū chêng,1,7312
 ū hoat tō͘,100,5402
 ū hāu,10,2151
 ū iáⁿ,236,1105
@@ -12808,6 +12954,8 @@ jā,0,-1
 jă,0,-1
 jah,0,-1
 ja̍h,0,-1
+kâ,0,-1
+kă,0,-1
 ka̍h,0,-1
 khâ,0,-1
 khā,0,-1
@@ -13678,7 +13826,6 @@ bāu,0,-1
 bău,0,-1
 bauh,0,-1
 tău,0,-1
-tauh,0,-1
 ta̍uh,0,-1
 thău,0,-1
 thauh,0,-1
@@ -15498,7 +15645,6 @@ tiăm,0,-1
 tiap,0,-1
 thiàm,0,-1
 thiâm,0,-1
-thiām,0,-1
 thiăm,0,-1
 liăm,0,-1
 siām,0,-1
@@ -16156,7 +16302,6 @@ khun,0,-1
 khûn,0,-1
 khūn,0,-1
 khŭn,0,-1
-khu̍t,0,-1
 gun,0,-1
 gùn,0,-1
 gūn,0,-1
@@ -16364,7 +16509,6 @@ bok,0,-1
 bo̍k,0,-1
 tong,0,-1
 tŏng,0,-1
-thóng,0,-1
 thòng,0,-1
 thông,0,-1
 thōng,0,-1
