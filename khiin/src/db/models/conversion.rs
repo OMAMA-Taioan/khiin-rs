@@ -4,6 +4,7 @@ pub struct Conversion {
     pub output: String,
     pub weight: i64,
     pub annotation: Option<String>,
-    pub category: Option<i64>,
+    pub khin_ok: bool,
+    pub khinless_ok: bool,
     pub is_hanji: bool,
 }

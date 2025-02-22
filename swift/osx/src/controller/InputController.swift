@@ -33,6 +33,26 @@ class KhiinInputController: IMKInputController {
         self.resetWindow()
     }
 
+    override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
+        super.init(server: server, delegate: delegate, client: inputClient)
+        setupMouseEventMonitor()
+    }
+
+    func setupMouseEventMonitor() {
+        NSEvent.addGlobalMonitorForEvents(matching: .leftMouseDown) { [weak self] event in
+            log.debug("mouse click event")
+            self!.resetController()
+        }
+    }
+
+    func resetController() {
+        _ = commitAll()
+        candidateViewModel.reset()
+        self.currentClient?.clearMarkedText()
+        self.window?.setFrame(.zero, display: true)
+        self.resetWindow()
+    }
+
     override func menu() -> NSMenu! {
         // 创建自定义菜单项
         let settingMenuItem = NSMenuItem(
@@ -68,8 +88,12 @@ class KhiinInputController: IMKInputController {
         return EngineController.instance.isClassicMode();
     }
 
-    func getHyphenKey() -> String {
-        return isEdited() ? EngineController.instance.hyphenKey() : "";
+    func isHanjiFirst() -> Bool {
+        return EngineController.instance.isHanjiFirst();
+    }
+
+    func isHyphenOrKhinKey(_ char: String) -> Bool {
+        return isEdited() && (char == EngineController.instance.hyphenKey() || char == EngineController.instance.khinKey())
     }
 
     func getCommitedText() -> String {
@@ -92,6 +116,12 @@ class KhiinInputController: IMKInputController {
             client.mark(self.currentDisplayText())
         }
         return true
+    }
+
+    func handlePunctuation(_ char: String) -> Bool {
+        _ = self.commitAll();
+        self.candidateViewModel.handleChar(char)
+        return self.handleResponse();
     }
 
     func commitAll() -> Bool {

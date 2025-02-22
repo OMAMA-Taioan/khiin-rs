@@ -2,26 +2,26 @@
     "global": {
         "title": "Khíín",
         "nav": {
-            "home": "Thâu-ia̍h",
+            "home": "",
             "about": "Koan-hē",
-            "appearance": "Gōa-phôe",
-            "input-settings": "Phah jī siat-tēng",
-            "dictionary": "Jī-tián",
-            "donate": "Tō͘-né",
+            "appearance": "Kài-bīn Siat-tēng",
+            "input-settings": "Ji̍p Jī Siat-tēng",
+            "dictionary": "Jī-sû-khò͘",
+            "donate": "Kià-hù",
             "github": "GitHub"
         }
     },
     "page": {
         "home": {
-            "title": "Khíín Tâi-gí Phah Jī Hoat"
+            "title": "Khíín Tâi-gí Ji̍p Jī Ke-si"
         },
         "appearance": {
-            "title": "Gōa-phôe",
+            "title": "Kài-bīn Siat-tēng",
             "theme": "Sek-chúi",
             "auto": "Chū-tōng",
             "light": "Kng-sek",
             "dark": "Àm-sek",
-            "language": "Kài-bīn gí-giân",
+            "language": "Kài-bīn Gí-bûn",
             "font-size": "Kéng jī chhun-chhioh",
             "xs": "Khah sè",
             "sm": "Sè",
@@ -31,30 +31,32 @@
             "font": "Kéng jī jī-kut"
         },
         "input": {
-            "title": "Phah jī siat-tēng",
-            "default-input-mode": "Default Input Mode",
+            "title": "Ji̍p Jī Siat-tēng",
+            "default-input-mode": "Hêng-thài",
             "convert-double-hyphen": "Convert double hyphen to khin dot",
             "convert-c-to-ch": "Convert C to Ch",
             "auto-capitalization": "Auto-capitalization",
             "input-mode": "Input Mode",
-            "tone-mode": "Tone Mode",
-            "output-mode": "Output Mode",
+            "tone-mode": "Chù Tiāu Hêng-sek",
+            "output-mode": "Chú-thé Jī",
             "temporarily-disable": "Temporarily disable",
-            "switch-mode": "Switch mode",
-            "auto": "Auto",
-            "classic":"Classic",
-            "manual": "Freedom",
-            "numeric": "Numeric",
-            "telex": "Telex",
-            "lomaji": "Lomaji",
-            "hanji": "Hanji",
+            "switch-mode": "Ōaⁿ Hêng-thài ê Khí",
+            "khin-mode": "Khin-tiāu Hêng-sek",
+            "auto": "Chū-tōng",
+            "classic": "Chū-tōng",
+            "manual": "Chū-iû",
+            "numeric": "Sò͘-jī",
+            "telex": "TELEX",
+            "lomaji": "Lô-má-jī (Lô Hàn)",
+            "hanji": "Hàn-jī (Hàn Lô)",
+            "khinless": "(bô chù)",
             "shift": "Shift",
             "ctrl-space": "Ctrl+Space",
-            "alt-backtick": "Alt+Backtick",
+            "alt-backtick": "Alt + `",
             "alt-space": "Alt+Space"
         },
         "dictionary": {
-            "title": "Jī-tián"
+            "title": "Jī-sû-khò͘"
         }
     }
 }

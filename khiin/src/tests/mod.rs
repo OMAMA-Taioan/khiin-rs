@@ -57,7 +57,8 @@ pub fn mock_conversion(input: &str, output: &str) -> KeyConversion {
         input_id: 0,
         output: output.into(),
         weight: 0,
-        category: None,
+        khin_ok: true,
+        khinless_ok: true,
         annotation: None,
     }
 }

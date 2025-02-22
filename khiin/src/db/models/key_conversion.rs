@@ -1,4 +1,5 @@
-use khiin_ji::{IsHanji, HANJI_CUTOFF};
+use khiin_ji::IsHanji;
+use khiin_ji::HANJI_CUTOFF;
 
 use super::InputType;
 
@@ -10,7 +11,8 @@ pub struct KeyConversion {
     pub input_id: u32,
     pub output: String,
     pub weight: i32,
-    pub category: Option<i32>,
+    pub khin_ok: bool,
+    pub khinless_ok: bool,
     pub annotation: Option<String>,
 }
 
@@ -82,6 +84,42 @@ impl KeyConversion {
         }
     }
 
+    pub fn convert_to_khin_hyphen(&mut self) {
+        if (self.output.contains("-·")) {
+            let mut has_pre_khin = false;
+            let mut pre_char = 'a';
+            let mut result = String::new();
+            for ch in self.output.chars() {
+                if (ch == '·' && pre_char == '-') {
+                    if (!has_pre_khin) {
+                        result.push('-');
+                    }
+                    has_pre_khin = true;
+                } else {
+                    if (ch == '·') {
+                        has_pre_khin = true;
+                    } else if ((pre_char == '-' || pre_char == ' ')
+                        && ch.is_ascii_alphanumeric())
+                    {
+                        has_pre_khin = false;
+                    }
+                    result.push(ch);
+                    pre_char = ch;
+                }
+            }
+            self.output = result;
+        }
+        self.output = self.output.replace(" ·", "--");
+    }
+
+    pub fn convert_to_khinless(&mut self) {
+        self.output = self.output.replace("·", "");
+    }
+
+    pub fn mark_guess_annotation(&mut self) {
+        self.annotation = Some("?".to_string());
+    }
+
     fn uppercase_first_letter(&self, s: &str) -> String {
         let mut c = s.chars();
         match c.next() {
@@ -103,7 +141,8 @@ mod tests {
             input_id: 0,
             output: output.into(),
             weight: 0,
-            category: None,
+            khin_ok: true,
+            khinless_ok: true,
             annotation: None,
         }
     }

@@ -11,12 +11,14 @@ use protobuf::Message;
 use khiin_protos::command::*;
 use khiin_protos::config::AppInputMode;
 use khiin_protos::config::AppOutputMode;
+use khiin_protos::config::AppKhinMode;
 use khiin_protos::config::BoolValue;
 
 use crate::buffer::BufferMgr;
 use crate::config::Config;
 use crate::config::InputMode;
 use crate::config::OutputMode;
+use crate::config::KhinMode;
 use crate::config::ToneMode;
 use crate::data::dictionary::Dictionary;
 use crate::db::Database;
@@ -103,9 +105,27 @@ impl Engine {
             SpecialKey::SK_NONE => {
                 let ch = ascii_char_from_i32(req.key_event.key_code);
                 if let Some(ch) = ch {
-                    self.buffer_mgr.insert(&self.inner, ch)?;
-                    if self.buffer_mgr.edit_state() == EditState::ES_EMPTY {
-                        return self.on_commit_all(req);
+                    // if ch is number
+                    if ch.is_ascii_digit()
+                        && self.inner.conf.input_mode() == InputMode::Classic
+                        && self.buffer_mgr.is_focused()
+                    {
+                        let idx = ch.to_digit(10).unwrap() as usize;
+                        self.buffer_mgr
+                            .focus_candidate_by_index(&self.inner, idx);
+                        // check is candidate is action
+                        if self.buffer_mgr.focused_candidate_is_action() {
+                            self.buffer_mgr.expand_candidate(&self.inner)?;
+                            let mut response = Response::default();
+                            self.attach_buffer_data(&mut response)?;
+                            return Ok(response);
+                        }
+                        return self.on_commit(req);
+                    } else {
+                        self.buffer_mgr.insert(&self.inner, ch)?;
+                        if self.buffer_mgr.edit_state() == EditState::ES_EMPTY {
+                            return self.on_commit_all(req);
+                        }
                     }
                 }
             },
@@ -126,7 +146,7 @@ impl Engine {
                 }
             },
             SpecialKey::SK_ENTER => {
-                return self.on_commit(req);
+                return self.on_enter(req);
             },
             SpecialKey::SK_ESC => {},
             SpecialKey::SK_BACKSPACE => {
@@ -185,6 +205,19 @@ impl Engine {
         }
         response.edit_state = EditState::ES_EMPTY.into();
         Ok(response)
+    }
+
+    fn on_enter(&mut self, req: Request) -> Result<Response> {
+        if (self.inner.conf.input_mode() == InputMode::Classic) {
+            // check is candidate is action
+            if self.buffer_mgr.focused_candidate_is_action() {
+                self.buffer_mgr.expand_candidate(&self.inner)?;
+                let mut response = Response::default();
+                self.attach_buffer_data(&mut response)?;
+                return Ok(response);
+            }
+        }
+        return self.on_commit(req);
     }
 
     fn on_commit(&mut self, req: Request) -> Result<Response> {
@@ -280,6 +313,18 @@ impl Engine {
             },
             AppOutputMode::HANJI => {
                 self.inner.conf.set_output_mode(OutputMode::Hanji)
+            },
+        }
+
+        match req.config.khin_mode.enum_value_or_default() {
+            AppKhinMode::KHINLESS => {
+                self.inner.conf.set_khin_mode(KhinMode::Khinless)
+            },
+            AppKhinMode::DOT => {
+                self.inner.conf.set_khin_mode(KhinMode::Dot)
+            },
+            AppKhinMode::HYPHEN => {
+                self.inner.conf.set_khin_mode(KhinMode::Hyphen)
             },
         }
 

@@ -145,21 +145,75 @@ impl Database {
         Ok(result)
     }
 
+    pub fn select_conversions_by_hanlo(
+        &self,
+        input_type: InputType,
+        query: &str,
+        is_hanji_first: bool,
+        is_khinless: bool,
+    ) -> Result<Vec<KeyConversion>> {
+        let sql = if is_hanji_first {
+            format!(
+                include_str!("sql/select_conversions_by_hanji.sql"),
+                limit = "limit 1",
+                khin_mode = if is_khinless {
+                    "khinless_ok"
+                } else {
+                    "khin_ok"
+                }
+            )
+        } else {
+            format!(
+                include_str!("sql/select_conversions_by_lomaji.sql"),
+                limit = "limit 1",
+                khin_mode = if is_khinless {
+                    "khinless_ok"
+                } else {
+                    "khin_ok"
+                }
+            )
+        };
+
+        let mut stmt = self.conn.prepare(&sql)?;
+        let mut rows = stmt.query(named_params! {
+            ":query": query,
+            ":input_type": input_type as i64,
+        })?;
+
+        let mut result = Vec::new();
+        while let Some(row) = rows.next()? {
+            result.push(row.try_into()?);
+        }
+
+        Ok(result)
+    }
+
     pub fn select_conversions_for_tone(
         &self,
         input_type: InputType,
         query: &str,
         is_hanji_first: bool,
+        is_khinless: bool,
     ) -> Result<Vec<KeyConversion>> {
         let sql = if is_hanji_first {
             format!(
                 include_str!("sql/select_conversions_for_tone_by_hanji.sql"),
-                limit = ""
+                limit = "",
+                khin_mode = if is_khinless {
+                    "khinless_ok"
+                } else {
+                    "khin_ok"
+                }
             )
         } else {
             format!(
                 include_str!("sql/select_conversions_for_tone_by_lomaji.sql"),
-                limit = ""
+                limit = "",
+                khin_mode = if is_khinless {
+                    "khinless_ok"
+                } else {
+                    "khin_ok"
+                }
             )
         };
         let mut stmt = self.conn.prepare(&sql)?;
@@ -182,16 +236,27 @@ impl Database {
         query: &str,
         detoned_query: &str,
         is_hanji_first: bool,
+        is_khinless: bool,
     ) -> Result<Vec<KeyConversion>> {
         let sql = if is_hanji_first {
             format!(
                 include_str!("sql/select_conversions_for_word_by_hanji.sql"),
-                limit = ""
+                limit = "",
+                khin_mode = if is_khinless {
+                    "khinless_ok"
+                } else {
+                    "khin_ok"
+                }
             )
         } else {
             format!(
                 include_str!("sql/select_conversions_for_word_by_lomaji.sql"),
-                limit = ""
+                limit = "",
+                khin_mode = if is_khinless {
+                    "khinless_ok"
+                } else {
+                    "khin_ok"
+                }
             )
         };
         let mut stmt = self.conn.prepare(&sql)?;
@@ -260,7 +325,8 @@ impl TryFrom<&Row<'_>> for KeyConversion {
             input_id: row.get("input_id")?,
             output: row.get("output")?,
             weight: row.get("weight")?,
-            category: row.get("category")?,
+            khin_ok: row.get("khin_ok")?,
+            khinless_ok: row.get("khinless_ok")?,
             annotation: row.get("annotation")?,
         })
     }
@@ -354,7 +420,6 @@ mod tests {
         assert!(res.iter().any(|row| row.output == "好"));
         assert!(res.iter().any(|row| row.output == "hó"));
         assert!(res[0].annotation.is_none());
-        assert!(res[0].category.is_none());
     }
 
     #[test_log::test]

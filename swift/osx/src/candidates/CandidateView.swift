@@ -12,11 +12,11 @@ struct CandidateView: View {
 
         let start = page * 9
         let end = start + 9 > candidates.count ? candidates.count : start + 9
-        let focus = focused == -1 ? -1 : focused % 9 + 1
+        let focus = focused == -1 ? -1 : focused % 9
 
         ZStack {
             VStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(zip(1...9, candidates[start..<end])), id: \.0) {
+                ForEach(Array(zip(0...8, candidates[start..<end])), id: \.0) {
                     index, candidate in
 
                     CandidateItem(
@@ -49,11 +49,12 @@ struct CandidateItem: View {
                 )
                 .frame(width: 4, height: 16)
 
-                // Text("\(index).")
-                //     .frame(minWidth: 16)
+                if index > 0 && focus != -1 {
+                    Text("\(index).")
+                        .frame(minWidth: 16)
+                }
                 Text(candidate.value).font(.system(size: 14.0))
-                Text(candidate.annotation)
-                    .font(.system(size: 9.0))
+                formatAnnotation(from: candidate.annotation)
             }
             .frame(height: 24)
             .padding(.horizontal, 8)
@@ -66,5 +67,24 @@ struct CandidateItem: View {
                 : .clear,
             in: RoundedRectangle(cornerRadius: 8)
         )
+    }
+
+    func formatAnnotation(from annotation: String) -> Text {
+        if !annotation.contains(Character("+")) {
+            return Text(annotation).font(.system(size: 9.0))
+        }
+        var result = Text("")
+        var preString: String = ""
+        for character in annotation {
+            if character == "+" {
+                result = result + Text(preString).underline().font(.system(size: 9.0))
+                preString = ""
+            } else {
+                result = result + Text(preString).font(.system(size: 9.0))
+                preString = String(character);
+            }
+        }
+        result = result + Text(preString).font(.system(size: 9.0))
+        return result
     }
 }
