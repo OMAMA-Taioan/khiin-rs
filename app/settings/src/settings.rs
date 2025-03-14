@@ -34,9 +34,10 @@ impl Default for CandidateSettings {
         }
     }
 }
-const INPUT_MODE_DEFAULT: &str = "manual";
+const INPUT_MODE_DEFAULT: &str = "classic";
 const TONE_MODE_DEFAULT: &str = "telex";
 const OUTPUT_MODE_DEFAULT: &str = "lomaji";
+const KHIN_MODE_DEFAULT: &str = "hyphen";
 const T2_DEFAULT: char = 's';
 const T3_DEFAULT: char = 'f';
 const T5_DEFAULT: char = 'l';
@@ -56,6 +57,8 @@ pub struct InputSettings {
     pub tone_mode: String,
     #[serde(default = "default_output_mode")]
     pub output_mode: String,
+    #[serde(default = "default_khin_mode")]
+    pub khin_mode: String,
     #[serde(default = "default_t2")]
     pub t2: char,
     #[serde(default = "default_t3")]
@@ -88,6 +91,10 @@ fn default_tone_mode() -> String {
 
 fn default_output_mode() -> String {
     OUTPUT_MODE_DEFAULT.to_string()
+}
+
+fn default_khin_mode() -> String {
+    KHIN_MODE_DEFAULT.to_string()
 }
 
 fn default_t2() -> char {
@@ -136,6 +143,7 @@ impl Default for InputSettings {
             input_mode: INPUT_MODE_DEFAULT.to_string(),
             tone_mode: TONE_MODE_DEFAULT.to_string(),
             output_mode: OUTPUT_MODE_DEFAULT.to_string(),
+            khin_mode: KHIN_MODE_DEFAULT.to_string(),
             t2: T2_DEFAULT,
             t3: T3_DEFAULT,
             t5: T5_DEFAULT,
@@ -170,7 +178,10 @@ impl SettingsManager {
             let mut contents = String::new();
             file.read_to_string(&mut contents).unwrap();
     
-            if let Ok(settings) = toml::from_str::<AppSettings>(&contents) {
+            if let Ok(mut settings) = toml::from_str::<AppSettings>(&contents) {
+                if settings.input_settings.input_mode == "auto" {
+                    settings.input_settings.input_mode = INPUT_MODE_DEFAULT.to_string();
+                }
                 SettingsManager {
                     settings,
                     filename: filename.clone(),

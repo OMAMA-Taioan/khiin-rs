@@ -3,9 +3,10 @@ insert into
         input_id,
         output,
         weight,
-        category,
         annotation,
+        khin_ok,
+        khinless_ok,
         is_hanji
     )
 values
-    (?, ?, ?, ?, ?, ?)
+    (?, ?, ?, ?, ?, ?, ?)

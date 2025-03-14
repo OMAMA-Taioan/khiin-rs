@@ -23,7 +23,7 @@
             <SidebarItem
                 route="/"
                 iconClass="bx-home"
-                label={$_("global.nav.home")}
+                label=""
             />
         </li>
         <li>

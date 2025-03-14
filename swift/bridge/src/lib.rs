@@ -7,6 +7,7 @@ use khiin_protos::command::CommandType;
 use khiin_protos::command::Request;
 use khiin_protos::config::AppConfig;
 use khiin_protos::config::AppInputMode;
+use khiin_protos::config::AppKhinMode;
 use khiin_protos::config::AppOutputMode;
 use khiin_protos::config::BoolValue;
 use khiin_protos::config::KeyConfiguration;
@@ -60,11 +61,9 @@ impl EngineBridge {
         let settings = SettingsManager::load_from_file(&path).settings;
 
         let input_mode = match settings.input_settings.input_mode.as_str() {
-            "continuous" => AppInputMode::CONTINUOUS,
-            "auto" => AppInputMode::CONTINUOUS,
             "classic" => AppInputMode::CLASSIC,
             "manual" => AppInputMode::MANUAL,
-            _ => AppInputMode::CONTINUOUS, // Default value if input mode is not recognized
+            _ => AppInputMode::CLASSIC, // Default value if input mode is not recognized
         };
 
         let output_mode = match settings.input_settings.output_mode.as_str() {
@@ -73,9 +72,16 @@ impl EngineBridge {
             _ => AppOutputMode::LOMAJI, // Default value if output mode is not recognized
         };
 
+        let khin_mode = match settings.input_settings.khin_mode.as_str() {
+            "khinless" => AppKhinMode::KHINLESS,
+            "dot" => AppKhinMode::DOT,
+            _ => AppKhinMode::HYPHEN, // Default value if khin mode is not recognized
+        };
+
         let mut config: AppConfig = AppConfig::new();
         config.input_mode = input_mode.into();
         config.output_mode = output_mode.into();
+        config.khin_mode = khin_mode.into();
         // set telex enabled to rust protobuf boolvalue true
         let mut telex_enabled = BoolValue::new();
         telex_enabled.value = settings.input_settings.tone_mode == "telex";

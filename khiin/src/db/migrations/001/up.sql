@@ -29,8 +29,9 @@ create table
         "input_id" integer,
         "output" text not null,
         "weight" integer,
-        "category" integer,
         "annotation" text,
+        "khin_ok" integer,
+        "khinless_ok" integer,
         "is_hanji" integer,
         unique ("input_id", "output"),
         foreign key ("input_id") references "inputs" ("id")
@@ -67,7 +68,8 @@ create index conversions_input_id_covering_index on conversions (
     "input_id",
     "output",
     "weight",
-    "category",
+    "khin_ok",
+    "khinless_ok",
     "annotation"
 );
 
@@ -90,7 +92,8 @@ create view
         "input_id",
         "output",
         "weight",
-        "category",
+        "khin_ok",
+        "khinless_ok",
         "annotation",
         "is_hanji"
     ) as
@@ -102,7 +105,8 @@ select
     "n"."input_id",
     "c"."output",
     "c"."weight",
-    "c"."category",
+    "c"."khin_ok",
+    "c"."khinless_ok",
     "c"."annotation",
     "c"."is_hanji"
 from

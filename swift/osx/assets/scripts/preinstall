@@ -7,6 +7,7 @@ osascript -e 'tell application id "app.khiin.inputmethod.khiin" to if it is runn
 /usr/bin/sudo -u "${user}" osascript -e 'tell application id "app.khiin.inputmethod.khiin" to if it is running then quit'
 
 # Remove the previous install folders
+killall -9 KhiinPJH || true
 rm -rf "/Users/${user}/Library/Input Methods/KhiinPJH.app"
 rm -rf /tmp/KhiinPJH.app
 

@@ -24,10 +24,12 @@ use crate::buffer::Buffer;
 use crate::buffer::BufferElement;
 use crate::config::Config;
 use crate::config::InputMode;
+use crate::config::KhinMode;
 use crate::data::Dictionary;
 use crate::db::Database;
 use crate::engine::EngInner;
 use crate::input::converter::convert_all;
+use crate::input::converter::convert_guess;
 use crate::input::converter::convert_to_telex;
 use crate::input::converter::get_candidates;
 use crate::input::converter::get_candidates_for_word;
@@ -35,6 +37,7 @@ use crate::input::converter::get_candidates_for_word_with_tone;
 use crate::input::converter::get_numberic_tone_char;
 use crate::utils::CharSubstr;
 
+use super::ActionElem;
 use super::Spacer;
 use super::StringElem;
 
@@ -57,6 +60,9 @@ pub(crate) struct BufferMgr {
 
     /// Previous committed word, only for classic mode
     pre_committed: String,
+
+    /// Whether the candidate is expanded
+    cand_expanded: bool,
 }
 
 impl BufferMgr {
@@ -70,6 +76,7 @@ impl BufferMgr {
             focused_cand_idx: None,
             cand_page: 0,
             pre_committed: String::new(),
+            cand_expanded: false,
         }
     }
 
@@ -172,6 +179,7 @@ impl BufferMgr {
         self.focused_elem_idx = 0;
         self.cand_page = 0;
         self.pre_committed.clear();
+        self.cand_expanded = false;
         Ok(())
     }
 
@@ -186,20 +194,21 @@ impl BufferMgr {
     pub fn pop(&mut self, engine: &EngInner) -> Result<()> {
         if self.edit_state == EditState::ES_EMPTY {
             return Ok(());
-        } else if (self.edit_state == EditState::ES_ILLEGAL) {
-            let mut raw_input = self.composition.raw_text();
-            raw_input.pop();
-
-            if raw_input.is_empty() {
-                self.edit_state = EditState::ES_EMPTY;
-                self.reset();
-            } else {
-                self.composition = Buffer::new();
-                self.composition.push(StringElem::from(raw_input).into());
-                self.char_caret = self.composition.display_char_count();
-            }
-            return Ok(());
         }
+        // else if (self.edit_state == EditState::ES_ILLEGAL) {
+        //     let mut raw_input = self.composition.raw_text();
+        //     raw_input.pop();
+
+        //     if raw_input.is_empty() {
+        //         self.edit_state = EditState::ES_EMPTY;
+        //         self.reset();
+        //     } else {
+        //         self.composition = Buffer::new();
+        //         self.composition.push(StringElem::from(raw_input).into());
+        //         self.char_caret = self.composition.display_char_count();
+        //     }
+        //     return Ok(());
+        // }
 
         self.edit_state = EditState::ES_COMPOSING;
 
@@ -228,6 +237,11 @@ impl BufferMgr {
             .get(index)
             .ok_or(anyhow!("Candidate index out of bounds"))?
             .clone();
+
+        if candidate.is_action() {
+            let raw_text = self.composition.raw_text();
+            return Ok(raw_text);
+        }
 
         let mut cand_raw_count = candidate.raw_char_count();
         let mut candi_text = candidate.display_text();
@@ -349,7 +363,7 @@ impl BufferMgr {
             return Ok(candi_text);
         }
         let is_hanji = pre_committed.chars().last().unwrap().is_hanji();
-        if is_hanji && candi_text.chars().last().unwrap().is_hanji() {
+        if is_hanji && candi_text.chars().next().unwrap().is_hanji() {
             return Ok(candi_text);
         }
         let mut ret = String::from(' ');
@@ -420,11 +434,7 @@ impl BufferMgr {
         self.edit_state = EditState::ES_COMPOSING;
 
         let mut raw_input = self.composition.raw_text();
-        self.build_composition_classic(
-            engine,
-            raw_input,
-            ch,
-        )
+        self.build_composition_classic(engine, raw_input, ch)
     }
 
     fn pop_classic(&mut self, engine: &EngInner) -> Result<()> {
@@ -441,11 +451,7 @@ impl BufferMgr {
         let ch = raw_input.chars().last().unwrap();
         raw_input.pop();
 
-        self.build_composition_classic(
-            engine,
-            raw_input,
-            ch,
-        )
+        self.build_composition_classic(engine, raw_input, ch)
     }
 
     fn attach_hypen_candicate(&mut self) {
@@ -481,27 +487,86 @@ impl BufferMgr {
     ) -> Result<()> {
         let mut key = ch.to_ascii_lowercase();
         if (key == engine.conf.hyphon()) {
-            if raw_input.ends_with("--") {
-                let len: usize = raw_input.len();
-                raw_input.replace_range(len - 2..len, "");
-                raw_input.push(ch);
-                self.candidates.clear();
+            if engine.conf.khin_mode() == KhinMode::Hyphen {
+                if raw_input.ends_with("--") {
+                    let len = raw_input.len();
+                    raw_input.replace_range(len - 2..len, "");
+                    if ch.is_ascii_uppercase() {
+                        raw_input.push(engine.conf.khin().to_ascii_uppercase());
+                    } else {
+                        raw_input.push(engine.conf.khin());
+                    }
+                    raw_input.push(ch);
+                    self.candidates.clear();
+                } else if raw_input.ends_with("-") {
+                    let len = raw_input.len();
+                    raw_input.remove(len - 1);
+                    raw_input.push(ch);
+                    self.candidates.clear();
+                } else {
+                    raw_input.push('-');
+                }
             } else {
-                raw_input.push('-');
+                if raw_input.ends_with("-") {
+                    let len: usize = raw_input.len();
+                    raw_input.remove(len - 1);
+                    raw_input.push(ch);
+                    self.candidates.clear();
+                } else {
+                    raw_input.push('-');
+                }
             }
             self.composition = Buffer::new();
             self.composition.push(StringElem::from(raw_input).into());
             self.char_caret = self.composition.display_char_count();
             return Ok(());
-        } else if (key == engine.conf.khin()) {
-            if raw_input.starts_with("--") {
-                raw_input.drain(0..2);
-                raw_input.push(key);
-                self.candidates.clear();
+        } else if (key == engine.conf.khin()
+            && engine.conf.khin_mode() != KhinMode::Khinless)
+        {
+            if engine.conf.khin_mode() == KhinMode::Hyphen {
+                if raw_input.starts_with("--") {
+                    let len = raw_input.len();
+                    raw_input.replace_range(len - 2..len, "");
+                    raw_input.push(ch);
+                    self.candidates.clear();
+                } else if raw_input.ends_with("-") {
+                    let len: usize = raw_input.len();
+                    raw_input.remove(len - 1);
+                    if ch.is_ascii_uppercase() {
+                        raw_input
+                            .push(engine.conf.hyphon().to_ascii_uppercase());
+                    } else {
+                        raw_input.push(engine.conf.hyphon());
+                    }
+                    raw_input.push(ch);
+                    self.candidates.clear();
+                } else {
+                    raw_input.push_str("--");
+                }
             } else {
-                raw_input.insert(0, '-');
-                raw_input.insert(1, '-');
+                if raw_input.ends_with(" ·") {
+                    let len = raw_input.len();
+                    raw_input.replace_range(len - 2..len, "");
+                    raw_input.push(ch);
+                    self.candidates.clear();
+                } else if raw_input.ends_with("-·") {
+                    let len = raw_input.len();
+                    raw_input.replace_range(len - 2..len, "");
+                    if ch.is_ascii_uppercase() {
+                        raw_input
+                            .push(engine.conf.hyphon().to_ascii_uppercase());
+                    } else {
+                        raw_input.push(engine.conf.hyphon());
+                    }
+                    raw_input.push(ch);
+                    self.candidates.clear();
+                } else if raw_input.ends_with("-") {
+                    raw_input.push('·');
+                } else {
+                    raw_input.push_str(" ·");
+                }
             }
+
             self.composition = Buffer::new();
             self.composition.push(StringElem::from(raw_input).into());
             self.char_caret = self.composition.display_char_count();
@@ -583,7 +648,7 @@ impl BufferMgr {
             self.char_caret = self.composition.display_char_count();
             self.edit_state = EditState::ES_EMPTY;
             return Ok(());
-        } else if (":=[]".contains(key) && engine.conf.is_lomaji_first()) {
+        } else if ("'\":=[]".contains(key) && engine.conf.is_lomaji_first()) {
             raw_input.push(key);
             self.composition = Buffer::new();
             self.composition.push(StringElem::from(raw_input).into());
@@ -600,6 +665,12 @@ impl BufferMgr {
         } else if query.starts_with("-") {
             query.drain(0..1);
             word.drain(0..1);
+        } else if query.starts_with(" ·") {
+            query.drain(0..2);
+            word.drain(0..2);
+        } else if query.starts_with("-·") {
+            query.drain(0..2);
+            word.drain(0..2);
         }
 
         let mut tone_char = key;
@@ -613,14 +684,7 @@ impl BufferMgr {
             }
         }
         // word = word.replace("ou", "o͘");
-
-        // // to handle NASAL
-        // let re_single_nasal: Regex =
-        //     Regex::new(r"(?i)[aeiouptkhmo͘]nn$").unwrap();
-        // if re_single_nasal.is_match(&word) {
-        //     word = word.replace("nn", "ⁿ");
-        // }
-        // one syllable
+        // single syllable
         if engine.dict.is_legal_syllable(&word) {
             // convert to number tone
             if self.pre_committed.is_empty() {
@@ -683,6 +747,10 @@ impl BufferMgr {
             query.drain(0..2);
         } else if query.starts_with("-") {
             query.drain(0..1);
+        } else if query.starts_with(" ·") {
+            query.drain(0..2);
+        } else if query.starts_with("-·") {
+            query.drain(0..2);
         }
 
         // add punctuation
@@ -731,6 +799,7 @@ impl BufferMgr {
             }
         } else {
             let size = query.chars().count();
+            let mut found = false;
             for i in (0..size).rev() {
                 let end = i + 1;
                 let substr = &query[0..end];
@@ -741,10 +810,30 @@ impl BufferMgr {
                 if let Ok(candidates) = get_candidates_for_word(engine, substr)
                 {
                     if (!candidates.is_empty()) {
-                        self.candidates = candidates;
-                        break;
+                        if !found {
+                            found = true;
+                            self.candidates = candidates;
+                        } else if self.cand_expanded {
+                            // expand candidate
+                            self.candidates.extend(candidates);
+                        } else {
+                            let mut buf = Buffer::new();
+                            buf.push(ActionElem::new().into());
+                            self.candidates.push(buf);
+                            break;
+                        }
                     }
                 };
+            }
+            let mut guess_candidate = convert_guess(engine, &raw_input)?;
+            guess_candidate.set_converted(true);
+            guess_candidate.autospace();
+            if !self
+                .candidates
+                .iter()
+                .any(|cand| guess_candidate.eq_display(cand))
+            {
+                self.candidates.insert(0, guess_candidate);
             }
         }
         self.composition = Buffer::new();
@@ -775,15 +864,85 @@ impl BufferMgr {
         if ch.to_ascii_lowercase() == engine.conf.hyphon()
             && self.edit_state == EditState::ES_COMPOSING
         {
-            if raw_input.ends_with("--") {
-                let len = raw_input.len();
-                raw_input.replace_range(len - 2..len, "");
-                raw_input.push(ch);
-                self.edit_state = EditState::ES_ILLEGAL;
+            if engine.conf.khin_mode() == KhinMode::Hyphen {
+                if raw_input.ends_with("--") {
+                    let len = raw_input.len();
+                    raw_input.replace_range(len - 2..len, "");
+                    if ch.is_ascii_uppercase() {
+                        raw_input.push(engine.conf.khin().to_ascii_uppercase());
+                    } else {
+                        raw_input.push(engine.conf.khin());
+                    }
+                    raw_input.push(ch);
+                    self.edit_state = EditState::ES_ILLEGAL;
+                } else if raw_input.ends_with("-") {
+                    let len = raw_input.len();
+                    raw_input.remove(len - 1);
+                    raw_input.push(ch);
+                    self.edit_state = EditState::ES_ILLEGAL;
+                } else {
+                    raw_input.push('-');
+                }
             } else {
-                raw_input.push('-');
+                if raw_input.ends_with("-") {
+                    let len = raw_input.len();
+                    raw_input.remove(len - 1);
+                    raw_input.push(ch);
+                    self.edit_state = EditState::ES_ILLEGAL;
+                } else {
+                    raw_input.push('-');
+                }
             }
-
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+        } else if ch.to_ascii_lowercase() == engine.conf.khin()
+            && engine.conf.khin_mode() != KhinMode::Khinless
+            && self.edit_state == EditState::ES_COMPOSING
+        {
+            if engine.conf.khin_mode() == KhinMode::Hyphen {
+                if raw_input.ends_with("--") {
+                    let len = raw_input.len();
+                    raw_input.replace_range(len - 2..len, "");
+                    raw_input.push(ch);
+                    self.edit_state = EditState::ES_ILLEGAL;
+                } else if raw_input.ends_with("-") {
+                    let len = raw_input.len();
+                    raw_input.remove(len - 1);
+                    if ch.is_ascii_uppercase() {
+                        raw_input
+                            .push(engine.conf.hyphon().to_ascii_uppercase());
+                    } else {
+                        raw_input.push(engine.conf.hyphon());
+                    }
+                    raw_input.push(ch);
+                    self.edit_state = EditState::ES_ILLEGAL;
+                } else {
+                    raw_input.push_str("--");
+                }
+            } else {
+                // KhinMode::Dot
+                if raw_input.ends_with(" ·") {
+                    let len = raw_input.len();
+                    raw_input.replace_range(len - 3..len, "");
+                    raw_input.push(ch);
+                    self.edit_state = EditState::ES_ILLEGAL;
+                } else if raw_input.ends_with("-·") {
+                    let len = raw_input.len();
+                    raw_input.replace_range(len - 3..len, "");
+                    if ch.is_ascii_uppercase() {
+                        raw_input
+                            .push(engine.conf.hyphon().to_ascii_uppercase());
+                    } else {
+                        raw_input.push(engine.conf.hyphon());
+                    }
+                    raw_input.push(ch);
+                    self.edit_state = EditState::ES_ILLEGAL;
+                } else if raw_input.ends_with("-") {
+                    raw_input.push('·');
+                } else {
+                    raw_input.push_str(" ·");
+                }
+            }
             self.composition = Buffer::new();
             self.composition.push(StringElem::from(raw_input).into());
         } else {
@@ -806,17 +965,33 @@ impl BufferMgr {
 
         if raw_input.is_empty() {
             return self.reset();
-        } else if self.edit_state == EditState::ES_ILLEGAL {
-            self.composition = Buffer::new();
-            self.composition.push(StringElem::from(raw_input).into());
+        // } else if self.edit_state == EditState::ES_ILLEGAL {
+        //     self.composition = Buffer::new();
+        //     self.composition.push(StringElem::from(raw_input).into());
         } else {
-            let (ret_com, _) = convert_to_telex(engine, &raw_input, ' ');
+            let (ret_com, ret) = convert_to_telex(engine, &raw_input, ' ');
             self.composition = ret_com?;
-            self.edit_state = EditState::ES_COMPOSING;
+            self.edit_state = if ret {
+                EditState::ES_COMPOSING
+            } else {
+                EditState::ES_ILLEGAL
+            };
         }
 
         self.char_caret = self.composition.display_char_count();
 
+        Ok(())
+    }
+    pub fn focus_candidate_by_index(
+        &mut self,
+        engine: &EngInner,
+        index: usize,
+    ) -> Result<()> {
+        let mut to_focus = self.cand_page * 9 + index;
+        if to_focus >= self.candidates.len() {
+            to_focus = self.candidates.len() - 1;
+        }
+        self.focus_candidate(engine, to_focus);
         Ok(())
     }
 
@@ -968,6 +1143,18 @@ impl BufferMgr {
             .ok_or(anyhow!("Candidate index out of bounds"))?
             .clone();
 
+        if candidate.is_action() {
+            let comp_raw = self.composition.raw_text();
+            self.composition = Buffer::new();
+            self.composition.push(
+                StringElem::from_raw_input(comp_raw.clone(), comp_raw).into(),
+            );
+            self.focused_cand_idx = Some(index);
+            self.cand_page = index / 9;
+            self.char_caret = self.composition.display_char_count();
+            return Ok(());
+        }
+
         let mut cand_raw_count = candidate.raw_char_count();
         let mut candi_text = candidate.display_text();
         let comp_raw = self.composition.raw_text();
@@ -992,6 +1179,25 @@ impl BufferMgr {
         self.char_caret = self.composition.display_char_count();
 
         Ok(())
+    }
+
+    pub fn focused_candidate_is_action(&self) -> bool {
+        self.focused_cand_idx.is_some()
+            && self.candidates[self.focused_cand_idx.unwrap()].is_action()
+    }
+
+    pub fn expand_candidate(&mut self, engine: &EngInner) -> Result<()> {
+        let index = self.focused_cand_idx.unwrap();
+        self.cand_expanded = true;
+        let mut composition = self.composition.raw_text();
+        let ch = composition.chars().last().unwrap();
+        composition.pop();
+        self.build_composition_classic(engine, composition, ch)?;
+        self.focus_candidate_classic(engine, index)
+    }
+
+    pub fn is_focused(&self) -> bool {
+        return self.focused_cand_idx.is_some();
     }
 }
 

@@ -199,6 +199,13 @@ impl Buffer {
             _ => true,
         })
     }
+
+    pub fn is_action(&self) -> bool {
+        self.elems.iter().any(|e| match e {
+            BufferElementEnum::ActionElem(_) => true,
+            _ => false,
+        })
+    }
 }
 
 impl From<BufferElementEnum> for Buffer {

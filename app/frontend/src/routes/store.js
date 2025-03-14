@@ -11,6 +11,7 @@ export const settings = writable({
         input_mode: '',
         tone_mode: '',
         output_mode: '',
+        khin_mode: '',
         t2: '',
         t3: '',
         t5: '',

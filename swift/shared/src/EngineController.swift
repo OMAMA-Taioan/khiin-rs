@@ -106,6 +106,13 @@ public class EngineController {
         return self.config?.keyConfig.altHyphen ?? ""
     }
 
+    public func khinKey() -> String {
+        if (self.config == nil) {
+            return ""
+        }
+        return self.config?.keyConfig.telexKhin ?? ""
+    }
+
     public func isManualMode() -> Bool {
         if (self.config == nil) {
             return false
@@ -120,18 +127,23 @@ public class EngineController {
         return self.config?.inputMode == .classic
     }
 
+    public func isHanjiFirst() -> Bool {
+        if (self.config == nil) {
+            return false
+        }
+        return self.config?.outputMode == .hanji
+    }
+
     public func changeInputMode() -> Khiin_Proto_Command? {
         if (self.config == nil) {
             log.debug("Config not instantiated")
             return nil
         }
         
-        if (self.config?.inputMode == .continuous) {
-            self.config?.inputMode = .manual;
-        } else if (self.config?.inputMode == .manual) {
+        if (self.config?.inputMode == .manual) {
             self.config?.inputMode = .classic
         } else {
-            self.config?.inputMode = .continuous
+            self.config?.inputMode = .manual
         }
 
         var req = Khiin_Proto_Request()
