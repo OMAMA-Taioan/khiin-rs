@@ -340,13 +340,24 @@ impl TextService {
 
             let cand_ui = unsafe { cand_ui.as_impl() };
             cand_ui.notify_command(context, command, Default::default());
-        } else {
+        } else if self.is_classic_mode() {
             open_edit_session(self.clientid.get()?, context.clone(), |ec| {
                 self.handle_candidates(ec, context.clone(), command.clone())
             })?;
+        } else {
+            log::debug!("Not in classic mode, ignoring handle candidate");
         }
 
         Ok(())
+    }
+
+    pub fn is_classic_mode(&self) -> bool {
+        if let Ok(config) = self.config.read() {
+            return config.input_mode.enum_value_or_default()
+                == khiin_protos::config::AppInputMode::CLASSIC;
+        } else {
+            return false;
+        }
     }
 }
 

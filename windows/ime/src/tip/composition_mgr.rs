@@ -8,8 +8,8 @@ use khiin_protos::command::Preedit;
 use khiin_protos::command::SegmentStatus;
 use windows::core::Interface;
 use windows::core::Result;
-use windows::Win32::Foundation::FALSE;
 use windows::core::VARIANT;
+use windows::Win32::Foundation::FALSE;
 use windows::Win32::System::Variant::VT_I4;
 use windows::Win32::UI::TextServices::ITfComposition;
 use windows::Win32::UI::TextServices::ITfCompositionSink;
@@ -71,7 +71,15 @@ impl CompositionMgr {
         attr_atoms: &HashMap<SegmentStatus, u32>,
     ) -> Result<()> {
         if self.composition().is_err() {
-            self.new_composition(ec, context.clone(), sink)?;
+            self.new_composition(ec, context.clone(), sink.clone())?;
+        }
+        // to check composition is still valid
+        unsafe {
+            if self.composition()?.GetRange().is_err() {
+                log::debug!("Composition is invalid, creating new one");
+                self.reset()?;
+                self.new_composition(ec, context.clone(), sink)?;
+            }
         }
 
         let comp = self.composition()?;
