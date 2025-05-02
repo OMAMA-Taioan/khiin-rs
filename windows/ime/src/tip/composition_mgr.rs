@@ -171,6 +171,7 @@ impl CompositionMgr {
 
             let comp_range = composition.GetRange()?;
             let display = preedit.display.clone();
+            let caret = display.len() as i32;
             comp_range.SetText(ec, TF_ST_CORRECTION, &display)?;
 
             let prop = context.GetProperty(&GUID_PROP_ATTRIBUTE)?;
@@ -202,22 +203,34 @@ impl CompositionMgr {
             }
 
             // TODO segment attrs
+            // let attr_range = comp_range.Clone()?;
+            // let mut variant = VARIANT::default();
+            // let &(mut var) = variant.as_raw();
+            // let atom = attr_atoms
+            //     .get(&SegmentStatus::SS_COMPOSING)
+            //     .unwrap_or(&TF_INVALID_GUIDATOM)
+            //     .clone();
+            // var.Anonymous.Anonymous.vt = VT_I4.0;
+            // var.Anonymous.Anonymous.Anonymous.lVal = atom as i32;
+            // prop.SetValue(ec, &attr_range, &variant)?;
 
             let curs_range = comp_range.Clone()?;
             curs_range.Collapse(ec, TF_ANCHOR_START)?;
             let mut shifted: i32 = 0;
             curs_range.ShiftEnd(
                 ec,
-                preedit.caret,
+                caret,
                 &mut shifted,
                 std::ptr::null(),
             )?;
+            log::debug!("do_composition ShiftEnd: {}", shifted);
             curs_range.ShiftStart(
                 ec,
-                preedit.caret,
+                caret,
                 &mut shifted,
                 std::ptr::null(),
             )?;
+            log::debug!("do_composition ShiftStart: {}", shifted);
             self.set_selection(ec, context, curs_range, TF_AE_END)?;
 
             Ok(())
