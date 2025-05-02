@@ -10,15 +10,15 @@ use protobuf::Message;
 
 use khiin_protos::command::*;
 use khiin_protos::config::AppInputMode;
-use khiin_protos::config::AppOutputMode;
 use khiin_protos::config::AppKhinMode;
+use khiin_protos::config::AppOutputMode;
 use khiin_protos::config::BoolValue;
 
 use crate::buffer::BufferMgr;
 use crate::config::Config;
 use crate::config::InputMode;
-use crate::config::OutputMode;
 use crate::config::KhinMode;
+use crate::config::OutputMode;
 use crate::config::ToneMode;
 use crate::data::dictionary::Dictionary;
 use crate::db::Database;
@@ -130,18 +130,23 @@ impl Engine {
                 }
             },
             SpecialKey::SK_SPACE => {
-                if (req.key_event.modifier_keys.contains(
-                    &protobuf::EnumOrUnknown::from_i32(
-                        ModifierKey::MODK_SHIFT as i32,
-                    ),
-                )) {
-                    self.buffer_mgr.focus_prev_candidate(&self.inner)?;
+                if (self.inner.conf.input_mode() == InputMode::Classic) {
+                    if (req.key_event.modifier_keys.contains(
+                        &protobuf::EnumOrUnknown::from_i32(
+                            ModifierKey::MODK_SHIFT as i32,
+                        ),
+                    )) {
+                        self.buffer_mgr.focus_prev_candidate(&self.inner)?;
+                    } else {
+                        self.buffer_mgr.focus_next_candidate(&self.inner)?;
+                    }
+                    if self.buffer_mgr.edit_state() == EditState::ES_ILLEGAL
+                        && self.inner.conf.input_mode() == InputMode::Classic
+                    {
+                        return self.on_commit(req);
+                    }
                 } else {
-                    self.buffer_mgr.focus_next_candidate(&self.inner)?;
-                }
-                if self.buffer_mgr.edit_state() == EditState::ES_ILLEGAL
-                    && self.inner.conf.input_mode() == InputMode::Classic
-                {
+                    self.buffer_mgr.insert(&self.inner, ' ')?;
                     return self.on_commit(req);
                 }
             },
@@ -320,9 +325,7 @@ impl Engine {
             AppKhinMode::KHINLESS => {
                 self.inner.conf.set_khin_mode(KhinMode::Khinless)
             },
-            AppKhinMode::DOT => {
-                self.inner.conf.set_khin_mode(KhinMode::Dot)
-            },
+            AppKhinMode::DOT => self.inner.conf.set_khin_mode(KhinMode::Dot),
             AppKhinMode::HYPHEN => {
                 self.inner.conf.set_khin_mode(KhinMode::Hyphen)
             },

@@ -11,8 +11,8 @@ use log::debug as d;
 use protobuf::MessageField;
 use windows::core::implement;
 use windows::core::AsImpl;
-use windows::core::Interface;
 use windows::core::IUnknown;
+use windows::core::Interface;
 use windows::core::Result;
 use windows::core::GUID;
 use windows::Win32::Foundation::HWND;
@@ -134,6 +134,10 @@ pub struct TextService {
     engine_coordinator: RefCell<Option<EngineCoordinator>>,
     message_handler: RefCell<Option<HWND>>,
     context_cache: Rc<RefCell<HashMap<u32, ITfContext>>>,
+    current_command: RefCell<Option<Arc<Command>>>,
+
+    // State
+    is_editing_state: RefCell<bool>,
 }
 
 // Public portion
@@ -188,6 +192,8 @@ impl TextService {
             message_handler: RefCell::new(None),
             engine_coordinator: RefCell::new(None),
             context_cache: Rc::new(RefCell::new(HashMap::new())),
+            current_command: RefCell::new(None),
+            is_editing_state: RefCell::new(false),
         })
     }
 
@@ -267,6 +273,25 @@ impl TextService {
         comp_mgr.notify_command(ec, context, sink, command, attr_atoms)
     }
 
+    pub fn commit_all(&self, context: ITfContext) -> Result<()> {
+        let preedit = self
+            .current_command
+            .borrow()
+            .clone()
+            .ok_or(fail!())?
+            .response
+            .preedit
+            .clone();
+        self.current_command.replace(None);
+        let composing = self.composing();
+        open_edit_session(self.clientid.get()?, context.clone(), |ec| {
+            let mut comp_mgr = self.composition_mgr.write().map_err(|_| fail!())?;
+            comp_mgr.commit_all(ec, context.clone(), &preedit)?;
+            Ok(())
+        })?;
+        Ok(())
+    }
+
     pub fn commit_composition(&self) -> Result<()> {
         // TODO
         Ok(())
@@ -324,9 +349,14 @@ impl TextService {
             .ok_or(fail!())?
             .clone();
 
+        self.current_command.replace(Some(command.clone()));
         open_edit_session(self.clientid.get()?, context.clone(), |ec| {
             self.handle_composition(ec, context.clone(), command.clone())
         })?;
+
+        let editing = command.response.edit_state.enum_value_or_default()
+            != EditState::ES_EMPTY;
+        self.is_editing_state.replace(editing);
 
         if command.response.edit_state.enum_value_or_default()
             == EditState::ES_EMPTY
@@ -358,6 +388,19 @@ impl TextService {
         } else {
             return false;
         }
+    }
+
+    pub fn is_manual_mode(&self) -> bool {
+        if let Ok(config) = self.config.read() {
+            return config.input_mode.enum_value_or_default()
+                == khiin_protos::config::AppInputMode::MANUAL;
+        } else {
+            return false;
+        }
+    }
+
+    pub fn is_editing(&self) -> bool {
+        *self.is_editing_state.borrow()
     }
 }
 

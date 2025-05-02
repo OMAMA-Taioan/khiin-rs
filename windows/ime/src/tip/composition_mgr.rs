@@ -62,6 +62,17 @@ impl CompositionMgr {
             .ok_or(fail!())
     }
 
+    pub fn commit_all(&mut self, ec: u32, context: ITfContext, preedit: &Preedit) -> Result<()> {
+        let comp = self.composition()?;
+        self.commit_composition(
+            ec,
+            comp,
+            context,
+            preedit,
+        )?;
+        Ok(())
+    }
+
     pub fn notify_command(
         &mut self,
         ec: u32,
@@ -84,8 +95,7 @@ impl CompositionMgr {
 
         let comp = self.composition()?;
 
-        if command.response.committed
-            || command.request.type_.enum_value_or_default()
+        if command.request.type_.enum_value_or_default()
                 == CommandType::CMD_COMMIT
         {
             self.commit_composition(
@@ -97,11 +107,19 @@ impl CompositionMgr {
         } else {
             self.do_composition(
                 ec,
-                comp,
-                context,
+                comp.clone(),
+                context.clone(),
                 &command.response.preedit,
                 attr_atoms,
             )?;
+            if command.response.committed {
+                self.commit_composition(
+                    ec,
+                    comp,
+                    context,
+                    &command.response.preedit,
+                )?;
+            }
         }
 
         Ok(())
@@ -123,6 +141,16 @@ impl CompositionMgr {
         self.composition.replace(Some(comp.clone()));
         self.set_selection(ec, context, insert_pos, TF_AE_NONE)?;
         Ok(comp)
+    }
+
+    fn get_range_text(range: &ITfRange, ec: u32) -> Result<String> {
+        unsafe {
+            let mut buf = [0u16; 1024]; // 暫存 1024 個字
+            let mut fetched = 0;
+            range.GetText(ec, 0, &mut buf, &mut fetched)?;
+
+            Ok(String::from_utf16_lossy(&buf[..fetched as usize]))
+        }
     }
 
     fn do_composition(
@@ -209,9 +237,11 @@ impl CompositionMgr {
             let range = composition.GetRange()?;
             let end_range = range.Clone()?;
             let mut shifted: i32 = 0;
+            let len = preedit.display.len() as i32;
+            log::debug!("Committing with len: {}", len);
             end_range.ShiftStart(
                 ec,
-                preedit.display.len() as i32,
+                len,
                 &mut shifted,
                 std::ptr::null(),
             )?;

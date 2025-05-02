@@ -857,6 +857,12 @@ impl BufferMgr {
         {
             self.edit_state = EditState::ES_EMPTY;
             return Ok(());
+        } else if ch == ' '{
+            raw_input.push(ch);
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+            self.edit_state = EditState::ES_EMPTY;
+            return Ok(());
         } else {
             self.edit_state = EditState::ES_COMPOSING;
         }

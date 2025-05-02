@@ -12,6 +12,7 @@ use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::TRUE;
 use windows::Win32::Foundation::WPARAM;
 use windows::Win32::UI::Input::KeyboardAndMouse::VIRTUAL_KEY;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_SPACE;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_BACK;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_DOWN;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_LEFT;
@@ -40,7 +41,7 @@ use crate::tip::KeyEvent;
 use crate::tip::TextService;
 
 const HANDLED_KEYS: &[VIRTUAL_KEY] = &[
-    VK_BACK, VK_TAB, VK_RETURN, VK_DOWN, VK_UP, VK_RIGHT, VK_LEFT,
+    VK_SPACE, VK_BACK, VK_TAB, VK_RETURN, VK_DOWN, VK_UP, VK_RIGHT, VK_LEFT,
 ];
 
 fn is_handled_key(key: &KeyEvent) -> bool {
