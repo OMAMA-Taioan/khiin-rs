@@ -137,12 +137,12 @@ impl KeyEventSink {
             return Ok(FALSE);
         }
 
-        if key_event.keycode == VK_SHIFT.0 as u32
-        /* TODO: check config */
-        {
-            self.shift_pressed.set(true);
-            return Ok(TRUE);
-        }
+        // if key_event.keycode == VK_SHIFT.0 as u32
+        // /* TODO: check config */
+        // {
+        //     self.shift_pressed.set(true);
+        //     return Ok(TRUE);
+        // }
 
         // TODO: check for candidate UI priority keys
 
