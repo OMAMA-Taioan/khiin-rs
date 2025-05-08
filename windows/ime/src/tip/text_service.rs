@@ -42,8 +42,15 @@ use windows::Win32::UI::TextServices::GUID_COMPARTMENT_KEYBOARD_OPENCLOSE;
 use windows::Win32::UI::WindowsAndMessaging::DestroyWindow;
 
 use khiin_protos::command::Command;
+use khiin_protos::command::CommandType;
+use khiin_protos::command::Request;
 use khiin_protos::config::AppConfig;
+use khiin_protos::config::AppInputMode;
+use khiin_protos::config::AppKhinMode;
+use khiin_protos::config::AppOutputMode;
 use khiin_protos::config::BoolValue;
+use khiin_protos::config::KeyConfiguration;
+use khiin_settings::SettingsManager;
 
 use crate::dll::DllModule;
 use crate::engine::EngineCoordinator;
@@ -99,7 +106,7 @@ pub struct TextService {
 
     // Config
     on_off_state_locked: ArcLock<bool>,
-    config: Arc<RwLock<AppConfig>>,
+    config: RefCell<Option<AppConfig>>,
 
     // Key handling
     key_event_sink: RefCell<Option<ITfKeyEventSink>>,
@@ -153,7 +160,7 @@ impl TextService {
             dwflags: ArcLock::new(0),
 
             on_off_state_locked: ArcLock::new(false),
-            config: Arc::new(RwLock::new(AppConfig::new())),
+            config: RefCell::new(None),
 
             key_event_sink: RefCell::new(None),
 
@@ -202,7 +209,7 @@ impl TextService {
     }
 
     pub fn enabled(&self) -> Result<bool> {
-        if let Ok(config) = self.config.read() {
+        if let Some(config) = self.config.borrow().as_ref() {
             Ok(config.ime_enabled.value)
         } else {
             Ok(false)
@@ -214,7 +221,7 @@ impl TextService {
             return Ok(());
         }
 
-        if let Ok(mut config) = self.config.write() {
+        if let Some(mut config) = self.config.borrow_mut().as_mut() {
             if config.ime_enabled.value != on_off {
                 let mut enabled = BoolValue::new();
                 enabled.value = on_off;
@@ -251,6 +258,67 @@ impl TextService {
 
     pub fn reset(&self) -> Result<()> {
         // TODO
+        Ok(())
+    }
+
+    pub fn load_settings(&self) -> Result<()> {
+        let mut user_path = std::env::var("APPDATA").unwrap_or_default();
+        // load file from user directory
+        user_path.push_str("\\Khiin\\settings.toml");
+        let path = PathBuf::from(user_path);
+        let settings = SettingsManager::load_from_file(&path).settings;
+        let input_mode = match settings.input_settings.input_mode.as_str() {
+            "classic" => AppInputMode::CLASSIC,
+            "manual" => AppInputMode::MANUAL,
+            _ => AppInputMode::CLASSIC, // Default value if input mode is not recognized
+        };
+
+        let output_mode = match settings.input_settings.output_mode.as_str() {
+            "lomaji" => AppOutputMode::LOMAJI,
+            "hanji" => AppOutputMode::HANJI,
+            _ => AppOutputMode::LOMAJI, // Default value if output mode is not recognized
+        };
+
+        let khin_mode = match settings.input_settings.khin_mode.as_str() {
+            "khinless" => AppKhinMode::KHINLESS,
+            "dot" => AppKhinMode::DOT,
+            _ => AppKhinMode::HYPHEN, // Default value if khin mode is not recognized
+        };
+
+        let mut config: AppConfig = AppConfig::new();
+        config.input_mode = input_mode.into();
+        config.output_mode = output_mode.into();
+        config.khin_mode = khin_mode.into();
+
+        // set telex enabled to rust protobuf boolvalue true
+        let mut telex_enabled = BoolValue::new();
+        telex_enabled.value = settings.input_settings.tone_mode == "telex";
+        config.telex_enabled = Some(telex_enabled).into();
+
+        let mut key_config = KeyConfiguration::new();
+        key_config.telex_t2 = settings.input_settings.t2.to_string();
+        key_config.telex_t3 = settings.input_settings.t3.to_string();
+        key_config.telex_t5 = settings.input_settings.t5.to_string();
+        key_config.telex_t6 = settings.input_settings.t6.to_string();
+        key_config.telex_t7 = settings.input_settings.t7.to_string();
+        key_config.telex_t8 = settings.input_settings.t8.to_string();
+        key_config.telex_t9 = settings.input_settings.t9.to_string();
+        key_config.telex_khin = settings.input_settings.khin.to_string();
+        key_config.alt_hyphen = settings.input_settings.hyphon.to_string();
+        config.key_config = Some(key_config).into();
+
+        let mut req = Request::new();
+        req.type_ = CommandType::CMD_SET_CONFIG.into();
+        req.config = Some(config.clone()).into();
+
+        let mut cmd = Command::new();
+        cmd.request = Some(req).into();
+
+        if let Some(x) = self.engine_coordinator.borrow().as_ref() {
+            x.send_command(cmd).map_err(|_| fail!());
+        }
+
+        self.config.replace(Some(config));
         Ok(())
     }
 
@@ -342,6 +410,10 @@ impl TextService {
     }
 
     pub fn handle_command(&self, command: Arc<Command>) -> Result<()> {
+        if self.context_cache.borrow().contains_key(&command.request.id) == false {
+            log::debug!("No context found for command id: {}", command.request.id);
+            return Ok(());
+        }
         let context = self
             .context_cache
             .borrow_mut()
@@ -382,7 +454,7 @@ impl TextService {
     }
 
     pub fn is_classic_mode(&self) -> bool {
-        if let Ok(config) = self.config.read() {
+        if let Some(config) = self.config.borrow().as_ref() {
             return config.input_mode.enum_value_or_default()
                 == khiin_protos::config::AppInputMode::CLASSIC;
         } else {
@@ -391,7 +463,7 @@ impl TextService {
     }
 
     pub fn is_manual_mode(&self) -> bool {
-        if let Ok(config) = self.config.read() {
+        if let Some(config) = self.config.borrow().as_ref() {
             return config.input_mode.enum_value_or_default()
                 == khiin_protos::config::AppInputMode::MANUAL;
         } else {
@@ -422,6 +494,7 @@ impl TextService {
         self.init_preserved_key_mgr()?;
         self.init_key_event_sink()?;
         self.init_display_attributes()?;
+        self.load_settings()?;
         self.set_enabled(true)?;
         log::debug!("TextService fully activated");
         Ok(())
