@@ -12,6 +12,7 @@ use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::TRUE;
 use windows::Win32::Foundation::WPARAM;
 use windows::Win32::UI::Input::KeyboardAndMouse::VIRTUAL_KEY;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_OEM_3;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_SPACE;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_BACK;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_DOWN;
@@ -19,6 +20,7 @@ use windows::Win32::UI::Input::KeyboardAndMouse::VK_LEFT;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_RETURN;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_RIGHT;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_SHIFT;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_CONTROL;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_TAB;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_UP;
 use windows::Win32::UI::TextServices::ITfContext;
@@ -41,7 +43,7 @@ use crate::tip::KeyEvent;
 use crate::tip::TextService;
 
 const HANDLED_KEYS: &[VIRTUAL_KEY] = &[
-    VK_SPACE, VK_BACK, VK_TAB, VK_RETURN, VK_DOWN, VK_UP, VK_RIGHT, VK_LEFT,
+    VK_SPACE, VK_BACK, VK_TAB, VK_RETURN, VK_DOWN, VK_UP, VK_RIGHT, VK_LEFT, VK_OEM_3,
 ];
 
 fn is_handled_key(key: &KeyEvent) -> bool {
@@ -73,6 +75,7 @@ pub struct KeyEventSink {
     tip: ITfTextInputProcessor,
     threadmgr: ITfThreadMgr,
     shift_pressed: Cell<bool>,
+    ctrl_pressed: Cell<bool>,
 }
 
 impl KeyEventSink {
@@ -81,6 +84,7 @@ impl KeyEventSink {
             tip,
             threadmgr,
             shift_pressed: Cell::new(false),
+            ctrl_pressed: Cell::new(false),
         }
     }
 
@@ -143,6 +147,10 @@ impl KeyEventSink {
         //     self.shift_pressed.set(true);
         //     return Ok(TRUE);
         // }
+        if key_event.keycode == VK_CONTROL.0 as u32 {
+            self.ctrl_pressed.set(true);
+            return Ok(TRUE);
+        }
 
         // TODO: check for candidate UI priority keys
 
@@ -171,6 +179,13 @@ impl KeyEventSink {
             return Ok(FALSE);
         }
 
+        if self.ctrl_pressed.get() && key_event.keycode == VK_OEM_3.0 as u32 {
+            log::debug!("toggle input mode");
+            self.ctrl_pressed.set(false);
+            service.toggle_input_mode(context);
+            return Ok(TRUE);
+        }
+
         match test {
             Ok(TRUE) => {
                 log::debug!("Key event: {:?}", key_event);
@@ -194,6 +209,9 @@ impl KeyEventSink {
         {
             self.shift_pressed.set(false);
             Ok(TRUE)
+        } else if self.ctrl_pressed.get() && key_event.keycode == VK_CONTROL.0 as u32 {
+            self.ctrl_pressed.set(false);
+            Ok(TRUE)
         } else {
             Ok(FALSE)
         }
@@ -208,6 +226,9 @@ impl KeyEventSink {
         /* TODO: check config */
         {
             self.shift_pressed.set(false);
+            Ok(TRUE)
+        } else if self.ctrl_pressed.get() && key_event.keycode == VK_CONTROL.0 as u32 {
+            self.ctrl_pressed.set(false);
             Ok(TRUE)
         } else {
             Ok(FALSE)

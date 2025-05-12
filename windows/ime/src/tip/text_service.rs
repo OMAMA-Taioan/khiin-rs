@@ -322,6 +322,35 @@ impl TextService {
         Ok(())
     }
 
+    pub fn toggle_input_mode(&self, context: ITfContext) -> Result<()> {
+        let mut new_config: AppConfig = AppConfig::new(); 
+        let mut is_toggled = false;
+        if let Some(config) = self.config.borrow().as_ref() {
+            new_config = config.clone();
+            if new_config.input_mode.enum_value_or_default()
+                == AppInputMode::CLASSIC
+            {
+                new_config.input_mode = AppInputMode::MANUAL.into();
+            } else {
+                new_config.input_mode = AppInputMode::CLASSIC.into();
+            }
+            is_toggled = true;
+            
+            let mut req = Request::new();
+            req.id = rand::random::<u32>();
+            req.type_ = CommandType::CMD_SWITCH_INPUT_MODE.into();
+            req.config = Some(new_config.clone()).into();
+
+            let mut cmd = Command::new();
+            cmd.request = Some(req).into();
+            self.send_command(context, cmd);
+        }
+        if is_toggled {
+            self.config.replace(Some(new_config));
+        }
+        Ok(())
+    }
+
     pub fn composing(&self) -> bool {
         self.composition_mgr
             .try_read()
