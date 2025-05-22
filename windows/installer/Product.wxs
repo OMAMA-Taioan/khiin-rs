@@ -14,7 +14,7 @@
         <Feature Id="ProductFeature" Title="KhiinInstaller" Level="1">
             <ComponentGroupRef Id="CG_Files64" />
             <ComponentGroupRef Id="CG_Files32" />
-            <ComponentGroupRef Id="CG_AppDataFiles" />
+            <!-- <ComponentGroupRef Id="CG_AppDataFiles" /> -->
             <ComponentGroupRef Id="CG_DllRegistration" />
             <ComponentGroupRef Id="CG_StartMenuShortcut" />
             <ComponentGroupRef Id="CG_RegistryEntries" />
@@ -44,9 +44,9 @@
             <Directory Id="ProgramFilesFolder">
                 <Directory Id="INSTALLDIR32" Name="$(var.MfrName)" />
             </Directory>
-            <Directory Id="AppDataFolder">
+            <!-- <Directory Id="AppDataFolder">
                 <Directory Id="APPDATADIR" Name="$(var.MfrName)" />
-            </Directory>
+            </Directory> -->
             <Directory Id="ProgramMenuFolder">
                 <Directory Id="ApplicationProgramsFolder" Name="$(var.MfrName)" />
             </Directory>
@@ -91,7 +91,7 @@
         </ComponentGroup>
     </Fragment>
 
-    <Fragment>
+    <!-- <Fragment>
         <ComponentGroup Id="CG_AppDataFiles" Directory="APPDATADIR">
             <Component Id="Comp_Database2" Guid="$(var.GUID_Database2)" NeverOverwrite="yes">
                 <RegistryKey Root="HKCU" Key="Software\$(var.MfrName)\Settings">
@@ -102,7 +102,7 @@
                     Name="$(var.Target_Database)" DiskId="1" />
                 <RemoveFolder Id="Remove_AppDataDir" On="uninstall" />
             </Component>
-            <!-- <Component Id="Comp_Config2" Guid="$(var.GUID_Config2)" NeverOverwrite="yes">
+          ?  <Component Id="Comp_Config2" Guid="$(var.GUID_Config2)" NeverOverwrite="yes">
                 <RegistryKey Root="HKCU" Key="Software\$(var.MfrName)\Settings">
                     <RegistryValue Name="config_ini" Type="string"
                         Value="[APPDATADIR]$(var.Target_Config)" KeyPath="yes" />
@@ -110,16 +110,16 @@
                 <File Id="File_Config2" Source="$(var.Source_Config)" Name="$(var.Target_Config)"
                     DiskId="1" />
             </Component>
-            <Component Id="Comp_UserDb2" Guid="$(var.GUID_UserDb2)" NeverOverwrite="yes">
+          ?  <Component Id="Comp_UserDb2" Guid="$(var.GUID_UserDb2)" NeverOverwrite="yes">
                 <RegistryKey Root="HKCU" Key="Software\$(var.MfrName)\Settings">
                     <RegistryValue Name="user_db" Type="string"
                         Value="[APPDATADIR]$(var.Target_UserDb)" KeyPath="yes" />
                 </RegistryKey>
                 <File Id="File_UserDb2" Source="$(var.Source_UserDb)" Name="$(var.Target_UserDb)"
                     DiskId="1" />
-            </Component> -->
+            </Component> 
         </ComponentGroup>
-    </Fragment>
+    </Fragment> -->
 
     <Fragment>
         <ComponentGroup Id="CG_StartMenuShortcut" Directory="ApplicationProgramsFolder">

@@ -7,7 +7,7 @@ $x86toolchain = "i686-pc-windows-msvc"
 $x64toolchain = "x86_64-pc-windows-msvc"
 $tipDll = "khiin_windows.dll"
 $svcExe = "khiin_service.exe"
-$appExe = "khiin_app.exe"
+$appExe = "khiin_helper.exe"
 $dbFile = "$workspaceDir\resources\khiin.db"
 
 $release = $args.Contains("--release")
@@ -28,7 +28,7 @@ if ($release) {
     $targetDir = "$targetDir\release"
     $x64TipDllOutName = "Khiin PJH (64 bit).dll"
     $x86TipDllOutName = "Khiin PJH (32 bit).dll"
-    $serviceOutName = "KhiinPJHService.exe"
+    $serviceOutName = "khiin_service.exe"
 }
 else {
     cargo.exe build --target $x64toolchain --manifest-path=windows/ime/Cargo.toml
@@ -40,9 +40,9 @@ else {
     $x86TargetDir = "$targetDir\$x86toolchain\debug"
     $x64TargetDir = "$targetDir\$x64toolchain\debug"
     $targetDir = "$targetDir\debug"
-    $x64TipDllOutName = "Khiin PJH (64 bit - Debug).dll"
-    $x86TipDllOutName = "Khiin PJH (32 bit - Debug).dll"
-    $serviceOutName = "KhiinPJHService (Debug).exe"
+    $x64TipDllOutName = "Khiin PJH (64 bit).dll"
+    $x86TipDllOutName = "Khiin PJH (32 bit).dll"
+    $serviceOutName = "khiin_service.exe"
 }
 
 $x64TipDll = "$x64TargetDir\$tipDll"
@@ -63,13 +63,8 @@ $registryWxs = "$PSScriptRoot\Registry.wxs"
 $productObj = "$wixOutDir\Product.wixobj"
 $registryObj = "$wixOutDir\Registry.wixobj"
 
-if ($release) {
-    $msiFilenameEn = "$wixOutDir\Khiin PJH v$version.msi"
-    $msiFilenameTw = "$wixOutDir\Khiin 打字法 v$version.msi"
-} else {
-    $msiFilenameEn = "$wixOutDir\Khiin PJH v$version (Debug).msi"
-    $msiFilenameTw = "$wixOutDir\Khiin 打字法 v$version (Debug).msi"
-}
+$msiFilenameEn = "$wixOutDir\Khiin PJH v$version.msi"
+$msiFilenameTw = "$wixOutDir\Khiin 打字法 v$version.msi"
 
 candle.exe `
     -dWorkspaceDir="$workspaceDir" `
@@ -101,10 +96,10 @@ light.exe `
     -ext WixUIExtension `
     -out "$msiFilenameEn"
 
-    light.exe `
-    $productObj `
-    $registryObj `
-    -cultures:zh-tw `
-    -loc "$PSScriptRoot\zh-tw.wxl" `
-    -ext WixUIExtension `
-    -out "$msiFilenameTw"
+    # light.exe `
+    # $productObj `
+    # $registryObj `
+    # -cultures:zh-tw `
+    # -loc "$PSScriptRoot\zh-tw.wxl" `
+    # -ext WixUIExtension `
+    # -out "$msiFilenameTw"

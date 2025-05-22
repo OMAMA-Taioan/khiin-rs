@@ -22,7 +22,7 @@ already and need to build it.
 Or if you want to do it step by step:
 
 ```bash
-cargo install --force tauri-cli
+cargo install --force tauri-cli --version ^1.0
 cargo tauri icon app/frontend/static/app-icon.png
 (cd app/frontend && npm i)
 cargo tauri dev
