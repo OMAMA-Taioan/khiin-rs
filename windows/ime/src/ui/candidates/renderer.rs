@@ -92,12 +92,12 @@ impl<'a> CandidateRenderer<'a> {
         let mut qs_label = 0;
         for (col_idx, col) in self.cand_layout.items.iter().enumerate() {
             for (row_idx, row) in col.iter().enumerate() {
-                qs_label += 1;
                 let cand = row.0.clone();
                 let text_layout = row.1.clone();
 
                 let rect = grid.cell_rect(row_idx, col_idx).to_float();
 
+                let focused_id = self.page_data.focused_id;
                 let is_focused = cand.id == self.page_data.focused_id
                     || cand.id == self.mouse_focused_id as i32;
                 let has_bubble = cand.id == self.page_data.focused_id;
@@ -115,10 +115,13 @@ impl<'a> CandidateRenderer<'a> {
                     } else {
                         &self.colors.text_disabled
                     });
-                    self.draw_quick_select(qs_label.to_string(), &rect.origin);
+                    if focused_id != -1 && qs_label > 0 {
+                        self.draw_quick_select(qs_label.to_string(), &rect.origin);
+                    }
                 }
-
                 self.draw_candidate(&text_layout, &rect.origin);
+
+                qs_label += 1;
             }
         }
     }

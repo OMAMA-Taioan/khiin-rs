@@ -267,12 +267,11 @@ impl TextService {
         user_path.push_str("\\Khiin\\settings.toml");
         let path = PathBuf::from(user_path);
         let settings = SettingsManager::load_from_file(&path).settings;
-        // let input_mode = match settings.input_settings.input_mode.as_str() {
-        //     "classic" => AppInputMode::CLASSIC,
-        //     "manual" => AppInputMode::MANUAL,
-        //     _ => AppInputMode::CLASSIC, // Default value if input mode is not recognized
-        // };
-        let input_mode = AppInputMode::MANUAL;
+        let input_mode = match settings.input_settings.input_mode.as_str() {
+            "classic" => AppInputMode::CLASSIC,
+            "manual" => AppInputMode::MANUAL,
+            _ => AppInputMode::CLASSIC, // Default value if input mode is not recognized
+        };
 
         let output_mode = match settings.input_settings.output_mode.as_str() {
             "lomaji" => AppOutputMode::LOMAJI,
