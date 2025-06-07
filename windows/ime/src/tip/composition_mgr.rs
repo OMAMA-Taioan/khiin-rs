@@ -36,12 +36,14 @@ use crate::utils::ToWidePreedit;
 
 pub struct CompositionMgr {
     composition: RefCell<Option<ITfComposition>>,
+    is_manual_mode: RefCell<bool>,
 }
 
 impl CompositionMgr {
     pub fn new() -> Result<Self> {
         Ok(Self {
             composition: RefCell::new(None),
+            is_manual_mode: RefCell::new(false),
         })
     }
 
@@ -54,6 +56,10 @@ impl CompositionMgr {
         Ok(())
     }
 
+    pub fn refresh_input_mode(&self, is_manual: bool) {
+        self.is_manual_mode.replace(is_manual);
+    }
+
     pub fn composition(&self) -> Result<ITfComposition> {
         self.composition
             .try_borrow()
@@ -62,16 +68,16 @@ impl CompositionMgr {
             .ok_or(fail!())
     }
 
-    pub fn commit_all(&mut self, ec: u32, context: ITfContext, preedit: &Preedit) -> Result<()> {
-        let comp = self.composition()?;
-        self.commit_composition(
-            ec,
-            comp,
-            context,
-            preedit,
-        )?;
-        Ok(())
-    }
+    // pub fn commit_all(
+    //     &mut self,
+    //     ec: u32,
+    //     context: ITfContext,
+    //     preedit: &Preedit,
+    // ) -> Result<()> {
+    //     let comp = self.composition()?;
+    //     self.commit_composition(ec, comp, context, preedit)?;
+    //     Ok(())
+    // }
 
     pub fn notify_command(
         &mut self,
@@ -96,13 +102,14 @@ impl CompositionMgr {
         let comp = self.composition()?;
 
         if command.request.type_.enum_value_or_default()
-                == CommandType::CMD_COMMIT
+            == CommandType::CMD_COMMIT
         {
             self.commit_composition(
                 ec,
                 comp,
                 context,
                 &command.response.preedit,
+                &command.response.committed_text,
             )?;
         } else {
             self.do_composition(
@@ -118,6 +125,7 @@ impl CompositionMgr {
                     comp,
                     context,
                     &command.response.preedit,
+                    &command.response.committed_text,
                 )?;
             }
         }
@@ -217,19 +225,9 @@ impl CompositionMgr {
             let curs_range = comp_range.Clone()?;
             curs_range.Collapse(ec, TF_ANCHOR_START)?;
             let mut shifted: i32 = 0;
-            curs_range.ShiftEnd(
-                ec,
-                caret,
-                &mut shifted,
-                std::ptr::null(),
-            )?;
+            curs_range.ShiftEnd(ec, caret, &mut shifted, std::ptr::null())?;
             log::debug!("do_composition ShiftEnd: {}", shifted);
-            curs_range.ShiftStart(
-                ec,
-                caret,
-                &mut shifted,
-                std::ptr::null(),
-            )?;
+            curs_range.ShiftStart(ec, caret, &mut shifted, std::ptr::null())?;
             log::debug!("do_composition ShiftStart: {}", shifted);
             self.set_selection(ec, context, curs_range, TF_AE_END)?;
 
@@ -243,26 +241,57 @@ impl CompositionMgr {
         composition: ITfComposition,
         context: ITfContext,
         preedit: &Preedit,
+        committed_text: &String,
     ) -> Result<()> {
         log::debug!("Committing composition");
-        unsafe {
-            let preedit = preedit.widen();
-            let range = composition.GetRange()?;
-            let end_range = range.Clone()?;
-            let mut shifted: i32 = 0;
-            let len = preedit.display.len() as i32;
-            log::debug!("Committing with len: {}", len);
-            end_range.ShiftStart(
-                ec,
-                len,
-                &mut shifted,
-                std::ptr::null(),
-            )?;
-            end_range.Collapse(ec, TF_ANCHOR_START)?;
-            composition.ShiftStart(ec, &end_range)?;
-            self.set_selection(ec, context, end_range, TF_AE_END)?;
-            self.cleanup(ec, composition)?;
+        if self.is_manual_mode.borrow().clone() {
+            unsafe {
+                let preedit = preedit.widen();
+                let range = composition.GetRange()?;
+                let end_range = range.Clone()?;
+                let mut shifted: i32 = 0;
+                let len = preedit.display.len() as i32;
+                log::debug!("Committing with len: {}", len);
+                end_range.ShiftStart(
+                    ec,
+                    len,
+                    &mut shifted,
+                    std::ptr::null(),
+                )?;
+                end_range.Collapse(ec, TF_ANCHOR_START)?;
+                composition.ShiftStart(ec, &end_range)?;
+                self.set_selection(ec, context, end_range, TF_AE_END)?;
+                self.cleanup(ec, composition)?;
+            }
+        } else {
+            unsafe {
+                let range = composition.GetRange()?;
+                let is_empty = range.IsEmpty(ec)?;
+                if is_empty == FALSE {
+                    range.SetText(ec, TF_ST_CORRECTION, &[])?;
+                }
+
+                let comp_range = composition.GetRange()?;
+                let committed_text_utf16: Vec<u16> = committed_text.encode_utf16().collect();
+                comp_range.SetText(ec, TF_ST_CORRECTION, &committed_text_utf16)?;
+
+                let end_range = range.Clone()?;
+                let mut shifted: i32 = 0;
+                let len = committed_text.len() as i32;
+                log::debug!("Committing with len: {}", len);
+                end_range.ShiftStart(
+                    ec,
+                    len,
+                    &mut shifted,
+                    std::ptr::null(),
+                )?;
+                end_range.Collapse(ec, TF_ANCHOR_START)?;
+                composition.ShiftStart(ec, &end_range)?;
+                self.set_selection(ec, context, end_range, TF_AE_END)?;
+                self.cleanup(ec, composition)?;
+            }
         }
+
         Ok(())
     }
 

@@ -319,18 +319,23 @@ impl TextService {
         }
 
         self.config.replace(Some(config));
+        if let Ok(mut mgr) = self.composition_mgr.write() {
+            mgr.refresh_input_mode(input_mode == AppInputMode::MANUAL);
+        }
         Ok(())
     }
 
     pub fn toggle_input_mode(&self, context: ITfContext) -> Result<()> {
         let mut new_config: AppConfig = AppConfig::new(); 
         let mut is_toggled = false;
+        let mut is_manual = false;
         if let Some(config) = self.config.borrow().as_ref() {
             new_config = config.clone();
             if new_config.input_mode.enum_value_or_default()
                 == AppInputMode::CLASSIC
             {
                 new_config.input_mode = AppInputMode::MANUAL.into();
+                is_manual = true;
             } else {
                 new_config.input_mode = AppInputMode::CLASSIC.into();
             }
@@ -347,6 +352,9 @@ impl TextService {
         }
         if is_toggled {
             self.config.replace(Some(new_config));
+            if let Ok(mut mgr) = self.composition_mgr.write() {
+                mgr.refresh_input_mode(is_manual);
+            }
         }
         Ok(())
     }
@@ -370,24 +378,24 @@ impl TextService {
         comp_mgr.notify_command(ec, context, sink, command, attr_atoms)
     }
 
-    pub fn commit_all(&self, context: ITfContext) -> Result<()> {
-        let preedit = self
-            .current_command
-            .borrow()
-            .clone()
-            .ok_or(fail!())?
-            .response
-            .preedit
-            .clone();
-        self.current_command.replace(None);
-        let composing = self.composing();
-        open_edit_session(self.clientid.get()?, context.clone(), |ec| {
-            let mut comp_mgr = self.composition_mgr.write().map_err(|_| fail!())?;
-            comp_mgr.commit_all(ec, context.clone(), &preedit)?;
-            Ok(())
-        })?;
-        Ok(())
-    }
+    // pub fn commit_all(&self, context: ITfContext) -> Result<()> {
+    //     let preedit = self
+    //         .current_command
+    //         .borrow()
+    //         .clone()
+    //         .ok_or(fail!())?
+    //         .response
+    //         .preedit
+    //         .clone();
+    //     self.current_command.replace(None);
+    //     let composing = self.composing();
+    //     open_edit_session(self.clientid.get()?, context.clone(), |ec| {
+    //         let mut comp_mgr = self.composition_mgr.write().map_err(|_| fail!())?;
+    //         comp_mgr.commit_all(ec, context.clone(), &preedit)?;
+    //         Ok(())
+    //     })?;
+    //     Ok(())
+    // }
 
     pub fn commit_composition(&self) -> Result<()> {
         // TODO

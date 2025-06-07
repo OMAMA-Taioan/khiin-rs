@@ -44,7 +44,7 @@ impl Pager {
             command,
             num_candidates,
             display_mode: RefCell::new(DisplayMode::default()),
-            focused_id: RefCell::new(i32::MAX),
+            focused_id: RefCell::new(-1),
             focused_index: RefCell::new(0),
         }
     }
