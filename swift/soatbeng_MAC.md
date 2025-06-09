@@ -220,7 +220,7 @@ Kāng khoán, nā beh phah chheⁿ Lô-má-jī *HRVADX*, lán tio̍h phah HRRVAD
 
 ## 愛粘字, 請 Chhi̍h <kbd>r</kbd>
  
- Nā hèng liâm jī ê iú-chì: Pa̍t lâng an liân-u̍ih ê só͘-chāi, lán tio̍h chhi̍h <kbd>r</kbd>, kā thâu-chêng hit chat kiat-sok‑‑khí‑‑lâi. Lán bián ke kóng; chhì‑‑kòe lí tio̍h chai-iáⁿ ì-sù.
+Nā hèng liâm jī ê iúchì: Pa̍t lâng an liân-u̍ih ê só͘chāi, lán tio̍h chhi̍h <kbd>r</kbd>, kā thâuchêng hit chat kiatsok‑‑khí‑‑lâi. Lán bián ke kóng; chhì‑‑kòe tio̍h chaiiáⁿ ìsù.
 
 **Nā chiaⁿ-si̍t beh phah *r*, ke chhi̍h 1 pái tio̍h sī.**
 
