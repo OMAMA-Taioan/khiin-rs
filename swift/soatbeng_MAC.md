@@ -231,7 +231,7 @@ Chit ê kong-lêng tī Chū-iû Hêng-thài ē-té chiah ū.
 Nā 有 tú tio̍h Khí-ín 軟体 ê 問題, 請報 Khí-ín ê 團隊知:
 
 Lâu Tiâu Ûi<br>
-???
+tiaui@pm.me
 
 Tiuⁿ aThiⁿ<br>
 T@tawa.asia
