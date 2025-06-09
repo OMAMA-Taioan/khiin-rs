@@ -67,7 +67,7 @@ Beh 換形態, 會使開 *Settings*, mā 會使 chhi̍h <kbd>Option</kbd> + <kbd
 
 ㊟ 第 6 調 "死人骨頭限定," 主流現代台語無; 鹿港話到 chit 幾年應該 mā 無--ah.
 
-咱在來慣 sì 用數字注調; nā beh 用 *s, f, l, j, w*, 頭前 3 点鐘, 3 日, 3 礼拜 (看人) 定 tio̍h 真 khê, 真 gāi-gio̍h. 但是 *Telex* (*s, f, l, j, w*) 是打台羅 ê 高速路.
+咱在來慣 sì 用數字注調; nā beh 用 *s, f, l, j, w*, 頭前 3 点鐘, 3 日, 3 礼拜 (看人) 定 tio̍h 真 khê, 真 gāi-gio̍h. 但是 *Telex* (*s, f, l, j, w*) 是打台羅 ê 高速路. **Nā 不識用過 *Telex* ê 有志, 阮建議先認真試用 3 礼拜看 māi!**
 
 ## 主体字
 
