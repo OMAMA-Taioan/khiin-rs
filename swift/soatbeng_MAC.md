@@ -230,18 +230,18 @@ Chit ê kong-lêng tī Chū-iû Hêng-thài ē-té chiah ū.
 
 Nā 有 tú tio̍h Khí-ín 軟体 ê 問題, 請報 Khí-ín ê 團隊知:
 
-Lâu Tiâu Ûi
+Lâu Tiâu Ûi<br>
 ???
 
-Tiuⁿ aThiⁿ
+Tiuⁿ aThiⁿ<br>
 T@tawa.asia
 
 # 寄付 Khíín
 
 Nā beh 寄付 (真重要), 請用:
 
-銀行　004 (Tâi-oân 銀行松山分行)
-口座　064-00106065-6
+銀行　004 (Tâi-oân 銀行松山分行)<br>
+口座　064-00106065-6<br>
 戶名　社團法人做伙來講台語、SŃG KAH 烏 MÀ MÀ 好無？協會
 
 今 *Mac* 板本加減完成‑‑ah, 不閣 iáu 有須要補充, 改良 ê 所在; á *Windows*, *iOS*, kap *Android* ê 板本 iáu 當 teh 開發.
