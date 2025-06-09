@@ -244,6 +244,6 @@ Nā beh 寄付 (真重要), 請用:
 口座　064-00106065-6<br>
 戶名　社團法人做伙來講台語、SŃG KAH 烏 MÀ MÀ 好無？協會
 
-今 *Mac* 板本加減完成‑‑ah, 不閣 iáu 有須要補充, 改良 ê 所在; á *Windows*, *iOS*, kap *Android* ê 板本 iáu 當 teh 開發.
+今 *Mac* 板本加減完成‑‑ah, 不閣 iáu 有須要補充, 改良; á *Windows*, *iOS*, kap *Android* ê 板本 iáu 當 teh 開發.
 
 感恩.
