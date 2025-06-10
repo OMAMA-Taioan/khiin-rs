@@ -118,6 +118,15 @@ Khí-ín 支援用 <kbd>v</kbd> 注 "輕調." 當然, <kbd>-</kbd> chhi̍h 2 擺
 
 ㊟ 入字設定內面, "輕調形式" nā 選 "(無注)" ê 時, chhi̍h <kbd>v</kbd> 自然 tio̍h kan-ta 出 "*v*."
 
+# 用 Khíín 入字: 海口腔 -*Ṳ* kap -*O̤*
+
+相對主流 Tâi-oân 話, 海口音 kap 台北內山音加 -*ṳ* ("讀 chṳ") kap -*o̤* ("人生 tó̤-tó̤") 2 ê 母音. Khí-ín 有支援:
+
+| 母音 | Jí 仔 |
+|--|--|
+| ṳ | <kbd>e</kbd> + <kbd>u</kbd> |
+| o̤ | <kbd>e</kbd> + <kbd>o</kbd> |
+
 # 用 Khíín 入字: 自動形態
 
 Nā 打字來講, Khí-ín 自動形態 ê 基本設定 kap 信望愛 ê 台語輸入法差無 kài 多. Hoān-sè thang 講 hām 一般 ê 日語入字軟体 koh khah 接近.
@@ -128,7 +137,7 @@ Nā 打字來講, Khí-ín 自動形態 ê 基本設定 kap 信望愛 ê 台語�
 
 |  | 効果 |
 |--|--|
-| <kbd>Enter</kbd> | 將所 kí ê 選項輸出;<br>nā iáu 未 kí,<br>將 siōng 頂頭 ê 選項輸出|
+| <kbd>Enter</kbd> | 將所 kí ê 選項輸出;<br>nā iáu 未 kí,<br>將 siōng 頂頭 ê 選項輸出 |
 | <kbd>Space</kbd> | 照順序廵 chit ia̍h me-niú,<br>換 kí 下 1 項 | 
 | <kbd>Shift</kbd> + <kbd>Space</kbd> | 反順序廵 chit ia̍h me-niú,<br>換 kí 頂 1 項 |
 | <kbd>Tab</kbd> | Hian 下 1 ia̍h me-niú |
@@ -220,7 +229,7 @@ M̄ bián‑‑lah! Ki-pún goân-chek chin kán-tan: **Te̍k-pia̍t jí-á ke c
 
 Kán-tan kóng, beh siá *Soup of the Day*, phah *Souup off the DDay* tio̍h sī; bián ōaⁿ nńg-thé.
 
-Kāng khoán, nā beh phah chheⁿ Lô-má-jī *HRVADX*, lán tio̍h phah HRRVADX, <kbd>Shift</kbd> + <kbd>r</kbd> ke chhi̍h 1 pái. **Te̍k-pia̍t jí-á ke chhi̍h 1 pái chhú-siau liáu-āu, Khí-ín pàng kù-chāi lán phah chheⁿ Lô-má-jī (á-sī gōa-gí), it-ti̍t kàu lán koh làng phāng, làng chōa ûn-ûn.** 
+Kāng khoán, nā beh phah chheⁿ Lô-má-jī *HRVADX*, lán tio̍h phah HRRVADX, <kbd>Shift</kbd> + <kbd>r</kbd> ke chhi̍h 1 pái. **Te̍k-pia̍t jí-á ke chhi̍h 1 pái chhú-siau liáu-āu, Khí-ín pàng kù-chāi lán phah chheⁿ Lô-má-jī (á-sī gōa-gí), it-ti̍t kàu lán koh làng phāng, làng chōa ûn-ûn.**
 
 ## 愛粘字, 請 Chhi̍h <kbd>r</kbd>
  
@@ -252,18 +261,19 @@ Nā beh 寄付 (真重要), 請用:
 
 感恩.
 
-# 付錄: "*Telex*" 內 pêng jí 仔
+# 付錄: 內 Pêng Jí 仔
 
 Chit 張 tiàm chia tah 1 份, khah 好尋:
 
-| 調 | Jí 仔 |
+| Jí 仔 |  |
 |--|--|
-| T1 | (無) |
-| T2 | <kbd>s</kbd> |
-| T3 | <kbd>f</kbd> |
-| T4 | (無) |
-| T5 | <kbd>l</kbd> |
-| T6 | <kbd>x</kbd> |
-| T7 | <kbd>j</kbd> |
-| T8 | <kbd>j</kbd> |
-| T9 | <kbd>w</kbd> |
+| <kbd>d</kbd> | 連劃 (-) |
+| <kbd>v</kbd> | "輕調" |
+| <kbd>r</kbd> | 結束<br>(自由形態) |
+| <kbd>s</kbd> | T2 |
+| <kbd>f</kbd> | T3 |
+| <kbd>l</kbd> | T5 |
+| <kbd>x</kbd> | T6 |
+| <kbd>j</kbd> | T7 |
+| <kbd>j</kbd> | T8 |
+| <kbd>w</kbd> | T9 |
