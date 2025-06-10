@@ -210,9 +210,11 @@ Kap Oa̍t-lâm-gí *Telex* kāng khoán, lán nā chù tiāu chù têng-tâⁿ, 
 
 ## Nā Beh Lām 英語, 外語‥‥‥
 
-Lán teh phah Tâi-gí ê sî, ū tang-sî-á iu-goân su-iàu lām Eng-gí á-sī pa̍t ê Lô-má-jī gí-bûn. Su-ji̍p-hoat ōaⁿ lâi ōaⁿ khì ū khah hùi-khì; Khí-ín ē phòaⁿ-toàn lán tang-sî beh phah Tâi-gí, tang-sî beh phah gōa-gí á-sī chheⁿ Lô-má-jī, hō͘ lán gōa-gí (siōng chió, Eng-gí) kap chheⁿ Lô-jī thang chiàu khí kang ēng Khí-ín phah. Kán-tan kóng, **lán nā phah 1 ê Tâi-gí bô ê cho͘-ha̍p, chhin-chhiūⁿ *CL*, Khí-ín tio̍h pàng kù-chāi lán phah chheⁿ Lô-má-jī (á-sī gōa-gí), it-ti̍t kàu lán koh làng phāng, làng chōa, á-sī chhi̍h kù-tō͘-tiám (piáu-sī hit kōaⁿ jī-bú ū kiat-sok), á-sī ka-kī thâi jī thâi kah kā hit ê cho͘-ha̍p thâi--khí--lai ... chiah *reset*.**
+Lán teh phah Tâi-gí ê sî, ū tang-sî-á iu-goân su-iàu lām Eng-gí á-sī pa̍t ê Lô-má-jī gí-bûn. Su-ji̍p-hoat ōaⁿ lâi ōaⁿ khì ū khah hùi-khì; Khí-ín ē phòaⁿ-toàn lán tang-sî beh phah Tâi-gí, tang-sî beh phah gōa-gí á-sī chheⁿ Lô-má-jī, hō͘ lán gōa-gí (siōng chió, Eng-gí) kap chheⁿ Lô-jī thang chiàu khí-kang ēng Khí-ín phah.
 
-Tān-sī ū ê cho͘-ha̍p, chhin-chhiūⁿ *OU*, Khí-ín sī m̄ sī kun-pún to bô ún-chún? Chhiáⁿ khòaⁿ āu 1 hāng.
+Kán-tan kóng, **lán nā phah 1 ê Tâi-gí bô ê cho͘-ha̍p, chhin-chhiūⁿ *CL*, Khí-ín tio̍h pàng kù-chāi lán phah chheⁿ Lô-má-jī (á-sī gōa-gí), it-ti̍t kàu lán koh làng phāng, làng chōa, á-sī chhi̍h kù-tō͘-tiám (piáu-sī hit kōaⁿ jī-bú ū kiat-sok), á-sī ka-kī thâi jī thâi kah kā hit ê cho͘-ha̍p thâi--khí--lai, chiah *reset*.**
+
+Á ū ê cho͘-ha̍p ná chhiūⁿ phah to phah bē chhut--lâi, chhin-chhiūⁿ *OU*? Chhiáⁿ khòaⁿ āu 1 hāng.
 
 ## Nā Beh Lām 英語, 外語‥‥‥: 特别 Jí 仔加 Chhi̍h 1 Pái
 
