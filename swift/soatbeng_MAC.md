@@ -268,9 +268,19 @@ Nā beh 寄付 (真重要), 請用:
 
 感恩.
 
-# 付錄: 內 Pêng Jí 仔
+# 付錄: 內 Pêng Jí 仔 Pió
 
-Chit 張 tiàm chia tah 1 份, khah 好尋:
+Tiàm chia tah 1 組, khah 好尋:
+
+(注調形式: 數字)
+
+|  | 目的 |
+|--|--|
+| <kbd>d</kbd> | 連劃 (-) |
+| <kbd>v</kbd> | "輕調" |
+| <kbd>r</kbd> | 結束<br>(自由形態) |
+
+(注調形式: *Telex*)
 
 |  | 目的 |
 |--|--|
