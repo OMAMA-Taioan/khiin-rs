@@ -208,7 +208,13 @@ Chū-iû Hêng-thài ê kong-lêng chin kán-tan. Ū kúi-nā ê khah te̍k-pia�
 
 Kap Oa̍t-lâm-gí *Telex* kāng khoán, lán nā chù tiāu chù têng-tâⁿ, ē sái ti̍t-chiap têng chù, bián thâi jī têng phah (tû-hui lán nā beh chù tē 1 tiāu, tē 4 tiāu).
 
-## Beh Lām 英語 ê 時: 特别 Jí 仔加 Chhi̍h 1 Pái
+## Nā Beh Lām 英語, 外語‥‥‥
+
+Lán teh phah Tâi-gí ê sî, ū tang-sî-á iu-goân su-iàu lām Eng-gí á-sī pa̍t ê Lô-má-jī gí-bûn. Su-ji̍p-hoat ōaⁿ lâi ōaⁿ khì ū khah hùi-khì; Khí-ín ē phòaⁿ-toàn lán tang-sî beh phah Tâi-gí, tang-sî beh phah gōa-gí á-sī chheⁿ Lô-má-jī, hō͘ lán gōa-gí (siōng chió, Eng-gí) kap chheⁿ Lô-jī thang chiàu khí kang ēng Khí-ín phah. Kán-tan kóng, **lán nā phah 1 ê Tâi-gí bô ê cho͘-ha̍p, chhin-chhiūⁿ *CL*, Khí-ín tio̍h pàng kù-chāi lán phah chheⁿ Lô-má-jī (á-sī gōa-gí), it-ti̍t kàu lán koh làng phāng, làng chōa, á-sī chhi̍h kù-tō͘-tiám (piáu-sī hit kōaⁿ jī-bú ū kiat-sok), á-sī ka-kī thâi jī thâi kah kā hit ê cho͘-ha̍p thâi--khí--lai ... chiah *reset*.**
+
+Tān-sī ū ê cho͘-ha̍p, chhin-chhiūⁿ *OU*, Khí-ín sī m̄ sī kun-pún to bô ún-chún? Chhiáⁿ khòaⁿ āu 1 hāng.
+
+## Nā Beh Lām 英語, 外語‥‥‥: 特别 Jí 仔加 Chhi̍h 1 Pái
 
 Teh phah Khí-ín ê sî, chhi̍h <kbd>o</kbd> + <kbd>u</kbd> chhut *o͘*; chhi̍h <kbd>f</kbd> sī teh chù tē 3 tiāu; chhi̍h <kbd>d</kbd> chhut liân-u̍ih (-). Lán beh phah *Soup of the Day*, thêng-sek soah su-chhut *So͘p ò the -ay*. Kám kóng beh lām Eng-gí ê sî ài ēng Eng-gí phah jī nńg-thé?
 
