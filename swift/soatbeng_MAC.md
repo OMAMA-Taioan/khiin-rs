@@ -84,7 +84,7 @@ Me-niú 內面, 羅馬字 ê 選擇會浮高. 句讀点 (kù-tō͘ tiám) 用羅
 
 Nā beh 換主体字, 會使開 *Settings*, mā 會使 chhi̍h:
 
-|  | 効果 |
+|  | 目的 |
 |--|--|
 | <kbd>Option</kbd> + <kbd>Space</kbd> | 換主体 |
 | <kbd>Option</kbd> + <kbd>l</kbd> | 設羅字主体 |
@@ -122,7 +122,7 @@ Khí-ín 支援用 <kbd>v</kbd> 注 "輕調." 當然, <kbd>-</kbd> chhi̍h 2 擺
 
 Chia ê 設定 kap 信望愛真一致:
 
-| Jí 仔 | 字母 |
+|  | 字母 |
 |--|--|
 | <kbd>o</kbd> + <kbd>u</kbd><br> | o͘ |
 | <kbd>n</kbd> + <kbd>n</kbd> | ⁿ |
@@ -142,7 +142,7 @@ Nā 打字來講, Khí-ín 自動形態 ê 基本設定 kap 信望愛 ê 台語�
 
 咱 1 下輸入, me-niú tio̍h 會 thián 開. 咱 thang án-ne hām me-niú 互動:
 
-|  | 効果 |
+|  | 目的 |
 |--|--|
 | <kbd>Enter</kbd> | 將所 kí ê 選項輸出;<br>nā iáu 未 kí,<br>將 siōng 頂頭 ê 選項輸出 |
 | <kbd>Space</kbd> | 照順序廵 chit ia̍h me-niú,<br>換 kí 下 1 項 | 
@@ -272,7 +272,7 @@ Nā beh 寄付 (真重要), 請用:
 
 Chit 張 tiàm chia tah 1 份, khah 好尋:
 
-| Jí 仔 |  |
+|  | 目的 |
 |--|--|
 | <kbd>d</kbd> | 連劃 (-) |
 | <kbd>v</kbd> | "輕調" |
