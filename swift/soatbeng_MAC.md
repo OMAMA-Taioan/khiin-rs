@@ -118,14 +118,21 @@ Khí-ín 支援用 <kbd>v</kbd> 注 "輕調." 當然, <kbd>-</kbd> chhi̍h 2 擺
 
 ㊟ 入字設定內面, "輕調形式" nā 選 "(無注)" ê 時, chhi̍h <kbd>v</kbd> 自然 tio̍h kan-ta 出 "*v*."
 
-# 用 Khíín 入字: 海口腔 -*Ṳ* kap -*O̤*
+# 用 Khíín 入字: 特別字母
 
-相對主流 Tâi-oân 話, 海口音 kap 台北內山音加 -*ṳ* ("讀 chṳ") kap -*o̤* ("人生 tó̤-tó̤") 2 ê 母音. Khí-ín 有支援:
+Chia ê 設定 kap 信望愛真一致:
 
 | 母音 | Jí 仔 |
 |--|--|
-| ṳ | <kbd>e</kbd> + <kbd>u</kbd> |
-| o̤ | <kbd>e</kbd> + <kbd>o</kbd> |
+| <kbd>o</kbd> + <kbd>u</kbd><br> | o͘ |
+| <kbd>n</kbd> + <kbd>n</kbd> | ⁿ |
+| <kbd>Shift</kbd> + <kbd>n</kbd> + <kbd>n</kbd> | ᴺ |
+| <kbd>e</kbd> + <kbd>u</kbd> | ṳ |
+| <kbd>e</kbd> + <kbd>o</kbd> | o̤ |
+
+㊟ 打 -*o͘* chhi̍h <kbd>o</kbd> + <kbd>o</kbd> mā 會通.
+
+㊟ Siōng 尾 2 項是海口音 kap 台北內山音 "讀 chṳ" kap "人生 tó̤-tó̤" hit 2 ê 母音, 提拱乎有須要 ê 人.
 
 # 用 Khíín 入字: 自動形態
 
