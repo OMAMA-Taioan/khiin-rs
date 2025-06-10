@@ -63,7 +63,6 @@ Beh 換形態, 會使開 *Settings*, mā 會使 chhi̍h <kbd>Option</kbd> + <kbd
 | T7 | <kbd>j</kbd> |
 | T8 | <kbd>j</kbd> |
 | T9 | <kbd>w</kbd> |
-|  |  |
 
 ㊟ 第 6 調 "死人骨頭限定," 主流現代台語無; 鹿港話到 chit 幾年應該 mā 無--ah.
 
