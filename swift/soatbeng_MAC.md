@@ -224,7 +224,7 @@ M̄ bián‑‑lah! Ki-pún goân-chek chin kán-tan: **Te̍k-pia̍t jí-á ke c
 
 Kán-tan kóng, beh siá *Soup of the Day*, phah *Souup off the DDay* tio̍h sī; bián ōaⁿ nńg-thé.
 
-Kāng khoán, nā beh phah chheⁿ Lô-má-jī *HRVADX*, lán tio̍h phah HRRVADX, <kbd>Shift</kbd> + <kbd>r</kbd> ke chhi̍h 1 pái. **Te̍k-pia̍t jí-á ke chhi̍h 1 pái chhú-siau liáu-āu, Khí-ín pàng kù-chāi lán phah chheⁿ Lô-má-jī (á-sī gōa-gí), it-ti̍t kàu lán koh làng phāng, làng chōa, á-sī chhi̍h kù-tō͘-tiám (piáu-sī hit kōaⁿ jī-bú ū kiat-sok) chiah *reset*.** 
+Kāng khoán, nā beh phah chheⁿ Lô-má-jī *HRVADX*, lán tio̍h phah HRRVADX, <kbd>Shift</kbd> + <kbd>r</kbd> ke chhi̍h 1 pái. **Te̍k-pia̍t jí-á ke chhi̍h 1 pái chhú-siau liáu-āu, Khí-ín pàng kù-chāi lán phah chheⁿ Lô-má-jī (á-sī gōa-gí), it-ti̍t kàu lán koh làng phāng, làng chōa ûn-ûn.** 
 
 ## 愛粘字, 請 Chhi̍h <kbd>r</kbd>
  
