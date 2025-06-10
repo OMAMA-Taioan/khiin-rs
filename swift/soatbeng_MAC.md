@@ -98,11 +98,11 @@ Nā beh 換主体字, 會使開 *Settings*, mā 會使 chhi̍h:
 
 不 nā 咱 ka-kī 所注 ê "輕調", 字詞 me-niú 內面 (自動形態限定) ê 選擇 oân-ná ē 照咱 tī chia 所指定 ê 形式. (Me-niú 內底 nā 有 "·khí‑‑lâi" hit 欵 mih 仔, he 是虫; 真不幸, chit 号虫 0.2.6 tú 好有.)
 
-# 用 Khíín 入字: 連劃 kap "輕調"
+# 用 Khíín 入字: 連劃, "輕調," kap 特别字母
 
-Chit 2 項 kài 基本, 咱代先交帶. **Beh 照舊 chhi̍h <kbd>-</kbd>, mā 是無問題. Nā án-ne, chit chat 會使 làng 過.** 是講 Khí-ín 有提拱 khah 緊, khah 順 (照阮想) ê 方式.
+Chit 3 項 kài 基本, 咱代先交帶. **Beh 照舊 chhi̍h <kbd>-</kbd>, mā 是無問題. Nā án-ne, chit chat 會使 làng 過.** (特别字母 oân-ná 參信望愛真一致.) 是講 Khí-ín 有提拱 khah 緊, khah 順 (照阮想) ê 方式.
 
-Chit 2 項 tī 自動形態 kap 自由形態下底 lóng 相 siâng.
+Chit 3 項 tī 自動形態 kap 自由形態下底 lóng 相 siâng.
 
 ## 打連劃 (-)
 
@@ -118,15 +118,15 @@ Khí-ín 支援用 <kbd>v</kbd> 注 "輕調." 當然, <kbd>-</kbd> chhi̍h 2 擺
 
 ㊟ 入字設定內面, "輕調形式" nā 選 "(無注)" ê 時, chhi̍h <kbd>v</kbd> 自然 tio̍h kan-ta 出 "*v*."
 
-# 用 Khíín 入字: 特別字母
+## 打特别字母
 
 Chia ê 設定 kap 信望愛真一致:
 
-| 母音 | Jí 仔 |
+| Jí 仔 | 字母 |
 |--|--|
 | <kbd>o</kbd> + <kbd>u</kbd><br> | o͘ |
 | <kbd>n</kbd> + <kbd>n</kbd> | ⁿ |
-| <kbd>Shift</kbd> + <kbd>n</kbd> + <kbd>n</kbd> | ᴺ |
+| <kbd>Shift</kbd> + <br> <kbd>n</kbd> + <kbd>n</kbd> | ᴺ |
 | <kbd>e</kbd> + <kbd>u</kbd> | ṳ |
 | <kbd>e</kbd> + <kbd>o</kbd> | o̤ |
 
