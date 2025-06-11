@@ -2,7 +2,7 @@
 
 Siōng 新板本 (0.2.6), 安裝 tòng 案通 [tiàm chia 掠](https://www.bloon.io/share/je3Yk8sD).
 
-安裝流程好 sè 了后, 機器 tio̍h 愛重紡 (*restart*).
+安裝流程行有透了后, 機器 tio̍h 愛重紡 (*restart*).
 
 機器重紡了后, 咱 tio̍h 入去 *Mac* ê 打字設定內面選擇 Khí-ín (起引), tī *Taioanese* (語文) 下底.
 
