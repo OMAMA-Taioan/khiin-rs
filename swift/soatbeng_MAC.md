@@ -291,6 +291,5 @@ Tiàm chia tah 1 組, khah 好尋:
 | <kbd>f</kbd> | T3 |
 | <kbd>l</kbd> | T5 |
 | <kbd>x</kbd> | T6 |
-| <kbd>j</kbd> | T7 |
-| <kbd>j</kbd> | T8 |
+| <kbd>j</kbd> | T7 <br> T8 |
 | <kbd>w</kbd> | T9 |
