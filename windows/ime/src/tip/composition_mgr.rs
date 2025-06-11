@@ -111,23 +111,31 @@ impl CompositionMgr {
                 &command.response.preedit,
                 &command.response.committed_text,
             )?;
-        } else {
-            self.do_composition(
+        } else if command.response.committed {
+            self.commit_composition(
                 ec,
                 comp.clone(),
                 context.clone(),
                 &command.response.preedit,
-                attr_atoms,
+                &command.response.committed_text,
             )?;
-            if command.response.committed {
-                self.commit_composition(
+            if command.response.preedit.widen().display.len() > 0 {
+                self.do_composition(
                     ec,
                     comp,
                     context,
                     &command.response.preedit,
-                    &command.response.committed_text,
+                    attr_atoms,
                 )?;
             }
+        } else {
+            self.do_composition(
+                ec,
+                comp,
+                context,
+                &command.response.preedit,
+                attr_atoms,
+            )?;
         }
 
         Ok(())
@@ -272,8 +280,13 @@ impl CompositionMgr {
                 }
 
                 let comp_range = composition.GetRange()?;
-                let committed_text_utf16: Vec<u16> = committed_text.encode_utf16().collect();
-                comp_range.SetText(ec, TF_ST_CORRECTION, &committed_text_utf16)?;
+                let committed_text_utf16: Vec<u16> =
+                    committed_text.encode_utf16().collect();
+                comp_range.SetText(
+                    ec,
+                    TF_ST_CORRECTION,
+                    &committed_text_utf16,
+                )?;
 
                 let end_range = range.Clone()?;
                 let mut shifted: i32 = 0;
@@ -288,7 +301,9 @@ impl CompositionMgr {
                 end_range.Collapse(ec, TF_ANCHOR_START)?;
                 composition.ShiftStart(ec, &end_range)?;
                 self.set_selection(ec, context, end_range, TF_AE_END)?;
-                self.cleanup(ec, composition)?;
+                if preedit.widen().display.len() == 0 {
+                    self.cleanup(ec, composition)?;
+                }
             }
         }
 

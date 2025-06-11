@@ -137,6 +137,7 @@ impl CandidateListUI {
         if edit_state == EditState::ES_COMPOSING {
             self.pager.replace(Pager::new(command.clone()));
         } else {
+            self.pager.replace(Pager::new(command.clone()));
             self.pager
                 .try_borrow()
                 .map_err(|_| fail!())?
