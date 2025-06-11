@@ -16,7 +16,7 @@ Beh 打字進前, 咱 tio̍h 先入去 *Settings* 指定看咱 (汝) khah ài á
 
 入去 *Settings* 了后, 倒手 pêng 請 chhi̍h "入字設定."
 
-**假使汝 nā 想 beh 照信望愛 hit 欵形式來打字, 請照 "主流設定 (*Quickstart*)" 進行; 讀了請做汝 chhu 落去到 "用 Khíín 入字: 自動形態" hia.**
+**假使汝 nā 想 beh 先照信望愛 hit 欵形式來打字, 請照 "主流設定 (*Quickstart*)" 進行; 讀了請做汝 chhu 落去到 "Khíín 入字: 連劃, '輕調,' kap 特别字母" hia.**
 
 ## 主流設定 (*Quickstart*)
 
