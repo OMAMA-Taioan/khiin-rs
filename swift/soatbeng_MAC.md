@@ -140,11 +140,7 @@ Nā 打字來講, Khí-ín 自動形態 ê 基本設定 kap 信望愛 ê 台語�
 
 ## Tang 時愛注調?
 
-Khí-ín 自動形態 kap 信望愛相 siâng: Nā 輸入孤 1 chat, 咱 tio̍h 愛注調; nā 輸入 2 chat 以上, 咱不 thang 注調.
-
-㊟ Che 是自動形態 ê 設定. Nā 自由形態, 用者不管時 lóng tio̍h 愛注調.
-
-Chit ê 設定真簡單; 寫出來顛倒乎人 sa 無. 咱 nā chit 幾項 試打看 māi tio̍h 會知影意思:
+Khí-ín 自動形態 kap 信望愛相 siâng: **Nā 輸入孤 1 chat, 咱 tio̍h 愛注調; nā 輸入 2 chat 以上, 咱不 thang 注調.** Chit ê 設定真簡單; 寫出來顛倒乎人 sa 無. 咱 nā chit 幾項 試打看 māi tio̍h 會知影意思:
 
 | 數字 | *Telex* |
 |--|--|
@@ -152,6 +148,8 @@ Chit ê 設定真簡單; 寫出來顛倒乎人 sa 無. 咱 nā chit 幾項 試�
 | tai5 | tail | 
 | taioan | taioan |
 | tai5oan5 | tailoanl |
+
+㊟ Che 是自動形態 ê 設定. Nā 自由形態, 用者不管時 lóng tio̍h 愛注調.
 
 ## 用 Me-niú 選字, 選詞
 
