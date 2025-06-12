@@ -144,6 +144,13 @@ Khí-ín 自動形態 kap 信望愛相 siâng: Nā 輸入孤 1 chat, 咱 tio̍h 
 
 ㊟ Che 是自動形態 ê 設定. Nā 自由形態, 用者不管時 lóng tio̍h 愛注調.
 
+Chit ê 設定真簡單; 寫出來顛倒乎人 sa 無. 咱 nā chit 幾項 試打看 māi tio̍h 會知影意思:
+
+tai<br>
+tail<br>
+taioan<br>
+tailoanl<br>
+
 ## 用 Me-niú 選字, 選詞
 
 咱 1 下輸入, me-niú tio̍h 會 thián 開. 咱 thang án-ne hām me-niú 互動:
