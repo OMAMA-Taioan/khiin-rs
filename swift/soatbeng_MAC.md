@@ -64,7 +64,7 @@ Beh 換形態, 會使開 *Settings*, mā 會使 chhi̍h <kbd>Option</kbd> + <kbd
 | T8 | <kbd>j</kbd> |
 | T9 | <kbd>w</kbd> |
 
-㊟ 第 6 調 "死人骨頭限定," 主流現代台語無; 鹿港話到 chit 幾年應該 mā 無--ah.
+㊟ 第 6 調 "死人骨頭限定," 主流現代台語無; 鹿港話到 chit kúi 年應該 mā 無--ah.
 
 咱在來慣 sì 用數字注調; nā beh 用 *s, f, l, j, w*, 頭前 3 点鐘, 3 日, 3 礼拜 (看人) 定 tio̍h 真 khê, 真 gāi-gio̍h. 但是用內 pêng jí 仔 (*s, f, l, j, w*) 是打台羅 ê 高速路. **Nā 不識用過內 pêng jí 仔注調 ê 有志, 阮建議先認真試用 3 礼拜看 māi!**
 
@@ -140,7 +140,7 @@ Nā 打字來講, Khí-ín 自動形態 ê 基本設定 kap 信望愛 ê 台語�
 
 ## Tang 時愛注調?
 
-Khí-ín 自動形態 kap 信望愛相 siâng: **Nā 輸入孤 1 chat, 咱 tio̍h 愛注調; nā 輸入 2 chat 以上, 咱不 thang 注調.** Chit ê 設定真簡單; 寫出來顛倒乎人 sa 無. 咱 nā chit 幾項 試打看 māi tio̍h 會知影意思:
+Khí-ín 自動形態 kap 信望愛相 siâng: **Nā 輸入孤 1 chat, 咱 tio̍h 愛注調; nā 輸入 2 chat 以上, 咱不 thang 注調.** 具体 ê 意思, 咱 nā chit kúi 項試輸入看 māi tio̍h 會明白:
 
 | 數字 | *Telex* |
 |--|--|
