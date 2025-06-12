@@ -96,7 +96,7 @@ Nā beh 換主体字, 會使開 *Settings*, mā 會使 chhi̍h:
 
 ㊟ "輕調," "輕声" chia ê 詞有影 bē 凖, 無衛生. 英語 *enclitic* khah 合理. 台語用詞 chiah 勞煩列位 tàu 指教, tàu 設想.
 
-不 nā 咱 ka-kī 所注 ê "輕調", 字詞 me-niú 內面 (自動形態限定) ê 選擇 oân-ná ē 照咱 tī chia 所指定 ê 形式. (Me-niú 內底 nā 有 "·khí‑‑lâi" hit 欵 mih 仔, he 是虫; 真不幸, chit 号虫 0.2.6 tú 好有.)
+不 nā 咱 ka-kī 所注 ê "輕調," 字詞 me-niú 內面 (自動形態限定) ê 選擇 oân-ná ē 照咱 tī chia 所指定 ê 形式. (Me-niú 內底 nā 有 "·khí‑‑lâi" hit 欵 mih 仔, he 是虫; 真不幸, chit 号虫 0.2.6 tú 好有.)
 
 # 用 Khíín 入字: 連劃, "輕調," kap 特别字母
 
