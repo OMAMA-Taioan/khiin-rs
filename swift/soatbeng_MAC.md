@@ -138,6 +138,12 @@ Chia ê 設定 kap 信望愛真一致:
 
 Nā 打字來講, Khí-ín 自動形態 ê 基本設定 kap 信望愛 ê 台語輸入法差無 kài 多. Hoān-sè thang 講 hām 一般 ê 日語入字軟体 koh khah 接近.
 
+## Tang 時愛注調?
+
+Khí-ín 自動形態 kap 信望愛相 siâng: Nā 輸入孤 1 chat, 咱 tio̍h 愛注調; nā 輸入 2 chat 以上, 咱不 thang 注調.
+
+㊟ Che 是自動形態 ê 設定. Nā 自由形態, 用者不管時 lóng tio̍h 愛注調.
+
 ## 用 Me-niú 選字, 選詞
 
 咱 1 下輸入, me-niú tio̍h 會 thián 開. 咱 thang án-ne hām me-niú 互動:
