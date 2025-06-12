@@ -146,10 +146,12 @@ Khí-ín 自動形態 kap 信望愛相 siâng: Nā 輸入孤 1 chat, 咱 tio̍h 
 
 Chit ê 設定真簡單; 寫出來顛倒乎人 sa 無. 咱 nā chit 幾項 試打看 māi tio̍h 會知影意思:
 
-tai<br>
-tail<br>
-taioan<br>
-tailoanl<br>
+| 數字 | *Telex* |
+|--|--|
+| tai | tai |
+| tai5 | tail | 
+| taioan | taioan |
+| tai5oan5 | tailoanl |
 
 ## 用 Me-niú 選字, 選詞
 
