@@ -144,10 +144,10 @@ Khí-ín 自動形態 kap 信望愛相 siâng: **Nā 輸入孤 1 chat, 咱 tio̍
 
 | 數字 | *Telex* |
 |--|--|
-| tai | tai |
-| tai5 | tail | 
-| taioan | taioan |
-| tai5oan5 | tailoanl |
+| chiah | chiah |
+| chiah8 | chiahj | 
+| chiahpa | chiahpa |
+| chiah8pa2 | chiahjpas |
 
 ㊟ Che 是自動形態 ê 設定. Nā 自由形態, 用者不管時 lóng tio̍h 愛注調.
 
