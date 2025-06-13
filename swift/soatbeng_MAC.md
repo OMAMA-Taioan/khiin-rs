@@ -14,19 +14,23 @@ Beh 安裝 ê 時, 系統 nā kā 咱 cha̍h, 不免惊; 請照 "咱 ê *Mac* N�
 
 <img width="281" alt="Screenshot 2568-06-12 at 5 34 40 PM" src="https://github.com/user-attachments/assets/f759c4ed-534d-4ae2-bd35-6689319a7a72" />
 
+
 咱 ê *Mac* nā án-ne kā 咱 cha̍h, 咱 tio̍h 隨開系統設定 (*System Settings*, システム設定), 入去 *Privacy & Security* (プライバシーとセキュリティ) 內面.
 
 <img width="727" alt="Screenshot 2568-06-12 at 5 35 34 PM" src="https://github.com/user-attachments/assets/e5e49745-8beb-4cd1-8623-db0bea9ed01d" />
 
-*Privacy & Security* 下底 ê 項目真多項. 咱 tio̍h póe ùi 上尾 ia̍h; tī hia 咱會看 tio̍h 1 條消息寫講 Khí-ín "*was blocked from use because it is not from an identified developer*" hit 号話.
+
+*Privacy & Security* 下底 ê 項目真多項. 咱 tio̍h póe ùi 上尾 ia̍h; tī hia 咱會看 tio̍h 1 條消息寫講 Khí-ín "*was blocked from use because it is not from an identified developer*" 云云.
 
 <img width="730" alt="Screenshot 2568-06-12 at 5 36 16 PM" src="https://github.com/user-attachments/assets/2164ba5b-7b6e-45f6-90d5-830a84335715" />
 
-正 pêng hit 粒 "*Open Anyway*, 咱 tio̍h kā chhi̍h 落去. 續落來, 系統會問咱甘正實 beh kā 開?
+
+正 pêng hit 粒 *Open Anyway*, 咱 tio̍h kā chhi̍h 落去. 續落來, 系統會問咱甘正實 beh kā 開?
 
 <img width="281" alt="Screenshot 2568-06-12 at 5 36 40 PM" src="https://github.com/user-attachments/assets/549c30fd-9868-4057-93ee-75333d5b78ba" />
 
-咱 koh chhi̍h "*Open*," 安裝流程 tio̍h 會開始.
+
+咱 koh chhi̍h *Open*, 安裝流程 tio̍h 會開始.
 
 ## 新 Khíín Nā Pháiⁿ 鬥陣‥‥‥
 
