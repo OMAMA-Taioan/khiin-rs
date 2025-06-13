@@ -8,7 +8,7 @@ Beh 安裝 ê 時, 系統 nā kā 咱 cha̍h, 不免惊; 請照 "咱 ê *Mac* N�
 
 機器重紡了后, 咱 tio̍h 入去 *Mac* ê 打字設定內面選擇 Khí-ín (起引), tī *Taioanese* (語文) 下底.
 
-## 咱 ê *Mac* Nā 無 Beh 乎咱安裝 Khí-ín
+## 系統 Nā 無 Beh 乎咱安裝 Khí-ín
 
 今 Khí-ín iáu 未納錢申請 *Apple* ê 認証; 咱 beh 安裝 ê 時, 系統會 kā 咱 cha̍h, 講 Khí-ín "*cannot be opened because it is from an unidentified developer*" hit 号話.
 
