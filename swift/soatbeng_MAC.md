@@ -1,6 +1,8 @@
 # 安裝 *Mac* Khíín
 
-Siōng 新板本 (0.2.6), 安裝 tòng 案通 [tiàm chia 掠](https://www.bloon.io/share/je3Yk8sD). Beh 安裝 ê 時, 系統 nā kā 咱 cha̍h, 不免惊; 請照 "咱 ê *Mac* Nā 無 Beh 乎咱安裝 Khí-ín" ê 指示.
+Siōng 新板本 (0.2.6), 安裝 tòng 案通 [tiàm chia 掠](https://www.bloon.io/share/je3Yk8sD).
+
+Beh 安裝 ê 時, 系統 nā kā 咱 cha̍h, 不免惊; 請照 "咱 ê *Mac* Nā 無 Beh 乎咱安裝 Khí-ín" ê 指示.
 
 安裝流程行有透了后, 機器 tio̍h 愛重紡 (*restart*).
 
