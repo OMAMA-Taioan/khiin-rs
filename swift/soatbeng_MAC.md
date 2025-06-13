@@ -1,14 +1,23 @@
-# 安裝 Khíín (MAC)
+# 安裝 *Mac* Khíín
 
-Siōng 新板本 (0.2.6), 安裝 tòng 案通 [tiàm chia 掠](https://www.bloon.io/share/je3Yk8sD).
+Siōng 新板本 (0.2.6), 安裝 tòng 案通 [tiàm chia 掠](https://www.bloon.io/share/je3Yk8sD). Beh 安裝 ê 時, 系統 nā kā 咱 cha̍h, 不免惊; 請照 "咱 ê *Mac* Nā 無 Beh 乎咱安裝 Khí-ín" ê 指示.
 
 安裝流程行有透了后, 機器 tio̍h 愛重紡 (*restart*).
 
 機器重紡了后, 咱 tio̍h 入去 *Mac* ê 打字設定內面選擇 Khí-ín (起引), tī *Taioanese* (語文) 下底.
 
+## 咱 ê *Mac* Nā 無 Beh 乎咱安裝 Khí-ín
+
+今 Khí-ín iáu 未納錢申請 *Apple* ê 認証; 咱 beh 安裝 ê 時, 系統會 kā 咱 cha̍h, 講 Khí-ín "*cannot be opened because it is from an unidentified developer*" hit 号話.
+
+<img width="281" alt="Screenshot 2568-06-12 at 5 34 40 PM" src="https://github.com/user-attachments/assets/f759c4ed-534d-4ae2-bd35-6689319a7a72" />
+
+
 ## 新 Khíín Nā Pháiⁿ 鬥陣‥‥‥
 
 有 ê 用者 ê 經驗: Khí-ín siōng 新板本不時 kui 組定去, 無 tè 用, 等機器重紡 chiah ē koh 活起來. Án-ne 實在真困擾. 在咱 ê 經驗, khah 舊 ê 0.2.4 khah 𥝲定; nā 0.2.6 厚症頭, 建議[換安裝 0.2.4](https://www.bloon.io/share/OGrwDRrs) 看 māi.
+
+Nā 第 1 擺安裝, 阮建議先用 0.2.6.
 
 # 設定 Khíín
 
@@ -88,7 +97,7 @@ Nā beh 換主体字, 會使開 *Settings*, mā 會使 chhi̍h:
 |--|--|
 | <kbd>Option</kbd> + <kbd>Space</kbd> | 換主体 |
 | <kbd>Option</kbd> + <kbd>l</kbd> | 設羅字主体 |
-| <kbd>Option</kbd> + <kbd>h</kbd><br><kbd>Option</kbd> + <kbd>s</kbd> | 設漢字主体 (看叨 1 組 chhi̍h khah 會合) |
+| <kbd>Option</kbd> + <kbd>h</kbd><br><br><kbd>Option</kbd> + <kbd>s</kbd> | 設漢字主体 (看叨 1 組 chhi̍h khah 會合) |
 
 ## 輕調形式
 
