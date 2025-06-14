@@ -2,13 +2,13 @@
 
 Siōng 新板本 (0.2.6), 安裝 tòng 案通 [tiàm chia 掠](https://www.bloon.io/share/je3Yk8sD).
 
-Beh 安裝 ê 時, 系統 nā kā 咱 cha̍h, 不免惊; 請照 "咱 ê *Mac* Nā 無 Beh 乎咱安裝 Khíín" ê 指示.
+Beh 安裝 ê 時, 系統 nā kā 咱 cha̍h, 不免惊; 請照 "咱 ê *Mac* Nā 無 Beh 乎咱安裝 Khíín‥‥‥" ê 指示.
 
 安裝流程行有透了后, 機器 tio̍h 愛重紡 (*restart*).
 
 機器重紡了后, 咱 tio̍h 入去 *Mac* ê 打字設定內面選擇 Khí-ín (起引), tī *Taioanese* (語文) 下底.
 
-## 系統 Nā 無 Beh 乎咱安裝 Khíín
+## 系統 Nā 無 Beh 乎咱安裝 Khíín‥‥‥
 
 今 Khí-ín iáu 未納錢申請 *Apple* ê 認証; 咱 beh 安裝 ê 時, 系統會 kā 咱 cha̍h, 講 Khí-ín "*cannot be opened because it is from an unidentified developer*" hit 号話.
 
