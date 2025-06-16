@@ -12,15 +12,17 @@ use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::TRUE;
 use windows::Win32::Foundation::WPARAM;
 use windows::Win32::UI::Input::KeyboardAndMouse::VIRTUAL_KEY;
-use windows::Win32::UI::Input::KeyboardAndMouse::VK_OEM_3;
-use windows::Win32::UI::Input::KeyboardAndMouse::VK_SPACE;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_BACK;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_CONTROL;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_DOWN;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_H;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_L;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_LEFT;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_OEM_3;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_RETURN;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_RIGHT;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_SHIFT;
-use windows::Win32::UI::Input::KeyboardAndMouse::VK_CONTROL;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_SPACE;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_TAB;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_UP;
 use windows::Win32::UI::TextServices::ITfContext;
@@ -43,7 +45,8 @@ use crate::tip::KeyEvent;
 use crate::tip::TextService;
 
 const HANDLED_KEYS: &[VIRTUAL_KEY] = &[
-    VK_SPACE, VK_BACK, VK_TAB, VK_RETURN, VK_DOWN, VK_UP, VK_RIGHT, VK_LEFT, VK_OEM_3,
+    VK_SPACE, VK_BACK, VK_TAB, VK_RETURN, VK_DOWN, VK_UP, VK_RIGHT, VK_LEFT,
+    VK_OEM_3,
 ];
 
 fn is_handled_key(key: &KeyEvent) -> bool {
@@ -65,9 +68,7 @@ pub fn handle_key(
     let mut cmd = Command::new();
     cmd.request = Some(req).into();
 
-    unsafe {
-        tip.as_impl().send_command(context, cmd)
-    }
+    unsafe { tip.as_impl().send_command(context, cmd) }
 }
 
 #[implement(ITfKeyEventSink)]
@@ -179,11 +180,23 @@ impl KeyEventSink {
             return Ok(FALSE);
         }
 
-        if self.ctrl_pressed.get() && key_event.keycode == VK_OEM_3.0 as u32 {
-            log::debug!("toggle input mode");
-            self.ctrl_pressed.set(false);
-            service.toggle_input_mode(context);
-            return Ok(TRUE);
+        if self.ctrl_pressed.get() {
+            if key_event.keycode == VK_OEM_3.0 as u32 {
+                log::debug!("toggle input mode");
+                self.ctrl_pressed.set(false);
+                service.toggle_input_mode(context);
+                return Ok(TRUE);
+            } else if key_event.keycode == VK_H.0 as u32 {
+                log::debug!("change hanji first");
+                self.ctrl_pressed.set(false);
+                service.change_output_mode(context, true);
+                return Ok(TRUE);
+            } else if key_event.keycode == VK_L.0 as u32 {
+                log::debug!("change lomaji first");
+                self.ctrl_pressed.set(false);
+                service.change_output_mode(context, false);
+                return Ok(TRUE);
+            }
         }
 
         match test {
@@ -209,7 +222,9 @@ impl KeyEventSink {
         {
             self.shift_pressed.set(false);
             Ok(TRUE)
-        } else if self.ctrl_pressed.get() && key_event.keycode == VK_CONTROL.0 as u32 {
+        } else if self.ctrl_pressed.get()
+            && key_event.keycode == VK_CONTROL.0 as u32
+        {
             self.ctrl_pressed.set(false);
             Ok(TRUE)
         } else {
@@ -227,7 +242,9 @@ impl KeyEventSink {
         {
             self.shift_pressed.set(false);
             Ok(TRUE)
-        } else if self.ctrl_pressed.get() && key_event.keycode == VK_CONTROL.0 as u32 {
+        } else if self.ctrl_pressed.get()
+            && key_event.keycode == VK_CONTROL.0 as u32
+        {
             self.ctrl_pressed.set(false);
             Ok(TRUE)
         } else {

@@ -68,16 +68,17 @@ impl CompositionMgr {
             .ok_or(fail!())
     }
 
-    // pub fn commit_all(
-    //     &mut self,
-    //     ec: u32,
-    //     context: ITfContext,
-    //     preedit: &Preedit,
-    // ) -> Result<()> {
-    //     let comp = self.composition()?;
-    //     self.commit_composition(ec, comp, context, preedit)?;
-    //     Ok(())
-    // }
+    pub fn commit_all(
+        &mut self,
+        ec: u32,
+        context: ITfContext,
+        preedit: &Preedit,
+    ) -> Result<()> {
+        let comp = self.composition()?;
+        let display = String::from_utf16_lossy(&preedit.widen().display);
+        self.commit_composition(ec, comp, context, preedit, &display)?;
+        Ok(())
+    }
 
     pub fn notify_command(
         &mut self,

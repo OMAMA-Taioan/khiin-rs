@@ -340,6 +340,7 @@ impl TextService {
                 new_config.input_mode = AppInputMode::CLASSIC.into();
             }
             is_toggled = true;
+            self.commit_all(context.clone())?;
             
             let mut req = Request::new();
             req.id = rand::random::<u32>();
@@ -356,6 +357,59 @@ impl TextService {
                 mgr.refresh_input_mode(is_manual);
             }
         }
+        Ok(())
+    }
+
+    pub fn toggle_output_mode(&self, context: ITfContext) -> Result<()> {
+        let mut new_config: AppConfig = AppConfig::new();
+        let mut is_toggled = false;
+        if let Some(config) = self.config.borrow().as_ref() {
+            new_config = config.clone();
+            if new_config.output_mode.enum_value_or_default()
+                == AppOutputMode::LOMAJI
+            {
+                new_config.output_mode = AppOutputMode::HANJI.into();
+            } else {
+                new_config.output_mode = AppOutputMode::LOMAJI.into();
+            }
+            is_toggled = true;
+            self.commit_all(context.clone())?;
+
+            let mut req = Request::new();
+            req.id = rand::random::<u32>();
+            req.type_ = CommandType::CMD_SWITCH_OUTPUT_MODE.into();
+            req.config = Some(new_config.clone()).into();
+
+            let mut cmd = Command::new();
+            cmd.request = Some(req).into();
+            self.send_command(context, cmd);
+        }
+        if is_toggled {
+            self.config.replace(Some(new_config));
+        }
+        Ok(())
+    }
+
+    pub fn change_output_mode(&self, context: ITfContext, is_hanji_first: bool) -> Result<()> {
+        if let Some(config) = self.config.borrow().as_ref() {
+            let mut new_config = config.clone();
+            if is_hanji_first {
+                new_config.output_mode = AppOutputMode::HANJI.into();
+            } else {
+                new_config.output_mode = AppOutputMode::LOMAJI.into();
+            }
+            self.commit_all(context.clone())?;
+
+            let mut req = Request::new();
+            req.id = rand::random::<u32>();
+            req.type_ = CommandType::CMD_SWITCH_OUTPUT_MODE.into();
+            req.config = Some(new_config.clone()).into();
+
+            let mut cmd = Command::new();
+            cmd.request = Some(req).into();
+            self.send_command(context, cmd);
+        }
+
         Ok(())
     }
 
@@ -378,24 +432,24 @@ impl TextService {
         comp_mgr.notify_command(ec, context, sink, command, attr_atoms)
     }
 
-    // pub fn commit_all(&self, context: ITfContext) -> Result<()> {
-    //     let preedit = self
-    //         .current_command
-    //         .borrow()
-    //         .clone()
-    //         .ok_or(fail!())?
-    //         .response
-    //         .preedit
-    //         .clone();
-    //     self.current_command.replace(None);
-    //     let composing = self.composing();
-    //     open_edit_session(self.clientid.get()?, context.clone(), |ec| {
-    //         let mut comp_mgr = self.composition_mgr.write().map_err(|_| fail!())?;
-    //         comp_mgr.commit_all(ec, context.clone(), &preedit)?;
-    //         Ok(())
-    //     })?;
-    //     Ok(())
-    // }
+    pub fn commit_all(&self, context: ITfContext) -> Result<()> {
+        let preedit = self
+            .current_command
+            .borrow()
+            .clone()
+            .ok_or(fail!())?
+            .response
+            .preedit
+            .clone();
+        self.current_command.replace(None);
+        let composing = self.composing();
+        open_edit_session(self.clientid.get()?, context.clone(), |ec| {
+            let mut comp_mgr = self.composition_mgr.write().map_err(|_| fail!())?;
+            comp_mgr.commit_all(ec, context.clone(), &preedit)?;
+            Ok(())
+        })?;
+        Ok(())
+    }
 
     pub fn commit_composition(&self) -> Result<()> {
         // TODO
