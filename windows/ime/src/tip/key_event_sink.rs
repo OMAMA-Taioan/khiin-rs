@@ -142,12 +142,10 @@ impl KeyEventSink {
             return Ok(FALSE);
         }
 
-        // if key_event.keycode == VK_SHIFT.0 as u32
-        // /* TODO: check config */
-        // {
-        //     self.shift_pressed.set(true);
-        //     return Ok(TRUE);
-        // }
+        if key_event.keycode == VK_SHIFT.0 as u32 {
+            self.shift_pressed.set(true);
+            return Ok(TRUE);
+        }
         if key_event.keycode == VK_CONTROL.0 as u32 {
             self.ctrl_pressed.set(true);
             return Ok(TRUE);
@@ -177,16 +175,20 @@ impl KeyEventSink {
         let test = self.test_key_down(context.clone(), &key_event);
 
         if self.shift_pressed.get() {
-            return Ok(FALSE);
+            if key_event.keycode == VK_SHIFT.0 as u32 {
+                return Ok(TRUE);
+            }
+            self.shift_pressed.set(false);
         }
 
         if self.ctrl_pressed.get() {
-            if key_event.keycode == VK_OEM_3.0 as u32 {
-                log::debug!("toggle input mode");
-                self.ctrl_pressed.set(false);
-                service.toggle_input_mode(context);
-                return Ok(TRUE);
-            } else if key_event.keycode == VK_H.0 as u32 {
+            // if key_event.keycode == VK_OEM_3.0 as u32 {
+            //     log::debug!("toggle input mode");
+            //     self.ctrl_pressed.set(false);
+            //     service.toggle_input_mode(context);
+            //     return Ok(TRUE);
+            // } else 
+            if key_event.keycode == VK_H.0 as u32 {
                 log::debug!("change hanji first");
                 self.ctrl_pressed.set(false);
                 service.change_output_mode(context, true);
@@ -202,7 +204,6 @@ impl KeyEventSink {
         match test {
             Ok(TRUE) => {
                 log::debug!("Key event: {:?}", key_event);
-                self.shift_pressed.set(false);
                 match handle_key(self.tip.clone(), context, key_event) {
                     Ok(_) => Ok(TRUE),
                     Err(_) => Ok(FALSE),
@@ -220,7 +221,6 @@ impl KeyEventSink {
         if self.shift_pressed.get() && key_event.keycode == VK_SHIFT.0 as u32
         /* TODO: check config */
         {
-            self.shift_pressed.set(false);
             Ok(TRUE)
         } else if self.ctrl_pressed.get()
             && key_event.keycode == VK_CONTROL.0 as u32
@@ -240,7 +240,13 @@ impl KeyEventSink {
         if self.shift_pressed.get() && key_event.keycode == VK_SHIFT.0 as u32
         /* TODO: check config */
         {
-            self.shift_pressed.set(false);
+            self.shift_pressed.set(false); 
+            let service = unsafe { self.tip.as_impl() };
+            if !service.enabled()? {
+                return Ok(FALSE);
+            }
+            log::debug!("toggle input mode");
+            service.toggle_input_mode(_context.clone());
             Ok(TRUE)
         } else if self.ctrl_pressed.get()
             && key_event.keycode == VK_CONTROL.0 as u32
