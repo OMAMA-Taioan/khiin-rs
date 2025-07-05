@@ -149,6 +149,11 @@ impl KeyEventSink {
         if key_event.keycode == VK_CONTROL.0 as u32 {
             self.ctrl_pressed.set(true);
             return Ok(TRUE);
+        } else if self.ctrl_pressed.get() {
+            if key_event.keycode != VK_H.0 as u32 && key_event.keycode != VK_L.0 as u32 {
+                self.ctrl_pressed.set(false);
+                return Ok(FALSE);
+            }
         }
 
         // TODO: check for candidate UI priority keys
