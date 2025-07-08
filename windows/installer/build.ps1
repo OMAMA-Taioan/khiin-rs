@@ -82,11 +82,13 @@ candle.exe `
     -dSource_Database="$dbFile" `
     -dTarget_Database="khiin.db" `
     -dSource_LicenseRtf_EN="$licenseFileEN" `
-    -dSource_UIDialogBmp="$uiDialogBmp" `
     -dSource_Icon="$icon" `
     $productWxs `
     $registryWxs `
     -out "$wixOutDir\"
+    
+    # -dSource_UIDialogBmp="$uiDialogBmp" `
+
 
 light.exe `
     $productObj `

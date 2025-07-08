@@ -29,7 +29,7 @@
         </UI>
 
         <WixVariable Id="WixUILicenseRtf" Value="$(var.Source_LicenseRtf_EN)" />
-        <WixVariable Id="WixUIDialogBmp" Value="$(var.Source_UIDialogBmp)" />
+        <!-- <WixVariable Id="WixUIDialogBmp" Value="$(var.Source_UIDialogBmp)" /> -->
         <Icon Id="icon.ico" SourceFile="$(var.Source_Icon)" />
         <Property Id="ARPPRODUCTICON" Value="icon.ico" />
 
