@@ -146,6 +146,7 @@ pub struct TextService {
 
     // State
     is_editing_state: RefCell<bool>,
+    is_illegal_state: RefCell<bool>,
 }
 
 // Public portion
@@ -202,6 +203,7 @@ impl TextService {
             context_cache: Rc::new(RefCell::new(HashMap::new())),
             current_command: RefCell::new(None),
             is_editing_state: RefCell::new(false),
+            is_illegal_state: RefCell::new(false),
         })
     }
 
@@ -480,6 +482,19 @@ impl TextService {
         Ok(())
     }
 
+    pub fn current_display_text(&self) -> Result<String> {
+        let preedit = self
+            .current_command
+            .borrow()
+            .clone()
+            .ok_or(fail!())?
+            .response
+            .preedit
+            .clone();
+        let display = String::from_utf16_lossy(&preedit.widen().display);
+        Ok(display)
+    }
+
     pub fn handle_candidates(
         &self,
         ec: TfEditCookie,
@@ -555,6 +570,10 @@ impl TextService {
         let editing = command.response.edit_state.enum_value_or_default()
             != EditState::ES_EMPTY;
         self.is_editing_state.replace(editing);
+        self.is_illegal_state.replace(
+            command.response.edit_state.enum_value_or_default()
+                == EditState::ES_ILLEGAL,
+        );
 
         if command.response.edit_state.enum_value_or_default()
             == EditState::ES_EMPTY
@@ -599,6 +618,25 @@ impl TextService {
 
     pub fn is_editing(&self) -> bool {
         *self.is_editing_state.borrow()
+    }
+
+    pub fn is_illegal(&self) -> bool {
+        *self.is_illegal_state.borrow()
+    }
+
+    pub fn is_hyphen_or_khin_key(&self, ch: char) -> bool {
+        if self.is_editing() {
+            if let Some(config) = self.config.borrow().as_ref() {
+                if config.key_config.alt_hyphen.contains(ch) {
+                    return true;
+                } else if config.key_config.telex_khin.contains(ch) {
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        } 
+        return false;
     }
 }
 

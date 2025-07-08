@@ -81,9 +81,7 @@ pub fn handle_key(
     unsafe { tip.as_impl().send_command(context, cmd) }
 }
 
-pub fn send_reset_command(
-    tip: ITfTextInputProcessor,
-) -> Result<()> {
+pub fn send_reset_command(tip: ITfTextInputProcessor) -> Result<()> {
     let mut req = Request::new();
     req.id = rand::random::<u32>();
     req.type_ = CommandType::CMD_RESET.into();
@@ -227,18 +225,41 @@ impl KeyEventSink {
                 service.change_output_mode(context, false);
                 return Ok(TRUE);
             }
-        } else if service.is_manual_mode() && is_preserved_key(&key_event) {
-            if key_event.keycode == VK_SPACE.0 as u32 {
-                service.commit_all_with_suffix(context, " ")?;
-            } else if key_event.keycode == VK_TAB.0 as u32 {
-                service.commit_all_with_suffix(context, "\t")?;
-            } else if key_event.keycode == VK_RETURN.0 as u32 {
-                service.commit_all_with_suffix(context, "\n")?;
-            } else {
-                service.commit_all_with_suffix(context, "")?;
+        } else if service.is_manual_mode() {
+            if is_preserved_key(&key_event) {
+                if key_event.keycode == VK_SPACE.0 as u32 {
+                    service.commit_all_with_suffix(context, " ")?;
+                } else if key_event.keycode == VK_TAB.0 as u32 {
+                    service.commit_all_with_suffix(context, "\t")?;
+                } else if key_event.keycode == VK_RETURN.0 as u32 {
+                    service.commit_all_with_suffix(context, "\n")?;
+                } else {
+                    service.commit_all_with_suffix(context, "")?;
+                }
+                send_reset_command(self.tip.clone())?;
+                return Ok(TRUE);
             }
-            send_reset_command(self.tip.clone())?;
-            return Ok(FALSE)
+            // check key_event is punctuation
+            if key_event.ascii > 0 && key_event.is_punctuation() {
+                log::debug!("commit all with punctuation: {}", key_event.ascii);
+                let ch = key_event.ascii as char;
+                service.commit_all_with_suffix(context.clone(),  &ch.to_string())?;
+                send_reset_command(self.tip.clone())?;
+                return Ok(TRUE);
+            }
+
+            let text = match service.current_display_text() {
+                Ok(s) => s,
+                Err(_) => String::new(),
+            };
+            // check suffix is "-" or "·"
+            if (text.ends_with('-') || text.ends_with('·'))
+                && !service.is_hyphen_or_khin_key(key_event.ascii as char)
+                && !service.is_illegal()
+            {
+                service.commit_all_with_suffix(context.clone(), "")?;
+                send_reset_command(self.tip.clone())?;
+            }
         }
 
         match test {
