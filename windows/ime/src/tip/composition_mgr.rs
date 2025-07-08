@@ -244,6 +244,40 @@ impl CompositionMgr {
         }
     }
 
+    pub fn commit_text(
+        &mut self,
+        ec: u32,
+        context: ITfContext,
+        committed_text: &String,
+    ) -> Result<()> {
+        log::debug!("Committing text");
+        let composition = self.composition()?;
+        unsafe {
+            let range = composition.GetRange()?;
+            let is_empty = range.IsEmpty(ec)?;
+            if is_empty == FALSE {
+                range.SetText(ec, TF_ST_CORRECTION, &[])?;
+            }
+
+            let comp_range = composition.GetRange()?;
+            let committed_text_utf16: Vec<u16> =
+                committed_text.encode_utf16().collect();
+            comp_range.SetText(ec, TF_ST_CORRECTION, &committed_text_utf16)?;
+
+            let end_range = range.Clone()?;
+            let mut shifted: i32 = 0;
+            let len = committed_text.len() as i32;
+            log::debug!("Committing with len: {}", len);
+            end_range.ShiftStart(ec, len, &mut shifted, std::ptr::null())?;
+            end_range.Collapse(ec, TF_ANCHOR_START)?;
+            composition.ShiftStart(ec, &end_range)?;
+            self.set_selection(ec, context, end_range, TF_AE_END)?;
+            self.cleanup(ec, composition)?;
+        }
+
+        Ok(())
+    }
+
     fn commit_composition(
         &mut self,
         ec: u32,

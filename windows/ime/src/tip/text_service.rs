@@ -81,6 +81,7 @@ use crate::ui::RenderFactory;
 use crate::utils::co_create_inproc;
 use crate::utils::ArcLock;
 use crate::utils::GetPath;
+use crate::utils::ToWidePreedit;
 
 pub const TF_CLIENTID_NULL: u32 = 0;
 pub const TF_INVALID_GUIDATOM: u32 = 0;
@@ -451,6 +452,29 @@ impl TextService {
         Ok(())
     }
 
+    pub fn commit_all_with_suffix(&self, context: ITfContext, suffix: &str) -> Result<()> {
+        let preedit = self
+            .current_command
+            .borrow()
+            .clone()
+            .ok_or(fail!())?
+            .response
+            .preedit
+            .clone();
+        // append suffix to preedit
+        let mut display = String::from_utf16_lossy(&preedit.widen().display);
+        display.push_str(suffix);
+
+        self.current_command.replace(None);
+        let composing = self.composing();
+        open_edit_session(self.clientid.get()?, context.clone(), |ec| {
+            let mut comp_mgr = self.composition_mgr.write().map_err(|_| fail!())?;
+            comp_mgr.commit_text(ec, context.clone(), &display)?;
+            Ok(())
+        })?;
+        Ok(())
+    }
+
     pub fn commit_composition(&self) -> Result<()> {
         // TODO
         Ok(())
@@ -495,6 +519,17 @@ impl TextService {
             x.send_command(command).map_err(|_| fail!())
             // let tx = x.sender();
             // tx.send(command).map_err(|_| fail!())
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn send_command_async(
+        &self,
+        command: Command,
+    ) -> Result<()> {
+        if let Some(x) = self.engine_coordinator.borrow().as_ref() {
+            x.send_command(command).map_err(|_| fail!())
         } else {
             Ok(())
         }

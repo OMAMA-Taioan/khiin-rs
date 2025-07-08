@@ -49,10 +49,20 @@ const HANDLED_KEYS: &[VIRTUAL_KEY] = &[
     VK_OEM_3,
 ];
 
+const PRESERVED_KEYS: &[VIRTUAL_KEY] = &[
+    VK_SPACE, VK_TAB, VK_RETURN, VK_DOWN, VK_UP, VK_RIGHT, VK_LEFT,
+];
+
 fn is_handled_key(key: &KeyEvent) -> bool {
     let vk = key.as_virtual_key();
 
     key.ascii > 0 || HANDLED_KEYS.contains(&vk)
+}
+
+fn is_preserved_key(key: &KeyEvent) -> bool {
+    let vk = key.as_virtual_key();
+
+    PRESERVED_KEYS.contains(&vk)
 }
 
 pub fn handle_key(
@@ -69,6 +79,18 @@ pub fn handle_key(
     cmd.request = Some(req).into();
 
     unsafe { tip.as_impl().send_command(context, cmd) }
+}
+
+pub fn send_reset_command(
+    tip: ITfTextInputProcessor,
+) -> Result<()> {
+    let mut req = Request::new();
+    req.id = rand::random::<u32>();
+    req.type_ = CommandType::CMD_RESET.into();
+    let mut cmd = Command::new();
+    cmd.request = Some(req).into();
+
+    unsafe { tip.as_impl().send_command_async(cmd) }
 }
 
 #[implement(ITfKeyEventSink)]
@@ -150,7 +172,9 @@ impl KeyEventSink {
             self.ctrl_pressed.set(true);
             return Ok(TRUE);
         } else if self.ctrl_pressed.get() {
-            if key_event.keycode != VK_H.0 as u32 && key_event.keycode != VK_L.0 as u32 {
+            if key_event.keycode != VK_H.0 as u32
+                && key_event.keycode != VK_L.0 as u32
+            {
                 self.ctrl_pressed.set(false);
                 return Ok(FALSE);
             }
@@ -158,7 +182,6 @@ impl KeyEventSink {
 
         // TODO: check for candidate UI priority keys
 
-        // TODO: check other keys, etc.
         if is_handled_key(key_event) {
             Ok(TRUE)
         } else {
@@ -192,7 +215,7 @@ impl KeyEventSink {
             //     self.ctrl_pressed.set(false);
             //     service.toggle_input_mode(context);
             //     return Ok(TRUE);
-            // } else 
+            // } else
             if key_event.keycode == VK_H.0 as u32 {
                 log::debug!("change hanji first");
                 self.ctrl_pressed.set(false);
@@ -204,6 +227,18 @@ impl KeyEventSink {
                 service.change_output_mode(context, false);
                 return Ok(TRUE);
             }
+        } else if service.is_manual_mode() && is_preserved_key(&key_event) {
+            if key_event.keycode == VK_SPACE.0 as u32 {
+                service.commit_all_with_suffix(context, " ")?;
+            } else if key_event.keycode == VK_TAB.0 as u32 {
+                service.commit_all_with_suffix(context, "\t")?;
+            } else if key_event.keycode == VK_RETURN.0 as u32 {
+                service.commit_all_with_suffix(context, "\n")?;
+            } else {
+                service.commit_all_with_suffix(context, "")?;
+            }
+            send_reset_command(self.tip.clone())?;
+            return Ok(FALSE)
         }
 
         match test {
@@ -245,7 +280,7 @@ impl KeyEventSink {
         if self.shift_pressed.get() && key_event.keycode == VK_SHIFT.0 as u32
         /* TODO: check config */
         {
-            self.shift_pressed.set(false); 
+            self.shift_pressed.set(false);
             let service = unsafe { self.tip.as_impl() };
             if !service.enabled()? {
                 return Ok(FALSE);
