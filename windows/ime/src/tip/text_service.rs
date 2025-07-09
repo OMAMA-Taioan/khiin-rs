@@ -266,6 +266,7 @@ impl TextService {
 
         // reload settings
         self.load_settings()?;
+        self.set_enabled(true)?;
         Ok(())
     }
 
