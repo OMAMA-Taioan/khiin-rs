@@ -56,7 +56,12 @@ fn emit_settings(settings: &AppSettings, window: tauri::Window) {
 
 fn load_settings_manager() -> SettingsStore {
     if let Some(mut filename) = data_dir() {
-        filename.push("app.khiin.KhiinPJH/settings.toml");
+        // if mac os, use the app name as the directory
+        if cfg!(target_os = "macos") {
+            filename.push("app.khiin.KhiinPJH/settings.toml");
+        } else {
+            filename.push("Khiin/settings.toml");
+        }
 
         log::debug!("load_settings_manager {:?}", filename);
 

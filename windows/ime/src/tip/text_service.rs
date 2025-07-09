@@ -1,9 +1,11 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::process;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::RwLock;
+use std::os::windows::process::CommandExt;
 
 use khiin_protos::command::EditState;
 use khiin_protos::command::SegmentStatus;
@@ -15,7 +17,9 @@ use windows::core::IUnknown;
 use windows::core::Interface;
 use windows::core::Result;
 use windows::core::GUID;
+use windows::core::Error;
 use windows::Win32::Foundation::HWND;
+use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::UI::TextServices::CLSID_TF_CategoryMgr;
 use windows::Win32::UI::TextServices::IEnumTfDisplayAttributeInfo;
 use windows::Win32::UI::TextServices::ITfCategoryMgr;
@@ -243,6 +247,28 @@ impl TextService {
         Ok(())
     }
 
+    pub fn open_settings_app(&self) -> Result<()> {
+        // Open the settings app
+        let dll_path = DllModule::global().module.get_path()?;
+        let mut app_exe = PathBuf::from(dll_path);
+        app_exe.set_file_name("khiin_helper.exe");
+
+        // const CREATE_NO_WINDOW: u32 = 0x08000000;
+        const DETACHED_PROCESS: u32 = 0x00000008;
+        let status = process::Command::new(app_exe)
+            .creation_flags(DETACHED_PROCESS)
+            .status()
+            .map_err(|e| {
+                log::error!("Failed to open helper app: {}", e);
+                Error::from(E_FAIL)
+            })?;
+        log::debug!("Open settings app status: {}", status);
+
+        // reload settings
+        self.load_settings()?;
+        Ok(())
+    }
+
     pub fn set_this(&self, this: ITfTextInputProcessor) {
         self.this.replace(Some(this));
     }
@@ -267,6 +293,16 @@ impl TextService {
     pub fn load_settings(&self) -> Result<()> {
         let mut user_path = std::env::var("APPDATA").unwrap_or_default();
         // load file from user directory
+        // check folder exists, if not create it
+        let mut settings_dir = user_path.clone();
+        settings_dir.push_str("\\Khiin");
+        let settings_dir_path = PathBuf::from(&settings_dir);
+        if !settings_dir_path.exists() {
+            std::fs::create_dir_all(&settings_dir_path).map_err(|e| {
+                log::error!("Failed to create settings directory: {}", e);
+                Error::from(E_FAIL)
+            })?;
+        }
         user_path.push_str("\\Khiin\\settings.toml");
         let path = PathBuf::from(user_path);
         let settings = SettingsManager::load_from_file(&path).settings;

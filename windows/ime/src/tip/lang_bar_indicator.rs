@@ -200,7 +200,8 @@ impl ITfLangBarItemButton_Impl for LangBarIndicator {
     ) -> Result<()> {
         match click {
             TF_LBI_CLK_LEFT => unsafe { self.tip.as_impl().toggle_enabled() },
-            TF_LBI_CLK_RIGHT => self.popup.show(pt.into()),
+            TF_LBI_CLK_RIGHT => unsafe { self.tip.as_impl().open_settings_app() },
+            // TF_LBI_CLK_RIGHT => self.popup.show(pt.into()),
             _ => Ok(()),
         }
     }
