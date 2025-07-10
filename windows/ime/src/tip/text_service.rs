@@ -255,18 +255,18 @@ impl TextService {
 
         // const CREATE_NO_WINDOW: u32 = 0x08000000;
         const DETACHED_PROCESS: u32 = 0x00000008;
-        let status = process::Command::new(app_exe)
+        let child = process::Command::new(app_exe)
             .creation_flags(DETACHED_PROCESS)
-            .status()
+            .spawn()
             .map_err(|e| {
                 log::error!("Failed to open helper app: {}", e);
                 Error::from(E_FAIL)
             })?;
-        log::debug!("Open settings app status: {}", status);
+        // log::debug!("Open settings app status: {}", status);
 
         // reload settings
-        self.load_settings()?;
-        self.set_enabled(true)?;
+        // self.load_settings()?;
+        // self.set_enabled(true)?;
         Ok(())
     }
 
