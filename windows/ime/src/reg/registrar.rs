@@ -85,7 +85,7 @@ pub fn register_profiles(
         let profiles: ITfInputProcessorProfiles =
             co_create_inproc(&CLSID_TF_InputProcessorProfiles)?;
 
-        let lang_id: u16 = LocaleNameToLCID(w!("zh-TW"), 0).try_into().unwrap();
+        let lang_id: u16 = LocaleNameToLCID(w!("kl"), 0).try_into().unwrap();
         let mut pch_desc: Vec<u16> = CLSID_DESCRIPTION.encode_utf16().collect();
         pch_desc.push(0);
         let mut module_path: Vec<u16> = module_path.encode_utf16().collect();

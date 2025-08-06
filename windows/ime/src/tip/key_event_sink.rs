@@ -37,6 +37,7 @@ use windows::Win32::UI::WindowsAndMessaging::WM_KEYUP;
 use khiin_protos::command::Command;
 use khiin_protos::command::CommandType;
 use khiin_protos::command::Request;
+use khiin_protos::command::ModifierKey;
 
 use crate::reg::guids::GUID_PRESERVED_KEY_FULL_WIDTH_SPACE;
 use crate::reg::guids::GUID_PRESERVED_KEY_ON_OFF;
@@ -71,6 +72,26 @@ pub fn handle_key(
     key_event: KeyEvent,
 ) -> Result<()> {
     let khi = key_event.to_khiin();
+    let mut req = Request::new();
+    req.id = rand::random::<u32>();
+    req.type_ = CommandType::CMD_SEND_KEY.into();
+    req.key_event = Some(khi).into();
+    let mut cmd = Command::new();
+    cmd.request = Some(req).into();
+
+    unsafe { tip.as_impl().send_command(context, cmd) }
+}
+
+pub fn handle_special_key(
+    tip: ITfTextInputProcessor,
+    context: ITfContext,
+    key_event: KeyEvent,
+    shift_pressed: bool,
+) -> Result<()> {
+    let mut khi = key_event.to_khiin();
+    if shift_pressed {
+        khi.modifier_keys.push(ModifierKey::MODK_SHIFT.into());
+    }
     let mut req = Request::new();
     req.id = rand::random::<u32>();
     req.type_ = CommandType::CMD_SEND_KEY.into();
@@ -203,6 +224,9 @@ impl KeyEventSink {
         if self.shift_pressed.get() {
             if key_event.keycode == VK_SHIFT.0 as u32 {
                 return Ok(TRUE);
+            } else if key_event.keycode == VK_SPACE.0 as u32 {
+                handle_special_key(self.tip.clone(), context, key_event, true)?;
+                return Ok(TRUE);
             }
             self.shift_pressed.set(false);
         }
@@ -282,6 +306,7 @@ impl KeyEventSink {
         if self.shift_pressed.get() && key_event.keycode == VK_SHIFT.0 as u32
         /* TODO: check config */
         {
+            self.shift_pressed.set(false);
             Ok(TRUE)
         } else if self.ctrl_pressed.get()
             && key_event.keycode == VK_CONTROL.0 as u32
