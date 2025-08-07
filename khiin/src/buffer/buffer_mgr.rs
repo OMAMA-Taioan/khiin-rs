@@ -826,14 +826,16 @@ impl BufferMgr {
                 };
             }
             let mut guess_candidate = convert_guess(engine, &raw_input)?;
-            guess_candidate.set_converted(true);
-            guess_candidate.autospace();
-            if !self
-                .candidates
-                .iter()
-                .any(|cand| guess_candidate.eq_display(cand))
-            {
-                self.candidates.insert(0, guess_candidate);
+            if guess_candidate.is_not_empty() {
+                guess_candidate.set_converted(true);
+                guess_candidate.autospace();
+                if !self
+                    .candidates
+                    .iter()
+                    .any(|cand| guess_candidate.eq_display(cand))
+                {
+                    self.candidates.insert(0, guess_candidate);
+                }
             }
         }
         self.composition = Buffer::new();

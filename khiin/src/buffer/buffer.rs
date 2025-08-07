@@ -207,6 +207,10 @@ impl Buffer {
             _ => false,
         })
     }
+
+    pub fn is_not_empty(&self) -> bool {
+        self.elems.len() > 0
+    }
 }
 
 impl From<BufferElementEnum> for Buffer {
