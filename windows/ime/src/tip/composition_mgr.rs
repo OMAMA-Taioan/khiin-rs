@@ -120,7 +120,7 @@ impl CompositionMgr {
                 &command.response.preedit,
                 &command.response.committed_text,
             )?;
-            if command.response.preedit.widen().display.len() > 0 {
+            if command.response.preedit.caret > 0 {
                 self.do_composition(
                     ec,
                     comp,
