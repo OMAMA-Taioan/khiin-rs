@@ -42,6 +42,14 @@
             "cwd": "${workspaceRoot}"
         },
         {
+            "name": "Win:Edge",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "preLaunchTask": "build-win32",
+            "program": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+            "cwd": "${workspaceRoot}"
+        },
+        {
             "name": "Win:Service",
             "type": "cppvsdbg",
             "request": "launch",

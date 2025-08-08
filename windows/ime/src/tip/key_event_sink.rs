@@ -60,6 +60,10 @@ fn is_handled_key(key: &KeyEvent) -> bool {
     key.ascii > 0 || HANDLED_KEYS.contains(&vk)
 }
 
+fn is_ascii_digit(key: &KeyEvent) -> bool {
+    key.ascii >= b'0' && key.ascii <= b'9'
+}
+
 fn is_preserved_key(key: &KeyEvent) -> bool {
     let vk = key.as_virtual_key();
 
@@ -118,6 +122,7 @@ pub struct KeyEventSink {
     threadmgr: ITfThreadMgr,
     shift_pressed: Cell<bool>,
     ctrl_pressed: Cell<bool>,
+    shift_is_modifier: Cell<bool>,
 }
 
 impl KeyEventSink {
@@ -127,6 +132,7 @@ impl KeyEventSink {
             threadmgr,
             shift_pressed: Cell::new(false),
             ctrl_pressed: Cell::new(false),
+            shift_is_modifier: Cell::new(false), // This is used to determine if shift is a modifier key
         }
     }
 
@@ -177,10 +183,14 @@ impl KeyEventSink {
         log::debug!("Special key: {:?}", special_key);
 
         if !service.composing()
-            && key_event.to_khiin().special_key.enum_value_or_default()
-                != SpecialKey::SK_NONE
         {
-            return Ok(FALSE);
+            if key_event.to_khiin().special_key.enum_value_or_default()
+                != SpecialKey::SK_NONE
+            {
+                return Ok(FALSE);
+            } else if is_ascii_digit(key_event) {
+                return Ok(FALSE);
+            }
         }
 
         if key_event.keycode == VK_SHIFT.0 as u32 {
@@ -226,6 +236,7 @@ impl KeyEventSink {
                 return Ok(TRUE);
             } else if key_event.keycode == VK_SPACE.0 as u32 {
                 handle_special_key(self.tip.clone(), context, key_event, true)?;
+                self.shift_is_modifier.set(true);
                 return Ok(TRUE);
             }
             self.shift_pressed.set(false);
@@ -306,7 +317,10 @@ impl KeyEventSink {
         if self.shift_pressed.get() && key_event.keycode == VK_SHIFT.0 as u32
         /* TODO: check config */
         {
-            self.shift_pressed.set(false);
+            if self.shift_is_modifier.get() {
+                self.shift_is_modifier.set(false);
+                self.shift_pressed.set(false);
+            }
             Ok(TRUE)
         } else if self.ctrl_pressed.get()
             && key_event.keycode == VK_CONTROL.0 as u32
