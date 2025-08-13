@@ -291,6 +291,25 @@ impl TextService {
         Ok(())
     }
 
+    pub fn cancel_composition(&self, context: ITfContext) -> Result<()> {
+        let cand_ui = self
+            .candidate_list_ui
+            .try_borrow()
+            .map_err(|_| fail!())?
+            .clone()
+            .ok_or(fail!())?;
+
+        let cand_ui = unsafe { cand_ui.as_impl() };
+        cand_ui.shutdown();
+        
+        open_edit_session(self.clientid.get()?, context.clone(), |ec| {
+            let mut comp_mgr = self.composition_mgr.write().map_err(|_| fail!())?;
+            comp_mgr.cancel_composition(ec)?;
+            Ok(())
+        })?;
+        Ok(())
+    }
+
     pub fn load_settings(&self) -> Result<()> {
         let mut user_path = std::env::var("APPDATA").unwrap_or_default();
         // load file from user directory

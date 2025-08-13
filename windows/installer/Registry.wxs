@@ -51,8 +51,8 @@
                 <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Item\{829893F6-728D-11EC-8C6E-E0D46491B35A}\{49D2F9CF-1F5E-11D7-A6D3-00065B84435C}" Root="HKLM" />
                 <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\Category\Item\{829893F6-728D-11EC-8C6E-E0D46491B35A}\{CCF05DD7-4A87-11D7-A6E2-00065B84435C}" Root="HKLM" />
                 <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\LanguageProfile" Root="HKLM" />
-                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\LanguageProfile\0x00000404" Root="HKLM" />
-                <RegistryKey Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\LanguageProfile\0x00000404\{829893F7-728D-11EC-8C6E-E0D46491B35A}" Root="HKLM">
+                <RegistryKey ForceCreateOnInstall="yes" Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\LanguageProfile\0x000005FE" Root="HKLM" />
+                <RegistryKey Key="Software\Microsoft\CTF\TIP\{829893F6-728D-11EC-8C6E-E0D46491B35A}\LanguageProfile\0x000005FE\{829893F7-728D-11EC-8C6E-E0D46491B35A}" Root="HKLM">
                     <RegistryValue Name="IconFile" Value="[INSTALLDIR64]$(var.Target_TipDll64)" Type="string" />
                     <RegistryValue Name="IconIndex" Value="0" Type="integer" />
                     <RegistryValue Name="Display Description" Value="@[INSTALLDIR64]$(var.Target_TipDll64),-101" Type="string" />

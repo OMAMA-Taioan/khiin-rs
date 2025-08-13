@@ -15,6 +15,7 @@ use windows::Win32::UI::Input::KeyboardAndMouse::VIRTUAL_KEY;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_BACK;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_CONTROL;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_DOWN;
+use windows::Win32::UI::Input::KeyboardAndMouse::VK_ESCAPE;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_H;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_L;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_LEFT;
@@ -47,7 +48,7 @@ use crate::tip::TextService;
 
 const HANDLED_KEYS: &[VIRTUAL_KEY] = &[
     VK_SPACE, VK_BACK, VK_TAB, VK_RETURN, VK_DOWN, VK_UP, VK_RIGHT, VK_LEFT,
-    VK_OEM_3,
+    VK_OEM_3, VK_ESCAPE,
 ];
 
 const PRESERVED_KEYS: &[VIRTUAL_KEY] = &[
@@ -182,13 +183,22 @@ impl KeyEventSink {
         log::debug!("Composing: {}", composing);
         log::debug!("Special key: {:?}", special_key);
 
-        if !service.composing()
+        if !service.composing() || !service.is_editing()
         {
             if key_event.to_khiin().special_key.enum_value_or_default()
                 != SpecialKey::SK_NONE
             {
                 return Ok(FALSE);
             } else if is_ascii_digit(key_event) {
+                return Ok(FALSE);
+            } else if key_event.ascii > 0 && key_event.is_punctuation() {
+                if service.is_manual_mode() {
+                    return Ok(FALSE);
+                } 
+                let punctuations = ".,!?()'\":<>;+=_[]";
+                if punctuations.contains(key_event.ascii as u8 as char) {
+                    return Ok(TRUE);
+                }
                 return Ok(FALSE);
             }
         }
@@ -199,7 +209,7 @@ impl KeyEventSink {
         }
         if key_event.keycode == VK_CONTROL.0 as u32 {
             self.ctrl_pressed.set(true);
-            return Ok(TRUE);
+            return Ok(FALSE);
         } else if self.ctrl_pressed.get() {
             if key_event.keycode != VK_H.0 as u32
                 && key_event.keycode != VK_L.0 as u32
@@ -240,6 +250,13 @@ impl KeyEventSink {
                 return Ok(TRUE);
             }
             self.shift_pressed.set(false);
+        }
+
+        if key_event.keycode == VK_ESCAPE.0 as u32 {
+            // handle ESC
+            service.cancel_composition(context.clone())?;
+            send_reset_command(self.tip.clone())?;
+            return Ok(TRUE);
         }
 
         if self.ctrl_pressed.get() {
@@ -347,6 +364,7 @@ impl KeyEventSink {
             }
             log::debug!("toggle input mode");
             service.toggle_input_mode(_context.clone());
+            service.cancel_composition(_context.clone());
             Ok(TRUE)
         } else if self.ctrl_pressed.get()
             && key_event.keycode == VK_CONTROL.0 as u32
