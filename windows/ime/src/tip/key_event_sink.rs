@@ -260,13 +260,12 @@ impl KeyEventSink {
         }
 
         if self.ctrl_pressed.get() {
-            // if key_event.keycode == VK_OEM_3.0 as u32 {
-            //     log::debug!("toggle input mode");
-            //     self.ctrl_pressed.set(false);
-            //     service.toggle_input_mode(context);
-            //     return Ok(TRUE);
-            // } else
-            if key_event.keycode == VK_H.0 as u32 {
+            if key_event.keycode == VK_OEM_3.0 as u32 {
+                log::debug!("toggle input mode");
+                self.ctrl_pressed.set(false);
+                service.toggle_input_mode(context);
+                return Ok(TRUE);
+            } else if key_event.keycode == VK_H.0 as u32 {
                 log::debug!("change hanji first");
                 self.ctrl_pressed.set(false);
                 service.change_output_mode(context, true);
@@ -309,6 +308,20 @@ impl KeyEventSink {
                 && !service.is_hyphen_or_khin_key(key_event.ascii as char)
                 && !service.is_illegal()
             {
+                service.commit_all_with_suffix(context.clone(), "")?;
+                send_reset_command(self.tip.clone())?;
+            }
+        } else {
+            // check previous char is punctuation
+            let text = match service.current_display_text() {
+                Ok(s) => s,
+                Err(_) => String::new(),
+            };
+            let punctuations = ".,!?()'\":<>;+=_[]「」‘’『』々〱〈《<«〉》>»+＋⁺+⁺=·＝〓_—＿⁻_—⁻〔【〖〕】〗";
+            if text.len() > 0 && punctuations.contains(text.chars().last().unwrap()) {
+                service.commit_all_with_suffix(context.clone(), "")?;
+                send_reset_command(self.tip.clone())?;
+            } else if text.len() > 0 && service.is_hyphen_or_khin_key(key_event.ascii as char) && text.chars().last().unwrap().is_ascii_alphabetic() {
                 service.commit_all_with_suffix(context.clone(), "")?;
                 send_reset_command(self.tip.clone())?;
             }
@@ -362,9 +375,9 @@ impl KeyEventSink {
             if !service.enabled()? {
                 return Ok(FALSE);
             }
-            log::debug!("toggle input mode");
-            service.toggle_input_mode(_context.clone());
-            service.cancel_composition(_context.clone());
+            // log::debug!("toggle input mode");
+            // service.toggle_input_mode(_context.clone());
+            // service.cancel_composition(_context.clone());
             Ok(TRUE)
         } else if self.ctrl_pressed.get()
             && key_event.keycode == VK_CONTROL.0 as u32
