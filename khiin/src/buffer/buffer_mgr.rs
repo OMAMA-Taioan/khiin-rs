@@ -666,11 +666,11 @@ impl BufferMgr {
             query.drain(0..1);
             word.drain(0..1);
         } else if query.starts_with(" ·") {
-            query.drain(0..2);
-            word.drain(0..2);
+            query = query.strip_prefix(" ·").unwrap_or(&query).to_string();
+            word = word.strip_prefix(" ·").unwrap_or(&word).to_string();
         } else if query.starts_with("-·") {
-            query.drain(0..2);
-            word.drain(0..2);
+            query = query.strip_prefix("-·").unwrap_or(&query).to_string();
+            word = word.strip_prefix("-·").unwrap_or(&word).to_string();
         }
 
         let mut tone_char = key;
@@ -739,6 +739,13 @@ impl BufferMgr {
                 self.attach_hypen_candicate();
                 return Ok(());
             }
+        } else if (raw_input.is_empty()) {
+            // do nothing
+            raw_input.push(ch);
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+            self.char_caret = self.composition.display_char_count();
+            return Ok(());
         }
 
         raw_input.push(ch);
@@ -748,9 +755,9 @@ impl BufferMgr {
         } else if query.starts_with("-") {
             query.drain(0..1);
         } else if query.starts_with(" ·") {
-            query.drain(0..2);
+            query = query.strip_prefix(" ·").unwrap_or(&query).to_string();
         } else if query.starts_with("-·") {
-            query.drain(0..2);
+            query = query.strip_prefix("-·").unwrap_or(&query).to_string();
         }
 
         // add punctuation
