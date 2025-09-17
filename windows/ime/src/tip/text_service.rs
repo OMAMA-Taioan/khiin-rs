@@ -450,13 +450,16 @@ impl TextService {
     }
 
     pub fn change_output_mode(&self, context: ITfContext, is_hanji_first: bool) -> Result<()> {
+        let mut new_config: AppConfig = AppConfig::new();
+        let mut is_toggled = false;
         if let Some(config) = self.config.borrow().as_ref() {
-            let mut new_config = config.clone();
+            new_config = config.clone();
             if is_hanji_first {
                 new_config.output_mode = AppOutputMode::HANJI.into();
             } else {
                 new_config.output_mode = AppOutputMode::LOMAJI.into();
             }
+            is_toggled = true;
             self.commit_all(context.clone())?;
 
             let mut req = Request::new();
@@ -468,7 +471,9 @@ impl TextService {
             cmd.request = Some(req).into();
             self.send_command(context, cmd);
         }
-
+        if is_toggled {
+            self.config.replace(Some(new_config));
+        }
         Ok(())
     }
 
@@ -528,6 +533,18 @@ impl TextService {
         open_edit_session(self.clientid.get()?, context.clone(), |ec| {
             let mut comp_mgr = self.composition_mgr.write().map_err(|_| fail!())?;
             comp_mgr.commit_text(ec, context.clone(), &display)?;
+            Ok(())
+        })?;
+        Ok(())
+    }
+
+    pub fn insert_char(&self, context: ITfContext, suffix: &str) -> Result<()> {
+        let sink: ITfCompositionSink = self.this().cast()?;
+        let suffix_string = suffix.to_string();
+        open_edit_session(self.clientid.get()?, context.clone(), |ec| {
+            let mut comp_mgr = self.composition_mgr.write().map_err(|_| fail!())?;
+            comp_mgr.check_composition(ec, context.clone(), sink.clone())?;
+            comp_mgr.commit_text(ec, context.clone(), &suffix_string)?;
             Ok(())
         })?;
         Ok(())
@@ -667,6 +684,15 @@ impl TextService {
         if let Some(config) = self.config.borrow().as_ref() {
             return config.input_mode.enum_value_or_default()
                 == khiin_protos::config::AppInputMode::MANUAL;
+        } else {
+            return false;
+        }
+    }
+
+    pub fn is_hanji_first(&self) -> bool {
+        if let Some(config) = self.config.borrow().as_ref() {
+            return config.output_mode.enum_value_or_default()
+                == khiin_protos::config::AppOutputMode::HANJI;
         } else {
             return false;
         }

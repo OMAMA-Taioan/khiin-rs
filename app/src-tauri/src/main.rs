@@ -50,6 +50,11 @@ fn update_settings(
     }
 }
 
+#[tauri::command]
+fn is_windows() -> bool {
+    cfg!(target_os = "windows")
+}
+
 fn emit_settings(settings: &AppSettings, window: tauri::Window) {
     window.emit("update_settings", settings.clone()).unwrap();
 }
@@ -95,6 +100,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             load_settings,
             update_settings,
+            is_windows,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -3,6 +3,7 @@
     import Toggle from "../../lib/Toggle.svelte";
     import { settings, count } from "../store.js";
     import { invoke } from "@tauri-apps/api/tauri";
+    import { onMount } from "svelte";
 
     let double_hyphen_to_khin = false;
     let auto_capitalization = false;
@@ -12,6 +13,12 @@
     let output_mode = $settings.input_settings.output_mode;
     let khin_mode = $settings.input_settings.khin_mode;
     let tone_mode_disabled = false;
+    let is_windows_os = false;
+
+    onMount(async () => {
+        is_windows_os = await invoke("is_windows");
+    });
+
     $: if (input_mode == "auto") {
         tone_mode_disabled = true;
     } else {
@@ -133,7 +140,11 @@
             <select
                 class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50"
             >
+            {#if is_windows_os}
+                <option>{$_("page.input.ctrl-backtick")}</option>
+            {:else}
                 <option>{$_("page.input.alt-backtick")}</option>
+            {/if}
             </select>
         </label>
         <!-- <label class="inline-flex items-center">

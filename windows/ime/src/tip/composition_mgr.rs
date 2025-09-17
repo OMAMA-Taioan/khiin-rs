@@ -142,6 +142,27 @@ impl CompositionMgr {
         Ok(())
     }
 
+    pub fn check_composition(
+        &mut self,
+        ec: u32,
+        context: ITfContext,
+        sink: ITfCompositionSink,
+    ) -> Result<()> {
+        if self.composition().is_err() {
+            self.new_composition(ec, context.clone(), sink.clone())?;
+        }
+        // to check composition is still valid
+        unsafe {
+            if self.composition()?.GetRange().is_err() {
+                log::debug!("Composition is invalid, creating new one");
+                self.reset()?;
+                self.new_composition(ec, context.clone(), sink)?;
+            }
+        }
+
+        Ok(())
+    }
+
     fn new_composition(
         &mut self,
         ec: u32,

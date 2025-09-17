@@ -52,6 +52,7 @@
             "khinless": "(無注)",
             "shift": "Shift",
             "ctrl-space": "Ctrl + Space",
+            "ctrl-backtick": "Ctrl + `",
             "alt-backtick": "Alt + `",
             "alt-space": "Alt + Space"
         },

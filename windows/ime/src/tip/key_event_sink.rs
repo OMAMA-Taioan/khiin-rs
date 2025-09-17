@@ -37,8 +37,8 @@ use windows::Win32::UI::WindowsAndMessaging::WM_KEYUP;
 
 use khiin_protos::command::Command;
 use khiin_protos::command::CommandType;
-use khiin_protos::command::Request;
 use khiin_protos::command::ModifierKey;
+use khiin_protos::command::Request;
 
 use crate::reg::guids::GUID_PRESERVED_KEY_FULL_WIDTH_SPACE;
 use crate::reg::guids::GUID_PRESERVED_KEY_ON_OFF;
@@ -183,20 +183,29 @@ impl KeyEventSink {
         log::debug!("Composing: {}", composing);
         log::debug!("Special key: {:?}", special_key);
 
-        if !service.composing() || !service.is_editing()
-        {
+        if !service.composing() || !service.is_editing() {
             if key_event.to_khiin().special_key.enum_value_or_default()
                 != SpecialKey::SK_NONE
             {
-                return Ok(FALSE);
+                if self.shift_pressed.get()
+                    && key_event.keycode == VK_SPACE.0 as u32
+                    && service.is_classic_mode()
+                    && service.is_hanji_first()
+                {
+                    return Ok(TRUE);
+                } else {
+                    return Ok(FALSE);
+                }
             } else if is_ascii_digit(key_event) {
                 return Ok(FALSE);
             } else if key_event.ascii > 0 && key_event.is_punctuation() {
                 if service.is_manual_mode() {
                     return Ok(FALSE);
-                } 
+                }
                 let punctuations = ".,!?()'\":<>;+=_[]";
                 if punctuations.contains(key_event.ascii as u8 as char) {
+                    return Ok(TRUE);
+                } else if is_handled_key(key_event) {
                     return Ok(TRUE);
                 }
                 return Ok(FALSE);
@@ -213,6 +222,7 @@ impl KeyEventSink {
         } else if self.ctrl_pressed.get() {
             if key_event.keycode != VK_H.0 as u32
                 && key_event.keycode != VK_L.0 as u32
+                && key_event.keycode != VK_OEM_3.0 as u32
             {
                 self.ctrl_pressed.set(false);
                 return Ok(FALSE);
@@ -245,7 +255,19 @@ impl KeyEventSink {
             if key_event.keycode == VK_SHIFT.0 as u32 {
                 return Ok(TRUE);
             } else if key_event.keycode == VK_SPACE.0 as u32 {
-                handle_special_key(self.tip.clone(), context, key_event, true)?;
+                if !service.is_editing()
+                    && service.is_classic_mode()
+                    && service.is_hanji_first()
+                {
+                    service.insert_char(context.clone(), "　")?;
+                } else {
+                    handle_special_key(
+                        self.tip.clone(),
+                        context,
+                        key_event,
+                        true,
+                    )?;
+                }
                 self.shift_is_modifier.set(true);
                 return Ok(TRUE);
             }
@@ -294,7 +316,7 @@ impl KeyEventSink {
             if key_event.ascii > 0 && key_event.is_punctuation() {
                 log::debug!("commit all with punctuation: {}", key_event.ascii);
                 let ch = key_event.ascii as char;
-                service.commit_all_with_suffix(context.clone(),  &ch.to_string())?;
+                service.commit_all_with_suffix(context.clone(), &ch.to_string())?;
                 send_reset_command(self.tip.clone())?;
                 return Ok(TRUE);
             }
@@ -318,10 +340,15 @@ impl KeyEventSink {
                 Err(_) => String::new(),
             };
             let punctuations = ".,!?()'\":<>;+=_[]「」‘’『』々〱〈《<«〉》>»+＋⁺+⁺=·＝〓_—＿⁻_—⁻〔【〖〕】〗";
-            if text.len() > 0 && punctuations.contains(text.chars().last().unwrap()) {
+            if text.len() > 0
+                && punctuations.contains(text.chars().last().unwrap())
+            {
                 service.commit_all_with_suffix(context.clone(), "")?;
                 send_reset_command(self.tip.clone())?;
-            } else if text.len() > 0 && service.is_hyphen_or_khin_key(key_event.ascii as char) && text.chars().last().unwrap().is_ascii_alphabetic() {
+            } else if text.len() > 0
+                && service.is_hyphen_or_khin_key(key_event.ascii as char)
+                && text.chars().last().unwrap().is_ascii_alphabetic()
+            {
                 service.commit_all_with_suffix(context.clone(), "")?;
                 send_reset_command(self.tip.clone())?;
             }
