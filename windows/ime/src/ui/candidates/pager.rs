@@ -97,9 +97,9 @@ impl Pager {
             }
         }
 
-        if self.focused_index() >= SHORT_COL_SIZE {
-            self.display_mode.replace(DisplayMode::LongColumn);
-        }
+        // if self.focused_index() >= SHORT_COL_SIZE {
+        //     self.display_mode.replace(DisplayMode::LongColumn);
+        // }
 
         Ok(())
     }
