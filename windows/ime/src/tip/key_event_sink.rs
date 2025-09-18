@@ -316,7 +316,8 @@ impl KeyEventSink {
             if key_event.ascii > 0 && key_event.is_punctuation() {
                 log::debug!("commit all with punctuation: {}", key_event.ascii);
                 let ch = key_event.ascii as char;
-                service.commit_all_with_suffix(context.clone(), &ch.to_string())?;
+                service
+                    .commit_all_with_suffix(context.clone(), &ch.to_string())?;
                 send_reset_command(self.tip.clone())?;
                 return Ok(TRUE);
             }
@@ -351,6 +352,21 @@ impl KeyEventSink {
             {
                 service.commit_all_with_suffix(context.clone(), "")?;
                 send_reset_command(self.tip.clone())?;
+            } else if text.len() > 0
+                && text.chars().last().unwrap().is_ascii_alphabetic()
+                && key_event.is_punctuation()
+            {
+                let ch = key_event.ascii as char;
+                let punctuations = ".,!?()'\":<>;+=_[]";
+                if punctuations.contains(ch) {
+                    service.commit_all_with_suffix(context.clone(), "")?;
+                    send_reset_command(self.tip.clone())?;
+                } else {
+                    service.commit_all_with_suffix(context.clone(), &ch.to_string())?;
+                    service.cancel_composition(context.clone())?;
+                    send_reset_command(self.tip.clone())?;
+                    return Ok(TRUE);
+                }
             }
         }
 
