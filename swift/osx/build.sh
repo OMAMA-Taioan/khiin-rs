@@ -4,6 +4,14 @@ set -e
 work_dir=$(dirname $0)
 cd $work_dir
 
+# Prevent Swift from using /usr/local/include headers that conflict with Xcode SDK
+export CPATH=""
+export C_INCLUDE_PATH=""
+export CPLUS_INCLUDE_PATH=""
+# Force Swift to use the Xcode SDK, not CommandLineTools
+export SDKROOT="$(xcrun --show-sdk-path --sdk macosx)"
+export DEVELOPER_DIR="$(xcode-select -p)"
+
 if [ "$RELEASE_MODE" = "release" ]; then
     BUILD_DIR="release"
     BUILD_FLAG="release"
