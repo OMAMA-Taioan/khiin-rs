@@ -651,15 +651,16 @@ impl TextService {
         if command.response.edit_state.enum_value_or_default()
             == EditState::ES_EMPTY
         {
-            let cand_ui = self
-                .candidate_list_ui
-                .try_borrow()
-                .map_err(|_| fail!())?
-                .clone()
-                .ok_or(fail!())?;
+            self.cancel_composition(context.clone())?;
+            // let cand_ui = self
+            //     .candidate_list_ui
+            //     .try_borrow()
+            //     .map_err(|_| fail!())?
+            //     .clone()
+            //     .ok_or(fail!())?;
 
-            let cand_ui = unsafe { cand_ui.as_impl() };
-            cand_ui.notify_command(context, command, Default::default());
+            // let cand_ui = unsafe { cand_ui.as_impl() };
+            // cand_ui.notify_command(context, command, Default::default());
         } else if self.is_classic_mode() {
             open_edit_session(self.clientid.get()?, context.clone(), |ec| {
                 self.handle_candidates(ec, context.clone(), command.clone())

@@ -121,9 +121,10 @@ impl CandidateListUI {
         if edit_state == EditState::ES_EMPTY
             || res.candidate_list.candidates.is_empty()
         {
-            self.context.replace(None);
-            self.pager.replace(Pager::default());
-            self.popup.hide()?;
+            // self.context.replace(None);
+            // self.pager.replace(Pager::default());
+            // self.popup.hide()?;
+            self.shutdown()?;
             return Ok(());
         }
 
