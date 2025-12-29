@@ -1,11 +1,11 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::os::windows::process::CommandExt;
 use std::path::PathBuf;
 use std::process;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::RwLock;
-use std::os::windows::process::CommandExt;
 
 use khiin_protos::command::EditState;
 use khiin_protos::command::SegmentStatus;
@@ -13,13 +13,13 @@ use log::debug as d;
 use protobuf::MessageField;
 use windows::core::implement;
 use windows::core::AsImpl;
+use windows::core::Error;
 use windows::core::IUnknown;
 use windows::core::Interface;
 use windows::core::Result;
 use windows::core::GUID;
-use windows::core::Error;
-use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::E_FAIL;
+use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::TextServices::CLSID_TF_CategoryMgr;
 use windows::Win32::UI::TextServices::IEnumTfDisplayAttributeInfo;
 use windows::Win32::UI::TextServices::ITfCategoryMgr;
@@ -255,7 +255,7 @@ impl TextService {
 
         // const CREATE_NO_WINDOW: u32 = 0x08000000;
         const DETACHED_PROCESS: u32 = 0x00000008;
-        let child = process::Command::new(app_exe)
+        let mut child = process::Command::new(app_exe)
             .creation_flags(DETACHED_PROCESS)
             .spawn()
             .map_err(|e| {
@@ -264,9 +264,15 @@ impl TextService {
             })?;
         // log::debug!("Open settings app status: {}", status);
 
+        // wait child finish
+        let status = child.wait().map_err(|e| {
+            log::error!("Failed to wait helper app: {}", e);
+            Error::from(E_FAIL)
+        })?;
+
         // reload settings
-        // self.load_settings()?;
-        // self.set_enabled(true)?;
+        self.load_settings()?;
+        self.set_enabled(true)?;
         Ok(())
     }
 
@@ -301,9 +307,10 @@ impl TextService {
 
         let cand_ui = unsafe { cand_ui.as_impl() };
         cand_ui.shutdown();
-        
+
         open_edit_session(self.clientid.get()?, context.clone(), |ec| {
-            let mut comp_mgr = self.composition_mgr.write().map_err(|_| fail!())?;
+            let mut comp_mgr =
+                self.composition_mgr.write().map_err(|_| fail!())?;
             comp_mgr.cancel_composition(ec)?;
             Ok(())
         })?;
@@ -385,7 +392,7 @@ impl TextService {
     }
 
     pub fn toggle_input_mode(&self, context: ITfContext) -> Result<()> {
-        let mut new_config: AppConfig = AppConfig::new(); 
+        let mut new_config: AppConfig = AppConfig::new();
         let mut is_toggled = false;
         let mut is_manual = false;
         if let Some(config) = self.config.borrow().as_ref() {
@@ -400,7 +407,7 @@ impl TextService {
             }
             is_toggled = true;
             self.commit_all(context.clone())?;
-            
+
             let mut req = Request::new();
             req.id = rand::random::<u32>();
             req.type_ = CommandType::CMD_SWITCH_INPUT_MODE.into();
@@ -449,7 +456,11 @@ impl TextService {
         Ok(())
     }
 
-    pub fn change_output_mode(&self, context: ITfContext, is_hanji_first: bool) -> Result<()> {
+    pub fn change_output_mode(
+        &self,
+        context: ITfContext,
+        is_hanji_first: bool,
+    ) -> Result<()> {
         let mut new_config: AppConfig = AppConfig::new();
         let mut is_toggled = false;
         if let Some(config) = self.config.borrow().as_ref() {
@@ -508,14 +519,19 @@ impl TextService {
         self.current_command.replace(None);
         let composing = self.composing();
         open_edit_session(self.clientid.get()?, context.clone(), |ec| {
-            let mut comp_mgr = self.composition_mgr.write().map_err(|_| fail!())?;
+            let mut comp_mgr =
+                self.composition_mgr.write().map_err(|_| fail!())?;
             comp_mgr.commit_all(ec, context.clone(), &preedit)?;
             Ok(())
         })?;
         Ok(())
     }
 
-    pub fn commit_all_with_suffix(&self, context: ITfContext, suffix: &str) -> Result<()> {
+    pub fn commit_all_with_suffix(
+        &self,
+        context: ITfContext,
+        suffix: &str,
+    ) -> Result<()> {
         let preedit = self
             .current_command
             .borrow()
@@ -531,7 +547,8 @@ impl TextService {
         self.current_command.replace(None);
         let composing = self.composing();
         open_edit_session(self.clientid.get()?, context.clone(), |ec| {
-            let mut comp_mgr = self.composition_mgr.write().map_err(|_| fail!())?;
+            let mut comp_mgr =
+                self.composition_mgr.write().map_err(|_| fail!())?;
             comp_mgr.commit_text(ec, context.clone(), &display)?;
             Ok(())
         })?;
@@ -542,7 +559,8 @@ impl TextService {
         let sink: ITfCompositionSink = self.this().cast()?;
         let suffix_string = suffix.to_string();
         open_edit_session(self.clientid.get()?, context.clone(), |ec| {
-            let mut comp_mgr = self.composition_mgr.write().map_err(|_| fail!())?;
+            let mut comp_mgr =
+                self.composition_mgr.write().map_err(|_| fail!())?;
             comp_mgr.check_composition(ec, context.clone(), sink.clone())?;
             comp_mgr.commit_text(ec, context.clone(), &suffix_string)?;
             Ok(())
@@ -612,10 +630,7 @@ impl TextService {
         }
     }
 
-    pub fn send_command_async(
-        &self,
-        command: Command,
-    ) -> Result<()> {
+    pub fn send_command_async(&self, command: Command) -> Result<()> {
         if let Some(x) = self.engine_coordinator.borrow().as_ref() {
             x.send_command(command).map_err(|_| fail!())
         } else {
@@ -624,8 +639,16 @@ impl TextService {
     }
 
     pub fn handle_command(&self, command: Arc<Command>) -> Result<()> {
-        if self.context_cache.borrow().contains_key(&command.request.id) == false {
-            log::debug!("No context found for command id: {}", command.request.id);
+        if self
+            .context_cache
+            .borrow()
+            .contains_key(&command.request.id)
+            == false
+        {
+            log::debug!(
+                "No context found for command id: {}",
+                command.request.id
+            );
             return Ok(());
         }
         let context = self
@@ -718,7 +741,7 @@ impl TextService {
             } else {
                 return false;
             }
-        } 
+        }
         return false;
     }
 }
