@@ -832,7 +832,10 @@ impl BufferMgr {
                     }
                 };
             }
-            let mut guess_candidate = convert_guess(engine, &raw_input)?;
+            let mut guess_candidate = match convert_guess(engine, &raw_input) {
+                Ok(cand) => cand,
+                Err(_) => Buffer::new(),
+            };
             if guess_candidate.is_not_empty() {
                 guess_candidate.set_converted(true);
                 guess_candidate.autospace();
