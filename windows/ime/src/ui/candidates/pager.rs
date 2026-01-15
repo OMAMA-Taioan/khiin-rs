@@ -34,18 +34,20 @@ pub struct Pager {
     pub display_mode: RefCell<DisplayMode>,
     pub focused_id: RefCell<i32>,
     pub focused_index: RefCell<usize>,
+    pub cand_page: RefCell<usize>,
 }
 
 impl Pager {
     pub fn new(command: Arc<Command>) -> Self {
         let num_candidates = command.response.candidate_list.candidates.len();
-
+        let cand_page = RefCell::new(command.response.candidate_list.page as usize);
         Self {
             command,
             num_candidates,
             display_mode: RefCell::new(DisplayMode::default()),
             focused_id: RefCell::new(-1),
             focused_index: RefCell::new(0),
+            cand_page
         }
     }
 
@@ -119,11 +121,18 @@ impl Pager {
     }
 
     pub fn current_page(&self) -> usize {
-        self.focused_index().div_euclid(self.max_page_size())
+        // self.focused_index().div_euclid(self.max_page_size())
+        *self.cand_page.borrow()
     }
 
     pub fn focused_col(&self) -> usize {
-        (self.focused_index() - self.start_index()) / self.max_col_size()
+        let idx = self.focused_index();
+        let start = self.start_index();
+        if idx < start {
+            0
+        } else {
+            (idx - start) / self.max_col_size()
+        }
     }
 
     // internal helpers
