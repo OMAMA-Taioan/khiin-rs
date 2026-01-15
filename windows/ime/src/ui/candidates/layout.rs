@@ -139,7 +139,7 @@ impl CandidateLayout {
                 )?;
                 if !candidate.annotation.is_empty() {
                     // check annotation has char "+", and add underline to its prefix char
-                    let mut start_index = candidate.value.len() as u32 - 2;
+                    let mut start_index = candidate.value.chars().count() as u32;
                     let mut hint_len = 0;
                     for ch in candidate.annotation.chars() {
                         if ch == '+' {
@@ -157,7 +157,7 @@ impl CandidateLayout {
                     }
 
                     let range = DWRITE_TEXT_RANGE {
-                        startPosition: candidate.value.len() as u32,
+                        startPosition: candidate.value.chars().count() as u32,
                         length: hint_len,
                     };
                     unsafe {

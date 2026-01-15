@@ -334,7 +334,7 @@ impl KeyEventSink {
                 service.commit_all_with_suffix(context.clone(), "")?;
                 send_reset_command(self.tip.clone())?;
             }
-        } else {
+        } else if key_event.keycode != VK_BACK.0 as u32 {
             // check previous char is punctuation
             let text = match service.current_display_text() {
                 Ok(s) => s,
