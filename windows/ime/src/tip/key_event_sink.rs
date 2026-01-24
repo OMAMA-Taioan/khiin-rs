@@ -348,12 +348,12 @@ impl KeyEventSink {
                 send_reset_command(self.tip.clone())?;
             } else if text.len() > 0
                 && service.is_hyphen_or_khin_key(key_event.ascii as char)
-                && text.chars().last().unwrap().is_ascii_alphabetic()
+                && text.chars().last().unwrap().is_ascii_alphanumeric()
             {
                 service.commit_all_with_suffix(context.clone(), "")?;
                 send_reset_command(self.tip.clone())?;
             } else if text.len() > 0
-                && text.chars().last().unwrap().is_ascii_alphabetic()
+                && text.chars().last().unwrap().is_ascii_alphanumeric()
                 && key_event.is_punctuation()
             {
                 let ch = key_event.ascii as char;
