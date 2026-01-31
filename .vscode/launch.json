@@ -66,6 +66,14 @@
             "cwd": "${workspaceRoot}"
         },
         {
+            "name": "Win:Notion",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "preLaunchTask": "build-win32",
+            "program": "${env:LOCALAPPDATA}\\Programs\\Notion\\Notion.exe",
+            "cwd": "${workspaceRoot}"
+        },
+        {
             "name": "Win:Service",
             "type": "cppvsdbg",
             "request": "launch",
