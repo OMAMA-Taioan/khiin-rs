@@ -287,7 +287,7 @@ impl CompositionMgr {
 
             let end_range = range.Clone()?;
             let mut shifted: i32 = 0;
-            let len = committed_text.len() as i32;
+            let len = committed_text_utf16.len() as i32;
             log::debug!("Committing with len: {}", len);
             end_range.ShiftStart(ec, len, &mut shifted, std::ptr::null())?;
             end_range.Collapse(ec, TF_ANCHOR_START)?;
@@ -346,7 +346,7 @@ impl CompositionMgr {
 
                 let end_range = range.Clone()?;
                 let mut shifted: i32 = 0;
-                let len = committed_text.len() as i32;
+                let len = committed_text_utf16.len() as i32;
                 log::debug!("Committing with len: {}", len);
                 end_range.ShiftStart(
                     ec,
