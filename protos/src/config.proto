@@ -60,4 +60,5 @@ message AppConfig {
     DefaultPunctuation default_punctuation = 9;
     BoolValue easy_ch = 10;
     BoolValue uppercase_nasal = 11;
+    string input_mode_shortcut = 12;
 }

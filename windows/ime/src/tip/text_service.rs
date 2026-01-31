@@ -355,6 +355,11 @@ impl TextService {
         config.input_mode = input_mode.into();
         config.output_mode = output_mode.into();
         config.khin_mode = khin_mode.into();
+        config.input_mode_shortcut = settings
+            .input_settings
+            .input_mode_shortcut
+            .to_string()
+            .into();
 
         // set telex enabled to rust protobuf boolvalue true
         let mut telex_enabled = BoolValue::new();
@@ -406,7 +411,9 @@ impl TextService {
                 new_config.input_mode = AppInputMode::CLASSIC.into();
             }
             is_toggled = true;
-            self.commit_all(context.clone())?;
+            if self.composing() {
+                self.commit_all(context.clone())?;
+            }
 
             let mut req = Request::new();
             req.id = rand::random::<u32>();
@@ -708,6 +715,14 @@ impl TextService {
         if let Some(config) = self.config.borrow().as_ref() {
             return config.input_mode.enum_value_or_default()
                 == khiin_protos::config::AppInputMode::MANUAL;
+        } else {
+            return false;
+        }
+    }
+
+    pub fn input_mode_shortcut_is_shift(&self) -> bool {
+        if let Some(config) = self.config.borrow().as_ref() {
+            return config.input_mode_shortcut == "shift";
         } else {
             return false;
         }

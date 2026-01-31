@@ -3,7 +3,6 @@
     import Toggle from "../../lib/Toggle.svelte";
     import { settings, count } from "../store.js";
     import { invoke } from "@tauri-apps/api/tauri";
-    import { onMount } from "svelte";
 
     let double_hyphen_to_khin = false;
     let auto_capitalization = false;
@@ -12,12 +11,8 @@
     let tone_mode = $settings.input_settings.tone_mode;
     let output_mode = $settings.input_settings.output_mode;
     let khin_mode = $settings.input_settings.khin_mode;
+    let mode_shortcut = $settings.input_settings.input_mode_shortcut;
     let tone_mode_disabled = false;
-    let is_windows_os = false;
-
-    onMount(async () => {
-        is_windows_os = await invoke("is_windows");
-    });
 
     $: if (input_mode == "auto") {
         tone_mode_disabled = true;
@@ -57,6 +52,15 @@
         const new_khin_mode = event.target.value;
         settings.update((settings) => {
             settings.input_settings.khin_mode = new_khin_mode;
+            return settings;
+        });
+        await updateSettings();
+    }
+
+    async function modeShortcutChanged(event) {
+        const new_mode_shortcut = event.target.value;
+        settings.update((settings) => {
+            settings.input_settings.input_mode_shortcut = new_mode_shortcut;
             return settings;
         });
         await updateSettings();
@@ -137,15 +141,20 @@
         </label> -->
         <label class="block">
             <span class="text-gray-700">{$_("page.input.switch-mode")}</span>
-            <select
-                class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50"
-            >
-            {#if is_windows_os}
-                <option>{$_("page.input.ctrl-backtick")}</option>
-            {:else}
-                <option>{$_("page.input.alt-backtick")}</option>
-            {/if}
-            </select>
+            {#await invoke("is_windows") then is_windows_os}
+                <select
+                    bind:value={mode_shortcut}
+                    class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50"
+                    on:change={modeShortcutChanged}
+                >
+                {#if is_windows_os}
+                    <option value="default">{$_("page.input.ctrl-backtick")}</option>
+                    <option value="shift">{$_("page.input.shift")}</option>
+                {:else}
+                    <option value="default">{$_("page.input.alt-backtick")}</option>
+                {/if}
+                </select>
+            {/await}
         </label>
         <!-- <label class="inline-flex items-center">
             <Toggle bind:checked={convert_c_to_ch} />

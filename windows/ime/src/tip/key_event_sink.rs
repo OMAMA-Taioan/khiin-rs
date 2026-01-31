@@ -198,6 +198,12 @@ impl KeyEventSink {
                 }
             } else if is_ascii_digit(key_event) {
                 return Ok(FALSE);
+            } else if self.ctrl_pressed.get()
+                && (key_event.keycode == VK_H.0 as u32
+                    || key_event.keycode == VK_L.0 as u32
+                    || key_event.keycode == VK_OEM_3.0 as u32)
+            {
+                return Ok(TRUE);
             } else if key_event.ascii > 0 && key_event.is_punctuation() {
                 if service.is_manual_mode() {
                     return Ok(FALSE);
@@ -282,7 +288,9 @@ impl KeyEventSink {
         }
 
         if self.ctrl_pressed.get() {
-            if key_event.keycode == VK_OEM_3.0 as u32 {
+            if key_event.keycode == VK_OEM_3.0 as u32
+                && service.input_mode_shortcut_is_shift() == false
+            {
                 log::debug!("toggle input mode");
                 self.ctrl_pressed.set(false);
                 service.toggle_input_mode(context);
@@ -362,7 +370,10 @@ impl KeyEventSink {
                     service.commit_all_with_suffix(context.clone(), "")?;
                     send_reset_command(self.tip.clone())?;
                 } else {
-                    service.commit_all_with_suffix(context.clone(), &ch.to_string())?;
+                    service.commit_all_with_suffix(
+                        context.clone(),
+                        &ch.to_string(),
+                    )?;
                     service.cancel_composition(context.clone())?;
                     send_reset_command(self.tip.clone())?;
                     return Ok(TRUE);
@@ -418,8 +429,10 @@ impl KeyEventSink {
             if !service.enabled()? {
                 return Ok(FALSE);
             }
-            // log::debug!("toggle input mode");
-            // service.toggle_input_mode(_context.clone());
+            if service.input_mode_shortcut_is_shift() {
+                log::debug!("toggle input mode by shift key");
+                service.toggle_input_mode(_context.clone());
+            }
             // service.cancel_composition(_context.clone());
             Ok(TRUE)
         } else if self.ctrl_pressed.get()
