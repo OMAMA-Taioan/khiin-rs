@@ -1,6 +1,9 @@
 <script lang="ts">
     import { _, locale } from "svelte-i18n" 
     
+    // Add version information variable
+    const version = "v0.3.0"; // Replace with actual version number
+
     function updateLanguage(event: Event) {
         const target = event.target as HTMLSelectElement;
         locale.set(target.value);
@@ -38,6 +41,10 @@
           </select>
         </label> -->
     </div>
+</div>
+<!-- Add version information -->
+<div class="fixed bottom-2 right-2 text-sm text-gray-500 m-2">
+    {version}
 </div>
 <!-- - Theme (auto, dark, light)
 - UI language (english, hanlo, or lomaji)

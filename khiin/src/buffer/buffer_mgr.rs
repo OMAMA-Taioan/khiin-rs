@@ -486,7 +486,7 @@ impl BufferMgr {
         ch: char,
     ) -> Result<()> {
         let mut key = ch.to_ascii_lowercase();
-        if (key == engine.conf.hyphon()) {
+        if (key == engine.conf.hyphen()) {
             if engine.conf.khin_mode() == KhinMode::Hyphen {
                 if raw_input.ends_with("--") {
                     let len = raw_input.len();
@@ -534,9 +534,9 @@ impl BufferMgr {
                     raw_input.remove(len - 1);
                     if ch.is_ascii_uppercase() {
                         raw_input
-                            .push(engine.conf.hyphon().to_ascii_uppercase());
+                            .push(engine.conf.hyphen().to_ascii_uppercase());
                     } else {
-                        raw_input.push(engine.conf.hyphon());
+                        raw_input.push(engine.conf.hyphen());
                     }
                     raw_input.push(ch);
                     self.candidates.clear();
@@ -554,9 +554,9 @@ impl BufferMgr {
                     raw_input.replace_range(len - 2..len, "");
                     if ch.is_ascii_uppercase() {
                         raw_input
-                            .push(engine.conf.hyphon().to_ascii_uppercase());
+                            .push(engine.conf.hyphen().to_ascii_uppercase());
                     } else {
-                        raw_input.push(engine.conf.hyphon());
+                        raw_input.push(engine.conf.hyphen());
                     }
                     raw_input.push(ch);
                     self.candidates.clear();
@@ -879,7 +879,7 @@ impl BufferMgr {
             self.edit_state = EditState::ES_COMPOSING;
         }
 
-        if ch.to_ascii_lowercase() == engine.conf.hyphon()
+        if ch.to_ascii_lowercase() == engine.conf.hyphen()
             && self.edit_state == EditState::ES_COMPOSING
         {
             if engine.conf.khin_mode() == KhinMode::Hyphen {
@@ -928,9 +928,9 @@ impl BufferMgr {
                     raw_input.remove(len - 1);
                     if ch.is_ascii_uppercase() {
                         raw_input
-                            .push(engine.conf.hyphon().to_ascii_uppercase());
+                            .push(engine.conf.hyphen().to_ascii_uppercase());
                     } else {
-                        raw_input.push(engine.conf.hyphon());
+                        raw_input.push(engine.conf.hyphen());
                     }
                     raw_input.push(ch);
                     self.edit_state = EditState::ES_ILLEGAL;
@@ -949,9 +949,9 @@ impl BufferMgr {
                     raw_input.replace_range(len - 3..len, "");
                     if ch.is_ascii_uppercase() {
                         raw_input
-                            .push(engine.conf.hyphon().to_ascii_uppercase());
+                            .push(engine.conf.hyphen().to_ascii_uppercase());
                     } else {
-                        raw_input.push(engine.conf.hyphon());
+                        raw_input.push(engine.conf.hyphen());
                     }
                     raw_input.push(ch);
                     self.edit_state = EditState::ES_ILLEGAL;

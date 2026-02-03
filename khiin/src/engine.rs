@@ -340,6 +340,20 @@ impl Engine {
             }
         }
 
+        // set key configuration
+        if let Some(key_config) = req.config.key_config.as_ref() {
+            self.inner.conf.set_t2_key(key_config.telex_t2.chars().next().unwrap_or(self.inner.conf.t2()));
+            self.inner.conf.set_t3_key(key_config.telex_t3.chars().next().unwrap_or(self.inner.conf.t3()));
+            self.inner.conf.set_t5_key(key_config.telex_t5.chars().next().unwrap_or(self.inner.conf.t5()));
+            self.inner.conf.set_t6_key(key_config.telex_t6.chars().next().unwrap_or(self.inner.conf.t6()));
+            self.inner.conf.set_t7_key(key_config.telex_t7.chars().next().unwrap_or(self.inner.conf.t7()));
+            self.inner.conf.set_t8_key(key_config.telex_t8.chars().next().unwrap_or(self.inner.conf.t8()));
+            self.inner.conf.set_t9_key(key_config.telex_t9.chars().next().unwrap_or(self.inner.conf.t9()));
+            self.inner.conf.set_khin_key(key_config.telex_khin.chars().next().unwrap_or(self.inner.conf.khin()));
+            self.inner.conf.set_hyphen_key(key_config.alt_hyphen.chars().next().unwrap_or(self.inner.conf.hyphen()));
+            self.inner.conf.set_done_key(key_config.done.chars().next().unwrap_or(self.inner.conf.done()));
+        }
+
         Ok(Response::new())
     }
 

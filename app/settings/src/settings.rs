@@ -47,7 +47,7 @@ const T7_DEFAULT: char = 'j';
 const T8_DEFAULT: char = 'j';
 const T9_DEFAULT: char = 'w';
 const KHIN_DEFAULT: char = 'v';
-const HYPHON_DEFAULT: char = 'd';
+const HYPHEN_DEFAULT: char = 'd';
 const DONE_DEFAULT: char = 'r';
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
@@ -78,8 +78,8 @@ pub struct InputSettings {
     pub t9: char,
     #[serde(default = "default_khin")]
     pub khin: char,
-    #[serde(default = "default_hyphon")]
-    pub hyphon: char,
+    #[serde(default = "default_hyphen")]
+    pub hyphen: char,
     #[serde(default = "default_done")]
     pub done: char,
 }
@@ -136,8 +136,8 @@ fn default_khin() -> char {
     KHIN_DEFAULT
 }
 
-fn default_hyphon() -> char {
-    HYPHON_DEFAULT
+fn default_hyphen() -> char {
+    HYPHEN_DEFAULT
 }
 
 fn default_done() -> char {
@@ -160,7 +160,7 @@ impl Default for InputSettings {
             t8: T8_DEFAULT,
             t9: T9_DEFAULT,
             khin: KHIN_DEFAULT,
-            hyphon: HYPHON_DEFAULT,
+            hyphen: HYPHEN_DEFAULT,
             done: DONE_DEFAULT,
         }
     }

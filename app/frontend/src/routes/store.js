@@ -21,7 +21,7 @@ export const settings = writable({
         t8: '',
         t9: '',
         khin: '',
-        hyphon: '',
+        hyphen: '',
         done: '',
     }
 });

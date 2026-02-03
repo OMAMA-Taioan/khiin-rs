@@ -3,6 +3,8 @@
     import "../services/i18n";
     import Sidebar from "$lib/Sidebar.svelte";
     import Spinner from "$lib/Spinner.svelte";
+    import { goto } from '$app/navigation';
+    import { page } from '$app/stores';
     // import I18n from "$lib/i18n.svelte";
 
     import { invoke } from "@tauri-apps/api/tauri";
@@ -13,10 +15,10 @@
 
     async function loadSettings() {
         try {
-            const db_settings = await invoke('load_settings');
+            const db_settings = await invoke("load_settings");
             settings.set(JSON.parse(db_settings));
         } catch (error) {
-            console.error('Error loading settings:', error);
+            console.error("Error loading settings:", error);
         }
     }
     loadSettings();
@@ -41,6 +43,9 @@
 
     onMount(() => {
         // locale.set('zh-TW')
+        if ($page.url.pathname === "/") {
+            goto("/input");
+        }
         subscribe();
     });
 

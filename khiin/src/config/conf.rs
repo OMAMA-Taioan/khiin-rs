@@ -44,7 +44,7 @@ pub struct KeyConfig {
     pub t8: char,
     pub t9: char,
     pub khin: char,
-    pub hyphon: char,
+    pub hyphen: char,
     pub done: char,
 }
 pub struct Config {
@@ -73,7 +73,7 @@ impl Config {
                 t8: 'j',
                 t9: 'w',
                 khin: 'v',
-                hyphon: 'd',
+                hyphen: 'd',
                 done: 'r',
             },
         }
@@ -155,8 +155,8 @@ impl Config {
         self.key_config.khin
     }
 
-    pub fn hyphon(&self) -> char {
-        self.key_config.hyphon
+    pub fn hyphen(&self) -> char {
+        self.key_config.hyphen
     }
 
     pub fn done(&self) -> char {
@@ -166,7 +166,7 @@ impl Config {
     pub fn is_reserved_char(&self, ch: char) -> bool {
         if ch == self.key_config.khin {
             true
-        } else if ch == self.key_config.hyphon {
+        } else if ch == self.key_config.hyphen {
             true
         } else if ch == self.key_config.done {
             true
@@ -239,5 +239,46 @@ impl Config {
     // set khin_mode
     pub fn set_khin_mode(&mut self, mode: KhinMode) {
         self.khin_mode = mode;
+    }
+
+    // set key_config
+    pub fn set_t2_key(&mut self, t2: char) {
+        self.key_config.t2 = t2;
+    }
+
+    pub fn set_t3_key(&mut self, t3: char) {
+        self.key_config.t3 = t3;
+    }
+
+    pub fn set_t5_key(&mut self, t5: char) {
+        self.key_config.t5 = t5;
+    }
+
+    pub fn set_t6_key(&mut self, t6: char) {
+        self.key_config.t6 = t6;
+    }
+
+    pub fn set_t7_key(&mut self, t7: char) {
+        self.key_config.t7 = t7;
+    }
+
+    pub fn set_t8_key(&mut self, t8: char) {
+        self.key_config.t8 = t8;
+    }
+
+    pub fn set_t9_key(&mut self, t9: char) {
+        self.key_config.t9 = t9;
+    }
+
+    pub fn set_khin_key(&mut self, khin: char) {
+        self.key_config.khin = khin;
+    }
+
+    pub fn set_hyphen_key(&mut self, hyphen: char) {
+        self.key_config.hyphen = hyphen;
+    }
+
+    pub fn set_done_key(&mut self, done: char) {
+        self.key_config.done = done;
     }
 }

@@ -54,7 +54,18 @@
             "ctrl-space": "Ctrl + Space",
             "ctrl-backtick": "Ctrl + `",
             "alt-backtick": "Alt + `",
-            "alt-space": "Alt + Space"
+            "alt-space": "Alt + Space",
+            "telex-key-settings": "TELEX 設定",
+            "t2-key": "第 2 調",
+            "t3-key": "第 3 調",
+            "t5-key": "第 5 調",
+            "t6-key": "第 6 調",
+            "t7-t8-key": "第 7・8 調",
+            "t9-key": "第 9 調",
+            "khin-key": "ENCLITICS (\"輕調\")",
+            "hyphen-key": "連劃",
+            "done-key": "(粘字) 切音節",
+            "none": "(無卜用)"
         },
         "dictionary": {
             "title": "字詞庫"
