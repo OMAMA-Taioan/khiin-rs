@@ -276,6 +276,13 @@ impl KeyEventSink {
                 }
                 self.shift_is_modifier.set(true);
                 return Ok(TRUE);
+            } else if key_event.keycode == VK_TAB.0 as u32
+                && service.is_classic_mode()
+                && service.is_editing()
+            {
+                handle_special_key(self.tip.clone(), context, key_event, true)?;
+                self.shift_is_modifier.set(true);
+                return Ok(TRUE);
             }
             self.shift_pressed.set(false);
         }
