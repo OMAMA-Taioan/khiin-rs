@@ -87,7 +87,7 @@ extension KhiinInputController {
                     }
 
                     // check previous char is punctuation
-                    let punctuations = ".,!?()'\":<>;+=_[]「」‘’『』々〱〈《<«〉》>»+＋⁺+⁺=＝〓_—＿⁻_—⁻〔【〖〕】〗"
+                    let punctuations = ".,!?()'\":<>;+=_[]「」‘’『』々〱〈《<«〉》>»+＋⁺+⁺=·＝〓_—＿⁻_—⁻〔【〖〕】〗"
                     let text = self.currentDisplayText()
                     if (text.count > 0 && punctuations.contains(text.last!)) {
                         _ = self.commitCurrent();

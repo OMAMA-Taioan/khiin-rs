@@ -18,11 +18,12 @@ message KeyConfiguration {
     string telex_t9 = 7;
     string telex_khin = 8;
     string alt_hyphen = 9;
-    string nasal = 10;
-    string dot_above_right = 11;
-    string dots_below = 12;
-    BoolValue enable_uppercase_nasal = 13;
-    BoolValue use_digits_as_fallback = 14;
+    string done = 10;
+    string nasal = 11;
+    string dot_above_right = 12;
+    string dots_below = 13;
+    BoolValue enable_uppercase_nasal = 14;
+    BoolValue use_digits_as_fallback = 15;
 }
 
 enum AppInputMode {
@@ -60,4 +61,5 @@ message AppConfig {
     DefaultPunctuation default_punctuation = 9;
     BoolValue easy_ch = 10;
     BoolValue uppercase_nasal = 11;
+    string input_mode_shortcut = 12;
 }

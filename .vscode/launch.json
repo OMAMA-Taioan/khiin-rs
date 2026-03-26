@@ -42,6 +42,38 @@
             "cwd": "${workspaceRoot}"
         },
         {
+            "name": "Win:Wordpad",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "preLaunchTask": "build-win32",
+            "program": "C:\\Program Files\\Windows NT\\Accessories\\wordpad.exe",
+            "cwd": "${workspaceRoot}"
+        },
+        {
+            "name": "Win:Firefox",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "preLaunchTask": "build-win32",
+            "program": "C:\\Program Files\\Mozilla Firefox\\firefox.exe",
+            "cwd": "${workspaceRoot}"
+        },
+        {
+            "name": "Win:Edge",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "preLaunchTask": "build-win32",
+            "program": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+            "cwd": "${workspaceRoot}"
+        },
+        {
+            "name": "Win:Notion",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "preLaunchTask": "build-win32",
+            "program": "${env:LOCALAPPDATA}\\Programs\\Notion\\Notion.exe",
+            "cwd": "${workspaceRoot}"
+        },
+        {
             "name": "Win:Service",
             "type": "cppvsdbg",
             "request": "launch",

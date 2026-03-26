@@ -38,6 +38,7 @@ const INPUT_MODE_DEFAULT: &str = "classic";
 const TONE_MODE_DEFAULT: &str = "telex";
 const OUTPUT_MODE_DEFAULT: &str = "lomaji";
 const KHIN_MODE_DEFAULT: &str = "hyphen";
+const INPUT_MODE_SHORTCUT_DEFAULT: &str = "default";
 const T2_DEFAULT: char = 's';
 const T3_DEFAULT: char = 'f';
 const T5_DEFAULT: char = 'l';
@@ -46,7 +47,7 @@ const T7_DEFAULT: char = 'j';
 const T8_DEFAULT: char = 'j';
 const T9_DEFAULT: char = 'w';
 const KHIN_DEFAULT: char = 'v';
-const HYPHON_DEFAULT: char = 'd';
+const HYPHEN_DEFAULT: char = 'd';
 const DONE_DEFAULT: char = 'r';
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
@@ -59,6 +60,8 @@ pub struct InputSettings {
     pub output_mode: String,
     #[serde(default = "default_khin_mode")]
     pub khin_mode: String,
+    #[serde(default = "default_input_mode_shortcut")]
+    pub input_mode_shortcut: String,
     #[serde(default = "default_t2")]
     pub t2: char,
     #[serde(default = "default_t3")]
@@ -75,8 +78,8 @@ pub struct InputSettings {
     pub t9: char,
     #[serde(default = "default_khin")]
     pub khin: char,
-    #[serde(default = "default_hyphon")]
-    pub hyphon: char,
+    #[serde(default = "default_hyphen")]
+    pub hyphen: char,
     #[serde(default = "default_done")]
     pub done: char,
 }
@@ -95,6 +98,10 @@ fn default_output_mode() -> String {
 
 fn default_khin_mode() -> String {
     KHIN_MODE_DEFAULT.to_string()
+}
+
+fn default_input_mode_shortcut() -> String {
+    INPUT_MODE_SHORTCUT_DEFAULT.to_string()
 }
 
 fn default_t2() -> char {
@@ -129,8 +136,8 @@ fn default_khin() -> char {
     KHIN_DEFAULT
 }
 
-fn default_hyphon() -> char {
-    HYPHON_DEFAULT
+fn default_hyphen() -> char {
+    HYPHEN_DEFAULT
 }
 
 fn default_done() -> char {
@@ -144,6 +151,7 @@ impl Default for InputSettings {
             tone_mode: TONE_MODE_DEFAULT.to_string(),
             output_mode: OUTPUT_MODE_DEFAULT.to_string(),
             khin_mode: KHIN_MODE_DEFAULT.to_string(),
+            input_mode_shortcut: INPUT_MODE_SHORTCUT_DEFAULT.to_string(),
             t2: T2_DEFAULT,
             t3: T3_DEFAULT,
             t5: T5_DEFAULT,
@@ -152,7 +160,7 @@ impl Default for InputSettings {
             t8: T8_DEFAULT,
             t9: T9_DEFAULT,
             khin: KHIN_DEFAULT,
-            hyphon: HYPHON_DEFAULT,
+            hyphen: HYPHEN_DEFAULT,
             done: DONE_DEFAULT,
         }
     }

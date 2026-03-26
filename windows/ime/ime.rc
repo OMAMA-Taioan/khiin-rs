@@ -19,5 +19,5 @@ IDI_SETTINGS_W          ICON                    "../res/cog-white.ico"
 
 STRINGTABLE
 BEGIN
-    IDS_TEXT_SERVICE_DISPLAY_NAME "起引 Khíín Phah Jī Hoat"
+    IDS_TEXT_SERVICE_DISPLAY_NAME "KHÍÍN 起引"
 END

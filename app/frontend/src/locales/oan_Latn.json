@@ -52,8 +52,20 @@
             "khinless": "(bô chù)",
             "shift": "Shift",
             "ctrl-space": "Ctrl+Space",
+            "ctrl-backtick": "Ctrl + `",
             "alt-backtick": "Alt + `",
-            "alt-space": "Alt+Space"
+            "alt-space": "Alt+Space",
+            "telex-key-settings": "TELEX Siat-tēng",
+            "t2-key": "Tē 2 Tiāu",
+            "t3-key": "Tē 3 Tiāu",
+            "t5-key": "Tē 5 Tiāu",
+            "t6-key": "Tē 6 Tiāu",
+            "t7-t8-key": "Tē 7, 8 Tiāu",
+            "t9-key": "Tē 9 Tiāu",
+            "khin-key": "ENCLITICS (\"Khin-tiāu\")",
+            "hyphen-key": "Liân-oe̍h",
+            "done-key": "(Liâm Jī) Chhiat Im-chat",
+            "none": "(bô beh iōng)"
         },
         "dictionary": {
             "title": "Jī-sû-khò͘"

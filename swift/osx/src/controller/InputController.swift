@@ -294,11 +294,18 @@ class KhiinInputController: IMKInputController {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: executablePath)
         
+        process.terminationHandler = { proc in
+            DispatchQueue.main.async {
+                EngineController.instance.reloadSettings()
+                log.debug("Run helper exit code: \(proc.terminationStatus)")
+            }
+        }
+
         do {
             try process.run()
-            process.waitUntilExit()
-            EngineController.instance.reloadSettings()
-            log.debug("Run helper exit code:\(process.terminationStatus)")
+            // process.waitUntilExit()
+            // EngineController.instance.reloadSettings()
+            // log.debug("Run helper exit code:\(process.terminationStatus)")
         } catch {
             log.debug("Run helper error:\(error)")
         }

@@ -110,6 +110,7 @@ impl KeyConversion {
             self.output = result;
         }
         self.output = self.output.replace(" ·", "--");
+        self.output = self.output.replace("·", "--");
     }
 
     pub fn convert_to_khinless(&mut self) {

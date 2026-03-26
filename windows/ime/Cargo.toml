@@ -26,6 +26,7 @@ windows-core.workspace = true
 
 khiin.workspace = true
 khiin_protos.workspace = true
+khiin_settings.workspace = true
 
 [dependencies.windows]
 workspace = true
