@@ -76,7 +76,12 @@ pub fn handle_key(
     context: ITfContext,
     key_event: KeyEvent,
 ) -> Result<()> {
-    let khi = key_event.to_khiin();
+    let mut khi = key_event.to_khiin();
+    let service: &TextService = unsafe { tip.as_impl() };
+    if service.is_candidate_list_open() && key_event.keycode == VK_RIGHT.0 as u32 {
+        khi.special_key = SpecialKey::SK_ENTER.into();
+    }
+
     let mut req = Request::new();
     req.id = rand::random::<u32>();
     req.type_ = CommandType::CMD_SEND_KEY.into();
@@ -289,6 +294,12 @@ impl KeyEventSink {
 
         if key_event.keycode == VK_ESCAPE.0 as u32 {
             // handle ESC
+            service.cancel_composition(context.clone())?;
+            send_reset_command(self.tip.clone())?;
+            return Ok(TRUE);
+        }
+
+        if service.is_classic_mode() && key_event.keycode == VK_LEFT.0 as u32 {
             service.cancel_composition(context.clone())?;
             send_reset_command(self.tip.clone())?;
             return Ok(TRUE);

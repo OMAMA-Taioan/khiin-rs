@@ -760,6 +760,14 @@ impl TextService {
         }
         return false;
     }
+
+    pub fn is_candidate_list_open(&self) -> bool {
+        if let Some(cmd) = self.current_command.borrow().as_ref() {
+            !cmd.response.candidate_list.candidates.is_empty()
+        } else {
+            false
+        }
+    }
 }
 
 // Private portion
