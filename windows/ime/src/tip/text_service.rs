@@ -1,6 +1,8 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::os::windows::process::CommandExt;
 use std::path::PathBuf;
+use std::process;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::RwLock;
@@ -11,10 +13,12 @@ use log::debug as d;
 use protobuf::MessageField;
 use windows::core::implement;
 use windows::core::AsImpl;
-use windows::core::Interface;
+use windows::core::Error;
 use windows::core::IUnknown;
+use windows::core::Interface;
 use windows::core::Result;
 use windows::core::GUID;
+use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::UI::TextServices::CLSID_TF_CategoryMgr;
 use windows::Win32::UI::TextServices::IEnumTfDisplayAttributeInfo;
@@ -42,8 +46,15 @@ use windows::Win32::UI::TextServices::GUID_COMPARTMENT_KEYBOARD_OPENCLOSE;
 use windows::Win32::UI::WindowsAndMessaging::DestroyWindow;
 
 use khiin_protos::command::Command;
+use khiin_protos::command::CommandType;
+use khiin_protos::command::Request;
 use khiin_protos::config::AppConfig;
+use khiin_protos::config::AppInputMode;
+use khiin_protos::config::AppKhinMode;
+use khiin_protos::config::AppOutputMode;
 use khiin_protos::config::BoolValue;
+use khiin_protos::config::KeyConfiguration;
+use khiin_settings::SettingsManager;
 
 use crate::dll::DllModule;
 use crate::engine::EngineCoordinator;
@@ -74,6 +85,7 @@ use crate::ui::RenderFactory;
 use crate::utils::co_create_inproc;
 use crate::utils::ArcLock;
 use crate::utils::GetPath;
+use crate::utils::ToWidePreedit;
 
 pub const TF_CLIENTID_NULL: u32 = 0;
 pub const TF_INVALID_GUIDATOM: u32 = 0;
@@ -99,7 +111,7 @@ pub struct TextService {
 
     // Config
     on_off_state_locked: ArcLock<bool>,
-    config: Arc<RwLock<AppConfig>>,
+    config: RefCell<Option<AppConfig>>,
 
     // Key handling
     key_event_sink: RefCell<Option<ITfKeyEventSink>>,
@@ -134,6 +146,11 @@ pub struct TextService {
     engine_coordinator: RefCell<Option<EngineCoordinator>>,
     message_handler: RefCell<Option<HWND>>,
     context_cache: Rc<RefCell<HashMap<u32, ITfContext>>>,
+    current_command: RefCell<Option<Arc<Command>>>,
+
+    // State
+    is_editing_state: RefCell<bool>,
+    is_illegal_state: RefCell<bool>,
 }
 
 // Public portion
@@ -149,7 +166,7 @@ impl TextService {
             dwflags: ArcLock::new(0),
 
             on_off_state_locked: ArcLock::new(false),
-            config: Arc::new(RwLock::new(AppConfig::new())),
+            config: RefCell::new(None),
 
             key_event_sink: RefCell::new(None),
 
@@ -188,6 +205,9 @@ impl TextService {
             message_handler: RefCell::new(None),
             engine_coordinator: RefCell::new(None),
             context_cache: Rc::new(RefCell::new(HashMap::new())),
+            current_command: RefCell::new(None),
+            is_editing_state: RefCell::new(false),
+            is_illegal_state: RefCell::new(false),
         })
     }
 
@@ -196,7 +216,7 @@ impl TextService {
     }
 
     pub fn enabled(&self) -> Result<bool> {
-        if let Ok(config) = self.config.read() {
+        if let Some(config) = self.config.borrow().as_ref() {
             Ok(config.ime_enabled.value)
         } else {
             Ok(false)
@@ -208,7 +228,7 @@ impl TextService {
             return Ok(());
         }
 
-        if let Ok(mut config) = self.config.write() {
+        if let Some(mut config) = self.config.borrow_mut().as_mut() {
             if config.ime_enabled.value != on_off {
                 let mut enabled = BoolValue::new();
                 enabled.value = on_off;
@@ -224,6 +244,35 @@ impl TextService {
     }
 
     pub fn toggle_enabled(&self) -> Result<()> {
+        Ok(())
+    }
+
+    pub fn open_settings_app(&self) -> Result<()> {
+        // Open the settings app
+        let dll_path = DllModule::global().module.get_path()?;
+        let mut app_exe = PathBuf::from(dll_path);
+        app_exe.set_file_name("khiin_helper.exe");
+
+        // const CREATE_NO_WINDOW: u32 = 0x08000000;
+        const DETACHED_PROCESS: u32 = 0x00000008;
+        let mut child = process::Command::new(app_exe)
+            .creation_flags(DETACHED_PROCESS)
+            .spawn()
+            .map_err(|e| {
+                log::error!("Failed to open helper app: {}", e);
+                Error::from(E_FAIL)
+            })?;
+        // log::debug!("Open settings app status: {}", status);
+
+        // wait child finish
+        let status = child.wait().map_err(|e| {
+            log::error!("Failed to wait helper app: {}", e);
+            Error::from(E_FAIL)
+        })?;
+
+        // reload settings
+        self.load_settings()?;
+        self.set_enabled(true)?;
         Ok(())
     }
 
@@ -248,6 +297,205 @@ impl TextService {
         Ok(())
     }
 
+    pub fn cancel_composition(&self, context: ITfContext) -> Result<()> {
+        let cand_ui = self
+            .candidate_list_ui
+            .try_borrow()
+            .map_err(|_| fail!())?
+            .clone()
+            .ok_or(fail!())?;
+
+        let cand_ui = unsafe { cand_ui.as_impl() };
+        cand_ui.shutdown();
+
+        open_edit_session(self.clientid.get()?, context.clone(), |ec| {
+            let mut comp_mgr =
+                self.composition_mgr.write().map_err(|_| fail!())?;
+            comp_mgr.cancel_composition(ec)?;
+            Ok(())
+        })?;
+        Ok(())
+    }
+
+    pub fn load_settings(&self) -> Result<()> {
+        let mut user_path = std::env::var("APPDATA").unwrap_or_default();
+        // load file from user directory
+        // check folder exists, if not create it
+        let mut settings_dir = user_path.clone();
+        settings_dir.push_str("\\Khiin");
+        let settings_dir_path = PathBuf::from(&settings_dir);
+        if !settings_dir_path.exists() {
+            std::fs::create_dir_all(&settings_dir_path).map_err(|e| {
+                log::error!("Failed to create settings directory: {}", e);
+                Error::from(E_FAIL)
+            })?;
+        }
+        user_path.push_str("\\Khiin\\settings.toml");
+        let path = PathBuf::from(user_path);
+        let settings = SettingsManager::load_from_file(&path).settings;
+        let input_mode = match settings.input_settings.input_mode.as_str() {
+            "classic" => AppInputMode::CLASSIC,
+            "manual" => AppInputMode::MANUAL,
+            _ => AppInputMode::CLASSIC, // Default value if input mode is not recognized
+        };
+
+        let output_mode = match settings.input_settings.output_mode.as_str() {
+            "lomaji" => AppOutputMode::LOMAJI,
+            "hanji" => AppOutputMode::HANJI,
+            _ => AppOutputMode::LOMAJI, // Default value if output mode is not recognized
+        };
+
+        let khin_mode = match settings.input_settings.khin_mode.as_str() {
+            "khinless" => AppKhinMode::KHINLESS,
+            "dot" => AppKhinMode::DOT,
+            _ => AppKhinMode::HYPHEN, // Default value if khin mode is not recognized
+        };
+
+        let mut config: AppConfig = AppConfig::new();
+        config.input_mode = input_mode.into();
+        config.output_mode = output_mode.into();
+        config.khin_mode = khin_mode.into();
+        config.input_mode_shortcut = settings
+            .input_settings
+            .input_mode_shortcut
+            .to_string()
+            .into();
+
+        // set telex enabled to rust protobuf boolvalue true
+        let mut telex_enabled = BoolValue::new();
+        telex_enabled.value = settings.input_settings.tone_mode == "telex";
+        config.telex_enabled = Some(telex_enabled).into();
+
+        let mut key_config = KeyConfiguration::new();
+        key_config.telex_t2 = settings.input_settings.t2.to_string();
+        key_config.telex_t3 = settings.input_settings.t3.to_string();
+        key_config.telex_t5 = settings.input_settings.t5.to_string();
+        key_config.telex_t6 = settings.input_settings.t6.to_string();
+        key_config.telex_t7 = settings.input_settings.t7.to_string();
+        key_config.telex_t8 = settings.input_settings.t8.to_string();
+        key_config.telex_t9 = settings.input_settings.t9.to_string();
+        key_config.telex_khin = settings.input_settings.khin.to_string();
+        key_config.alt_hyphen = settings.input_settings.hyphen.to_string();
+        key_config.done = settings.input_settings.done.to_string();
+        config.key_config = Some(key_config).into();
+
+        let mut req = Request::new();
+        req.type_ = CommandType::CMD_SET_CONFIG.into();
+        req.config = Some(config.clone()).into();
+
+        let mut cmd = Command::new();
+        cmd.request = Some(req).into();
+
+        if let Some(x) = self.engine_coordinator.borrow().as_ref() {
+            x.send_command(cmd).map_err(|_| fail!());
+        }
+
+        self.config.replace(Some(config));
+        if let Ok(mut mgr) = self.composition_mgr.write() {
+            mgr.refresh_input_mode(input_mode == AppInputMode::MANUAL);
+        }
+        Ok(())
+    }
+
+    pub fn toggle_input_mode(&self, context: ITfContext) -> Result<()> {
+        let mut new_config: AppConfig = AppConfig::new();
+        let mut is_toggled = false;
+        let mut is_manual = false;
+        if let Some(config) = self.config.borrow().as_ref() {
+            new_config = config.clone();
+            if new_config.input_mode.enum_value_or_default()
+                == AppInputMode::CLASSIC
+            {
+                new_config.input_mode = AppInputMode::MANUAL.into();
+                is_manual = true;
+            } else {
+                new_config.input_mode = AppInputMode::CLASSIC.into();
+            }
+            is_toggled = true;
+            if self.composing() {
+                self.commit_all(context.clone())?;
+            }
+
+            let mut req = Request::new();
+            req.id = rand::random::<u32>();
+            req.type_ = CommandType::CMD_SWITCH_INPUT_MODE.into();
+            req.config = Some(new_config.clone()).into();
+
+            let mut cmd = Command::new();
+            cmd.request = Some(req).into();
+            self.send_command(context, cmd);
+        }
+        if is_toggled {
+            self.config.replace(Some(new_config));
+            if let Ok(mut mgr) = self.composition_mgr.write() {
+                mgr.refresh_input_mode(is_manual);
+            }
+        }
+        Ok(())
+    }
+
+    pub fn toggle_output_mode(&self, context: ITfContext) -> Result<()> {
+        let mut new_config: AppConfig = AppConfig::new();
+        let mut is_toggled = false;
+        if let Some(config) = self.config.borrow().as_ref() {
+            new_config = config.clone();
+            if new_config.output_mode.enum_value_or_default()
+                == AppOutputMode::LOMAJI
+            {
+                new_config.output_mode = AppOutputMode::HANJI.into();
+            } else {
+                new_config.output_mode = AppOutputMode::LOMAJI.into();
+            }
+            is_toggled = true;
+            self.commit_all(context.clone())?;
+
+            let mut req = Request::new();
+            req.id = rand::random::<u32>();
+            req.type_ = CommandType::CMD_SWITCH_OUTPUT_MODE.into();
+            req.config = Some(new_config.clone()).into();
+
+            let mut cmd = Command::new();
+            cmd.request = Some(req).into();
+            self.send_command(context, cmd);
+        }
+        if is_toggled {
+            self.config.replace(Some(new_config));
+        }
+        Ok(())
+    }
+
+    pub fn change_output_mode(
+        &self,
+        context: ITfContext,
+        is_hanji_first: bool,
+    ) -> Result<()> {
+        let mut new_config: AppConfig = AppConfig::new();
+        let mut is_toggled = false;
+        if let Some(config) = self.config.borrow().as_ref() {
+            new_config = config.clone();
+            if is_hanji_first {
+                new_config.output_mode = AppOutputMode::HANJI.into();
+            } else {
+                new_config.output_mode = AppOutputMode::LOMAJI.into();
+            }
+            is_toggled = true;
+            self.commit_all(context.clone())?;
+
+            let mut req = Request::new();
+            req.id = rand::random::<u32>();
+            req.type_ = CommandType::CMD_SWITCH_OUTPUT_MODE.into();
+            req.config = Some(new_config.clone()).into();
+
+            let mut cmd = Command::new();
+            cmd.request = Some(req).into();
+            self.send_command(context, cmd);
+        }
+        if is_toggled {
+            self.config.replace(Some(new_config));
+        }
+        Ok(())
+    }
+
     pub fn composing(&self) -> bool {
         self.composition_mgr
             .try_read()
@@ -267,9 +515,83 @@ impl TextService {
         comp_mgr.notify_command(ec, context, sink, command, attr_atoms)
     }
 
+    pub fn commit_all(&self, context: ITfContext) -> Result<()> {
+        let preedit = self
+            .current_command
+            .borrow()
+            .clone()
+            .ok_or(fail!())?
+            .response
+            .preedit
+            .clone();
+        self.current_command.replace(None);
+        let composing = self.composing();
+        open_edit_session(self.clientid.get()?, context.clone(), |ec| {
+            let mut comp_mgr =
+                self.composition_mgr.write().map_err(|_| fail!())?;
+            comp_mgr.commit_all(ec, context.clone(), &preedit)?;
+            Ok(())
+        })?;
+        Ok(())
+    }
+
+    pub fn commit_all_with_suffix(
+        &self,
+        context: ITfContext,
+        suffix: &str,
+    ) -> Result<()> {
+        let preedit = self
+            .current_command
+            .borrow()
+            .clone()
+            .ok_or(fail!())?
+            .response
+            .preedit
+            .clone();
+        // append suffix to preedit
+        let mut display = String::from_utf16_lossy(&preedit.widen().display);
+        display.push_str(suffix);
+
+        self.current_command.replace(None);
+        let composing = self.composing();
+        open_edit_session(self.clientid.get()?, context.clone(), |ec| {
+            let mut comp_mgr =
+                self.composition_mgr.write().map_err(|_| fail!())?;
+            comp_mgr.commit_text(ec, context.clone(), &display)?;
+            Ok(())
+        })?;
+        Ok(())
+    }
+
+    pub fn insert_char(&self, context: ITfContext, suffix: &str) -> Result<()> {
+        let sink: ITfCompositionSink = self.this().cast()?;
+        let suffix_string = suffix.to_string();
+        open_edit_session(self.clientid.get()?, context.clone(), |ec| {
+            let mut comp_mgr =
+                self.composition_mgr.write().map_err(|_| fail!())?;
+            comp_mgr.check_composition(ec, context.clone(), sink.clone())?;
+            comp_mgr.commit_text(ec, context.clone(), &suffix_string)?;
+            Ok(())
+        })?;
+        Ok(())
+    }
+
     pub fn commit_composition(&self) -> Result<()> {
         // TODO
         Ok(())
+    }
+
+    pub fn current_display_text(&self) -> Result<String> {
+        let preedit = self
+            .current_command
+            .borrow()
+            .clone()
+            .ok_or(fail!())?
+            .response
+            .preedit
+            .clone();
+        let display = String::from_utf16_lossy(&preedit.widen().display);
+        Ok(display)
     }
 
     pub fn handle_candidates(
@@ -316,7 +638,27 @@ impl TextService {
         }
     }
 
+    pub fn send_command_async(&self, command: Command) -> Result<()> {
+        if let Some(x) = self.engine_coordinator.borrow().as_ref() {
+            x.send_command(command).map_err(|_| fail!())
+        } else {
+            Ok(())
+        }
+    }
+
     pub fn handle_command(&self, command: Arc<Command>) -> Result<()> {
+        if self
+            .context_cache
+            .borrow()
+            .contains_key(&command.request.id)
+            == false
+        {
+            log::debug!(
+                "No context found for command id: {}",
+                command.request.id
+            );
+            return Ok(());
+        }
         let context = self
             .context_cache
             .borrow_mut()
@@ -324,29 +666,99 @@ impl TextService {
             .ok_or(fail!())?
             .clone();
 
+        self.current_command.replace(Some(command.clone()));
         open_edit_session(self.clientid.get()?, context.clone(), |ec| {
             self.handle_composition(ec, context.clone(), command.clone())
         })?;
 
+        let editing = command.response.edit_state.enum_value_or_default()
+            != EditState::ES_EMPTY;
+        self.is_editing_state.replace(editing);
+        self.is_illegal_state.replace(
+            command.response.edit_state.enum_value_or_default()
+                == EditState::ES_ILLEGAL,
+        );
+
         if command.response.edit_state.enum_value_or_default()
             == EditState::ES_EMPTY
         {
-            let cand_ui = self
-                .candidate_list_ui
-                .try_borrow()
-                .map_err(|_| fail!())?
-                .clone()
-                .ok_or(fail!())?;
+            self.cancel_composition(context.clone())?;
+            // let cand_ui = self
+            //     .candidate_list_ui
+            //     .try_borrow()
+            //     .map_err(|_| fail!())?
+            //     .clone()
+            //     .ok_or(fail!())?;
 
-            let cand_ui = unsafe { cand_ui.as_impl() };
-            cand_ui.notify_command(context, command, Default::default());
-        } else {
+            // let cand_ui = unsafe { cand_ui.as_impl() };
+            // cand_ui.notify_command(context, command, Default::default());
+        } else if self.is_classic_mode() {
             open_edit_session(self.clientid.get()?, context.clone(), |ec| {
                 self.handle_candidates(ec, context.clone(), command.clone())
             })?;
+        } else {
+            log::debug!("Not in classic mode, ignoring handle candidate");
         }
 
         Ok(())
+    }
+
+    pub fn is_classic_mode(&self) -> bool {
+        if let Some(config) = self.config.borrow().as_ref() {
+            return config.input_mode.enum_value_or_default()
+                == khiin_protos::config::AppInputMode::CLASSIC;
+        } else {
+            return false;
+        }
+    }
+
+    pub fn is_manual_mode(&self) -> bool {
+        if let Some(config) = self.config.borrow().as_ref() {
+            return config.input_mode.enum_value_or_default()
+                == khiin_protos::config::AppInputMode::MANUAL;
+        } else {
+            return false;
+        }
+    }
+
+    pub fn input_mode_shortcut_is_shift(&self) -> bool {
+        if let Some(config) = self.config.borrow().as_ref() {
+            return config.input_mode_shortcut == "shift";
+        } else {
+            return false;
+        }
+    }
+
+    pub fn is_hanji_first(&self) -> bool {
+        if let Some(config) = self.config.borrow().as_ref() {
+            return config.output_mode.enum_value_or_default()
+                == khiin_protos::config::AppOutputMode::HANJI;
+        } else {
+            return false;
+        }
+    }
+
+    pub fn is_editing(&self) -> bool {
+        *self.is_editing_state.borrow()
+    }
+
+    pub fn is_illegal(&self) -> bool {
+        *self.is_illegal_state.borrow()
+    }
+
+    pub fn is_hyphen_or_khin_key(&self, ch: char) -> bool {
+        if self.is_editing() {
+            if let Some(config) = self.config.borrow().as_ref() {
+                if config.key_config.alt_hyphen.contains(ch) {
+                    return true;
+                } else if config.key_config.telex_khin.contains(ch) {
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        }
+        return false;
     }
 }
 
@@ -368,6 +780,7 @@ impl TextService {
         self.init_preserved_key_mgr()?;
         self.init_key_event_sink()?;
         self.init_display_attributes()?;
+        self.load_settings()?;
         self.set_enabled(true)?;
         log::debug!("TextService fully activated");
         Ok(())

@@ -486,7 +486,7 @@ impl BufferMgr {
         ch: char,
     ) -> Result<()> {
         let mut key = ch.to_ascii_lowercase();
-        if (key == engine.conf.hyphon()) {
+        if (key == engine.conf.hyphen()) {
             if engine.conf.khin_mode() == KhinMode::Hyphen {
                 if raw_input.ends_with("--") {
                     let len = raw_input.len();
@@ -534,9 +534,9 @@ impl BufferMgr {
                     raw_input.remove(len - 1);
                     if ch.is_ascii_uppercase() {
                         raw_input
-                            .push(engine.conf.hyphon().to_ascii_uppercase());
+                            .push(engine.conf.hyphen().to_ascii_uppercase());
                     } else {
-                        raw_input.push(engine.conf.hyphon());
+                        raw_input.push(engine.conf.hyphen());
                     }
                     raw_input.push(ch);
                     self.candidates.clear();
@@ -554,9 +554,9 @@ impl BufferMgr {
                     raw_input.replace_range(len - 2..len, "");
                     if ch.is_ascii_uppercase() {
                         raw_input
-                            .push(engine.conf.hyphon().to_ascii_uppercase());
+                            .push(engine.conf.hyphen().to_ascii_uppercase());
                     } else {
-                        raw_input.push(engine.conf.hyphon());
+                        raw_input.push(engine.conf.hyphen());
                     }
                     raw_input.push(ch);
                     self.candidates.clear();
@@ -666,11 +666,11 @@ impl BufferMgr {
             query.drain(0..1);
             word.drain(0..1);
         } else if query.starts_with(" ·") {
-            query.drain(0..2);
-            word.drain(0..2);
+            query = query.strip_prefix(" ·").unwrap_or(&query).to_string();
+            word = word.strip_prefix(" ·").unwrap_or(&word).to_string();
         } else if query.starts_with("-·") {
-            query.drain(0..2);
-            word.drain(0..2);
+            query = query.strip_prefix("-·").unwrap_or(&query).to_string();
+            word = word.strip_prefix("-·").unwrap_or(&word).to_string();
         }
 
         let mut tone_char = key;
@@ -739,6 +739,13 @@ impl BufferMgr {
                 self.attach_hypen_candicate();
                 return Ok(());
             }
+        } else if (raw_input.is_empty()) {
+            // do nothing
+            raw_input.push(ch);
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+            self.char_caret = self.composition.display_char_count();
+            return Ok(());
         }
 
         raw_input.push(ch);
@@ -748,9 +755,9 @@ impl BufferMgr {
         } else if query.starts_with("-") {
             query.drain(0..1);
         } else if query.starts_with(" ·") {
-            query.drain(0..2);
+            query = query.strip_prefix(" ·").unwrap_or(&query).to_string();
         } else if query.starts_with("-·") {
-            query.drain(0..2);
+            query = query.strip_prefix("-·").unwrap_or(&query).to_string();
         }
 
         // add punctuation
@@ -825,15 +832,20 @@ impl BufferMgr {
                     }
                 };
             }
-            let mut guess_candidate = convert_guess(engine, &raw_input)?;
-            guess_candidate.set_converted(true);
-            guess_candidate.autospace();
-            if !self
-                .candidates
-                .iter()
-                .any(|cand| guess_candidate.eq_display(cand))
-            {
-                self.candidates.insert(0, guess_candidate);
+            let mut guess_candidate = match convert_guess(engine, &raw_input) {
+                Ok(cand) => cand,
+                Err(_) => Buffer::new(),
+            };
+            if guess_candidate.is_not_empty() {
+                guess_candidate.set_converted(true);
+                guess_candidate.autospace();
+                if !self
+                    .candidates
+                    .iter()
+                    .any(|cand| guess_candidate.eq_display(cand))
+                {
+                    self.candidates.insert(0, guess_candidate);
+                }
             }
         }
         self.composition = Buffer::new();
@@ -857,11 +869,17 @@ impl BufferMgr {
         {
             self.edit_state = EditState::ES_EMPTY;
             return Ok(());
+        } else if !ch.is_alphanumeric() {
+            raw_input.push(ch);
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+            self.edit_state = EditState::ES_EMPTY;
+            return Ok(());
         } else {
             self.edit_state = EditState::ES_COMPOSING;
         }
 
-        if ch.to_ascii_lowercase() == engine.conf.hyphon()
+        if ch.to_ascii_lowercase() == engine.conf.hyphen()
             && self.edit_state == EditState::ES_COMPOSING
         {
             if engine.conf.khin_mode() == KhinMode::Hyphen {
@@ -910,9 +928,9 @@ impl BufferMgr {
                     raw_input.remove(len - 1);
                     if ch.is_ascii_uppercase() {
                         raw_input
-                            .push(engine.conf.hyphon().to_ascii_uppercase());
+                            .push(engine.conf.hyphen().to_ascii_uppercase());
                     } else {
-                        raw_input.push(engine.conf.hyphon());
+                        raw_input.push(engine.conf.hyphen());
                     }
                     raw_input.push(ch);
                     self.edit_state = EditState::ES_ILLEGAL;
@@ -931,9 +949,9 @@ impl BufferMgr {
                     raw_input.replace_range(len - 3..len, "");
                     if ch.is_ascii_uppercase() {
                         raw_input
-                            .push(engine.conf.hyphon().to_ascii_uppercase());
+                            .push(engine.conf.hyphen().to_ascii_uppercase());
                     } else {
-                        raw_input.push(engine.conf.hyphon());
+                        raw_input.push(engine.conf.hyphen());
                     }
                     raw_input.push(ch);
                     self.edit_state = EditState::ES_ILLEGAL;

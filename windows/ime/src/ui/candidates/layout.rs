@@ -6,6 +6,7 @@ use windows::core::Result;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextFormat;
 use windows::Win32::Graphics::DirectWrite::IDWriteTextLayout;
 use windows::Win32::Graphics::DirectWrite::DWRITE_TEXT_METRICS;
+use windows::Win32::Graphics::DirectWrite::DWRITE_TEXT_RANGE;
 
 use khiin_protos::command::Candidate;
 
@@ -124,12 +125,45 @@ impl CandidateLayout {
             let mut layout_col = Vec::new();
 
             for candidate in col {
+                let display = if candidate.annotation.is_empty() {
+                    candidate.value.clone()
+                } else {
+                    let hint = candidate.annotation.replace("+", "");
+                    format!("{}{}", candidate.value, hint)
+                };
                 let layout = factory.create_text_layout(
-                    &candidate.value[..],
+                    &display[..],
                     textformat.clone(),
                     max_size.w as f32,
                     max_size.h as f32,
                 )?;
+                if !candidate.annotation.is_empty() {
+                    // check annotation has char "+", and add underline to its prefix char
+                    let mut start_index = candidate.value.chars().count() as u32;
+                    let mut hint_len = 0;
+                    for ch in candidate.annotation.chars() {
+                        if ch == '+' {
+                            let range = DWRITE_TEXT_RANGE {
+                                startPosition: start_index - 1,
+                                length: 1,
+                            };
+                            unsafe {
+                                layout.SetUnderline(true, range)?;
+                            }
+                        } else {
+                            start_index += 1;
+                            hint_len += 1;
+                        }
+                    }
+
+                    let range = DWRITE_TEXT_RANGE {
+                        startPosition: candidate.value.chars().count() as u32,
+                        length: hint_len,
+                    };
+                    unsafe {
+                        layout.SetFontSize(10.0, range)?;
+                    }
+                }
                 let mut metrics = DWRITE_TEXT_METRICS::default();
                 unsafe {
                     layout.GetMetrics(&mut metrics)?;

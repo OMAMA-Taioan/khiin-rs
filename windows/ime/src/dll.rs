@@ -170,14 +170,14 @@ pub extern "system" fn DllGetClassObject(
 
 #[no_mangle]
 pub extern "system" fn DllRegisterServer() -> HRESULT {
-    unsafe {
-        MessageBoxW(
-            HWND::default(),
-            w!("Waiting for debugger..."),
-            w!("OK"),
-            MB_DEFBUTTON2,
-        );
-    }
+    // unsafe {
+    //     MessageBoxW(
+    //         HWND::default(),
+    //         w!("Waiting for debugger..."),
+    //         w!("OK"),
+    //         MB_DEFBUTTON2,
+    //     );
+    // }
 
     let module_path = DllModule::path();
     if module_path.is_err() {
@@ -214,14 +214,14 @@ pub extern "system" fn DllRegisterServer() -> HRESULT {
 
 #[no_mangle]
 pub extern "system" fn DllUnregisterServer() -> HRESULT {
-    unsafe {
-        MessageBoxW(
-            HWND::default(),
-            w!("Waiting for debugger..."),
-            w!("OK"),
-            MB_DEFBUTTON2,
-        );
-    }
+    // unsafe {
+    //     MessageBoxW(
+    //         HWND::default(),
+    //         w!("Waiting for debugger..."),
+    //         w!("OK"),
+    //         MB_DEFBUTTON2,
+    //     );
+    // }
 
     let result = unregister_categories();
     if result.is_err() {

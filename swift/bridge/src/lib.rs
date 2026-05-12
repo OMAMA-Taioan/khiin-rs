@@ -96,7 +96,8 @@ impl EngineBridge {
         key_config.telex_t8 = settings.input_settings.t8.to_string();
         key_config.telex_t9 = settings.input_settings.t9.to_string();
         key_config.telex_khin = settings.input_settings.khin.to_string();
-        key_config.alt_hyphen = settings.input_settings.hyphon.to_string();
+        key_config.alt_hyphen = settings.input_settings.hyphen.to_string();
+        key_config.done = settings.input_settings.done.to_string();
         config.key_config = Some(key_config).into();
 
         let mut req = Request::new();
