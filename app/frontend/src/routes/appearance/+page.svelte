@@ -1,12 +1,26 @@
 <script lang="ts">
     import { _, locale } from "svelte-i18n" 
+    import { settings } from "../store";
+    import { invoke } from "@tauri-apps/api/tauri";
     
     // Add version information variable
     const version = "v0.3.0"; // Replace with actual version number
 
-    function updateLanguage(event: Event) {
+    async function updateLanguage(event: Event) {
         const target = event.target as HTMLSelectElement;
         locale.set(target.value);
+        $settings.appearance.locale = target.value;
+        await updateSettings();
+    }
+
+    async function updateSettings() {
+        try {
+            await invoke("update_settings", {
+                settings: JSON.stringify($settings),
+            });
+        } catch (error) {
+            console.error("Failed to update settings:", error);
+        }
     }
 </script>
 
@@ -24,22 +38,27 @@
         </label> -->
         <label class="block">
           <span class="text-gray-700">{$_('page.appearance.language')}</span>
-          <select class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50" on:change={updateLanguage}>
+          <select class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50" bind:value={$settings.appearance.locale} on:change={updateLanguage}>
             <option value="en">English</option>
             <option value="oan_Han">漢羅</option>
             <option value="oan_Latn">Lômájī</option>
           </select>
         </label>
-        <!-- <label class="block">
+        <label class="block">
           <span class="text-gray-700">{$_('page.appearance.font-size')}</span>
-          <select class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50">
-            <option>{$_('page.appearance.xs')}</option>
-            <option>{$_('page.appearance.sm')}</option>
-            <option>{$_('page.appearance.md')}</option>
-            <option>{$_('page.appearance.lg')}</option>
-            <option>{$_('page.appearance.xl')}</option>
+          <select class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50" bind:value={$settings.candidates.font_size} on:change={updateSettings}>
+            <option value={16}>{$_('page.appearance.md')}</option>
+            <option value={20}>{$_('page.appearance.lg')}</option>
+
+            <!--
+            <option value={12}>{$_('page.appearance.xs')}</option>
+            <option value={16}>{$_('page.appearance.sm')}</option>
+            <option value={20}>{$_('page.appearance.md')}</option>
+            <option value={24}>{$_('page.appearance.lg')}</option>
+            <option value={28}>{$_('page.appearance.xl')}</option>
+            -->
           </select>
-        </label> -->
+        </label>
     </div>
 </div>
 <!-- Add version information -->

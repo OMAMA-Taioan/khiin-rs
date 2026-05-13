@@ -113,6 +113,7 @@ impl CandidateLayout {
         min_col_width: i32,
         row_padding: i32,
         qs_col_width: i32,
+        annotation_size: f32,
         max_size: Size<i32>,
     ) -> Result<Self> {
         let n_cols = cols.len();
@@ -161,7 +162,7 @@ impl CandidateLayout {
                         length: hint_len,
                     };
                     unsafe {
-                        layout.SetFontSize(10.0, range)?;
+                        layout.SetFontSize(annotation_size, range)?;
                     }
                 }
                 let mut metrics = DWRITE_TEXT_METRICS::default();

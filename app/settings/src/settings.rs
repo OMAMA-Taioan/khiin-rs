@@ -166,8 +166,28 @@ impl Default for InputSettings {
     }
 }
 
+#[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
+pub struct AppearanceSettings {
+    #[serde(default = "default_locale")]
+    pub locale: String,
+}
+
+impl Default for AppearanceSettings {
+    fn default() -> Self {
+        Self {
+            locale: default_locale(),
+        }
+    }
+}
+
+fn default_locale() -> String {
+    "oan_Han".to_string()
+}
+
 #[derive(Default, Debug, Deserialize, Serialize, PartialEq, Clone)]
 pub struct AppSettings {
+    #[serde(default)]
+    pub appearance: AppearanceSettings,
     #[serde(default)]
     pub candidates: CandidateSettings,
     #[serde(default)]

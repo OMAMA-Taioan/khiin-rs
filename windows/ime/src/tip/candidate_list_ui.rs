@@ -96,6 +96,10 @@ impl CandidateListUI {
         self.end_ui_elem()
     }
 
+    pub fn reload_metrics(&self) -> Result<()> {
+        self.popup.reload_metrics()
+    }
+
     fn create_candidate_window(&self, context: ITfContext) -> Result<()> {
         if !*self.popup_registered.borrow() {
             unsafe {

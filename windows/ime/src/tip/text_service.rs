@@ -390,6 +390,13 @@ impl TextService {
             x.send_command(cmd).map_err(|_| fail!());
         }
 
+        if let Ok(cand_ui) = self.candidate_list_ui.try_borrow() {
+            if let Some(cand_ui) = cand_ui.as_ref() {
+                let cand_ui = unsafe { cand_ui.as_impl() };
+                let _ = cand_ui.reload_metrics();
+            }
+        }
+
         self.config.replace(Some(config));
         if let Ok(mut mgr) = self.composition_mgr.write() {
             mgr.refresh_input_mode(input_mode == AppInputMode::MANUAL);
