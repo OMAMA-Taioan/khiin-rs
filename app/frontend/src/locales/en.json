@@ -22,12 +22,9 @@
             "light": "Light",
             "dark": "Dark",
             "language": "Interface Language",
-            "font-size": "Candidate Font Size",
-            "xs": "Extra Small",
-            "sm": "Small",
-            "md": "Medium",
-            "lg": "Large",
-            "xl": "Extra Large",
+            "font-size": "Menu Font Size",
+            "sm": "Smaller",
+            "lg": "Larger",
             "font": "Candidate Font"
         },
         "input": {

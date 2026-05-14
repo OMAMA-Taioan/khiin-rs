@@ -47,16 +47,8 @@
         <label class="block">
           <span class="text-gray-700">{$_('page.appearance.font-size')}</span>
           <select class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50" bind:value={$settings.candidates.font_size} on:change={updateSettings}>
-            <option value={16}>{$_('page.appearance.md')}</option>
             <option value={20}>{$_('page.appearance.lg')}</option>
-
-            <!--
-            <option value={12}>{$_('page.appearance.xs')}</option>
             <option value={16}>{$_('page.appearance.sm')}</option>
-            <option value={20}>{$_('page.appearance.md')}</option>
-            <option value={24}>{$_('page.appearance.lg')}</option>
-            <option value={28}>{$_('page.appearance.xl')}</option>
-            -->
           </select>
         </label>
     </div>
