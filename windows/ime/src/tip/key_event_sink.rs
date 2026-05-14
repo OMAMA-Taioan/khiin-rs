@@ -369,6 +369,7 @@ impl KeyEventSink {
             let punctuations = ".,!?()'\":<>;+=_[]「」‘’『』々〱〈《<«〉》>»+＋⁺+⁺=·＝〓_—＿⁻_—⁻〔【〖〕】〗";
             if text.len() > 0
                 && punctuations.contains(text.chars().last().unwrap())
+                && !service.is_hyphen_or_khin_key(key_event.ascii as char)
             {
                 service.commit_all_with_suffix(context.clone(), "")?;
                 send_reset_command(self.tip.clone())?;

@@ -546,12 +546,12 @@ impl BufferMgr {
             } else {
                 if raw_input.ends_with(" ·") {
                     let len = raw_input.len();
-                    raw_input.replace_range(len - 2..len, "");
+                    raw_input.replace_range(len - 3..len, "");
                     raw_input.push(ch);
                     self.candidates.clear();
                 } else if raw_input.ends_with("-·") {
                     let len = raw_input.len();
-                    raw_input.replace_range(len - 2..len, "");
+                    raw_input.replace_range(len - 3..len, "");
                     if ch.is_ascii_uppercase() {
                         raw_input
                             .push(engine.conf.hyphen().to_ascii_uppercase());
