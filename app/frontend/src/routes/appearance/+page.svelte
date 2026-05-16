@@ -4,7 +4,7 @@
     import { invoke } from "@tauri-apps/api/tauri";
     
     // Add version information variable
-    const version = "v0.3.0"; // Replace with actual version number
+    const version = "v0.3.1"; // Replace with actual version number
 
     async function updateLanguage(event: Event) {
         const target = event.target as HTMLSelectElement;

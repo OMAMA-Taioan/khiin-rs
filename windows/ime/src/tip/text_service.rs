@@ -1147,19 +1147,21 @@ impl ITfCompositionSink_Impl for TextService {
         ecwrite: u32,
         composition: Option<&ITfComposition>,
     ) -> Result<()> {
-        // TODO: send command
-        // self.engine()
-        //     .try_read()
-        //     .map_err(|_| Error::from(E_FAIL))?
-        //     .reset()?;
-        if let Some(comp) = composition {
-            unsafe {
-                comp.EndComposition(ecwrite)?;
-            }
-            self.composition_mgr
-                .try_read()
-                .map_err(|_| fail!())?
-                .cancel_composition(ecwrite)?;
+        // if let Some(comp) = composition {
+        //     unsafe {
+        //         comp.EndComposition(ecwrite)?;
+        //     }
+        //     self.composition_mgr
+        //         .try_read()
+        //         .map_err(|_| fail!())?
+        //         .cancel_composition(ecwrite)?;
+        // }
+        // TSF is notifying us that the composition has been terminated.
+        // We should NOT call EndComposition here — TSF is already handling
+        // the termination. We only need to clean up our internal state.
+        log::debug!("OnCompositionTerminated called");
+        if let Ok(mgr) = self.composition_mgr.try_read() {
+            mgr.reset()?;
         }
         Ok(())
     }
