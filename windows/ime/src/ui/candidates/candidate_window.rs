@@ -65,8 +65,8 @@ const DW_EX_STYLE: Lazy<WINDOW_EX_STYLE> =
 
 #[derive(Default, Clone)]
 pub enum DisplayMode {
-    #[default]
     ShortColumn,
+    #[default]
     LongColumn,
     Grid,
 }

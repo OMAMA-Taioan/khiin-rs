@@ -20,13 +20,17 @@ use tokio::runtime::Runtime;
 use tokio::sync::mpsc;
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
+use windows::core::w;
 use windows::core::Error;
 use windows::core::Result;
+use windows::core::PCWSTR;
 use windows::Win32::Foundation::E_FAIL;
 use windows::Win32::Foundation::HWND;
 use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::WPARAM;
+use windows::Win32::UI::WindowsAndMessaging::MessageBoxW;
 use windows::Win32::UI::WindowsAndMessaging::PostMessageW;
+use windows::Win32::UI::WindowsAndMessaging::MB_DEFBUTTON2;
 
 use khiin_protos::command::*;
 
@@ -51,8 +55,6 @@ struct Handler {
 
 impl Handler {
     async fn run(&mut self) -> Result<()> {
-        let socket = self.get_socket_name();
-
         let conn = self.connect().await?;
         let (mut reader, mut writer) = conn.into_split();
 
@@ -93,26 +95,46 @@ impl Handler {
         result
     }
 
-    fn get_socket_name(&self) -> &str {
+    fn get_socket_name(&self, id: String) -> String {
         use NameTypeSupport::*;
-
-        match NameTypeSupport::query() {
-            OnlyPaths => "/tmp/khiin.sock",
-            OnlyNamespaced | Both => "@khiin.sock",
+        let mut suffix = "".to_string();
+        if !id.is_empty() {
+            suffix.push_str(".");
+            suffix.push_str(&id);
         }
+        match NameTypeSupport::query() {
+            OnlyPaths => format!("/tmp/khiin.sock{}", suffix),
+            OnlyNamespaced | Both => format!("@khiin.sock{}", suffix),
+        }
+        
     }
 
     async fn connect(&self) -> Result<LocalSocketStream> {
-        let socket = self.get_socket_name();
+        let id = rand::random::<u32>().to_string();
+        let socket = self.get_socket_name(id.clone());
 
         let mut attempts = 0;
         let max_attempts = 100;
         let attempt_delay = 10;
 
         loop {
-            let conn = match LocalSocketStream::connect(socket).await {
+            self.launch_service(id.clone());
+
+            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+
+            let conn = match LocalSocketStream::connect(socket.as_str()).await {
                 Ok(conn) => return Ok(conn),
                 Err(e) => {
+                    // let message = format!("{} Connection error: {}", socket, e);
+                    // let wide_message: Vec<u16> = message.encode_utf16().chain(std::iter::once(0)).collect();
+                    // unsafe {
+                    //     MessageBoxW(
+                    //         HWND::default(),
+                    //         PCWSTR(wide_message.as_ptr()),
+                    //         w!("OK"),
+                    //         MB_DEFBUTTON2,
+                    //     );
+                    // }
                     if attempts >= max_attempts {
                         log::debug!("Connection error: {}", e);
                         return Err(Error::from(E_FAIL));
@@ -121,13 +143,11 @@ impl Handler {
                 },
             };
 
-            self.launch_service();
-
             tokio::time::sleep(std::time::Duration::from_millis(10)).await;
         }
     }
 
-    fn launch_service(&self) -> Result<()> {
+    fn launch_service(&self, service_id: String) -> Result<()> {
         let dll_path = DllModule::global().module.get_path()?;
         let mut svc_exe = PathBuf::from(dll_path);
         svc_exe.set_file_name("khiin_service.exe");
@@ -135,6 +155,7 @@ impl Handler {
         // const CREATE_NO_WINDOW: u32 = 0x08000000;
         const DETACHED_PROCESS: u32 = 0x00000008;
         let mut cmd = process::Command::new(svc_exe)
+            .arg(service_id)
             .creation_flags(DETACHED_PROCESS)
             .spawn()
             .map_err(|e| {

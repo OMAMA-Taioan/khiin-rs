@@ -10,15 +10,15 @@ use protobuf::Message;
 
 use khiin_protos::command::*;
 use khiin_protos::config::AppInputMode;
-use khiin_protos::config::AppOutputMode;
 use khiin_protos::config::AppKhinMode;
+use khiin_protos::config::AppOutputMode;
 use khiin_protos::config::BoolValue;
 
 use crate::buffer::BufferMgr;
 use crate::config::Config;
 use crate::config::InputMode;
-use crate::config::OutputMode;
 use crate::config::KhinMode;
+use crate::config::OutputMode;
 use crate::config::ToneMode;
 use crate::data::dictionary::Dictionary;
 use crate::db::Database;
@@ -130,18 +130,23 @@ impl Engine {
                 }
             },
             SpecialKey::SK_SPACE => {
-                if (req.key_event.modifier_keys.contains(
-                    &protobuf::EnumOrUnknown::from_i32(
-                        ModifierKey::MODK_SHIFT as i32,
-                    ),
-                )) {
-                    self.buffer_mgr.focus_prev_candidate(&self.inner)?;
+                if (self.inner.conf.input_mode() == InputMode::Classic) {
+                    if (req.key_event.modifier_keys.contains(
+                        &protobuf::EnumOrUnknown::from_i32(
+                            ModifierKey::MODK_SHIFT as i32,
+                        ),
+                    )) {
+                        self.buffer_mgr.focus_prev_candidate(&self.inner)?;
+                    } else {
+                        self.buffer_mgr.focus_next_candidate(&self.inner)?;
+                    }
+                    if self.buffer_mgr.edit_state() == EditState::ES_ILLEGAL
+                        && self.inner.conf.input_mode() == InputMode::Classic
+                    {
+                        return self.on_commit(req);
+                    }
                 } else {
-                    self.buffer_mgr.focus_next_candidate(&self.inner)?;
-                }
-                if self.buffer_mgr.edit_state() == EditState::ES_ILLEGAL
-                    && self.inner.conf.input_mode() == InputMode::Classic
-                {
+                    self.buffer_mgr.insert(&self.inner, ' ')?;
                     return self.on_commit(req);
                 }
             },
@@ -320,9 +325,7 @@ impl Engine {
             AppKhinMode::KHINLESS => {
                 self.inner.conf.set_khin_mode(KhinMode::Khinless)
             },
-            AppKhinMode::DOT => {
-                self.inner.conf.set_khin_mode(KhinMode::Dot)
-            },
+            AppKhinMode::DOT => self.inner.conf.set_khin_mode(KhinMode::Dot),
             AppKhinMode::HYPHEN => {
                 self.inner.conf.set_khin_mode(KhinMode::Hyphen)
             },
@@ -335,6 +338,20 @@ impl Engine {
             } else {
                 self.inner.conf.set_tone_mode(ToneMode::Numeric)
             }
+        }
+
+        // set key configuration
+        if let Some(key_config) = req.config.key_config.as_ref() {
+            self.inner.conf.set_t2_key(key_config.telex_t2.chars().next().unwrap_or(self.inner.conf.t2()));
+            self.inner.conf.set_t3_key(key_config.telex_t3.chars().next().unwrap_or(self.inner.conf.t3()));
+            self.inner.conf.set_t5_key(key_config.telex_t5.chars().next().unwrap_or(self.inner.conf.t5()));
+            self.inner.conf.set_t6_key(key_config.telex_t6.chars().next().unwrap_or(self.inner.conf.t6()));
+            self.inner.conf.set_t7_key(key_config.telex_t7.chars().next().unwrap_or(self.inner.conf.t7()));
+            self.inner.conf.set_t8_key(key_config.telex_t8.chars().next().unwrap_or(self.inner.conf.t8()));
+            self.inner.conf.set_t9_key(key_config.telex_t9.chars().next().unwrap_or(self.inner.conf.t9()));
+            self.inner.conf.set_khin_key(key_config.telex_khin.chars().next().unwrap_or(self.inner.conf.khin()));
+            self.inner.conf.set_hyphen_key(key_config.alt_hyphen.chars().next().unwrap_or(self.inner.conf.hyphen()));
+            self.inner.conf.set_done_key(key_config.done.chars().next().unwrap_or(self.inner.conf.done()));
         }
 
         Ok(Response::new())

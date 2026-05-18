@@ -50,13 +50,23 @@ fn update_settings(
     }
 }
 
+#[tauri::command]
+fn is_windows() -> bool {
+    cfg!(target_os = "windows")
+}
+
 fn emit_settings(settings: &AppSettings, window: tauri::Window) {
     window.emit("update_settings", settings.clone()).unwrap();
 }
 
 fn load_settings_manager() -> SettingsStore {
     if let Some(mut filename) = data_dir() {
-        filename.push("app.khiin.KhiinPJH/settings.toml");
+        // if mac os, use the app name as the directory
+        if cfg!(target_os = "macos") {
+            filename.push("app.khiin.KhiinPJH/settings.toml");
+        } else {
+            filename.push("Khiin/settings.toml");
+        }
 
         log::debug!("load_settings_manager {:?}", filename);
 
@@ -90,6 +100,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             load_settings,
             update_settings,
+            is_windows,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

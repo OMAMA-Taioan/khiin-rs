@@ -19,13 +19,13 @@
 >
     <h1 class="flex pl-4 pt-5 pb-1 text-xl">Khíín</h1>
     <ul class="flex flex-col flex-1">
-        <li>
+        <!-- <li>
             <SidebarItem
                 route="/"
                 iconClass="bx-home"
                 label=""
             />
-        </li>
+        </li> -->
         <li>
             <SidebarItem
                 route="/appearance"
@@ -40,13 +40,13 @@
                 label={$_("global.nav.input-settings")}
             />
         </li>
-        <li>
+        <!-- <li>
             <SidebarItem
                 route="/dictionary"
                 iconClass="bx-book-open"
                 label={$_("global.nav.dictionary")}
             />
-        </li>
+        </li> -->
         <li class="mt-auto">
             <SidebarItem
                 target="_blank"

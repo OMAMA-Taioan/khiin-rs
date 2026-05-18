@@ -98,6 +98,14 @@ impl KeyEvent {
     pub fn as_virtual_key(&self) -> VIRTUAL_KEY {
         VIRTUAL_KEY(self.keycode as u16)
     }
+
+    pub fn is_punctuation(&self) -> bool {
+        matches!(
+            self.ascii as u8 as char,
+            '!' | '"' | '#' | '$' | '%' | '&' | '\'' | '(' | ')' | '*' | '+' | ',' | '-' | '.' | '/' |
+            ':' | ';' | '<' | '=' | '>' | '?' | '@' | '[' | '\\' | ']' | '^' | '_' | '`' | '{' | '|' | '}' | '~'
+        )
+    }
 }
 
 fn windows_to_khiin_special_key_code(e: &KeyEvent) -> SpecialKey {

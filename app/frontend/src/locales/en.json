@@ -52,8 +52,20 @@
             "khinless": "(bô chù)",
             "shift": "Shift",
             "ctrl-space": "Ctrl+Space",
+            "ctrl-backtick": "Ctrl + Backtick",
             "alt-backtick": "Alt + Backtick",
-            "alt-space": "Alt+Space"
+            "alt-space": "Alt+Space",
+            "telex-key-settings": "Telex Settings",
+            "t2-key": "Tone 2",
+            "t3-key": "Tone 3",
+            "t5-key": "Tone 5",
+            "t6-key": "Tone 6",
+            "t7-t8-key": "Tones 7 & 8",
+            "t9-key": "Tone 9",
+            "khin-key": "Enclitics (Neutral Tone)",
+            "hyphen-key": "Hyphen",
+            "done-key": "Syllable Break (New Syllable)",
+            "none": "(none)"
         },
         "dictionary": {
             "title": "Dictionary"
