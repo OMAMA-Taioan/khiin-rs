@@ -20,13 +20,48 @@
             <ComponentGroupRef Id="CG_RegistryEntries" />
         </Feature>
 
-        <UI>
-            <TextStyle Id="Font_Normal" FaceName="Microsoft JhengHei UI" Size="9" Bold="yes" />
-            <TextStyle Id="Font_Bigger" FaceName="Microsoft JhengHei UI" Size="13" Bold="yes" />
-            <TextStyle Id="Font_Title" FaceName="Microsoft JhengHei UI" Size="10" Bold="yes" />
-            <UIRef Id="WixUI_Minimal" />
-            <UIRef Id="WixUI_ErrorProgressText" />
+        <!-- Custom UI: Welcome -> License -> Verify -> Progress.
+             Identical to WixUI_InstallDir but with the install-directory dialog removed.
+             The license is shown on the SECOND dialog (not the first), which avoids the
+             WixUI_Minimal WelcomeEulaDlg RichEdit bug where the license text renders blank
+             at the top until the user scrolls. -->
+        <UI Id="WixUI_WelcomeEula">
+            <TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
+            <TextStyle Id="WixUI_Font_Bigger" FaceName="Tahoma" Size="12" />
+            <TextStyle Id="WixUI_Font_Title" FaceName="Tahoma" Size="9" Bold="yes" />
+
+            <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+            <Property Id="WixUI_Mode" Value="InstallDir" />
+
+            <DialogRef Id="ErrorDlg" />
+            <DialogRef Id="FatalError" />
+            <DialogRef Id="FilesInUse" />
+            <DialogRef Id="MsiRMFilesInUse" />
+            <DialogRef Id="PrepareDlg" />
+            <DialogRef Id="ProgressDlg" />
+            <DialogRef Id="ResumeDlg" />
+            <DialogRef Id="UserExit" />
+
+            <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
+
+            <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="LicenseAgreementDlg">NOT Installed OR WIX_UPGRADE_DETECTED</Publish>
+            <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="2">Installed AND PATCH</Publish>
+
+            <Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
+            <Publish Dialog="LicenseAgreementDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">LicenseAccepted = "1"</Publish>
+
+            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="LicenseAgreementDlg" Order="1">NOT Installed</Publish>
+            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2">Installed AND NOT PATCH</Publish>
+            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="3">Installed AND PATCH</Publish>
+
+            <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg">1</Publish>
+
+            <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+            <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+            <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg">1</Publish>
         </UI>
+        <UIRef Id="WixUI_Common" />
+        <UIRef Id="WixUI_ErrorProgressText" />
 
         <WixVariable Id="WixUILicenseRtf" Value="$(var.Source_LicenseRtf_EN)" />
         <!-- <WixVariable Id="WixUIDialogBmp" Value="$(var.Source_UIDialogBmp)" /> -->
