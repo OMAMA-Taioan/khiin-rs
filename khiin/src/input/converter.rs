@@ -317,7 +317,7 @@ pub(crate) fn convert_to_telex(
         composition.push(StringElem::from(raw_input).into());
         return (Ok(composition), false);
     } else if (lower_key == 'u'
-        && (raw_buffer.ends_with("ṳ") || raw_buffer.ends_with("Ṳ")))
+        && (raw_buffer.ends_with('ṳ') || raw_buffer.ends_with('Ṳ')))
     {
         let mut composition = Buffer::new();
         let mut raw_input = stripped.to_string();
@@ -553,5 +553,25 @@ mod tests {
         let result = candidates_for_splittable(&engine, "ia7")?;
         assert!(result.iter().any(|c| c.display_text() == "掖"));
         Ok(())
+    }
+
+    #[test]
+    fn it_applies_tone_to_precomposed_diaeresis() {
+        // Regression: once the buffer holds a precomposed ṳ (U+1E73), pressing a
+        // tone key must still apply the tone instead of appending it literally.
+        let (mut engine, _) = test_harness();
+        engine.conf.set_tone_mode(ToneMode::Numeric);
+
+        // ṳ (U+1E73) + T8 -> U+1E73 U+030D
+        let (comp, _) = convert_to_telex(&engine, "t\u{1e73}", '8');
+        assert_eq!(comp.unwrap().display_text(), "t\u{1e73}\u{030d}");
+
+        // ṳ (U+1E73) + T2 -> U+1E73 U+0301
+        let (comp, _) = convert_to_telex(&engine, "t\u{1e73}", '2');
+        assert_eq!(comp.unwrap().display_text(), "t\u{1e73}\u{0301}");
+
+        // o̤ + T8 -> o U+030D U+0324 (tone before diaeresis below)
+        let (comp, _) = convert_to_telex(&engine, "to\u{0324}", '8');
+        assert_eq!(comp.unwrap().display_text(), "to\u{030d}\u{0324}");
     }
 }

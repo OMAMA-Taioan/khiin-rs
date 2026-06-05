@@ -84,13 +84,13 @@ impl Syllable {
             || self.tone == Tone::T1
             || self.tone == Tone::T4
         {
-            return ret;
+            return to_khiin_encoding(&ret);
         }
 
         if let Some(pos) = get_tone_position(&ret) {
             if let Some(tone_char) = tone_to_char(&self.tone) {
                 ret.insert(pos + 1, tone_char.to_owned());
-                return ret.nfc().collect::<String>();
+                return to_khiin_encoding(&ret);
             }
         }
 
@@ -234,6 +234,20 @@ impl Syllable {
     }
 }
 
+/// Normalizes a composed syllable to khiin's canonical encoding, matching the
+/// dictionary database:
+///   * `ṳ` uses the precomposed U+1E73 (e.g. `ṳ́` = U+1E73 U+0301)
+///   * `o̤` keeps `o` + U+0324, applying any precomposed letter+tone form
+///     (e.g. `ó̤` = U+00F3 U+0324)
+///   * for the T8 `o̤̍`, which has no precomposed letter+tone form, the tone
+///     mark precedes the diaeresis below: `o` U+030D U+0324
+fn to_khiin_encoding(s: &str) -> String {
+    let nfc: String = s.nfc().collect();
+    // NFC orders the diaeresis below (ccc 220) before the vertical line above
+    // (ccc 230), but the dictionary stores the tone mark first; swap to match.
+    nfc.replace("\u{0324}\u{030d}", "\u{030d}\u{0324}")
+}
+
 fn get_tone_char(tone: Tone) -> Option<char> {
     match tone {
         Tone::None => None,
@@ -273,6 +287,21 @@ mod tests {
     fn it_parses_long_o() {
         assert_eq!(Syllable::from_raw("hou2").compose(), "hó͘");
         assert_eq!(Syllable::from_raw("houh").compose(), "ho͘h");
+    }
+
+    #[test]
+    fn it_encodes_diaeresis_below_consistently() {
+        // ṳ family: precomposed U+1E73 base, tone mark on top
+        assert_eq!(Syllable::from_raw("teu").compose(), "t\u{1e73}");
+        assert_eq!(Syllable::from_raw("teu2").compose(), "t\u{1e73}\u{0301}");
+        assert_eq!(Syllable::from_raw("teu8").compose(), "t\u{1e73}\u{030d}");
+        assert_eq!(Syllable::from_raw("TEU").compose(), "T\u{1e72}");
+        // o̤ family: o + U+0324, with precomposed letter+tone where it exists
+        assert_eq!(Syllable::from_raw("teo").compose(), "to\u{0324}");
+        assert_eq!(Syllable::from_raw("teo2").compose(), "t\u{f3}\u{0324}");
+        assert_eq!(Syllable::from_raw("teo7").compose(), "t\u{14d}\u{0324}");
+        // T8 o̤̍ has no precomposed form: tone mark precedes the diaeresis below
+        assert_eq!(Syllable::from_raw("teo8").compose(), "to\u{030d}\u{0324}");
     }
 
     #[test]
