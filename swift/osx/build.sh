@@ -84,7 +84,7 @@ pkgbuild \
     --info assets/PackageInfo \
     --root $build_dir/KhiinPJH.app \
     --identifier app.khiin.inputmethod.khiin \
-    --version "0.3.1" \
+    --version "0.3.2" \
     --install-location "/tmp/KhiinPJH.app" \
     --scripts assets/scripts \
-    "$build_dir/KhiinPJH-0.3.1.pkg"
+    "$build_dir/KhiinPJH-0.3.2.pkg"
