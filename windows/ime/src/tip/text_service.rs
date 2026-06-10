@@ -401,6 +401,7 @@ impl TextService {
         if let Ok(mut mgr) = self.composition_mgr.write() {
             mgr.refresh_input_mode(input_mode == AppInputMode::MANUAL);
         }
+        self.refresh_lang_bar_icon();
         Ok(())
     }
 
@@ -437,6 +438,7 @@ impl TextService {
             if let Ok(mut mgr) = self.composition_mgr.write() {
                 mgr.refresh_input_mode(is_manual);
             }
+            self.refresh_lang_bar_icon();
         }
         Ok(())
     }
@@ -1035,6 +1037,17 @@ impl TextService {
 
     fn lang_bar_indicator(&self) -> ITfLangBarItemButton {
         self.lang_bar_indicator.borrow().clone().unwrap()
+    }
+
+    /// Tell the language bar indicator to re-draw its icon so the "CT"/"CI"
+    /// mode label reflects the current input mode.
+    fn refresh_lang_bar_icon(&self) {
+        if let Ok(indicator) = self.lang_bar_indicator.try_borrow() {
+            if let Some(button) = indicator.as_ref() {
+                let indicator = unsafe { button.as_impl() };
+                let _ = indicator.refresh_icon();
+            }
+        }
     }
 
     // candidate ui
