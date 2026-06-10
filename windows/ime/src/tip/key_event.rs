@@ -1,8 +1,15 @@
+use std::sync::OnceLock;
+
 use khiin_protos::command::SpecialKey;
+use windows::core::w;
 use windows::Win32::Foundation::LPARAM;
 use windows::Win32::Foundation::WPARAM;
+use windows::Win32::UI::Input::KeyboardAndMouse::GetKeyboardLayout;
 use windows::Win32::UI::Input::KeyboardAndMouse::GetKeyboardState;
-use windows::Win32::UI::Input::KeyboardAndMouse::ToAscii;
+use windows::Win32::UI::Input::KeyboardAndMouse::LoadKeyboardLayoutW;
+use windows::Win32::UI::Input::KeyboardAndMouse::ToUnicodeEx;
+use windows::Win32::UI::Input::KeyboardAndMouse::KLF_NOTELLSHELL;
+use windows::Win32::UI::TextServices::HKL;
 use windows::Win32::UI::Input::KeyboardAndMouse::VIRTUAL_KEY;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_BACK;
 use windows::Win32::UI::Input::KeyboardAndMouse::VK_CONTROL;
@@ -26,6 +33,23 @@ use crate::utils::hi_word;
 use crate::utils::lo_byte;
 
 const VK_CTRL: usize = VK_CONTROL.0 as usize;
+
+/// US English keyboard layout (00000409), loaded once.
+///
+/// khiin's key handling assumes US key positions, but the IME is registered
+/// under the haw-US locale, so the thread's active keyboard layout is not US
+/// (it would, for example, translate the "'" key to a different character).
+/// Translate virtual keys with this pinned US layout instead of the ambient
+/// one so the engine always receives US-position ASCII.
+fn us_keyboard_layout() -> HKL {
+    static US_HKL: OnceLock<isize> = OnceLock::new();
+    let raw = *US_HKL.get_or_init(|| unsafe {
+        LoadKeyboardLayoutW(w!("00000409"), KLF_NOTELLSHELL)
+            .map(|hkl| hkl.0)
+            .unwrap_or_else(|_| GetKeyboardLayout(0).0)
+    });
+    HKL(raw)
+}
 
 #[derive(Debug)]
 pub struct KeyEvent {
@@ -51,16 +75,19 @@ impl KeyEvent {
         let scancode = lo_byte(hi_word(lparam.0 as u32));
 
         let vk_ctrl_tmp = event.keystate[VK_CTRL];
-        let mut char = [0u16; 2];
+        let mut char = [0u16; 8];
         event.keystate[VK_CTRL] = 0;
 
+        // Use a pinned US layout (not the ambient haw-US one) so the key always
+        // maps to its US-position character (e.g. "'" stays "'", not "?").
         let result = unsafe {
-            ToAscii(
+            ToUnicodeEx(
                 event.keycode,
                 scancode as u32,
-                Some(&event.keystate),
-                char.as_mut_ptr(),
+                &event.keystate,
+                &mut char,
                 0,
+                us_keyboard_layout(),
             )
         };
 

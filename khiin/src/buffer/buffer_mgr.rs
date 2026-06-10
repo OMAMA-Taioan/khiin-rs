@@ -648,7 +648,25 @@ impl BufferMgr {
             self.char_caret = self.composition.display_char_count();
             self.edit_state = EditState::ES_EMPTY;
             return Ok(());
-        } else if ("'\":=[]".contains(key) && engine.conf.is_lomaji_first()) {
+        } else if (key == '~') {
+            if engine.conf.is_lomaji_first() {
+                raw_input.push('~');
+            } else {
+                raw_input.push('〜');
+            }
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+            self.char_caret = self.composition.display_char_count();
+            self.edit_state = EditState::ES_EMPTY;
+            return Ok(());
+        } else if (key == '\\' || key == '/' || key == '`') {
+            raw_input.push(key);
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+            self.char_caret = self.composition.display_char_count();
+            self.edit_state = EditState::ES_EMPTY;
+            return Ok(());
+        } else if (":=[]".contains(key) && engine.conf.is_lomaji_first()) {
             raw_input.push(key);
             self.composition = Buffer::new();
             self.composition.push(StringElem::from(raw_input).into());
@@ -1393,6 +1411,38 @@ mod tests {
         assert_eq!(buf.candidates.len(), 2);
         assert_eq!(buf.candidates[0].display_text().as_str(), "〈");
         assert_eq!(buf.candidates[1].display_text().as_str(), "《");
+        Ok(())
+    }
+
+    #[test_log::test]
+    fn it_direct_commits_tilde_slash_backslash_classic() -> Result<()> {
+        // '~', '\\', '/' must direct-output (no menu, no lingering compose);
+        // '~' becomes '〜' (U+301C) in Hanji-first.
+        let (mut e, mut buf) = test_harness();
+        e.conf.set_input_mode(InputMode::Classic);
+
+        e.conf.set_output_mode(crate::config::OutputMode::Hanji);
+        buf.insert(&e, '~')?;
+        assert_eq!(buf.composition.display_text().as_str(), "〜");
+        assert_eq!(buf.edit_state, EditState::ES_EMPTY);
+        assert!(buf.candidates.is_empty());
+
+        let (mut e2, mut buf2) = test_harness();
+        e2.conf.set_input_mode(InputMode::Classic);
+        e2.conf.set_output_mode(crate::config::OutputMode::Lomaji);
+        buf2.insert(&e2, '~')?;
+        assert_eq!(buf2.composition.display_text().as_str(), "~");
+        assert_eq!(buf2.edit_state, EditState::ES_EMPTY);
+
+        for ch in ['\\', '/'] {
+            let (mut e3, mut buf3) = test_harness();
+            e3.conf.set_input_mode(InputMode::Classic);
+            e3.conf.set_output_mode(crate::config::OutputMode::Hanji);
+            buf3.insert(&e3, ch)?;
+            assert_eq!(buf3.composition.display_text(), ch.to_string());
+            assert_eq!(buf3.edit_state, EditState::ES_EMPTY);
+            assert!(buf3.candidates.is_empty());
+        }
         Ok(())
     }
 

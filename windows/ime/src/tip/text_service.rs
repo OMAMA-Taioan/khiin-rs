@@ -777,6 +777,14 @@ impl TextService {
             false
         }
     }
+
+    pub fn is_candidate_focused(&self) -> bool {
+        if let Some(cmd) = self.current_command.borrow().as_ref() {
+            cmd.response.candidate_list.focused >= 0
+        } else {
+            false
+        }
+    }
 }
 
 // Private portion
