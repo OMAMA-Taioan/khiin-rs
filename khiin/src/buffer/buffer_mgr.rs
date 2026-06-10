@@ -739,8 +739,10 @@ impl BufferMgr {
                 self.attach_hypen_candicate();
                 return Ok(());
             }
-        } else if (raw_input.is_empty()) {
-            // do nothing
+        } else if (raw_input.is_empty() && !ch.is_ascii_punctuation()) {
+            // do nothing for a lone non-syllable letter (e.g. "v"), which
+            // otherwise freezes; punctuation must fall through to the menu /
+            // direct-output handling below so it can still pop a candidate menu
             raw_input.push(ch);
             self.composition = Buffer::new();
             self.composition.push(StringElem::from(raw_input).into());
@@ -1327,7 +1329,8 @@ mod tests {
 
     #[test]
     fn it_focuses_the_first_candidate() -> Result<()> {
-        let (e, mut buf) = test_harness();
+        let (mut e, mut buf) = test_harness();
+        e.conf.set_input_mode(InputMode::Continuous);
         buf.insert(&e, 'a')?;
         buf.focus_next_candidate(&e)?;
         let text = preedit_text(&buf);
@@ -1339,7 +1342,8 @@ mod tests {
 
     #[test_log::test]
     fn it_focuses_the_second_candidate() -> Result<()> {
-        let (e, mut buf) = test_harness();
+        let (mut e, mut buf) = test_harness();
+        e.conf.set_input_mode(InputMode::Continuous);
         buf.insert(&e, 'a')?;
         buf.focus_next_candidate(&e)?;
         buf.focus_next_candidate(&e)?;
@@ -1350,7 +1354,8 @@ mod tests {
 
     #[test_log::test]
     fn it_excludes_duplicates() -> Result<()> {
-        let (e, mut buf) = test_harness();
+        let (mut e, mut buf) = test_harness();
+        e.conf.set_input_mode(InputMode::Continuous);
         for ch in "pengan".chars().collect::<Vec<char>>() {
             buf.insert(&e, ch)?;
         }
@@ -1372,6 +1377,36 @@ mod tests {
             buf.insert(&e, ch)?;
         }
         log::debug!("{:?}", buf);
+        Ok(())
+    }
+
+    #[test_log::test]
+    fn it_pops_a_punctuation_menu_on_empty_buffer_classic() -> Result<()> {
+        // Regression: typing a menu punctuation as the first character in
+        // Classic / Hanji-first mode must still show its candidate menu and
+        // must not be swallowed by the "lone non-syllable" short-circuit.
+        let (mut e, mut buf) = test_harness();
+        e.conf.set_input_mode(InputMode::Classic);
+        e.conf.set_output_mode(crate::config::OutputMode::Hanji);
+
+        buf.insert(&e, '<')?;
+        assert_eq!(buf.candidates.len(), 2);
+        assert_eq!(buf.candidates[0].display_text().as_str(), "〈");
+        assert_eq!(buf.candidates[1].display_text().as_str(), "《");
+        Ok(())
+    }
+
+    #[test_log::test]
+    fn it_does_not_pop_a_menu_for_a_lone_non_syllable_letter() -> Result<()> {
+        // Counterpart to the punctuation fix: a lone non-syllable letter such
+        // as "q" must still short-circuit (no menu), preserving the freeze fix.
+        let (mut e, mut buf) = test_harness();
+        e.conf.set_input_mode(InputMode::Classic);
+        e.conf.set_output_mode(crate::config::OutputMode::Hanji);
+
+        buf.insert(&e, 'q')?;
+        assert!(buf.candidates.is_empty());
+        assert_eq!(buf.composition.raw_text().as_str(), "q");
         Ok(())
     }
 }
