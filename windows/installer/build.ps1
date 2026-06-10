@@ -2,7 +2,7 @@ $windowsDir = Split-Path -Path $PSScriptRoot -Parent
 $workspaceDir = Split-Path -Path $windowsDir -Parent
 $targetDir = "$workspaceDir\target"
 
-$version = "0.3.2"
+$version = "0.3.3"
 $x86toolchain = "i686-pc-windows-msvc"
 $x64toolchain = "x86_64-pc-windows-msvc"
 $tipDll = "khiin_windows.dll"
