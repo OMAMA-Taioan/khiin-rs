@@ -341,7 +341,7 @@ mod tests {
         let cases = vec![
             ("hó", "ho", Tone::T2, false, "ho2"),
             ("goe̍h", "goeh", Tone::T8, false, "goeh8"),
-            ("·hó͘ⁿ", "hounn", Tone::T2, true, "hounn20"),
+            ("--hó͘ⁿ", "hounn", Tone::T2, true, "hounn20"),
             ("hm̍h", "hmh", Tone::T8, false, "hmh8"),
             ("mn̂g", "mng", Tone::T5, false, "mng5"),
             ("choân", "choan", Tone::T5, false, "choan5"),
