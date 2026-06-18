@@ -110,7 +110,9 @@ impl Engine {
                         && self.inner.conf.input_mode() == InputMode::Classic
                         && self.buffer_mgr.is_focused()
                     {
-                        let idx = ch.to_digit(10).unwrap() as usize;
+                        // Convert key to index: 1->0, 2->1, ..., 9->8, 0->9
+                        let digit = ch.to_digit(10).unwrap() as usize;
+                        let idx = if digit == 0 { 9 } else { digit - 1 };
                         self.buffer_mgr
                             .focus_candidate_by_index(&self.inner, idx);
                         // check is candidate is action
