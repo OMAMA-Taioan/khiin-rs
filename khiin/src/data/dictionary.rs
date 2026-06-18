@@ -116,10 +116,10 @@ mod tests {
         let dict = setup();
         assert_eq!(dict.is_legal_syllable_prefix("lai"), true);
         assert_eq!(dict.is_legal_syllable_prefix("app"), false);
-        assert_eq!(dict.is_legal_syllable_prefix("kio͘"), true);
+        assert_eq!(dict.is_legal_syllable_prefix("kiou"), true);
 
         assert_eq!(dict.is_legal_syllable("app"), false);
-        assert_eq!(dict.is_legal_syllable("kio͘"), true);
+        assert_eq!(dict.is_legal_syllable("kiou"), true);
         assert_eq!(dict.is_legal_syllable("chh"), false);
         assert_eq!(dict.is_legal_syllable("chhi"), true);
         assert_eq!(dict.is_legal_syllable("chhia"), true);
@@ -144,9 +144,9 @@ mod tests {
             kesisimchongbapihlaikoesineiesithekuibinlongsibaksaikapphinn\
             kouchebengbengsitikoesinchinchengsiutiohchintoaethongkhou";
         let expected =
-            "gou tui tiunn kin ku ka siok the kiong e chuliau chite siaulianke \
-            si sim chong ba pih lai koe sin e i e sithe kui bin long si \
-            baksai kap phinn kou che bengbeng si ti koe sin chincheng siutioh \
+            "gou tui tiunn kinku ka siok thekiong e chuliau chite siaulianke \
+            si simchong ba pih lai koesin e i e sithe kui bin long si \
+            baksai kap phinnkou che bengbeng si ti koesin chincheng siutioh \
             chin toa e thongkhou";
 
         let result = dict.segment(input).expect("Could not segment text");

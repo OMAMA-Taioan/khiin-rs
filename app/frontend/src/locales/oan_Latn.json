@@ -22,12 +22,9 @@
             "light": "Kng-sek",
             "dark": "Àm-sek",
             "language": "Kài-bīn Gí-bûn",
-            "font-size": "Kéng jī chhun-chhioh",
-            "xs": "Khah sè",
-            "sm": "Sè",
-            "md": "Tiong",
-            "lg": "Tōa",
-            "xl": "Khah tōa",
+            "font-size": "Me-niú Tōa-sè Jī",
+            "sm": "Sè Jī",
+            "lg": "Tōa Jī",
             "font": "Kéng jī jī-kut"
         },
         "input": {

@@ -3,6 +3,9 @@ import { writable } from "svelte/store";
 export const count = writable(0);
 
 export const settings = writable({
+    appearance: {
+        locale: 'oan_Han',
+    },
     candidates: {
         color: "auto",
         font_size: 16,

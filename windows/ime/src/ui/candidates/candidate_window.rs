@@ -101,7 +101,12 @@ impl CandidateWindow {
         let color = D2D1_COLOR_F::default();
         let brush =
             unsafe { window.target.CreateSolidColorBrush(&color, None)? };
-        let metrics = Metrics::new(0.0);
+        let mut user_path = std::env::var("APPDATA").unwrap_or_default();
+        user_path.push_str("\\Khiin\\settings.toml");
+        let path = std::path::PathBuf::from(user_path);
+        let settings = khiin_settings::SettingsManager::load_from_file(&path).settings;
+        let scale = if settings.candidates.font_size >= 20 { 0.27 } else { 0.0 };
+        let metrics = Metrics::new(scale);
         let textformat = window
             .factory
             .create_text_format(FONT_NAME, metrics.font_size)?;
@@ -134,6 +139,29 @@ impl CandidateWindow {
             DW_STYLE.0,
             DW_EX_STYLE.0,
         )?;
+        Ok(())
+    }
+
+    pub fn reload_metrics(&self) -> Result<()> {
+        let mut user_path = std::env::var("APPDATA").unwrap_or_default();
+        user_path.push_str("\\Khiin\\settings.toml");
+        let path = std::path::PathBuf::from(user_path);
+        let settings = khiin_settings::SettingsManager::load_from_file(&path).settings;
+        let scale = if settings.candidates.font_size >= 20 { 0.27 } else { 0.0 };
+        let metrics = Metrics::new(scale);
+        
+        let window = self.window.borrow();
+        let textformat = window
+            .factory
+            .create_text_format(FONT_NAME, metrics.font_size)?;
+        let textformat_sm = window
+            .factory
+            .create_text_format(FONT_NAME, metrics.font_size_sm)?;
+
+        self.metrics.replace(metrics);
+        self.textformat.replace(textformat);
+        self.textformat_sm.replace(textformat_sm);
+
         Ok(())
     }
 
@@ -222,6 +250,7 @@ impl CandidateWindow {
             self.min_col_width(),
             padding,
             self.metrics.borrow().qs_col_w,
+            self.metrics.borrow().annotation_size,
             max_size,
         )?;
 

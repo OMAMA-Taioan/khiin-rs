@@ -390,10 +390,18 @@ impl TextService {
             x.send_command(cmd).map_err(|_| fail!());
         }
 
+        if let Ok(cand_ui) = self.candidate_list_ui.try_borrow() {
+            if let Some(cand_ui) = cand_ui.as_ref() {
+                let cand_ui = unsafe { cand_ui.as_impl() };
+                let _ = cand_ui.reload_metrics();
+            }
+        }
+
         self.config.replace(Some(config));
         if let Ok(mut mgr) = self.composition_mgr.write() {
             mgr.refresh_input_mode(input_mode == AppInputMode::MANUAL);
         }
+        self.refresh_lang_bar_icon();
         Ok(())
     }
 
@@ -430,6 +438,7 @@ impl TextService {
             if let Ok(mut mgr) = self.composition_mgr.write() {
                 mgr.refresh_input_mode(is_manual);
             }
+            self.refresh_lang_bar_icon();
         }
         Ok(())
     }
@@ -760,6 +769,22 @@ impl TextService {
         }
         return false;
     }
+
+    pub fn is_candidate_list_open(&self) -> bool {
+        if let Some(cmd) = self.current_command.borrow().as_ref() {
+            !cmd.response.candidate_list.candidates.is_empty()
+        } else {
+            false
+        }
+    }
+
+    pub fn is_candidate_focused(&self) -> bool {
+        if let Some(cmd) = self.current_command.borrow().as_ref() {
+            cmd.response.candidate_list.focused >= 0
+        } else {
+            false
+        }
+    }
 }
 
 // Private portion
@@ -1022,6 +1047,17 @@ impl TextService {
         self.lang_bar_indicator.borrow().clone().unwrap()
     }
 
+    /// Tell the language bar indicator to re-draw its icon so the "CT"/"CI"
+    /// mode label reflects the current input mode.
+    fn refresh_lang_bar_icon(&self) {
+        if let Ok(indicator) = self.lang_bar_indicator.try_borrow() {
+            if let Some(button) = indicator.as_ref() {
+                let indicator = unsafe { button.as_impl() };
+                let _ = indicator.refresh_icon();
+            }
+        }
+    }
+
     // candidate ui
     fn init_candidate_ui(&self) -> Result<()> {
         self.candidate_list_ui
@@ -1132,19 +1168,21 @@ impl ITfCompositionSink_Impl for TextService {
         ecwrite: u32,
         composition: Option<&ITfComposition>,
     ) -> Result<()> {
-        // TODO: send command
-        // self.engine()
-        //     .try_read()
-        //     .map_err(|_| Error::from(E_FAIL))?
-        //     .reset()?;
-        if let Some(comp) = composition {
-            unsafe {
-                comp.EndComposition(ecwrite)?;
-            }
-            self.composition_mgr
-                .try_read()
-                .map_err(|_| fail!())?
-                .cancel_composition(ecwrite)?;
+        // if let Some(comp) = composition {
+        //     unsafe {
+        //         comp.EndComposition(ecwrite)?;
+        //     }
+        //     self.composition_mgr
+        //         .try_read()
+        //         .map_err(|_| fail!())?
+        //         .cancel_composition(ecwrite)?;
+        // }
+        // TSF is notifying us that the composition has been terminated.
+        // We should NOT call EndComposition here — TSF is already handling
+        // the termination. We only need to clean up our internal state.
+        log::debug!("OnCompositionTerminated called");
+        if let Ok(mgr) = self.composition_mgr.try_read() {
+            mgr.reset()?;
         }
         Ok(())
     }

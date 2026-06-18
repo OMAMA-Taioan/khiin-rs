@@ -84,13 +84,13 @@ impl Syllable {
             || self.tone == Tone::T1
             || self.tone == Tone::T4
         {
-            return ret;
+            return to_khiin_encoding(&ret);
         }
 
         if let Some(pos) = get_tone_position(&ret) {
             if let Some(tone_char) = tone_to_char(&self.tone) {
                 ret.insert(pos + 1, tone_char.to_owned());
-                return ret.nfc().collect::<String>();
+                return to_khiin_encoding(&ret);
             }
         }
 
@@ -130,6 +130,15 @@ impl Syllable {
 
         let (mut stripped, tone) = strip_tone_diacritic(input);
         let khin = strip_khin(&mut stripped);
+
+        // Reverse the diaeresis-below digraphs back to their key sequences
+        // (ṳ -> eu, o̤ -> eo). strip_tone_diacritic has already removed the tone
+        // mark and nfd-decomposed the vowel, leaving the base vowel + U+0324.
+        stripped = stripped
+            .replace("u\u{0324}", "eu")
+            .replace("U\u{0324}", "Eu")
+            .replace("o\u{0324}", "eo")
+            .replace("O\u{0324}", "Eo");
 
         // 创建两个替换规则集
         let replacements_o = vec![
@@ -234,6 +243,20 @@ impl Syllable {
     }
 }
 
+/// Normalizes a composed syllable to khiin's canonical encoding, matching the
+/// dictionary database:
+///   * `ṳ` uses the precomposed U+1E73 (e.g. `ṳ́` = U+1E73 U+0301)
+///   * `o̤` keeps `o` + U+0324, applying any precomposed letter+tone form
+///     (e.g. `ó̤` = U+00F3 U+0324)
+///   * for the T8 `o̤̍`, which has no precomposed letter+tone form, the tone
+///     mark precedes the diaeresis below: `o` U+030D U+0324
+fn to_khiin_encoding(s: &str) -> String {
+    let nfc: String = s.nfc().collect();
+    // NFC orders the diaeresis below (ccc 220) before the vertical line above
+    // (ccc 230), but the dictionary stores the tone mark first; swap to match.
+    nfc.replace("\u{0324}\u{030d}", "\u{030d}\u{0324}")
+}
+
 fn get_tone_char(tone: Tone) -> Option<char> {
     match tone {
         Tone::None => None,
@@ -276,6 +299,21 @@ mod tests {
     }
 
     #[test]
+    fn it_encodes_diaeresis_below_consistently() {
+        // ṳ family: precomposed U+1E73 base, tone mark on top
+        assert_eq!(Syllable::from_raw("teu").compose(), "t\u{1e73}");
+        assert_eq!(Syllable::from_raw("teu2").compose(), "t\u{1e73}\u{0301}");
+        assert_eq!(Syllable::from_raw("teu8").compose(), "t\u{1e73}\u{030d}");
+        assert_eq!(Syllable::from_raw("TEU").compose(), "T\u{1e72}");
+        // o̤ family: o + U+0324, with precomposed letter+tone where it exists
+        assert_eq!(Syllable::from_raw("teo").compose(), "to\u{0324}");
+        assert_eq!(Syllable::from_raw("teo2").compose(), "t\u{f3}\u{0324}");
+        assert_eq!(Syllable::from_raw("teo7").compose(), "t\u{14d}\u{0324}");
+        // T8 o̤̍ has no precomposed form: tone mark precedes the diaeresis below
+        assert_eq!(Syllable::from_raw("teo8").compose(), "to\u{030d}\u{0324}");
+    }
+
+    #[test]
     fn it_parses_nasal_n() {
         assert_eq!(Syllable::from_raw("ann3").compose(), "àⁿ");
         assert_eq!(Syllable::from_raw("hahnn9").compose(), "hăhⁿ");
@@ -303,7 +341,7 @@ mod tests {
         let cases = vec![
             ("hó", "ho", Tone::T2, false, "ho2"),
             ("goe̍h", "goeh", Tone::T8, false, "goeh8"),
-            ("·hó͘ⁿ", "hounn", Tone::T2, true, "hounn20"),
+            ("--hó͘ⁿ", "hounn", Tone::T2, true, "hounn20"),
             ("hm̍h", "hmh", Tone::T8, false, "hmh8"),
             ("mn̂g", "mng", Tone::T5, false, "mng5"),
             ("choân", "choan", Tone::T5, false, "choan5"),
@@ -317,6 +355,44 @@ mod tests {
             assert_eq!(syl.compose(), case.0);
             assert_eq!(syl.raw_input, case.4);
         }
+    }
+
+    #[test]
+    fn it_parses_diaeresis_below_from_composed() {
+        // ṳ / o̤ must reverse-map to their "eu" / "eo" key sequences
+        let cases = vec![
+            ("t\u{1e73}", "teu", Tone::T1, "teu1"),
+            ("t\u{1e73}\u{0301}", "teu", Tone::T2, "teu2"),
+            ("t\u{1e73}\u{030d}", "teu", Tone::T8, "teu8"),
+            ("to\u{0324}", "teo", Tone::T1, "teo1"),
+            ("t\u{f3}\u{0324}", "teo", Tone::T2, "teo2"),
+            ("to\u{030d}\u{0324}", "teo", Tone::T8, "teo8"),
+        ];
+        for case in cases {
+            let syl = Syllable::from_composed(case.0);
+            let syl = syl.first().unwrap();
+            assert_eq!(syl.raw_body, case.1);
+            assert_eq!(syl.tone, case.2);
+            assert_eq!(syl.raw_input, case.3);
+            assert_eq!(syl.compose(), case.0);
+        }
+    }
+
+    #[test]
+    fn it_aligns_diaeresis_below_conversion() {
+        // Classic mode: typing "teu" then selecting "tṳ" must consume all three
+        // raw chars, not just the leading "t".
+        let (n, syl) =
+            Syllable::from_conversion_alignment("teu", "t\u{1e73}")
+                .expect("Could not align ṳ conversion");
+        assert_eq!(n, 3);
+        assert_eq!(syl.raw_body, "teu");
+
+        let (n, syl) =
+            Syllable::from_conversion_alignment("teo", "to\u{0324}")
+                .expect("Could not align o̤ conversion");
+        assert_eq!(n, 3);
+        assert_eq!(syl.raw_body, "teo");
     }
 
     #[test]

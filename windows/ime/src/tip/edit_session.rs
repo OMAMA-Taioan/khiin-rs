@@ -29,7 +29,10 @@ where
 
     match result {
         Ok(_) => Ok(()),
-        Err(_) => panic!("Something bad happened!"),
+        Err(e) => {
+            log::error!("RequestEditSession failed: {:?}", e);
+            Err(e)
+        },
     }
 }
 

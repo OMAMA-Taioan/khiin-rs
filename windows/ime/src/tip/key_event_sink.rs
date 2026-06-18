@@ -76,7 +76,12 @@ pub fn handle_key(
     context: ITfContext,
     key_event: KeyEvent,
 ) -> Result<()> {
-    let khi = key_event.to_khiin();
+    let mut khi = key_event.to_khiin();
+    let service: &TextService = unsafe { tip.as_impl() };
+    if service.is_candidate_list_open() && key_event.keycode == VK_RIGHT.0 as u32 {
+        khi.special_key = SpecialKey::SK_ENTER.into();
+    }
+
     let mut req = Request::new();
     req.id = rand::random::<u32>();
     req.type_ = CommandType::CMD_SEND_KEY.into();
@@ -294,6 +299,12 @@ impl KeyEventSink {
             return Ok(TRUE);
         }
 
+        if service.is_classic_mode() && key_event.keycode == VK_LEFT.0 as u32 {
+            service.cancel_composition(context.clone())?;
+            send_reset_command(self.tip.clone())?;
+            return Ok(TRUE);
+        }
+
         if self.ctrl_pressed.get() {
             if key_event.keycode == VK_OEM_3.0 as u32
                 && service.input_mode_shortcut_is_shift() == false
@@ -356,8 +367,40 @@ impl KeyEventSink {
                 Err(_) => String::new(),
             };
             let punctuations = ".,!?()'\":<>;+=_[]「」‘’『』々〱〈《<«〉》>»+＋⁺+⁺=·＝〓_—＿⁻_—⁻〔【〖〕】〗";
-            if text.len() > 0
-                && punctuations.contains(text.chars().last().unwrap())
+            let ends_with_punct = text.len() > 0
+                && punctuations.contains(text.chars().last().unwrap());
+
+            // Punctuation candidate menu is open but no candidate is focused:
+            // pressing a digit releases (commits) the buffer and emits the digit
+            // literally, without feeding it back to the engine as new input.
+            if ends_with_punct
+                && is_ascii_digit(&key_event)
+                && service.is_candidate_list_open()
+                && !service.is_candidate_focused()
+            {
+                let ch = key_event.ascii as char;
+                service
+                    .commit_all_with_suffix(context.clone(), &ch.to_string())?;
+                // Explicitly close the menu: the async reset response is dropped
+                // by handle_command (its context isn't cached), so it never
+                // cancels the composition / candidate UI on its own.
+                service.cancel_composition(context.clone())?;
+                send_reset_command(self.tip.clone())?;
+                return Ok(TRUE);
+            }
+
+            // When a punctuation candidate menu is open, navigation keys (space,
+            // arrows, tab, enter) — and a digit once a candidate is focused —
+            // must reach the engine to navigate/select instead of pre-committing
+            // the raw punctuation and closing the menu.
+            let selecting_in_menu = service.is_candidate_list_open()
+                && (key_event.to_khiin().special_key.enum_value_or_default()
+                    != SpecialKey::SK_NONE
+                    || (is_ascii_digit(&key_event)
+                        && service.is_candidate_focused()));
+            if !selecting_in_menu
+                && ends_with_punct
+                && !service.is_hyphen_or_khin_key(key_event.ascii as char)
             {
                 service.commit_all_with_suffix(context.clone(), "")?;
                 send_reset_command(self.tip.clone())?;

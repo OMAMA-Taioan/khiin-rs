@@ -47,7 +47,7 @@ use crate::utils::WinGuid;
 //     HKEY_CURRENT_USER\Software\Khiin PJH\Settings
 // Look for the `DebugLock` value and delete it in order to run the app.
 #[cfg(debug_assertions)]
-static ENABLE_DEBUG_LOCK: bool = true;
+static ENABLE_DEBUG_LOCK: bool = false;
 
 static DLL_INSTANCE: OnceCell<DllModule> = OnceCell::new();
 const IDS_TEXT_SERVICE_DISPLAY_NAME: u32 = 101;

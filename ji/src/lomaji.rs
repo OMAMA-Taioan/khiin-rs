@@ -125,9 +125,12 @@ pub fn get_tone_position(syllable: &str) -> Option<usize> {
 }
 
 pub fn has_tone_letter(syllable: &str) -> bool {
+    // Normalize first so precomposed vowels (e.g. ṳ = U+1E73) expose their
+    // base letter to the ASCII tone-letter patterns.
+    let normalized: String = syllable.nfd().collect();
     TONE_LETTER_PATTERNS
         .iter()
-        .any(|(pat, _)| pat.is_match(syllable))
+        .any(|(pat, _)| pat.is_match(&normalized))
 }
 
 pub fn tone_char_to_index(ch: char) -> Option<usize> {
@@ -260,6 +263,15 @@ mod tests {
         assert_eq!(get_tone_position("phainn").unwrap(), 2);
         assert_eq!(get_tone_position("khoai").unwrap(), 3);
         assert_eq!(get_tone_position("xyz"), None);
+    }
+
+    #[test]
+    fn it_detects_tone_letter_in_precomposed() {
+        // Precomposed ṳ (U+1E73) must still be recognized as a tone letter so
+        // that a following tone key gets applied instead of appended.
+        assert!(has_tone_letter("t\u{1e73}"));
+        assert!(has_tone_letter("to\u{0324}"));
+        assert!(!has_tone_letter("t"));
     }
 
     #[test]

@@ -6,6 +6,10 @@ static FONT_SIZE_SM: Range = Range {
     min: 16.0,
     max: 20.0,
 };
+static ANNOTATION_SIZE: Range = Range {
+    min: 10.0,
+    max: 20.0,
+};
 static PADDING: Range = Range {
     min: 8.0,
     max: 12.0,
@@ -46,6 +50,7 @@ pub struct Metrics {
     pub marker_h: f32,
     pub font_size: f32,
     pub font_size_sm: f32,
+    pub annotation_size: f32,
     pub row_height: f32,
     pub min_col_w_single: i32,
     pub min_col_w_multi: i32,
@@ -62,6 +67,8 @@ impl Metrics {
         let marker_h = BUBBLE_HEIGHT.scale(s);
         let row_height = font_size + padding;
 
+        let annotation_size = ANNOTATION_SIZE.scale(s);
+
         Self {
             padding,
             padding_sm,
@@ -69,6 +76,7 @@ impl Metrics {
             marker_h,
             font_size,
             font_size_sm,
+            annotation_size,
             row_height,
             min_col_w_single: 80,
             min_col_w_multi: 160,

@@ -10,13 +10,17 @@
     import { invoke } from "@tauri-apps/api/tauri";
     // import { listen, type UnlistenFn } from '@tauri-apps/api/event'
     import { onMount, onDestroy } from "svelte";
-    import { isLoading } from "svelte-i18n";
+    import { isLoading, locale } from "svelte-i18n";
     import { settings } from "./store.js";
 
     async function loadSettings() {
         try {
             const db_settings = await invoke("load_settings");
-            settings.set(JSON.parse(db_settings));
+            const parsed = JSON.parse(db_settings);
+            settings.set(parsed);
+            if (parsed?.appearance?.locale) {
+                locale.set(parsed.appearance.locale);
+            }
         } catch (error) {
             console.error("Error loading settings:", error);
         }

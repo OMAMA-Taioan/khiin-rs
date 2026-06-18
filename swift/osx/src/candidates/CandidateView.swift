@@ -37,8 +37,12 @@ struct CandidateItem: View {
     var index: Int
     var focus: Int
     var candidate: Khiin_Proto_Candidate
+    @AppStorage("largeCandidateFont") var largeCandidateFont: Bool = false
 
     var body: some View {
+        let valueFontSize: CGFloat = largeCandidateFont ? 18.0 : 14.0
+        let annotationFontSize: CGFloat = largeCandidateFont ? 11.5 : 9.0
+
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 0) {
                 RoundedRectangle(
@@ -53,8 +57,8 @@ struct CandidateItem: View {
                     Text("\(index).")
                         .frame(minWidth: 16)
                 }
-                Text(candidate.value).font(.system(size: 14.0))
-                formatAnnotation(from: candidate.annotation)
+                Text(candidate.value).font(.system(size: valueFontSize))
+                formatAnnotation(from: candidate.annotation, fontSize: annotationFontSize)
             }
             .frame(height: 24)
             .padding(.horizontal, 8)
@@ -69,22 +73,22 @@ struct CandidateItem: View {
         )
     }
 
-    func formatAnnotation(from annotation: String) -> Text {
+    func formatAnnotation(from annotation: String, fontSize: CGFloat) -> Text {
         if !annotation.contains(Character("+")) {
-            return Text(annotation).font(.system(size: 9.0))
+            return Text(annotation).font(.system(size: fontSize))
         }
         var result = Text("")
         var preString: String = ""
         for character in annotation {
             if character == "+" {
-                result = result + Text(preString).underline().font(.system(size: 9.0))
+                result = result + Text(preString).underline().font(.system(size: fontSize))
                 preString = ""
             } else {
-                result = result + Text(preString).font(.system(size: 9.0))
+                result = result + Text(preString).font(.system(size: fontSize))
                 preString = String(character);
             }
         }
-        result = result + Text(preString).font(.system(size: 9.0))
+        result = result + Text(preString).font(.system(size: fontSize))
         return result
     }
 }
