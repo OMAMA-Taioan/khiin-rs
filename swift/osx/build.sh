@@ -92,7 +92,7 @@ pkgbuild \
     --info assets/PackageInfo \
     --root $build_dir/KhiinPJH.app \
     --identifier app.khiin.inputmethod.khiin \
-    --version "0.3.3" \
+    --version "0.3.4" \
     --install-location "/tmp/KhiinPJH.app" \
     --scripts assets/scripts \
-    "$build_dir/KhiinPJH-0.3.3.pkg"
+    "$build_dir/KhiinPJH-0.3.4.pkg"

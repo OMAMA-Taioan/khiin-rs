@@ -314,6 +314,9 @@ impl TextService {
             comp_mgr.cancel_composition(ec)?;
             Ok(())
         })?;
+        self.current_command.replace(None);
+        self.is_editing_state.replace(false);
+        self.is_illegal_state.replace(false);
         Ok(())
     }
 
