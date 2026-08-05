@@ -299,7 +299,11 @@ impl KeyEventSink {
             return Ok(TRUE);
         }
 
-        if service.is_classic_mode() && key_event.keycode == VK_LEFT.0 as u32 {
+        if service.is_classic_mode()
+            && service.composing()
+            && service.is_editing()
+            && key_event.keycode == VK_LEFT.0 as u32
+        {
             service.cancel_composition(context.clone())?;
             send_reset_command(self.tip.clone())?;
             return Ok(TRUE);
