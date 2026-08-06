@@ -29,13 +29,15 @@ lipo \
 
 cargo build $BUILD_FLAG --target aarch64-apple-ios -p $PKG_NAME
 
-cargo build $BUILD_FLAG --target x86_64-apple-ios -p $PKG_NAME
+# NOTE: no x86_64 simulator slice. Xcode 26.6's clang rejects <math.h> for
+# x86_64-apple-ios-simulator ("_Float16 is not supported on this target"), so
+# every C dependency (libsqlite3-sys) fails to build for it. That slice is
+# only usable from an Intel Mac anyway.
 cargo build $BUILD_FLAG --target aarch64-apple-ios-sim -p $PKG_NAME
 mkdir -p ../../target/universal-ios/$BUILD_DIR
 
 lipo \
-    ../../target/aarch64-apple-ios-sim/$BUILD_DIR/lib$PKG_NAME.a \
-    ../../target/x86_64-apple-ios/$BUILD_DIR/lib$PKG_NAME.a -create -output \
+    ../../target/aarch64-apple-ios-sim/$BUILD_DIR/lib$PKG_NAME.a -create -output \
     ../../target/universal-ios/$BUILD_DIR/lib$PKG_NAME.a
 
 swift-bridge-cli \
