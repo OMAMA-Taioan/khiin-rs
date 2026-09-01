@@ -544,4 +544,25 @@ mod tests {
         assert_eq!(res.committed_text, "2024".to_string());
         Ok(())
     }
+
+    #[test_log::test]
+    fn it_direct_commits_a_tilde_as_a_fullwidth_tilde_classic() -> Result<()> {
+        // Classic / Hanji-first: "~" is direct output, so it commits "〜"
+        // (U+301C) on the spot with no candidate menu, the way Windows does.
+        // Lomaji-first commits the ASCII tilde the same way.
+        let mut engine = get_engine().unwrap();
+        engine.inner.conf.set_input_mode(InputMode::Classic);
+        engine.inner.conf.set_output_mode(OutputMode::Hanji);
+
+        let res = engine.on_send_key(mock_send_key_request('~'))?;
+        assert!(res.committed);
+        assert_eq!(res.committed_text, "〜".to_string());
+        assert!(res.candidate_list.candidates.is_empty());
+
+        engine.inner.conf.set_output_mode(OutputMode::Lomaji);
+        let res = engine.on_send_key(mock_send_key_request('~'))?;
+        assert!(res.committed);
+        assert_eq!(res.committed_text, "~".to_string());
+        Ok(())
+    }
 }

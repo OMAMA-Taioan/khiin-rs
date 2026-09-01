@@ -162,6 +162,12 @@ extension KhiinInputController {
                         return self.handlePunctuation("+");
                     } else if (ch == "-" && modifiers.contains(.shift)) {
                         return self.handlePunctuation("_");
+                    } else if (ch == "`" && modifiers.contains(.shift)) {
+                        // Shift + backquote must reach the engine, which
+                        // direct-outputs "~" as "〜" in Hanji-first, like
+                        // Windows does. Falling through would let the system
+                        // insert a plain ASCII tilde instead.
+                        return self.handlePunctuation("~");
                     }
                 }
             default:
