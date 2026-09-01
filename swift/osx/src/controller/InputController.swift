@@ -101,8 +101,14 @@ class KhiinInputController: IMKInputController {
         return EngineController.instance.isHanjiFirst();
     }
 
+    // Case-insensitive: the engine lower-cases the key before matching it
+    // against the configured hyphen/khin keys, so a shifted "D"/"V" is still
+    // the hyphen/khin key here.
     func isHyphenOrKhinKey(_ char: String) -> Bool {
-        return isEdited() && (char == EngineController.instance.hyphenKey() || char == EngineController.instance.khinKey())
+        let key = char.lowercased()
+        return isEdited()
+            && (key == EngineController.instance.hyphenKey().lowercased()
+                || key == EngineController.instance.khinKey().lowercased())
     }
 
     func getCommitedText() -> String {

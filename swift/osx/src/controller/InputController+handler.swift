@@ -89,7 +89,12 @@ extension KhiinInputController {
                     // check previous char is punctuation
                     let punctuations = ".,!?()'\":<>;+=_[]「」‘’『』々〱〈《<«〉》>»+＋⁺+⁺=·＝〓_—＿⁻_—⁻〔【〖〕】〗"
                     let text = self.currentDisplayText()
-                    if (text.count > 0 && punctuations.contains(text.last!)) {
+                    // A second hyphen/khin key must reach the engine so it can
+                    // cancel the punctuation it just inserted (d+d -> "d",
+                    // v+v -> "v") and release the buffer for foreign typing.
+                    // Committing here would swallow it instead.
+                    if (text.count > 0 && punctuations.contains(text.last!)
+                        && !self.isHyphenOrKhinKey(char)) {
                         _ = self.commitCurrent();
                         self.candidateViewModel.reset()
                     }

@@ -210,10 +210,16 @@ impl BufferMgr {
         //     return Ok(());
         // }
 
+        // A classic-mode buffer that a doubled hyphen/khin key released to
+        // foreign typing must stay released while it is edited, otherwise
+        // backspacing "dog" would hand "do" back to the syllable builder.
+        let was_released = self.edit_state == EditState::ES_ILLEGAL;
+
         self.edit_state = EditState::ES_COMPOSING;
 
         match engine.conf.input_mode() {
             InputMode::Continuous => self.pop_continuous(engine),
+            InputMode::Classic if was_released => self.pop_released_classic(),
             InputMode::Classic => self.pop_classic(engine),
             InputMode::Manual => self.pop_manual(engine),
         }
@@ -431,6 +437,22 @@ impl BufferMgr {
 
     fn insert_classic(&mut self, engine: &EngInner, ch: char) -> Result<()> {
         debug!("BufferMgr::insert_classic ({})", ch);
+
+        // Once a doubled hyphen/khin key has released the buffer to foreign
+        // typing, keep appending raw text instead of composing syllables, the
+        // same way manual mode does, so that Taiwanese and English can be
+        // mixed in a single buffer.
+        if self.edit_state == EditState::ES_ILLEGAL {
+            let mut raw_input = self.composition.raw_text();
+            raw_input.push(ch);
+            self.candidates.clear();
+            self.reset_focus();
+            self.composition = Buffer::new();
+            self.composition.push(StringElem::from(raw_input).into());
+            self.char_caret = self.composition.display_char_count();
+            return Ok(());
+        }
+
         self.edit_state = EditState::ES_COMPOSING;
 
         let mut raw_input = self.composition.raw_text();
@@ -452,6 +474,27 @@ impl BufferMgr {
         raw_input.pop();
 
         self.build_composition_classic(engine, raw_input, ch)
+    }
+
+    // Backspace on a classic-mode buffer that was released to foreign typing:
+    // drop the last raw character and stay released, so the trailing "d"/"v"
+    // is not read back as a hyphen/khin key.
+    fn pop_released_classic(&mut self) -> Result<()> {
+        debug!("BufferMgr::pop_released_classic ");
+        let mut raw_input = self.composition.raw_text();
+        raw_input.pop();
+
+        if raw_input.is_empty() {
+            return self.reset();
+        }
+
+        self.edit_state = EditState::ES_ILLEGAL;
+        self.candidates.clear();
+        self.reset_focus();
+        self.composition = Buffer::new();
+        self.composition.push(StringElem::from(raw_input).into());
+        self.char_caret = self.composition.display_char_count();
+        Ok(())
     }
 
     fn attach_hypen_candicate(&mut self) {
@@ -479,6 +522,17 @@ impl BufferMgr {
         }
     }
 
+    // Typing the hyphen or khin key twice in a row cancels the punctuation it
+    // had inserted and leaves the plain letter behind (e.g. "d" + "d" -> "d").
+    // That letter is meant as foreign text, so the buffer is released from
+    // Taiwanese composition: no candidates, and everything typed afterwards is
+    // kept raw until the buffer is committed. Manual mode does the same.
+    fn release_buffer(&mut self) {
+        self.edit_state = EditState::ES_ILLEGAL;
+        self.candidates.clear();
+        self.reset_focus();
+    }
+
     fn build_composition_classic(
         &mut self,
         engine: &EngInner,
@@ -497,12 +551,12 @@ impl BufferMgr {
                         raw_input.push(engine.conf.khin());
                     }
                     raw_input.push(ch);
-                    self.candidates.clear();
+                    self.release_buffer();
                 } else if raw_input.ends_with("-") {
                     let len = raw_input.len();
                     raw_input.remove(len - 1);
                     raw_input.push(ch);
-                    self.candidates.clear();
+                    self.release_buffer();
                 } else {
                     raw_input.push('-');
                 }
@@ -511,7 +565,7 @@ impl BufferMgr {
                     let len: usize = raw_input.len();
                     raw_input.remove(len - 1);
                     raw_input.push(ch);
-                    self.candidates.clear();
+                    self.release_buffer();
                 } else {
                     raw_input.push('-');
                 }
@@ -524,11 +578,11 @@ impl BufferMgr {
             && engine.conf.khin_mode() != KhinMode::Khinless)
         {
             if engine.conf.khin_mode() == KhinMode::Hyphen {
-                if raw_input.starts_with("--") {
+                if raw_input.ends_with("--") {
                     let len = raw_input.len();
                     raw_input.replace_range(len - 2..len, "");
                     raw_input.push(ch);
-                    self.candidates.clear();
+                    self.release_buffer();
                 } else if raw_input.ends_with("-") {
                     let len: usize = raw_input.len();
                     raw_input.remove(len - 1);
@@ -539,7 +593,7 @@ impl BufferMgr {
                         raw_input.push(engine.conf.hyphen());
                     }
                     raw_input.push(ch);
-                    self.candidates.clear();
+                    self.release_buffer();
                 } else {
                     raw_input.push_str("--");
                 }
@@ -548,7 +602,7 @@ impl BufferMgr {
                     let len = raw_input.len();
                     raw_input.replace_range(len - 3..len, "");
                     raw_input.push(ch);
-                    self.candidates.clear();
+                    self.release_buffer();
                 } else if raw_input.ends_with("-·") {
                     let len = raw_input.len();
                     raw_input.replace_range(len - 3..len, "");
@@ -559,7 +613,7 @@ impl BufferMgr {
                         raw_input.push(engine.conf.hyphen());
                     }
                     raw_input.push(ch);
-                    self.candidates.clear();
+                    self.release_buffer();
                 } else if raw_input.ends_with("-") {
                     raw_input.push('·');
                 } else {
@@ -1443,6 +1497,90 @@ mod tests {
             assert_eq!(buf3.edit_state, EditState::ES_EMPTY);
             assert!(buf3.candidates.is_empty());
         }
+        Ok(())
+    }
+
+    #[test_log::test]
+    fn it_releases_the_buffer_on_a_doubled_hyphen_key_classic() -> Result<()> {
+        // Classic mode, hyphen khin mode: "d" inserts the hyphen, a second "d"
+        // cancels it and leaves a literal "d" with the buffer released for
+        // foreign typing, exactly like manual mode does.
+        let (mut e, mut buf) = test_harness();
+        e.conf.set_input_mode(InputMode::Classic);
+
+        buf.insert(&e, 'd')?;
+        assert_eq!(buf.composition.raw_text().as_str(), "-");
+        assert_eq!(buf.edit_state, EditState::ES_COMPOSING);
+
+        buf.insert(&e, 'd')?;
+        assert_eq!(buf.composition.raw_text().as_str(), "d");
+        assert_eq!(buf.edit_state, EditState::ES_ILLEGAL);
+        assert!(buf.candidates.is_empty());
+
+        // Released: the rest of the word stays raw instead of composing.
+        buf.insert(&e, 'o')?;
+        buf.insert(&e, 'g')?;
+        assert_eq!(buf.composition.raw_text().as_str(), "dog");
+        assert_eq!(buf.edit_state, EditState::ES_ILLEGAL);
+        assert!(buf.candidates.is_empty());
+
+        // ...and backspace does not hand it back to the syllable builder.
+        buf.pop(&e)?;
+        assert_eq!(buf.composition.raw_text().as_str(), "do");
+        assert_eq!(buf.edit_state, EditState::ES_ILLEGAL);
+        assert!(buf.candidates.is_empty());
+        Ok(())
+    }
+
+    #[test_log::test]
+    fn it_releases_the_buffer_on_a_doubled_khin_key_classic() -> Result<()> {
+        // Same for the khin key, in both khin modes: "v" inserts the khin
+        // marker, a second "v" cancels it and releases the buffer.
+        let (mut e, mut buf) = test_harness();
+        e.conf.set_input_mode(InputMode::Classic);
+        e.conf.set_khin_mode(KhinMode::Hyphen);
+
+        buf.insert(&e, 'v')?;
+        assert_eq!(buf.composition.raw_text().as_str(), "--");
+        assert_eq!(buf.edit_state, EditState::ES_COMPOSING);
+
+        buf.insert(&e, 'v')?;
+        assert_eq!(buf.composition.raw_text().as_str(), "v");
+        assert_eq!(buf.edit_state, EditState::ES_ILLEGAL);
+        assert!(buf.candidates.is_empty());
+
+        let (mut e2, mut buf2) = test_harness();
+        e2.conf.set_input_mode(InputMode::Classic);
+        e2.conf.set_khin_mode(KhinMode::Dot);
+
+        buf2.insert(&e2, 'v')?;
+        assert_eq!(buf2.composition.raw_text().as_str(), " \u{00b7}");
+        assert_eq!(buf2.edit_state, EditState::ES_COMPOSING);
+
+        buf2.insert(&e2, 'v')?;
+        assert_eq!(buf2.composition.raw_text().as_str(), "v");
+        assert_eq!(buf2.edit_state, EditState::ES_ILLEGAL);
+        assert!(buf2.candidates.is_empty());
+        Ok(())
+    }
+
+    #[test_log::test]
+    fn it_appends_a_khin_marker_after_a_syllable_classic() -> Result<()> {
+        // The doubled-key check must look at the end of the buffer, not the
+        // start: a leading "--" from an earlier khin must not make a later
+        // khin key eat the last two characters of the syllable.
+        let (mut e, mut buf) = test_harness();
+        e.conf.set_input_mode(InputMode::Classic);
+        e.conf.set_khin_mode(KhinMode::Hyphen);
+
+        for ch in "vgoa".chars() {
+            buf.insert(&e, ch)?;
+        }
+        assert_eq!(buf.composition.raw_text().as_str(), "--goa");
+
+        buf.insert(&e, 'v')?;
+        assert_eq!(buf.composition.raw_text().as_str(), "--goa--");
+        assert_eq!(buf.edit_state, EditState::ES_COMPOSING);
         Ok(())
     }
 

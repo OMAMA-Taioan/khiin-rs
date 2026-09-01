@@ -411,7 +411,13 @@ impl KeyEventSink {
             } else if text.len() > 0
                 && service.is_hyphen_or_khin_key(key_event.ascii as char)
                 && text.chars().last().unwrap().is_ascii_alphanumeric()
+                && !service.is_illegal()
             {
+                // A hyphen/khin key after a letter starts a new hyphen/khin, so
+                // the syllable before it is committed first — unless a doubled
+                // hyphen/khin key already released the buffer to foreign
+                // typing, where "d"/"v" are just letters of the word being
+                // typed (e.g. "dvd"). Manual mode guards the same way.
                 service.commit_all_with_suffix(context.clone(), "")?;
                 send_reset_command(self.tip.clone())?;
             } else if text.len() > 0

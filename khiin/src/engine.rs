@@ -435,6 +435,60 @@ mod tests {
         Ok(())
     }
 
+    #[test_log::test]
+    fn it_commits_a_released_buffer_on_space_classic() -> Result<()> {
+        // End-to-end: in classic mode a doubled hyphen key releases the buffer
+        // so foreign text is kept raw, and space commits it verbatim instead
+        // of selecting a candidate.
+        let mut engine = get_engine().unwrap();
+        engine.inner.conf.set_input_mode(InputMode::Classic);
+
+        for ch in "ddog".chars() {
+            engine.on_send_key(mock_send_key_request(ch))?;
+        }
+
+        let mut req = Request::default();
+        req.type_ = CommandType::CMD_SEND_KEY.into();
+        let mut ke = KeyEvent::default();
+        ke.special_key = SpecialKey::SK_SPACE.into();
+        req.key_event = Some(ke).into();
+
+        let res = engine.on_send_key(req)?;
+        assert!(res.committed);
+        assert_eq!(res.committed_text, "dog".to_string());
+        Ok(())
+    }
+
+    #[test_log::test]
+    fn it_survives_enter_after_a_doubled_hyphen_key_classic() -> Result<()> {
+        // Releasing the buffer clears the candidate list, so the focused index
+        // must be cleared with it: Enter looks the focused candidate up by
+        // index and would otherwise index an empty list.
+        let mut engine = get_engine().unwrap();
+        engine.inner.conf.set_input_mode(InputMode::Classic);
+
+        engine.on_send_key(mock_send_key_request('a'))?;
+
+        let mut space = Request::default();
+        space.type_ = CommandType::CMD_SEND_KEY.into();
+        let mut ke = KeyEvent::default();
+        ke.special_key = SpecialKey::SK_SPACE.into();
+        space.key_event = Some(ke).into();
+        engine.on_send_key(space)?;
+
+        engine.on_send_key(mock_send_key_request('d'))?;
+        engine.on_send_key(mock_send_key_request('d'))?;
+
+        let mut enter = Request::default();
+        enter.type_ = CommandType::CMD_SEND_KEY.into();
+        let mut ke = KeyEvent::default();
+        ke.special_key = SpecialKey::SK_ENTER.into();
+        enter.key_event = Some(ke).into();
+        let res = engine.on_send_key(enter)?;
+        assert!(res.committed);
+        Ok(())
+    }
+
     #[test]
     fn it_inserts_multiple_characters() -> Result<()> {
         let mut engine = get_engine().unwrap();
