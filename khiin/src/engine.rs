@@ -502,4 +502,46 @@ mod tests {
         assert_eq!(res.preedit.segments.len(), 1);
         Ok(())
     }
+
+    #[test_log::test]
+    fn it_types_digits_on_an_empty_buffer_like_manual_mode_classic(
+    ) -> Result<()> {
+        // A bare number typed in classic mode must behave exactly as it does
+        // in manual mode: the digits are held raw, no candidate menu opens for
+        // them, and they commit verbatim.
+        fn preedit_text(res: &Response) -> String {
+            res.preedit
+                .segments
+                .iter()
+                .map(|s| s.value.clone())
+                .collect()
+        }
+
+        let mut classic = get_engine().unwrap();
+        classic.inner.conf.set_input_mode(InputMode::Classic);
+        let mut manual = get_engine().unwrap();
+        manual.inner.conf.set_input_mode(InputMode::Manual);
+
+        let mut classic_res = Response::default();
+        let mut manual_res = Response::default();
+        for ch in "2024".chars() {
+            classic_res = classic.on_send_key(mock_send_key_request(ch))?;
+            manual_res = manual.on_send_key(mock_send_key_request(ch))?;
+            assert!(classic_res.candidate_list.candidates.is_empty());
+        }
+        assert_eq!(preedit_text(&classic_res), "2024".to_string());
+        assert_eq!(preedit_text(&classic_res), preedit_text(&manual_res));
+        assert!(!classic_res.committed);
+
+        let mut enter = Request::default();
+        enter.type_ = CommandType::CMD_SEND_KEY.into();
+        let mut ke = KeyEvent::default();
+        ke.special_key = SpecialKey::SK_ENTER.into();
+        enter.key_event = Some(ke).into();
+
+        let res = classic.on_send_key(enter)?;
+        assert!(res.committed);
+        assert_eq!(res.committed_text, "2024".to_string());
+        Ok(())
+    }
 }

@@ -1,6 +1,9 @@
 import SwiftUI
 import KhiinSwift
 
+private let focusIndicatorColor = Color(
+    red: 0xDA / 255, green: 0x3C / 255, blue: 0x86 / 255)
+
 struct CandidateView: View {
     @EnvironmentObject private var viewModel: CandidateViewModel
 
@@ -49,7 +52,7 @@ struct CandidateItem: View {
                     cornerRadius: 8, style: .continuous
                 )
                 .fill(
-                    index == focus ? .blue : .clear
+                    index == focus ? focusIndicatorColor : .clear
                 )
                 .frame(width: 4, height: 16)
 

@@ -442,11 +442,16 @@ impl BufferMgr {
         // typing, keep appending raw text instead of composing syllables, the
         // same way manual mode does, so that Taiwanese and English can be
         // mixed in a single buffer.
-        if self.edit_state == EditState::ES_ILLEGAL {
+        //
+        // A digit typed on an empty buffer releases it the same way: a bare
+        // number is plain text, not Taiwanese input, so it is kept raw and
+        // pops no candidate menu, exactly like manual mode.
+        if self.edit_state == EditState::ES_ILLEGAL
+            || (ch.is_ascii_digit() && self.composition.raw_text().is_empty())
+        {
             let mut raw_input = self.composition.raw_text();
             raw_input.push(ch);
-            self.candidates.clear();
-            self.reset_focus();
+            self.release_buffer();
             self.composition = Buffer::new();
             self.composition.push(StringElem::from(raw_input).into());
             self.char_caret = self.composition.display_char_count();
@@ -1595,6 +1600,54 @@ mod tests {
         buf.insert(&e, 'q')?;
         assert!(buf.candidates.is_empty());
         assert_eq!(buf.composition.raw_text().as_str(), "q");
+        Ok(())
+    }
+
+    #[test_log::test]
+    fn it_does_not_pop_a_menu_for_digits_on_an_empty_buffer_classic(
+    ) -> Result<()> {
+        // A bare number is plain text, not Taiwanese input: classic mode
+        // releases the buffer for it the way manual mode does, so the digits
+        // stay raw and no candidate menu is popped.
+        let (mut e, mut buf) = test_harness();
+        e.conf.set_input_mode(InputMode::Classic);
+        e.conf.set_output_mode(crate::config::OutputMode::Hanji);
+
+        buf.insert(&e, '5')?;
+        assert_eq!(buf.composition.raw_text().as_str(), "5");
+        assert_eq!(buf.edit_state, EditState::ES_ILLEGAL);
+        assert!(buf.candidates.is_empty());
+
+        // The digits that follow stay raw as well, no menu on any of them.
+        for ch in "024".chars() {
+            buf.insert(&e, ch)?;
+            assert!(buf.candidates.is_empty());
+        }
+        assert_eq!(buf.composition.raw_text().as_str(), "5024");
+        assert_eq!(buf.edit_state, EditState::ES_ILLEGAL);
+
+        // Backspace still walks back through the released buffer.
+        buf.pop(&e)?;
+        assert_eq!(buf.composition.raw_text().as_str(), "502");
+        assert_eq!(buf.edit_state, EditState::ES_ILLEGAL);
+        Ok(())
+    }
+
+    #[test_log::test]
+    fn it_still_takes_a_digit_as_a_tone_after_a_syllable_classic() -> Result<()>
+    {
+        // Only an empty buffer releases on a digit: a tone number typed after
+        // a syllable must still compose and show its candidates.
+        let (mut e, mut buf) = test_harness();
+        e.conf.set_input_mode(InputMode::Classic);
+        e.conf.set_tone_mode(crate::config::ToneMode::Numeric);
+
+        for ch in "goa2".chars() {
+            buf.insert(&e, ch)?;
+        }
+        assert_eq!(buf.composition.raw_text().as_str(), "goa2");
+        assert_eq!(buf.edit_state, EditState::ES_COMPOSING);
+        assert!(!buf.candidates.is_empty());
         Ok(())
     }
 }
