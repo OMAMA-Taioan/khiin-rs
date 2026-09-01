@@ -80,6 +80,15 @@ class KhiinInputController: IMKInputController {
         return self.candidateViewModel.currentCommand.response.editState == .esIllegal
     }
 
+    func isCandidateListOpen() -> Bool {
+        return !self.candidateViewModel
+            .currentCommand
+            .response
+            .candidateList
+            .candidates
+            .isEmpty
+    }
+
     func isManualMode() -> Bool {
         return EngineController.instance.isManualMode();
     }
@@ -168,6 +177,25 @@ class KhiinInputController: IMKInputController {
             EngineController.instance.reset()
             self.window?.setFrame(.zero, display: true)
         }
+        return true
+    }
+
+    // Ends the composition the same way the Windows IME does when the left
+    // arrow key cancels it: whatever is shown in the pre-edit is released to
+    // the client as-is, without sending a commit to the engine, then the
+    // candidate window and the buffer state are reset.
+    func releaseComposition() -> Bool {
+        guard let client = self.currentClient else {
+            return false
+        }
+
+        let text = self.currentDisplayText()
+        if (text.isEmpty) {
+            client.clearMarkedText()
+        } else {
+            client.insert(text)
+        }
+        self.reset()
         return true
     }
 

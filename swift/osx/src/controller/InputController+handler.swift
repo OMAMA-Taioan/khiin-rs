@@ -215,7 +215,23 @@ extension KhiinInputController {
                 case .arrow(Direction.up):
                     self.candidateViewModel.handleArrowUp()
                 case .arrow(Direction.down):
-                    self.candidateViewModel.handleArrowDown()                
+                    self.candidateViewModel.handleArrowDown()
+                case .arrow(Direction.left):
+                    // Classic mode drops out of the composition, like Windows:
+                    // the pre-edit is released as-is and the key is swallowed.
+                    if (self.isClassicMode()) {
+                        return self.releaseComposition()
+                    }
+                    _ = self.commitAll()
+                    self.candidateViewModel.reset()
+                    return false
+                case .arrow(Direction.right):
+                    // Like Windows: with the candidate menu open the right
+                    // arrow acts as enter, otherwise the engine ignores it.
+                    if (!self.isCandidateListOpen()) {
+                        return true
+                    }
+                    self.candidateViewModel.handleEnter()
                 default:
                     log.debug("default handled")
                     _ = self.commitAll();
