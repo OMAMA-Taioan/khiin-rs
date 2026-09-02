@@ -56,7 +56,7 @@ class KhiinInputController: IMKInputController {
     override func menu() -> NSMenu! {
         // 创建自定义菜单项
         let settingMenuItem = NSMenuItem(
-            title: "Settings..",
+            title: "設定・Siat-tēng",
             action: #selector(self.openSettingApp),
             keyEquivalent: ""
         )

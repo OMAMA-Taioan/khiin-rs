@@ -14,6 +14,9 @@ public class EngineController {
 
     private let engine: EngineBridge?
     private var config: Khiin_Proto_AppConfig?
+    public private(set) var candidateMetrics = CandidateMetrics(
+        fontSize: loadCandidateFontSize()
+    )
 
     init() {
 
@@ -72,6 +75,10 @@ public class EngineController {
     }
 
     public func reloadSettings() {
+        self.candidateMetrics = CandidateMetrics(
+            fontSize: loadCandidateFontSize()
+        )
+
         guard let settingsPath = getSettingFilePath() else {
             return
         }

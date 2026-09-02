@@ -32,7 +32,7 @@ struct CandidateView: View {
             )
             .roundedHUDVisualEffect()
         }
-        .padding(8)
+        .padding(EngineController.instance.candidateMetrics.windowPadding)
     }
 }
 
@@ -40,11 +40,9 @@ struct CandidateItem: View {
     var index: Int
     var focus: Int
     var candidate: Khiin_Proto_Candidate
-    @AppStorage("largeCandidateFont") var largeCandidateFont: Bool = false
 
     var body: some View {
-        let valueFontSize: CGFloat = largeCandidateFont ? 18.0 : 14.0
-        let annotationFontSize: CGFloat = largeCandidateFont ? 11.5 : 9.0
+        let metrics = EngineController.instance.candidateMetrics
 
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 0) {
@@ -54,16 +52,19 @@ struct CandidateItem: View {
                 .fill(
                     index == focus ? focusIndicatorColor : .clear
                 )
-                .frame(width: 4, height: 16)
+                .frame(width: metrics.markerWidth, height: metrics.markerHeight)
 
                 if index > 0 && focus != -1 {
                     Text("\(index).")
-                        .frame(minWidth: 16)
+                        .font(.system(size: metrics.indexFontSize))
+                        .frame(minWidth: metrics.indexWidth)
                 }
-                Text(candidate.value).font(.system(size: valueFontSize))
-                formatAnnotation(from: candidate.annotation, fontSize: annotationFontSize)
+                Text(candidate.value).font(.system(size: metrics.valueFontSize))
+                formatAnnotation(
+                    from: candidate.annotation,
+                    fontSize: metrics.annotationFontSize)
             }
-            .frame(height: 24)
+            .frame(height: metrics.rowHeight)
             .padding(.horizontal, 8)
             .padding(.vertical, 0)
         }

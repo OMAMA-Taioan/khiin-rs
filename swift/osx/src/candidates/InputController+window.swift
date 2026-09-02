@@ -1,4 +1,5 @@
 import SwiftUI
+import KhiinSwift
 
 extension KhiinInputController {
     func resetWindow() {
@@ -64,9 +65,10 @@ extension KhiinInputController {
     }
 
     func windowFrame() -> CGRect {
-        let height: CGFloat = 24 * 9 + 8 * 2
+        let metrics = EngineController.instance.candidateMetrics
+        let height: CGFloat = metrics.rowHeight * 9 + metrics.windowPadding * 2
         let origin = self.currentOrigin ?? self.currentClient?.position ?? .zero
-        let size = CGSize(width: 500, height: height)
+        let size = CGSize(width: metrics.windowWidth, height: height)
 
         guard let screenFrame = NSScreen.main?.visibleFrame else {
             return CGRect(
