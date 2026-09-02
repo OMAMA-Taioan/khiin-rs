@@ -56,7 +56,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         with:
           name: macos-installer
-          path: swift/osx/.build/artifacts/debug/KhiinPJH.pkg
+          path: swift/osx/.build/artifacts/debug/KhiinPJH-*.pkg
         
       - name: Test
         run: cargo make test
