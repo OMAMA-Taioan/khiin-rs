@@ -82,6 +82,8 @@ impl EngineBridge {
         config.input_mode = input_mode.into();
         config.output_mode = output_mode.into();
         config.khin_mode = khin_mode.into();
+        config.input_mode_shortcut =
+            settings.input_settings.input_mode_shortcut.to_string();
         // set telex enabled to rust protobuf boolvalue true
         let mut telex_enabled = BoolValue::new();
         telex_enabled.value = settings.input_settings.tone_mode == "telex";

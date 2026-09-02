@@ -134,6 +134,16 @@ public class EngineController {
         return self.config?.inputMode == .classic
     }
 
+    // "shift" means the user chose the shift key alone to switch between the
+    // input modes, the same option the Windows IME offers; anything else keeps
+    // the platform default shortcut.
+    public func isInputModeShortcutShift() -> Bool {
+        if (self.config == nil) {
+            return false
+        }
+        return self.config?.inputModeShortcut == "shift"
+    }
+
     public func isHanjiFirst() -> Bool {
         if (self.config == nil) {
             return false

@@ -2,13 +2,74 @@ import InputMethodKit
 
 extension KhiinInputController {
     override func recognizedEvents(_ sender: Any!) -> Int {
-        let masks: NSEvent.EventTypeMask = [.keyDown]
+        // flagsChanged is needed to see the shift key on its own, which the
+        // user can pick as the input mode shortcut.
+        let masks: NSEvent.EventTypeMask = [.keyDown, .flagsChanged]
         return Int(masks.rawValue)
     }
 
-    override func handle(_ event: NSEvent!, client sender: Any!) -> Bool {
+    // Tracks the shift key so that tapping it on its own switches the input
+    // mode, the same shortcut the Windows IME offers. It only counts when
+    // shift goes down and comes back up with nothing else in between: any
+    // other key (handled above) or any other modifier cancels it. The event is
+    // never swallowed, so shift keeps working as a normal modifier.
+    func handleFlagsChanged(_ event: NSEvent!, client sender: Any!) -> Bool {
         let modifiers = event.modifierFlags
-        let changeInputMode = modifiers.contains(.option) && event.keyCode.representative == .punctuation("`")
+
+        guard (event.keyCode == KeyCode.Modifier.VK_SHIFT_LEFT
+            || event.keyCode == KeyCode.Modifier.VK_SHIFT_RIGHT) else {
+            // Another modifier joined in, so shift is modifying something.
+            self.shiftHeldAlone = false
+            return false
+        }
+
+        if (modifiers.contains(.shift)) {
+            self.shiftHeldAlone = modifiers
+                .intersection([.command, .control, .option])
+                .isEmpty
+            return false
+        }
+
+        // Shift released.
+        guard self.shiftHeldAlone else {
+            return false
+        }
+        self.shiftHeldAlone = false
+
+        guard self.isInputModeShortcutShift() else {
+            return false
+        }
+
+        guard let client: IMKTextInput = sender as? IMKTextInput else {
+            return false
+        }
+        if (client.uniqueClientIdentifierString() != currentClient?.uniqueClientIdentifierString()) {
+            currentClient = client
+        }
+
+        log.debug("toggle input mode by shift key")
+        _ = self.commitAll()
+        self.candidateViewModel.changeInputMode()
+        self.reset()
+        client.clearMarkedText()
+        return false
+    }
+
+    override func handle(_ event: NSEvent!, client sender: Any!) -> Bool {
+        if (event.type == .flagsChanged) {
+            return self.handleFlagsChanged(event, client: sender)
+        }
+
+        // Any key pressed while shift is held means shift was used as a
+        // modifier, so it must not switch the input mode when released.
+        self.shiftHeldAlone = false
+
+        let modifiers = event.modifierFlags
+        // With shift chosen as the shortcut, alt + ` no longer switches the
+        // input mode, matching how Windows drops ctrl + ` in that case.
+        let changeInputMode = modifiers.contains(.option)
+            && event.keyCode.representative == .punctuation("`")
+            && !self.isInputModeShortcutShift()
         let shouldIgnoreCurrentEvent: Bool =
             !changeInputMode && (modifiers.contains(.command) || modifiers.contains(.option))
         

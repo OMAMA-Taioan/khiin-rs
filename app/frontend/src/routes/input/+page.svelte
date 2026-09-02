@@ -246,6 +246,7 @@
                         <option value="default"
                             >{$_("page.input.alt-backtick")}</option
                         >
+                        <option value="shift">{$_("page.input.shift")}</option>
                     {/if}
                 </select>
             {/await}

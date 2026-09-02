@@ -15,17 +15,25 @@ class KhiinInputController: IMKInputController {
 
     lazy var currentOrigin: CGPoint? = nil
 
+    // True while the shift key is held down on its own. Any other key or
+    // modifier arriving before it is released clears it, so that shift only
+    // switches the input mode when it is tapped alone (see the flagsChanged
+    // handling in InputController+handler).
+    var shiftHeldAlone: Bool = false
+
     let candidateViewModel = CandidateViewModel()
 
     override func activateServer(_ sender: Any!) {
         Logger.setup()
         EngineController.instance.reset()
+        self.shiftHeldAlone = false
         self.currentClient = sender as? IMKTextInput
         self.currentOrigin = self.currentClient?.position
     }
 
     override func deactivateServer(_ sender: Any!) {
         log.debug("deactivateServer ");
+        self.shiftHeldAlone = false
         _ = commitAll()
         candidateViewModel.reset()
         self.currentClient?.clearMarkedText()
@@ -46,6 +54,9 @@ class KhiinInputController: IMKInputController {
     }
 
     func resetController() {
+        // A shift-click (extending a selection, say) must not be read as a
+        // bare shift tap when the key comes back up.
+        self.shiftHeldAlone = false
         _ = commitAll()
         candidateViewModel.reset()
         self.currentClient?.clearMarkedText()
@@ -99,6 +110,10 @@ class KhiinInputController: IMKInputController {
 
     func isHanjiFirst() -> Bool {
         return EngineController.instance.isHanjiFirst();
+    }
+
+    func isInputModeShortcutShift() -> Bool {
+        return EngineController.instance.isInputModeShortcutShift();
     }
 
     // Case-insensitive: the engine lower-cases the key before matching it
