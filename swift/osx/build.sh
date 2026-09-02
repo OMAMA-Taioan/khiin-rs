@@ -21,6 +21,7 @@ else
 fi
 
 app_name=KhiinPJH
+version=0.3.4
 build_dir=.build/artifacts/$BUILD_DIR
 universal_dir=.build/universal-macosx/$BUILD_DIR
 assets_dir=assets
@@ -88,11 +89,26 @@ ls -la "$im_dir"
 echo "$app_name.app successfully installed to ~/Library/Input Methods"
 echo "You may need to log out and in to see it in the System Settings."
 
+# Build the component package, then wrap it in a product archive so that
+# Installer.app shows the license agreement before installing
+component_pkg=$build_dir/$app_name-component.pkg
+distribution=$build_dir/distribution.xml
+
 pkgbuild \
     --info assets/PackageInfo \
-    --root $build_dir/KhiinPJH.app \
+    --root $bundle_dir \
     --identifier app.khiin.inputmethod.khiin \
-    --version "0.3.4" \
-    --install-location "/tmp/KhiinPJH.app" \
+    --version "$version" \
+    --install-location "/tmp/$app_name.app" \
     --scripts assets/scripts \
-    "$build_dir/KhiinPJH-0.3.4.pkg"
+    "$component_pkg"
+
+sed "s/__VERSION__/$version/" assets/distribution.xml > $distribution
+
+productbuild \
+    --distribution $distribution \
+    --resources assets/resources \
+    --package-path $build_dir \
+    "$build_dir/$app_name-$version.pkg"
+
+rm -f $component_pkg $distribution

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="2">
+    <title>Khíín Phah Jī Hoat</title>
+    <license file="license.rtf" mime-type="text/rtf"/>
+    <options customize="never" hostArchitectures="x86_64,arm64"/>
+    <domains enable_localSystem="true"/>
+    <choices-outline>
+        <line choice="default"/>
+    </choices-outline>
+    <choice id="default" title="Khíín">
+        <pkg-ref id="app.khiin.inputmethod.khiin"/>
+    </choice>
+    <pkg-ref id="app.khiin.inputmethod.khiin" version="__VERSION__">KhiinPJH-component.pkg</pkg-ref>
+</installer-gui-script>
