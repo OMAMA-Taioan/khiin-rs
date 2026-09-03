@@ -363,6 +363,8 @@ impl TextService {
             .input_mode_shortcut
             .to_string()
             .into();
+        config.space_key_action =
+            settings.input_settings.space_key_action.to_string().into();
 
         // set telex enabled to rust protobuf boolvalue true
         let mut telex_enabled = BoolValue::new();

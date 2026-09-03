@@ -39,6 +39,9 @@ const TONE_MODE_DEFAULT: &str = "telex";
 const OUTPUT_MODE_DEFAULT: &str = "lomaji";
 const KHIN_MODE_DEFAULT: &str = "hyphen";
 const INPUT_MODE_SHORTCUT_DEFAULT: &str = "default";
+// "default": space focuses the next candidate, shift+space the previous
+// one; "select": space selects the focused candidate, just like enter
+const SPACE_KEY_ACTION_DEFAULT: &str = "default";
 const T2_DEFAULT: char = 's';
 const T3_DEFAULT: char = 'f';
 const T5_DEFAULT: char = 'l';
@@ -62,6 +65,8 @@ pub struct InputSettings {
     pub khin_mode: String,
     #[serde(default = "default_input_mode_shortcut")]
     pub input_mode_shortcut: String,
+    #[serde(default = "default_space_key_action")]
+    pub space_key_action: String,
     #[serde(default = "default_t2")]
     pub t2: char,
     #[serde(default = "default_t3")]
@@ -102,6 +107,10 @@ fn default_khin_mode() -> String {
 
 fn default_input_mode_shortcut() -> String {
     INPUT_MODE_SHORTCUT_DEFAULT.to_string()
+}
+
+fn default_space_key_action() -> String {
+    SPACE_KEY_ACTION_DEFAULT.to_string()
 }
 
 fn default_t2() -> char {
@@ -152,6 +161,7 @@ impl Default for InputSettings {
             output_mode: OUTPUT_MODE_DEFAULT.to_string(),
             khin_mode: KHIN_MODE_DEFAULT.to_string(),
             input_mode_shortcut: INPUT_MODE_SHORTCUT_DEFAULT.to_string(),
+            space_key_action: SPACE_KEY_ACTION_DEFAULT.to_string(),
             t2: T2_DEFAULT,
             t3: T3_DEFAULT,
             t5: T5_DEFAULT,

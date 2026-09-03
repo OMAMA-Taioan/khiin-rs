@@ -12,6 +12,7 @@
     let output_mode = $settings.input_settings.output_mode;
     let khin_mode = $settings.input_settings.khin_mode;
     let mode_shortcut = $settings.input_settings.input_mode_shortcut;
+    let space_key_action = $settings.input_settings.space_key_action;
     let tone_mode_disabled = false;
 
     // Telex key settings
@@ -112,6 +113,15 @@
         const new_mode_shortcut = event.target.value;
         settings.update((settings) => {
             settings.input_settings.input_mode_shortcut = new_mode_shortcut;
+            return settings;
+        });
+        await updateSettings();
+    }
+
+    async function spaceKeyActionChanged(event) {
+        const new_space_key_action = event.target.value;
+        settings.update((settings) => {
+            settings.input_settings.space_key_action = new_space_key_action;
             return settings;
         });
         await updateSettings();
@@ -250,6 +260,21 @@
                     {/if}
                 </select>
             {/await}
+        </label>
+        <label class="block">
+            <span class="text-gray-700">{$_("page.input.menu-space-key")}</span>
+            <select
+                bind:value={space_key_action}
+                class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50"
+                on:change={spaceKeyActionChanged}
+            >
+                <option value="default"
+                    >{$_("page.input.space-next-candidate")}</option
+                >
+                <option value="select"
+                    >{$_("page.input.space-select-candidate")}</option
+                >
+            </select>
         </label>
         <!-- <label class="inline-flex items-center">
             <Toggle bind:checked={convert_c_to_ch} />

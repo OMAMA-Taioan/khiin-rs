@@ -26,6 +26,15 @@ pub enum KhinMode {
     Dot,
 }
 
+// What the space key does while the candidate menu is up (classic mode).
+#[derive(PartialEq, Copy, Clone)]
+pub enum SpaceKeyAction {
+    // Space moves to the next candidate, Shift+Space to the previous one
+    NextCandidate,
+    // Space selects the focused candidate, exactly like Enter
+    SelectCandidate,
+}
+
 impl Into<InputType> for ToneMode {
     fn into(self) -> InputType {
         match self {
@@ -53,6 +62,7 @@ pub struct Config {
     tone_mode: ToneMode,
     output_mode: OutputMode,
     khin_mode: KhinMode,
+    space_key_action: SpaceKeyAction,
     key_config: KeyConfig,
 }
 
@@ -64,6 +74,7 @@ impl Config {
             tone_mode: ToneMode::Telex,
             output_mode: OutputMode::Lomaji,
             khin_mode: KhinMode::Hyphen,
+            space_key_action: SpaceKeyAction::NextCandidate,
             key_config: KeyConfig {
                 t2: 's',
                 t3: 'f',
@@ -93,6 +104,10 @@ impl Config {
 
     pub fn khin_mode(&self) -> KhinMode {
         self.khin_mode
+    }
+
+    pub fn space_key_action(&self) -> SpaceKeyAction {
+        self.space_key_action
     }
 
     pub fn t2(&self) -> char {
@@ -239,6 +254,11 @@ impl Config {
     // set khin_mode
     pub fn set_khin_mode(&mut self, mode: KhinMode) {
         self.khin_mode = mode;
+    }
+
+    // set space_key_action
+    pub fn set_space_key_action(&mut self, action: SpaceKeyAction) {
+        self.space_key_action = action;
     }
 
     // set key_config

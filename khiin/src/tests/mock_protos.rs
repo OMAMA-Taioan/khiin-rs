@@ -11,6 +11,19 @@ pub fn mock_send_key_request(ch: char) -> Request {
     req
 }
 
+pub fn mock_special_key_request(key: SpecialKey, shift: bool) -> Request {
+    let mut req = Request::default();
+    req.type_ = CommandType::CMD_SEND_KEY.into();
+
+    let mut ke = KeyEvent::default();
+    ke.special_key = key.into();
+    if shift {
+        ke.modifier_keys.push(ModifierKey::MODK_SHIFT.into());
+    }
+    req.key_event = Some(ke).into();
+    req
+}
+
 fn mock_command(cmd: &mut Command) {
     let mut cand = Candidate::new();
     cand.id = 1;

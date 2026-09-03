@@ -62,4 +62,5 @@ message AppConfig {
     BoolValue easy_ch = 10;
     BoolValue uppercase_nasal = 11;
     string input_mode_shortcut = 12;
+    string space_key_action = 13;
 }

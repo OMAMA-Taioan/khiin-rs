@@ -19,6 +19,7 @@ use crate::config::Config;
 use crate::config::InputMode;
 use crate::config::KhinMode;
 use crate::config::OutputMode;
+use crate::config::SpaceKeyAction;
 use crate::config::ToneMode;
 use crate::data::dictionary::Dictionary;
 use crate::db::Database;
@@ -133,6 +134,14 @@ impl Engine {
             },
             SpecialKey::SK_SPACE => {
                 if (self.inner.conf.input_mode() == InputMode::Classic) {
+                    // With SelectCandidate, space picks the focused candidate
+                    // instead of walking the menu, so it behaves like enter.
+                    if self.inner.conf.space_key_action()
+                        == SpaceKeyAction::SelectCandidate
+                    {
+                        return self.on_enter(req);
+                    }
+
                     if (req.key_event.modifier_keys.contains(
                         &protobuf::EnumOrUnknown::from_i32(
                             ModifierKey::MODK_SHIFT as i32,
@@ -333,6 +342,13 @@ impl Engine {
             },
         }
 
+        self.inner.conf.set_space_key_action(
+            match req.config.space_key_action.as_str() {
+                "select" => SpaceKeyAction::SelectCandidate,
+                _ => SpaceKeyAction::NextCandidate,
+            },
+        );
+
         // let mut telex_enabled = BoolValue::new();
         if let Some(telex_enabled) = req.config.telex_enabled.as_ref() {
             if telex_enabled.value {
@@ -486,6 +502,84 @@ mod tests {
         enter.key_event = Some(ke).into();
         let res = engine.on_send_key(enter)?;
         assert!(res.committed);
+        Ok(())
+    }
+
+    #[test_log::test]
+    fn it_selects_the_candidate_on_space_when_configured_classic() -> Result<()>
+    {
+        // With SpaceKeyAction::SelectCandidate the space key stops walking the
+        // menu and commits like enter, so the very first space commits the
+        // candidate enter would have committed.
+        let mut space_engine = get_engine().unwrap();
+        space_engine.inner.conf.set_input_mode(InputMode::Classic);
+        space_engine
+            .inner
+            .conf
+            .set_space_key_action(SpaceKeyAction::SelectCandidate);
+
+        let mut enter_engine = get_engine().unwrap();
+        enter_engine.inner.conf.set_input_mode(InputMode::Classic);
+
+        for ch in "ho".chars() {
+            space_engine.on_send_key(mock_send_key_request(ch))?;
+            enter_engine.on_send_key(mock_send_key_request(ch))?;
+        }
+
+        let space_res = space_engine.on_send_key(mock_special_key_request(
+            SpecialKey::SK_SPACE,
+            false,
+        ))?;
+        let enter_res = enter_engine.on_send_key(mock_special_key_request(
+            SpecialKey::SK_ENTER,
+            false,
+        ))?;
+
+        assert!(space_res.committed);
+        assert_eq!(space_res.committed_text, enter_res.committed_text);
+        Ok(())
+    }
+
+    #[test_log::test]
+    fn it_walks_the_menu_on_space_by_default_classic() -> Result<()> {
+        // The default keeps the old behaviour: space focuses the next
+        // candidate and shift+space steps back to the previous one, without
+        // committing anything.
+        let mut engine = get_engine().unwrap();
+        engine.inner.conf.set_input_mode(InputMode::Classic);
+
+        for ch in "ho".chars() {
+            engine.on_send_key(mock_send_key_request(ch))?;
+        }
+
+        fn preedit_text(res: &Response) -> String {
+            res.preedit
+                .segments
+                .iter()
+                .map(|s| s.value.clone())
+                .collect()
+        }
+
+        let first = engine.on_send_key(mock_special_key_request(
+            SpecialKey::SK_SPACE,
+            false,
+        ))?;
+        assert!(!first.committed);
+        assert!(engine.buffer_mgr.is_focused());
+
+        let second = engine.on_send_key(mock_special_key_request(
+            SpecialKey::SK_SPACE,
+            false,
+        ))?;
+        assert!(!second.committed);
+        assert_ne!(preedit_text(&second), preedit_text(&first));
+
+        let back = engine.on_send_key(mock_special_key_request(
+            SpecialKey::SK_SPACE,
+            true,
+        ))?;
+        assert!(!back.committed);
+        assert_eq!(preedit_text(&back), preedit_text(&first));
         Ok(())
     }
 

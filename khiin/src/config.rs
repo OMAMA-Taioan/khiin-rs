@@ -5,3 +5,4 @@ pub(crate) use conf::InputMode;
 pub(crate) use conf::ToneMode;
 pub(crate) use conf::OutputMode;
 pub(crate) use conf::KhinMode;
+pub(crate) use conf::SpaceKeyAction;
