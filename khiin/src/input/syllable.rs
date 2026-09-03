@@ -5,6 +5,7 @@ use unicode_normalization::UnicodeNormalization;
 
 use khiin_ji::lomaji::get_tone_position;
 use khiin_ji::lomaji::key_to_tone;
+use khiin_ji::lomaji::nasal_before_coda;
 use khiin_ji::lomaji::strip_khin;
 use khiin_ji::lomaji::strip_tone_diacritic;
 use khiin_ji::lomaji::tone_to_char;
@@ -48,9 +49,12 @@ impl Syllable {
             .replace("eU", "Ṳ")
             .replace("EU", "Ṳ");
 
-        // to handle NASAL
+        // to handle NASAL. The `nn` may be typed either where POJ writes it,
+        // at the very end of the syllable, or straight after the vowel and
+        // before an entering-tone `h` (`hiannh` for `hiahⁿ`); the block below
+        // moves the marker back to its written position.
         let re_single_nasal: Regex =
-            Regex::new(r"(?i)[aeiouptkhmo͘]nn$").unwrap();
+            Regex::new(r"(?i)[aeiouptkhmo͘]nnh?$").unwrap();
         if re_single_nasal.is_match(&ret) {
             ret = ret
                 .replace("nn", "ⁿ")
@@ -168,22 +172,29 @@ impl Syllable {
                 })
                 .collect();
 
-            let mut raw_input = raw_body.clone();
+            // A nasal syllable with an entering-tone coda is also typed with
+            // the `nn` before the coda (`hiannh` for `hiahⁿ`), so both raw
+            // spellings must be offered for the caller to align against.
+            let alt_body = nasal_before_coda(&raw_body);
 
-            if let Some(ch) = get_tone_char(tone) {
-                raw_input.push(ch);
+            for raw_body in [Some(raw_body), alt_body].into_iter().flatten() {
+                let mut raw_input = raw_body.clone();
+
+                if let Some(ch) = get_tone_char(tone) {
+                    raw_input.push(ch);
+                }
+
+                if khin {
+                    raw_input.push('0');
+                }
+
+                results.push(Self {
+                    raw_input,
+                    raw_body,
+                    khin,
+                    tone,
+                });
             }
-
-            if khin {
-                raw_input.push('0');
-            }
-
-            results.push(Self {
-                raw_input,
-                raw_body,
-                khin,
-                tone,
-            });
         }
         results
     }
@@ -393,6 +404,38 @@ mod tests {
                 .expect("Could not align o̤ conversion");
         assert_eq!(n, 3);
         assert_eq!(syl.raw_body, "teo");
+    }
+
+    #[test]
+    fn it_composes_a_nasal_typed_before_the_coda() {
+        // The nasal is typed straight after the vowel, but POJ writes it after
+        // the entering-tone coda, so it has to move to the end either way.
+        assert_eq!(Syllable::from_raw("hiannh").compose(), "hiahⁿ");
+        assert_eq!(Syllable::from_raw("hiahnn").compose(), "hiahⁿ");
+        assert_eq!(Syllable::from_raw("annh").compose(), "ahⁿ");
+        assert_eq!(Syllable::from_raw("chounnh").compose(), "cho\u{0358}hⁿ");
+
+        // A nasal with no coda is unaffected.
+        assert_eq!(Syllable::from_raw("siann").compose(), "siaⁿ");
+    }
+
+    #[test]
+    fn it_aligns_a_nasal_typed_before_the_coda() {
+        // Classic mode: typing "hiannh" and selecting 拀 (`hiahⁿ`) must consume
+        // all six raw keys. A short alignment leaves a "nh" remainder that
+        // cannot be segmented, and the candidate is dropped.
+        let (n, syl) =
+            Syllable::from_conversion_alignment("hiannh", "hiahⁿ")
+                .expect("Could not align nasal-before-coda conversion");
+        assert_eq!(n, 6);
+        assert_eq!(syl.compose(), "hiahⁿ");
+
+        // The written order still aligns.
+        let (n, syl) =
+            Syllable::from_conversion_alignment("hiahnn", "hiahⁿ")
+                .expect("Could not align nasal-after-coda conversion");
+        assert_eq!(n, 6);
+        assert_eq!(syl.compose(), "hiahⁿ");
     }
 
     #[test]

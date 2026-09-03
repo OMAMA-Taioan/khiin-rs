@@ -546,6 +546,69 @@ mod tests {
     }
 
     #[test_log::test]
+    fn it_takes_a_nasal_typed_before_the_coda_classic() -> Result<()> {
+        // 自動形態 must accept the nasal where it is typed, straight after the
+        // vowel, the way 自由形態 already does: "hiannh" is the syllable hiahⁿ,
+        // not foreign text. POJ's own order, "hiahnn", keeps working.
+        fn candidates(input: &str) -> Result<Vec<String>> {
+            let mut engine = get_engine().unwrap();
+            engine.inner.conf.set_input_mode(InputMode::Classic);
+            let mut res = Response::default();
+            for ch in input.chars() {
+                res = engine.on_send_key(mock_send_key_request(ch))?;
+            }
+            Ok(res
+                .candidate_list
+                .candidates
+                .iter()
+                .map(|c| c.value.clone())
+                .collect())
+        }
+
+        for input in ["hiannh", "hiahnn"] {
+            let cands = candidates(input)?;
+            assert!(
+                cands.contains(&"hiahⁿ".to_string()),
+                "{input} gave {cands:?}"
+            );
+        }
+        assert!(candidates("hiannh")?.contains(&"拀".to_string()));
+
+        // The same holds for the other shapes of the syllable: a bare vowel,
+        // an o͘ nucleus, and an explicit tone key after the coda.
+        assert!(candidates("annh")?.contains(&"ahⁿ".to_string()));
+        assert!(candidates("chounnh")?.contains(&"cho\u{0358}hⁿ".to_string()));
+        assert!(candidates("hiannh8")?.contains(&"hia\u{030d}hⁿ".to_string()));
+
+        Ok(())
+    }
+
+    #[test_log::test]
+    fn it_still_splits_a_nasal_before_a_vowel_classic() -> Result<()> {
+        // Guard for the ambiguity the accepted spelling introduces: an "nn"
+        // followed by a vowel is still a coda n plus an onset n, so "anne" is
+        // án-ne and not aⁿ + e. Only a coda may sit inside the nasal.
+        let mut engine = get_engine().unwrap();
+        engine.inner.conf.set_input_mode(InputMode::Classic);
+
+        let mut res = Response::default();
+        for ch in "anne".chars() {
+            res = engine.on_send_key(mock_send_key_request(ch))?;
+        }
+
+        let cands: Vec<String> = res
+            .candidate_list
+            .candidates
+            .iter()
+            .map(|c| c.value.clone())
+            .collect();
+
+        assert_eq!(cands.first(), Some(&"án-ne".to_string()));
+        assert!(cands.contains(&"按呢".to_string()), "{cands:?}");
+        Ok(())
+    }
+
+    #[test_log::test]
     fn it_direct_commits_a_tilde_as_a_fullwidth_tilde_classic() -> Result<()> {
         // Classic / Hanji-first: "~" is direct output, so it commits "〜"
         // (U+301C) on the spot with no candidate menu, the way Windows does.

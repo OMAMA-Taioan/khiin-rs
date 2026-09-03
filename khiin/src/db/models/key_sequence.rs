@@ -2,8 +2,7 @@ use anyhow::Result;
 use itertools::Itertools;
 
 use crate::db::models::Input;
-use khiin_ji::poj_syl_to_key_sequences;
-use khiin_ji::poj_syl_to_key_sequences_oo;
+use khiin_ji::poj_syl_to_key_sequences_all;
 use rusqlite::types::FromSql;
 use rusqlite::types::FromSqlResult;
 use rusqlite::types::ToSqlOutput;
@@ -142,21 +141,17 @@ pub fn generate_key_sequences(inputs: &Vec<Input>) -> Result<Vec<KeySequence>> {
 
 fn generate_key_sequence(input: &Input) -> Result<Vec<KeySequence>> {
     if input.n_syls == 1 {
-        let (numeric, telex, detoned) = poj_syl_to_key_sequences(&input.input);
-        let (numeric_oo, telex_oo, detoned_oo) = poj_syl_to_key_sequences_oo(&input.input);
-        if detoned_oo == detoned {
-            return Ok(KeySequence::of_single_syl_set(
-                numeric, telex, detoned, input,
-            ));
-        } else {
-            let mut result = KeySequence::of_single_syl_set(
-                numeric, telex, detoned, input,
-            );
+        let mut result = vec![];
+
+        for (numeric, telex, detoned) in
+            poj_syl_to_key_sequences_all(&input.input)
+        {
             result.extend(KeySequence::of_single_syl_set(
-                numeric_oo, telex_oo, detoned_oo, input,
+                numeric, telex, detoned, input,
             ));
-            return Ok(result);
         }
+
+        return Ok(result);
     }
 
     let mut numeric_syls: Vec<Vec<String>> = vec![];
@@ -164,19 +159,23 @@ fn generate_key_sequence(input: &Input) -> Result<Vec<KeySequence>> {
     let mut detoned_syls: Vec<Vec<String>> = vec![];
 
     input.input.split(" ").for_each(|syl| {
-        let (numeric, telex, detoned) = poj_syl_to_key_sequences(syl);
+        let variants = poj_syl_to_key_sequences_all(syl);
+        let detoned: Vec<String> =
+            variants.iter().map(|(_, _, d)| d.clone()).collect();
 
-        if syl.contains("\u{0358}") {
-            let (numeric_oo, telex_oo, detoned_oo) = poj_syl_to_key_sequences_oo(syl);
+        // Any syllable of a multi-syllable word may be typed with or without
+        // its tone key, so each position offers both.
+        let mut numeric: Vec<String> =
+            variants.iter().map(|(n, _, _)| n.clone()).collect();
+        numeric.extend(detoned.iter().cloned());
 
-            numeric_syls.push(vec![numeric, numeric_oo, detoned.clone(), detoned_oo.clone()]);
-            telex_syls.push(vec![telex, telex_oo, detoned.clone(), detoned_oo.clone()]);
-            detoned_syls.push(vec![detoned, detoned_oo]);
-        } else {
-            numeric_syls.push(vec![numeric, detoned.clone()]);
-            telex_syls.push(vec![telex, detoned.clone()]);
-            detoned_syls.push(vec![detoned]);
-        }
+        let mut telex: Vec<String> =
+            variants.iter().map(|(_, t, _)| t.clone()).collect();
+        telex.extend(detoned.iter().cloned());
+
+        numeric_syls.push(numeric);
+        telex_syls.push(telex);
+        detoned_syls.push(detoned);
     });
 
     let numeric = multi_cartesian_product(numeric_syls);

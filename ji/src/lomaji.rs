@@ -191,6 +191,60 @@ pub fn poj_syl_to_key_sequences_oo(syl: &str) -> (String, String, String) {
     return (numeric, telex, stripped);
 }
 
+/// POJ writes the nasal marker at the very end of a syllable, after the
+/// entering-tone coda: `hiahⁿ`. Typists reach for `nn` as soon as the vowel is
+/// done and type the coda after it: `hiannh`. Both orders name the same
+/// syllable, so both have to be accepted as key sequences.
+///
+/// Given a key sequence with the nasal in its written position, returns the
+/// one with the nasal in the typed position, or `None` when the syllable has
+/// no coda for the two orders to differ over (`siann` is typed only one way).
+/// `h` is the only coda that may sit between the vowel and the nasal.
+pub fn nasal_before_coda(key_seq: &str) -> Option<String> {
+    let stem = key_seq.strip_suffix("nn")?.strip_suffix('h')?;
+
+    // Require a vowel before the `h`, so that an onset `h` -- the second
+    // half of a `chh-`/`ph-` digraph, or a syllable-initial one -- is never
+    // taken for a coda and moved.
+    if !stem.ends_with(|c: char| "aeiou".contains(c)) {
+        return None;
+    }
+
+    Some(format!("{}nnh", stem))
+}
+
+/// Every key sequence that may be typed for a single POJ syllable, as
+/// `(numeric, telex, detoned)` triples. The canonical sequence comes first,
+/// followed by the accepted variants: `o͘` typed as either `ou` or `oo`, and
+/// the nasal `nn` typed before the entering-tone coda as well as after it.
+pub fn poj_syl_to_key_sequences_all(syl: &str) -> Vec<(String, String, String)> {
+    let (_, tone) = strip_tone_diacritic(syl);
+
+    let mut detoned_forms: Vec<String> = Vec::new();
+    for form in [
+        poj_syl_to_key_sequences(syl).2,
+        poj_syl_to_key_sequences_oo(syl).2,
+    ] {
+        let alt = nasal_before_coda(&form);
+        for variant in [Some(form), alt].into_iter().flatten() {
+            if !detoned_forms.contains(&variant) {
+                detoned_forms.push(variant);
+            }
+        }
+    }
+
+    detoned_forms
+        .into_iter()
+        .map(|detoned| {
+            let mut numeric = detoned.clone();
+            numeric.push(NUMERIC_TONE_CHARS[tone as i32 as usize]);
+            let mut telex = detoned.clone();
+            telex.push(TELEX_TONE_CHARS[tone as i32 as usize]);
+            (numeric, telex, detoned)
+        })
+        .collect()
+}
+
 pub fn syllable_to_key_sequences(syl: &str) -> Vec<String> {
     let (stripped, _tone) = strip_tone_diacritic(syl);
     let mut ret = vec![];
@@ -291,6 +345,45 @@ mod tests {
         let stripped = strip_khin(&mut s);
         assert!(stripped);
         assert_eq!(s.as_str(), "ho");
+    }
+
+    #[test]
+    fn it_types_a_nasal_before_the_entering_tone_coda() {
+        // POJ writes the nasal marker last (`hiahⁿ`), but it is typed as soon
+        // as the vowel is done and the coda follows it (`hiannh`), so both
+        // orders have to be accepted as key sequences.
+        let detoned = |syl: &str| -> Vec<String> {
+            poj_syl_to_key_sequences_all(syl)
+                .into_iter()
+                .map(|(_, _, d)| d)
+                .collect()
+        };
+
+        assert_eq!(detoned("hiahⁿ"), vec!["hiahnn", "hiannh"]);
+        assert_eq!(detoned("ahⁿ"), vec!["ahnn", "annh"]);
+
+        // Both `o͘` spellings carry both nasal orders.
+        assert_eq!(
+            detoned("cho\u{0358}hⁿ"),
+            vec!["chouhnn", "chounnh", "choohnn", "choonnh"]
+        );
+
+        // With no coda there is nothing for the two orders to differ over:
+        // `sinna` must never become a key sequence for `siaⁿ`.
+        assert_eq!(detoned("siaⁿ"), vec!["siann"]);
+        assert_eq!(detoned("ho\u{0324}"), vec!["heo"]);
+    }
+
+    #[test]
+    fn it_keeps_the_tone_key_last_in_either_nasal_order() {
+        let variants = poj_syl_to_key_sequences_all("hia\u{030d}hⁿ");
+        let numeric: Vec<String> =
+            variants.iter().map(|(n, _, _)| n.clone()).collect();
+        let telex: Vec<String> =
+            variants.iter().map(|(_, t, _)| t.clone()).collect();
+
+        assert_eq!(numeric, vec!["hiahnn8", "hiannh8"]);
+        assert_eq!(telex, vec!["hiahnnj", "hiannhj"]);
     }
 
     #[test]
