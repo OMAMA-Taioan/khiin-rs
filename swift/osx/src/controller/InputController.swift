@@ -3,14 +3,20 @@ import SwiftyBeaver
 import KhiinSwift
 
 class KhiinInputController: IMKInputController {
+    // IMK builds one controller per client, so the process-wide mouse monitor
+    // in the app delegate needs to know which one owns the input session right
+    // now: every other controller either belongs to an inactive app or is on
+    // its way out.
+    private(set) static weak var activeController: KhiinInputController?
+
     lazy var window: NSWindow? = nil
 
-    lazy var currentClient: IMKTextInput? = nil {
-        didSet {
-            if window != nil {
-                self.resetWindow()
-            }
-        }
+    // Never hold on to the client. IMK owns it, and messaging one whose app has
+    // gone away raises out of the distributed-objects proxy, which Swift cannot
+    // catch and which takes the whole input method down. Asking IMK for it on
+    // each use always yields the live one.
+    var currentClient: IMKTextInput? {
+        return self.client()
     }
 
     lazy var currentOrigin: CGPoint? = nil
@@ -27,36 +33,41 @@ class KhiinInputController: IMKInputController {
         Logger.setup()
         EngineController.instance.reset()
         self.shiftHeldAlone = false
-        self.currentClient = sender as? IMKTextInput
-        self.currentOrigin = self.currentClient?.position
+        KhiinInputController.activeController = self
+        self.currentOrigin = (sender as? IMKTextInput)?.position
     }
 
     override func deactivateServer(_ sender: Any!) {
         log.debug("deactivateServer ");
         self.shiftHeldAlone = false
+        if KhiinInputController.activeController === self {
+            KhiinInputController.activeController = nil
+        }
         _ = commitAll()
         candidateViewModel.reset()
-        self.currentClient?.clearMarkedText()
+        (sender as? IMKTextInput)?.clearMarkedText()
         self.window?.setFrame(.zero, display: true)
         self.resetWindow()
     }
 
-    override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
-        super.init(server: server, delegate: delegate, client: inputClient)
-        setupMouseEventMonitor()
-    }
-
-    func setupMouseEventMonitor() {
-        NSEvent.addGlobalMonitorForEvents(matching: .leftMouseDown) { [weak self] event in
-            log.debug("mouse click event")
-            self!.resetController()
-        }
-    }
-
+    // Called by the app delegate's mouse monitor when the user clicks
+    // somewhere else: the caret is about to move, so whatever is still in the
+    // buffer has to be released first.
     func resetController() {
         // A shift-click (extending a selection, say) must not be read as a
         // bare shift tap when the key comes back up.
         self.shiftHeldAlone = false
+
+        // With nothing in the buffer there is nothing to release, and neither
+        // the client nor the shared engine should be disturbed on every click.
+        guard self.isEdited() else {
+            if self.window?.frame != .zero {
+                self.window?.setFrame(.zero, display: true)
+            }
+            return
+        }
+
+        log.debug("resetController")
         _ = commitAll()
         candidateViewModel.reset()
         self.currentClient?.clearMarkedText()

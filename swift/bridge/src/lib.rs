@@ -1,4 +1,5 @@
 use std::ffi::c_void;
+use std::panic::AssertUnwindSafe;
 use std::path::PathBuf;
 
 use khiin::Engine;
@@ -51,7 +52,25 @@ impl EngineBridge {
         let engine: &mut Engine =
             unsafe { &mut *(self.engine_ptr as *mut Engine) };
 
-        engine.send_command_bytes(cmd_input).ok()
+        // A panic must never reach the FFI boundary. The generated
+        // `extern "C"` shim cannot unwind, so it aborts, and the whole input
+        // method goes down with every app session connected to it. Losing one
+        // keystroke is survivable; losing the process is not.
+        let result = std::panic::catch_unwind(AssertUnwindSafe(|| {
+            engine.send_command_bytes(cmd_input).ok()
+        }));
+
+        match result {
+            Ok(bytes) => bytes,
+            Err(payload) => {
+                let reason = panic_message(&payload);
+                eprintln!("khiin: engine panicked on send_command: {}", reason);
+                // The buffer is in an unknown state now, so clear it instead
+                // of leaving the user typing into a broken composition.
+                reset_after_panic(engine);
+                None
+            },
+        }
     }
 
     fn load_settings(&self, setting_filename: String) -> Option<Vec<u8>> {
@@ -114,5 +133,31 @@ impl EngineBridge {
             let _ = engine.send_command_bytes(&bytes);
         }
         config.write_to_bytes().ok()
+    }
+}
+
+fn panic_message(payload: &Box<dyn std::any::Any + Send>) -> String {
+    if let Some(s) = payload.downcast_ref::<&str>() {
+        return (*s).to_string();
+    }
+    if let Some(s) = payload.downcast_ref::<String>() {
+        return s.clone();
+    }
+    "unknown panic".to_string()
+}
+
+fn reset_after_panic(engine: &mut Engine) {
+    let mut req = Request::new();
+    req.type_ = CommandType::CMD_RESET.into();
+
+    let mut cmd = Command::new();
+    cmd.request = Some(req).into();
+
+    if let Ok(bytes) = cmd.write_to_bytes() {
+        // The reset itself runs on a buffer that just panicked, so guard it
+        // too rather than trade one abort for another.
+        let _ = std::panic::catch_unwind(AssertUnwindSafe(|| {
+            let _ = engine.send_command_bytes(&bytes);
+        }));
     }
 }

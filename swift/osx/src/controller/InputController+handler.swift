@@ -43,9 +43,6 @@ extension KhiinInputController {
         guard let client: IMKTextInput = sender as? IMKTextInput else {
             return false
         }
-        if (client.uniqueClientIdentifierString() != currentClient?.uniqueClientIdentifierString()) {
-            currentClient = client
-        }
 
         log.debug("toggle input mode by shift key")
         _ = self.commitAll()
@@ -80,11 +77,6 @@ extension KhiinInputController {
 
         log.debug("Current origin: \(String(describing: currentOrigin))")
 
-        let currentClientID = currentClient?.uniqueClientIdentifierString()
-        let clientID = client.uniqueClientIdentifierString()
-        if clientID != currentClientID {
-            currentClient = client
-        }
         // alt + h or alt + s, change to hanji first
         if (modifiers.contains(.option) && (event.keyCode.representative == .alphabet("h") || event.keyCode.representative == .alphabet("s"))) {
             _ = self.commitAll();

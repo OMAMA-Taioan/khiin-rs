@@ -19,6 +19,11 @@ final class KhiinIMApplication: NSApplication {
 
 @main
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    // One monitor for the whole process. It used to be installed by every
+    // input controller and never removed, so a single click reached every
+    // controller that had ever been created, deallocated ones included.
+    private var mouseMonitor: Any?
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         Logger.setup()
 
@@ -27,10 +32,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let identifier = Bundle.main.bundleIdentifier
         let _ = IMKServer(name: name, bundleIdentifier: identifier)
 
+        setupMouseEventMonitor()
+
         log.debug("IMKServer initialized")
     }
 
+    // A click outside the input method moves the caret, so the composition in
+    // progress has to be released. Only the controller holding the input
+    // session has one to release.
+    private func setupMouseEventMonitor() {
+        self.mouseMonitor = NSEvent.addGlobalMonitorForEvents(
+            matching: .leftMouseDown
+        ) { _ in
+            KhiinInputController.activeController?.resetController()
+        }
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
-        // empty
+        if let monitor = self.mouseMonitor {
+            NSEvent.removeMonitor(monitor)
+            self.mouseMonitor = nil
+        }
     }
 }
