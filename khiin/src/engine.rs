@@ -628,4 +628,51 @@ mod tests {
         assert_eq!(res.committed_text, "~".to_string());
         Ok(())
     }
+
+    #[test_log::test]
+    fn it_folds_two_initial_capitals_manual() -> Result<()> {
+        // Holding shift a beat too long capitalizes the second letter as well.
+        // The third letter, typed lowercase, says the shift was meant for the
+        // first letter only, so the second one folds back down.
+        //
+        // The text the user ends up with is everything committed along the way
+        // plus whatever is still in the preedit.
+        fn output(input: &str) -> Result<String> {
+            let mut engine = get_engine().unwrap();
+            engine.inner.conf.set_input_mode(InputMode::Manual);
+
+            let mut text = String::new();
+            let mut res = Response::default();
+            for ch in input.chars() {
+                res = engine.on_send_key(mock_send_key_request(ch))?;
+                if res.committed {
+                    text.push_str(&res.committed_text);
+                }
+            }
+
+            for segment in res.preedit.segments.iter() {
+                text.push_str(&segment.value);
+            }
+
+            Ok(text)
+        }
+
+        assert_eq!(output("CHiong")?, "Chiong".to_string());
+        assert_eq!(output("ANs")?, "Án".to_string());
+
+        // Three initial capitals are deliberate: shift was held on purpose.
+        assert_eq!(output("CHIong")?, "CHIong".to_string());
+        // A pair that is never followed by a lowercase letter is left alone,
+        // and so are the cases that were already right.
+        assert_eq!(output("CH")?, "CH".to_string());
+        assert_eq!(output("Chiong")?, "Chiong".to_string());
+        assert_eq!(output("chiong")?, "chiong".to_string());
+
+        // The done key ("r") commits and clears the buffer, so the letter
+        // after it opens a word of its own and its capital stands: these are
+        // two capitalized words, not one word with a doubled capital.
+        assert_eq!(output("CRHiong")?, "CHiong".to_string());
+        assert_eq!(output("ARBenlg")?, "ABêng".to_string());
+        Ok(())
+    }
 }

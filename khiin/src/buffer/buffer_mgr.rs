@@ -958,6 +958,8 @@ impl BufferMgr {
             self.edit_state = EditState::ES_COMPOSING;
         }
 
+        Self::fold_two_initial_capitals(&mut raw_input, ch);
+
         if ch.to_ascii_lowercase() == engine.conf.hyphen()
             && self.edit_state == EditState::ES_COMPOSING
         {
@@ -1053,6 +1055,31 @@ impl BufferMgr {
         self.char_caret = self.composition.display_char_count();
 
         Ok(())
+    }
+
+    /// Autocorrects the "TWo INitial CApitals" typo: the shift key held one
+    /// beat too long capitalizes the second letter along with the first, so
+    /// fold that second capital back down as soon as a lowercase letter
+    /// follows the pair. Three initial capitals are deliberate and are left
+    /// alone, and so is the capital that opens a buffer of its own: the done
+    /// key commits and clears the previous one, so its letter never becomes
+    /// the second capital of this one.
+    fn fold_two_initial_capitals(raw_input: &mut String, key: char) {
+        if !key.is_ascii_lowercase() {
+            return;
+        }
+
+        let chars: Vec<char> = raw_input.chars().collect();
+
+        if chars.len() != 2
+            || !chars[0].is_ascii_uppercase()
+            || !chars[1].is_ascii_uppercase()
+        {
+            return;
+        }
+
+        raw_input
+            .replace_range(1..2, &chars[1].to_ascii_lowercase().to_string());
     }
 
     fn pop_manual(&mut self, engine: &EngInner) -> Result<()> {
