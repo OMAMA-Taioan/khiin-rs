@@ -206,17 +206,6 @@
             </select>
         </label>
         <label class="block">
-            <span class="text-gray-700">{$_("page.input.output-mode")}</span>
-            <select
-                bind:value={output_mode}
-                class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50"
-                on:change={outputModeChanged}
-            >
-                <option value="lomaji">{$_("page.input.lomaji")}</option>
-                <option value="hanji">{$_("page.input.hanji")}</option>
-            </select>
-        </label>
-        <label class="block">
             <span class="text-gray-700">{$_("page.input.khin-mode")}</span>
             <select
                 bind:value={khin_mode}
@@ -260,21 +249,6 @@
                     {/if}
                 </select>
             {/await}
-        </label>
-        <label class="block">
-            <span class="text-gray-700">{$_("page.input.menu-space-key")}</span>
-            <select
-                bind:value={space_key_action}
-                class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50"
-                on:change={spaceKeyActionChanged}
-            >
-                <option value="default"
-                    >{$_("page.input.space-next-candidate")}</option
-                >
-                <option value="select"
-                    >{$_("page.input.space-select-candidate")}</option
-                >
-            </select>
         </label>
         <!-- <label class="inline-flex items-center">
             <Toggle bind:checked={convert_c_to_ch} />
@@ -395,11 +369,7 @@
                 {/each}
             </select>
         </label>
-    </div>
-</div>
 
-<div class="mt-8 max-w-md">
-    <div class="grid grid-cols-2 gap-4">
         <!-- Hyphen -->
         <label class="block">
             <span class="text-gray-700">{$_("page.input.hyphen-key")}</span>
@@ -413,7 +383,15 @@
                 {/each}
             </select>
         </label>
+    </div>
+</div>
 
+<!-- Manual ("Chū-iû") Mode Settings Section -->
+<div class="mt-8 max-w-md">
+    <h2 class="text-xl font-semibold mb-4 text-gray-700">
+        {$_("page.input.manual-mode-settings")}
+    </h2>
+    <div class="grid grid-cols-2 gap-4">
         <!-- Done (end syllable) -->
         <label class="block">
             <span class="text-gray-700">{$_("page.input.done-key")}</span>
@@ -425,6 +403,41 @@
                 {#each getOptionsFor("done", allUsedKeys) as key}
                     <option value={key}>{key.toUpperCase()}</option>
                 {/each}
+            </select>
+        </label>
+    </div>
+</div>
+
+<!-- Auto ("Chū-tōng") Mode Settings Section -->
+<div class="mt-8 max-w-md">
+    <h2 class="text-xl font-semibold mb-4 text-gray-700">
+        {$_("page.input.auto-mode-settings")}
+    </h2>
+    <div class="grid grid-cols-1 gap-6">
+        <label class="block">
+            <span class="text-gray-700">{$_("page.input.output-mode")}</span>
+            <select
+                bind:value={output_mode}
+                class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50"
+                on:change={outputModeChanged}
+            >
+                <option value="lomaji">{$_("page.input.lomaji")}</option>
+                <option value="hanji">{$_("page.input.hanji")}</option>
+            </select>
+        </label>
+        <label class="block">
+            <span class="text-gray-700">{$_("page.input.menu-space-key")}</span>
+            <select
+                bind:value={space_key_action}
+                class="block w-full mt-1 rounded-md border-slate-300 shadow-sm focus:border-slate-300 focus:ring focus:ring-slate-200 focus:ring-opacity-50"
+                on:change={spaceKeyActionChanged}
+            >
+                <option value="default"
+                    >{$_("page.input.space-next-candidate")}</option
+                >
+                <option value="select"
+                    >{$_("page.input.space-select-candidate")}</option
+                >
             </select>
         </label>
     </div>
