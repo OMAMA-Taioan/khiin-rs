@@ -82,8 +82,22 @@ if [ -d $helper_app ]; then
 else
     echo "warning: please build helper_app $helper_app"
 fi
-# Move it to the user's input method folder
+# Sign the bundle. The linker ad-hoc signs the executable on its own, but that
+# leaves the bundle itself unsigned: the code identity reads KhiinPJH-<hash>
+# rather than the bundle id, and nothing seals Info.plist. macOS then refuses
+# the connection name the input method serves on, so it can be selected but
+# never receives a keystroke. Nested bundles have to be signed first.
+if [ -d $app_dir/khiin_helper.app ]; then
+    codesign --force --sign - $app_dir/khiin_helper.app
+fi
+codesign --force --sign - $bundle_dir
+codesign --verify --verbose $bundle_dir
+
+# Move it to the user's input method folder. The previous install has to go
+# first: copying over it keeps whatever the old bundle had, and its stale
+# _CodeSignature invalidates the signature made just above.
 killall -9 $app_name || true
+rm -rf "$im_dir/$app_name.app"
 cp -r $bundle_dir "$im_dir"
 ls -la "$im_dir"
 echo "$app_name.app successfully installed to ~/Library/Input Methods"

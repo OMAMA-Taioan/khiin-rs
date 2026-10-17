@@ -19,6 +19,12 @@ final class KhiinIMApplication: NSApplication {
 
 @main
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    // The server has to outlive applicationDidFinishLaunching. It owns the
+    // connection named in Info.plist, and once it is released macOS no longer
+    // recognises that name: the input method stays selectable but never gets
+    // an input session, so nothing can be typed with it.
+    private var server: IMKServer?
+
     // One monitor for the whole process. It used to be installed by every
     // input controller and never removed, so a single click reached every
     // controller that had ever been created, deallocated ones included.
@@ -30,7 +36,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let name =
             Bundle.main.infoDictionary?["InputMethodConnectionName"] as? String
         let identifier = Bundle.main.bundleIdentifier
-        let _ = IMKServer(name: name, bundleIdentifier: identifier)
+        self.server = IMKServer(name: name, bundleIdentifier: identifier)
 
         setupMouseEventMonitor()
 
