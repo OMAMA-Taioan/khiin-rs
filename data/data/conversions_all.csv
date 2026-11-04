@@ -3317,8 +3317,7 @@ chhe hōe,差會,,801,true,true
 chhe it,chhe 1,,720,true,true
 chhe it,chhe-it,,720,true,true
 chhe it,初一,,829,true,true
-chhe it cha̍p gō͘, 15,,720,true,true
-chhe it cha̍p gō͘,chhe 1,,720,true,true
+chhe it cha̍p gō͘,"chhe 1, 15",,720,true,true
 chhe it cha̍p gō͘,chhe-it cha̍p-gō͘,,720,true,true
 chhe it cha̍p gō͘,初一十五,,829,true,true
 chhe jī,chhe 2,,720,true,true
@@ -3484,9 +3483,9 @@ chheⁿ chhau,叉抄,,828,true,true
 chheⁿ chhau,青抄,,827,true,true
 chheⁿ chhài,chheⁿ-chhài,,720,true,true
 chheⁿ chhài,青菜,,829,true,true
-chheⁿ chhám, 青慘,,700,true,true
 chheⁿ chhám,chheⁿ-chhám,,700,true,true
 chheⁿ chhám,chhiⁿ-chhám,,700,true,true
+chheⁿ chhám,青慘,,808,true,true
 chheⁿ chhùi,chheⁿ-chhùi,,700,true,true
 chheⁿ chhùi,青翠,,809,true,true
 chheⁿ gìn gìn,chheⁿ gìn-gìn,,720,true,true
@@ -4579,8 +4578,7 @@ chhoe gō͘,初五,,823,true,true
 chhoe it,chhoe 1,,714,true,true
 chhoe it,chhoe-it,,714,true,true
 chhoe it,初一,,823,true,true
-chhoe it cha̍p gō͘, 15,,714,true,true
-chhoe it cha̍p gō͘,chhoe 1,,714,true,true
+chhoe it cha̍p gō͘,"chhoe 1, 15",,714,true,true
 chhoe it cha̍p gō͘,chhoe-it cha̍p-gō͘,,714,true,true
 chhoe it cha̍p gō͘,初一十五,,823,true,true
 chhoe jī,chhoe 2,,714,true,true
@@ -6130,7 +6128,7 @@ chiauh,chiauh,,0,true,true
 chiauhⁿ,chiauhⁿ,,0,true,true
 chiauⁿ,chiauⁿ,,0,true,true
 chia̍h,chia̍h,,775,true,true
-chia̍h,者,12+489,939,true,true
+chia̍h,者,12+489,949,true,true
 chia̍h,食,,950,true,true
 chia̍h chho,chia̍h chho,,700,true,true
 chia̍h chho,食操,,809,true,true
@@ -6558,8 +6556,8 @@ chit á,鯽仔,,809,true,true
 chit á hî,chit-á-hî,,720,true,true
 chit á hî,鯽仔魚,,829,true,true
 chit ê,chit ê,,755,true,true
-chit ê,只个,,861,true,true
-chit ê,此个,,860,true,true
+chit ê,只个,,864,true,true
+chit ê,此个,,863,true,true
 chiu,Chiu,,720,true,true
 chiu,chiu,,700,true,true
 chiu,周,1+3,939,true,true
@@ -6721,7 +6719,7 @@ chiàⁿ tng sî,正當時,,800,true,true
 chiàⁿ tō,正道,,805,true,true
 chiá,chiá,,0,true,true
 chiá,姐,,63,true,true
-chiá,者,12+489,939,true,true
+chiá,者,12+489,949,true,true
 chiám,chiám,,0,true,true
 chián,chián,,0,true,true
 chián,剪,,91,true,true
@@ -6961,7 +6959,7 @@ chiāu,醮,,78,true,true
 chiāⁿ,chiāⁿ,,700,true,true
 chiāⁿ,淨,,815,true,true
 chiă,chiă,,0,true,true
-chiă,者,12+489,939,true,true
+chiă,者,12+489,949,true,true
 chiăm,chiăm,,0,true,true
 chiăn,chiăn,,0,true,true
 chiăng,chiăng,,0,true,true
@@ -7148,7 +7146,7 @@ chi̍t ē,1 ē,,754,true,true
 chi̍t ē,chi̍t ē,,754,true,true
 chi̍t ē,·1 ·ē,,720,true,false
 chi̍t ē,·chi̍t ·ē,,720,true,false
-chi̍t ē,一下,,863,true,true
+chi̍t ē,一下,,859,true,true
 chi̍t ē á,1 ē-á,,720,true,true
 chi̍t ē á,chi̍t ē-á,,720,true,true
 chi̍t ē á,chi̍t-ē-á,,714,true,true
@@ -10912,7 +10910,7 @@ gṳ̍h,gṳ̍h,,0,true,true
 gẽ,gẽ,,0,true,true
 ha,ha,,0,true,true
 ha,ハ,**ha-,70,true,true
-ha,哈,1248+,-1,true,true
+ha,哈,1248+,933,true,true
 ha ga khih,ha-ga-khih,,700,false,true
 ha gá khih,ha-gá-khih,,700,true,false
 ha ha chhiò,ha-ha chhiò,,720,true,true
@@ -10936,7 +10934,7 @@ ha óa ī ì,Ha-óa-ih,,700,true,true
 hah,hah,,700,true,true
 hah,·hah,,700,true,false
 hah,ハ,**hah,70,true,true
-hah,哈,1248+,855,true,true
+hah,哈,1248+,933,true,true
 hah hah chhiò,hah-hah chhiò,,720,true,true
 hah hah chhiò,哈哈笑,,829,true,true
 hah hì,hah-hì,,720,true,true
@@ -10946,15 +10944,15 @@ hahⁿ,·hahⁿ,,700,true,false
 hahⁿ,哈,,815,true,true
 hai,hai,,700,true,true
 hai,咍,,79,true,true
-hai,咳,13457+⁽ⁿ⁾,815,true,true
+hai,咳,13457+⁽ⁿ⁾,923,true,true
 haih,haih,,700,true,true
 haih,hài,,700,false,true
-haih,咳,13457+⁽ⁿ⁾,830,true,true
+haih,咳,13457+⁽ⁿ⁾,923,true,true
 haihⁿ,haihⁿ,,700,true,true
 haihⁿ,hàiⁿ,,700,false,true
-haihⁿ,咳,13457+⁽ⁿ⁾,830,true,true
+haihⁿ,咳,13457+⁽ⁿ⁾,923,true,true
 haiⁿ,haiⁿ,,720,true,true
-haiⁿ,咳,13457+⁽ⁿ⁾,835,true,true
+haiⁿ,咳,13457+⁽ⁿ⁾,923,true,true
 haiⁿ haiⁿ chhan,haiⁿ-haiⁿ chhan,,700,true,true
 haiⁿ haiⁿ chhan,咳咳飧,,808,true,true
 haiⁿ haiⁿ chhan,咳咳餐,,809,true,true
@@ -11162,7 +11160,7 @@ heⁿ,heⁿ,,0,true,true
 hi,hi,,700,true,true
 hi,ヒ,**hi-,70,true,true
 hi,唏,,64,true,true
-hi,嘻,12+3,73,true,true
+hi,嘻,12+3,938,true,true
 hi,墟,,832,true,true
 hi,屎,,69,true,true
 hi,希,,479,true,true
@@ -12719,9 +12717,9 @@ hà hà chhiò,哈哈笑,,809,true,true
 hà thn̄g,hà-thn̄g,,700,true,true
 hà thn̄g,孝杖,,809,true,true
 hài,hài,,700,true,true
-hài,咳,13457+⁽ⁿ⁾,830,true,true
+hài,咳,13457+⁽ⁿ⁾,923,true,true
 hàiⁿ,hàiⁿ,,720,true,true
-hàiⁿ,咳,13457+⁽ⁿ⁾,832,true,true
+hàiⁿ,咳,13457+⁽ⁿ⁾,923,true,true
 hàiⁿ,硯,,831,true,true
 hàiⁿ thâu,hàiⁿ thâu,,720,true,true
 hàiⁿ thâu,咳頭,,829,true,true
@@ -12790,7 +12788,7 @@ hàuⁿ,hàuⁿ,,700,true,true
 hàⁿ,hàⁿ,,700,true,true
 hàⁿ,哈,,815,true,true
 há,há,,700,true,true
-há,哈,1248+,815,true,true
+há,哈,1248+,933,true,true
 há lih,há-lih,,700,true,false
 há lih,哈利,,809,true,true
 há lì,há-lih,,700,true,true
@@ -12961,14 +12959,14 @@ hâ,遐,,504,true,true
 hâ,霞,,875,true,true
 hâ pau,hâ-pau,,700,true,true
 hâi,hâi,,0,true,true
-hâi,咳,13457+⁽ⁿ⁾,-1,true,true
+hâi,咳,13457+⁽ⁿ⁾,923,true,true
 hâi,孩,,77,true,true
 hâi,械,,280,true,true
 hâi,諧,,74,true,true
 hâi,鞋,,78,true,true
 hâi,骸,,79,true,true
 hâiⁿ,hâiⁿ,,720,true,true
-hâiⁿ,咳,13457+⁽ⁿ⁾,-1,true,true
+hâiⁿ,咳,13457+⁽ⁿ⁾,923,true,true
 hâiⁿ,還,,855,true,true
 hâm,hâm,,720,true,true
 hâm,函,,84,true,true
@@ -13230,7 +13228,7 @@ hêng tōng,hêng-tōng,,700,true,true
 hêng tōng,行動,,809,true,true
 hêⁿ,hêⁿ,,0,true,true
 hì,hì,,720,true,true
-hì,嘻,12+3,-1,true,true
+hì,嘻,12+3,938,true,true
 hì,愾,,93,true,true
 hì,戏,,-1,true,true
 hì,戱,,857,true,true
@@ -13283,7 +13281,7 @@ hìⁿ sak,硯捒,,829,true,true
 hí,hí,,0,true,true
 hí,唏,,64,true,true
 hí,喜,12+3,939,true,true
-hí,嘻,12+3,-1,true,true
+hí,嘻,12+3,938,true,true
 hí,許,,482,true,true
 hí bōng hong,Hí-bōng-hong,,700,true,true
 hí bōng hong,喜望峰,,809,true,true
@@ -14120,7 +14118,7 @@ hā ì sek,hā-ì-sek,,720,true,true
 hā ì sek,下意識,,829,true,true
 hāi,hāi,,756,true,true
 hāi,亥,,474,true,true
-hāi,咳,13457+⁽ⁿ⁾,-1,true,true
+hāi,咳,13457+⁽ⁿ⁾,923,true,true
 hāi,害,,896,true,true
 hāi,械,,480,true,true
 hāi,薤,,65,true,true
@@ -14128,7 +14126,7 @@ hāi,蟹,,90,true,true
 hāi liáu liáu,hāi liáu-liáu,,720,true,true
 hāi liáu liáu,害了了,,829,true,true
 hāiⁿ,hāiⁿ,,700,true,true
-hāiⁿ,咳,13457+⁽ⁿ⁾,815,true,true
+hāiⁿ,咳,13457+⁽ⁿ⁾,923,true,true
 hāiⁿ,幸,,855,true,true
 hāiⁿ tiám,hāiⁿ-tiám,,700,true,true
 hāiⁿ tiám,咳点,,808,true,true
@@ -15139,7 +15137,6 @@ iàu ì,要意,,809,true,true
 iàuⁿ,iàuⁿ,,0,true,true
 iàⁿ,iàⁿ,,0,true,true
 iàⁿ,映,,296,true,true
-iá,26580,,700,true,true
 iá,iá,,749,true,true
 iá,iáu,,700,true,true
 iá,也,,496,true,true
@@ -16963,7 +16960,7 @@ kam,Kam,,700,true,true
 kam,kam,,746,true,true
 kam,柑,,60,true,true
 kam,泔,,65,true,true
-kam,甘,1+25,931,true,true
+kam,甘,1+25,941,true,true
 kam,監,,481,true,true
 kam,魽,,67,true,true
 kam chhó,kam-chhó,,700,true,true
@@ -17543,7 +17540,7 @@ keⁿ ti̍t,Keⁿ-ti̍t,,700,true,true
 keⁿ ti̍t,驚蟄,,809,true,true
 kha,kha,,759,true,true
 kha,カ,**kha-,75,true,true
-kha,卡,1234+,958,true,true
+kha,卡,1234+,957,true,true
 kha,奇,,835,true,true
 kha,脚,1+,944,true,true
 kha ba̍k,kha-ba̍k,,720,true,true
@@ -17665,7 +17662,7 @@ kha āu teⁿ,脚后㬹,,808,true,true
 kha āu teⁿ,脚後㬹,,809,true,true
 khah,khah,,773,true,true
 khah,カ,**khah,75,true,true
-khah,卡,1234+,958,true,true
+khah,卡,1234+,957,true,true
 khah,恰,,945,true,true
 khah,筁,,62,true,true
 khah,籗,,72,true,true
@@ -18865,7 +18862,7 @@ khu̍ihⁿ,khu̍ihⁿ,,0,true,true
 khu̍t,khu̍t,,700,true,true
 khu̍t,屈,4+8,951,true,true
 khà,khà,,720,true,true
-khà,卡,1234+,958,true,true
+khà,卡,1234+,957,true,true
 khà,扣,,855,true,true
 khà chhia,khah-chhia,,700,true,true
 khà iû,khà-iû,,700,true,true
@@ -18934,7 +18931,7 @@ khàuⁿ,khàuⁿ,,0,true,true
 khàⁿ,khàⁿ,,0,true,true
 khá,khá,,720,true,true
 khá,假使,ká,-1,true,true
-khá,卡,1234+,958,true,true
+khá,卡,1234+,957,true,true
 khá,巧,,905,true,true
 khá nah,khá-nah,,700,true,false
 khá nah,卡那,,801,true,true
@@ -20106,7 +20103,7 @@ kia̍p,kia̍p,,0,true,true
 kia̍t,kia̍t,,0,true,true
 kia̍t,傑,,490,true,true
 kia̍t,吉,4+8,949,true,true
-kia̍t,吉貝,4+8,-1,true,true
+kia̍t,吉貝,4+8,939,true,true
 kia̍t,揭,,99,true,true
 kia̍t,杰,,83,true,true
 kia̍t,桀,,69,true,true
@@ -22211,7 +22208,7 @@ kám,咁,,936,true,true
 kám,感,,481,true,true
 kám,敢,,935,true,true
 kám,橄,,73,true,true
-kám,甘,1+25,936,true,true
+kám,甘,1+25,941,true,true
 kám,𥴊,,72,true,true
 kám chêng,kám-chêng,,750,true,true
 kám chêng,感情,,859,true,true
@@ -22406,7 +22403,7 @@ kâm,kâm,,700,true,true
 kâm,含,,832,true,true
 kâm,咁,,834,true,true
 kâm,唅,,833,true,true
-kâm,甘,1+25,931,true,true
+kâm,甘,1+25,941,true,true
 kâm hoeh phùn thiⁿ,kâm hoeh phùn thiⁿ,,720,true,true
 kâm hoeh phùn thiⁿ,含血噴天,,828,true,true
 kâm hoeh phùn thiⁿ,唅血噴天,,829,true,true
@@ -23233,7 +23230,7 @@ kó̤ng,kó̤ng,,0,true,true
 kó͘,kó͘,,737,true,true
 kó͘,估,,815,true,true
 kó͘,古,2+,946,true,true
-kó͘,咕,2+,-1,true,true
+kó͘,咕,2+,945,true,true
 kó͘,垢,,60,true,true
 kó͘,果,,495,true,true
 kó͘,枸,,72,true,true
@@ -24024,7 +24021,7 @@ la̍t chí,栗子,,829,true,true
 la̍t thâu,la̍t-thâu,,700,true,true
 la̍t thâu,力頭,,801,true,true
 la̍uh,la̍uh,,0,true,true
-la̍uh,咾,2+38,-1,true,true
+la̍uh,咾,2+38,945,true,true
 la̍uh,落,,285,true,true
 le,le,,700,true,true
 le,·leh,,700,true,false
@@ -25092,7 +25089,7 @@ làng làng,籠籠,,801,true,true
 làng phāng,làng phāng,,720,true,true
 làng phāng,籠縫,,829,true,true
 làu,làu,,700,true,true
-làu,咾,2+38,813,true,true
+làu,咾,2+38,945,true,true
 làu,漏,,814,true,true
 làu,荖,,66,true,true
 làu,落,,285,true,true
@@ -25164,7 +25161,7 @@ láng siuⁿ,籠箱,,809,true,true
 láng á,láng-á,,700,true,true
 láng á,籠仔,,801,true,true
 láu,láu,,0,true,true
-láu,咾,2+38,-1,true,true
+láu,咾,2+38,945,true,true
 láu,老,,296,true,true
 láu,荖,,66,true,true
 láu hio̍h,láu-hio̍h,,720,true,true
@@ -26117,7 +26114,7 @@ lúi,蕋,,101,true,true
 lúi,藟,,105,true,true
 lúi,誄,,96,true,true
 lún,lún,,720,true,true
-lún,侖,25+7,-1,true,true
+lún,侖,25+7,932,true,true
 lún,崙,25+7,933,true,true
 lún,忍,,855,true,true
 lún,碖,,92,true,true
@@ -26142,7 +26139,7 @@ lûi tâi,lûi-tâi,,700,true,true
 lûi tâi,擂台,,808,true,true
 lûi tâi,雷台,,809,true,true
 lûn,lûn,,0,true,true
-lûn,侖,25+7,97,true,true
+lûn,侖,25+7,932,true,true
 lûn,倫,,497,true,true
 lûn,崘,,100,true,true
 lûn,崙,25+7,933,true,true
@@ -26656,7 +26653,7 @@ lūi kó͘,擂鼓,,809,true,true
 lūi sū,lūi-sū,,700,true,true
 lūi sū,類似,,809,true,true
 lūn,lūn,,744,true,true
-lūn,侖,25+7,-1,true,true
+lūn,侖,25+7,932,true,true
 lūn,媆,,98,true,true
 lūn,嫩,,101,true,true
 lūn,崙,25+7,933,true,true
@@ -26960,7 +26957,7 @@ mui,mui,,0,true,true
 muih,muih,,0,true,true
 mu̍ih,mu̍ih,,0,true,true
 mà,mà,,700,true,true
-mà,嗎,2+37,840,true,true
+mà,嗎,2+37,938,true,true
 mà khuh,mà-khù,,700,true,true
 mà khù,mà-khù,,700,true,true
 mà kuh,mà-kù,,700,true,true
@@ -26982,6 +26979,7 @@ màng gà,bàng-gà,,700,true,true
 màu,màu,,0,true,true
 má,Má,,700,true,true
 má,má,,720,true,true
+má,嗎,2+37,938,true,true
 má,媽,,850,true,true
 má,碼,,81,true,true
 má,馬,2+,939,true,true
@@ -27759,7 +27757,7 @@ ni,·nih,,700,true,false
 ni,·ni̍h,,714,true,false
 ni,ニ,**ni-,78,true,true
 ni,乳,,900,true,true
-ni,哖,145+78,905,true,true
+ni,哖,145+78,946,true,true
 ni,年,145+78,947,true,true
 ni,裡,,874,true,true
 ni bó,ni-bó,,700,true,true
@@ -27792,7 +27790,7 @@ nih,nih,,720,true,true
 nih,·nih,,700,true,false
 nih,·ni̍h,,700,true,false
 nih,ニ,**nih,78,true,true
-nih,哖,145+78,880,true,true
+nih,哖,145+78,946,true,true
 nih,年,145+78,947,true,true
 nih,裡,,874,true,true
 nih sang,nì-sàng,,700,true,true
@@ -27889,7 +27887,7 @@ niŭ,niŭ,,0,true,true
 ni̍h,-·ni̍h,,714,true,false
 ni̍h,ni̍h,,0,true,true
 ni̍h,·ni̍h,,714,true,false
-ni̍h,哖,145+78,-1,true,true
+ni̍h,哖,145+78,946,true,true
 ni̍h,年,145+78,947,true,true
 ni̍h,裡,,874,true,true
 nng,nng,,0,true,true
@@ -28111,7 +28109,7 @@ ní,迩,,86,true,true
 ní,邇,,95,true,true
 nî,nî,,764,true,true
 nî,呢,,90,true,true
-nî,哖,145+78,-1,true,true
+nî,哖,145+78,946,true,true
 nî,尼,,487,true,true
 nî,年,145+78,954,true,true
 nî,彌,,81,true,true
@@ -28237,7 +28235,7 @@ nē,nē,,700,true,true
 nē,呢,,860,true,true
 nĕ,nĕ,,0,true,true
 nī,nī,,0,true,true
-nī,哖,145+78,-1,true,true
+nī,哖,145+78,946,true,true
 nī,女,,97,true,true
 nī,年,145+78,947,true,true
 nī,泥,,84,true,true
@@ -32898,8 +32896,7 @@ saⁿ goe̍h,3 ·goe̍h,,720,true,false
 saⁿ goe̍h,saⁿ-goe̍h,,720,true,true
 saⁿ goe̍h,saⁿ-·goe̍h,,720,true,false
 saⁿ goe̍h,三月,,829,true,true
-saⁿ gō͘, 5,,720,true,true
-saⁿ gō͘,3,,720,true,true
+saⁿ gō͘,"3, 5",,720,true,true
 saⁿ gō͘,saⁿ gō͘,,720,true,true
 saⁿ gō͘,三五,,829,true,true
 saⁿ kak,saⁿ-kak,,700,true,true
@@ -37214,7 +37211,7 @@ tat kí,妲己,,800,true,true
 tau,tau,,751,true,true
 tau,兜,,906,true,true
 tauh,tauh,,700,true,true
-tauh,斗,2+3458,924,true,true
+tauh,斗,2+3458,943,true,true
 tauh tauh,tauh-tauh,,700,true,true
 tauh tauh,斗斗,,809,true,true
 tauhⁿ,tauhⁿ,,0,true,true
@@ -37275,7 +37272,7 @@ ta̍t tit,達得,,809,true,true
 ta̍t á,ta̍t-á,,700,true,true
 ta̍t á,達仔,,805,true,true
 ta̍uh,ta̍uh,,0,true,true
-ta̍uh,斗,2+3458,924,true,true
+ta̍uh,斗,2+3458,943,true,true
 ta̍uh ta̍uh,ta̍uh-ta̍uh,,700,true,true
 ta̍uh ta̍uh,斗斗,,805,true,true
 ta̍uh ta̍uh,豆豆,,806,true,true
@@ -39970,7 +39967,7 @@ tiòng hong,tiòng-hong,,700,true,true
 tiòng hong,中風,,809,true,true
 tiò͘,tiò͘,,0,true,true
 tió,tió,,0,true,true
-tió,斗,,474,true,true
+tió,斗,,493,true,true
 tióng,tióng,,0,true,true
 tióng,長,,489,true,true
 tióng chip,tióng-chip,,700,true,true
@@ -40718,7 +40715,7 @@ tàng,凍,,274,true,true
 tàng sng,tàng-sng,,700,true,true
 tàng sng,凍霜,,809,true,true
 tàu,tàu,,755,true,true
-tàu,斗,2+3458,924,true,true
+tàu,斗,2+3458,943,true,true
 tàu,昼,,826,true,true
 tàu,晝,,825,true,true
 tàu,罩,,82,true,true
@@ -40827,7 +40824,7 @@ táng ê,táng ·ê,,700,true,false
 táng ê,董个,,809,true,true
 táng ê,董兮,,808,true,true
 táu,táu,,720,true,true
-táu,斗,2+3458,924,true,true
+táu,斗,2+3458,943,true,true
 táu kat,斗葛,,809,true,true
 táu la̍k,Táu-la̍k,,720,true,true
 táu la̍k,斗六,,829,true,true
@@ -41002,7 +40999,7 @@ tâng á bí ko,tâng-á bí-ko,,720,true,true
 tâng á bí ko,筒仔米糕,,829,true,true
 tâu,tâu,,720,true,true
 tâu,投,35+,933,true,true
-tâu,斗,2+3458,924,true,true
+tâu,斗,2+3458,943,true,true
 tâu,骰,,74,true,true
 tâu chhiú,tâu-chhiú,,720,true,true
 tâu chhiú,投手,,820,true,true
@@ -41550,7 +41547,7 @@ tó͘,倒,,477,true,true
 tó͘,垜,,77,true,true
 tó͘,堵,2+,923,true,true
 tó͘,島,,835,true,true
-tó͘,斗,,474,true,true
+tó͘,斗,,493,true,true
 tó͘,祷,,70,true,true
 tó͘,禱,,79,true,true
 tó͘,肚,2+7+,927,true,true
